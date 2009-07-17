@@ -1,0 +1,37 @@
+IP=root@ipod
+
+PACKAGE := $(shell grep Package layout/DEBIAN/control | cut -d' ' -f2)
+ARCH := $(shell grep Architecture layout/DEBIAN/control | cut -d' ' -f2)
+VERSION := $(shell grep Version layout/DEBIAN/control | cut -d' ' -f2)
+
+BUILDNUM = $(shell /home/dustin/bin/deb_build_num.sh $(PACKAGE) $(VERSION))
+DEBVERSION = $(shell grep Version _/DEBIAN/control | cut -d' ' -f2)
+
+.PHONY: install appinstall package-pre package-build package-clean package-local package
+
+install-base:
+	scp $(PACKAGE)_$(DEBVERSION)_$(ARCH).deb $(IP):
+	ssh $(IP) dpkg -i $(PACKAGE)_$(DEBVERSION)_$(ARCH).deb
+
+install: install-base
+	ssh $(IP) killall -HUP SpringBoard
+	
+appinstall: install-base
+	ssh $(IP) su mobile -c uicache
+	
+voidinstall: install-base
+
+package-pre: all
+	rm -rf _
+	svn export layout _ || cp -r layout _
+	#(buildnum=$$(/home/dustin/bin/deb_build_num.sh $(PACKAGE) $(CLEANVERSION)); sed -i -e 's/Version: \(.*\)/Version: \1-'$$buildnum'/g' _/DEBIAN/control)
+	sed -i -e 's/Version: \(.*\)/Version: \1-$(BUILDNUM)/g' _/DEBIAN/control
+
+package-build:
+	echo "Installed-Size: $(shell du -ks _ | cut -f 1)" >> _/DEBIAN/control
+	dpkg-deb -b _ $(PACKAGE)_$(DEBVERSION)_$(ARCH).deb
+
+package-clean:
+	rm -f $(PACKAGE)_*.deb
+
+package: package-pre package-local package-build
