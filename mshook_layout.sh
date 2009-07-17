@@ -25,12 +25,11 @@ svn co http://svn.howett.net/svn/iphone-framework framework
 cat > Makefile << __END
 PWD:=\$(shell pwd)
 TOP_DIR:=\$(PWD)
-FRAMEWORKDIR=$(TOP_DIR)/framework
+FRAMEWORKDIR=\$(TOP_DIR)/framework
 tweak=$EXTENSION
 include \$(FRAMEWORKDIR)/makefiles/MSMakefile
 __END
 
-ln -s /home/dustin/projects/itouch/cydelete/Common.h .
 cat > Hook.h << __END
 #import <Foundation/Foundation.h>
 #import <objc/runtime.h>
