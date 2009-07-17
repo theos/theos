@@ -1,0 +1,56 @@
+TARGET=arm-apple-darwin9
+SDKPREFIX=/opt/iphone-sdk-3.0/prefix/bin
+PREFIX:=$(SDKPREFIX)/$(TARGET)-
+
+CC=$(PREFIX)gcc
+CXX=$(PREFIX)g++
+STRIP=$(PREFIX)strip
+CODESIGN_ALLOCATE=$(PREFIX)codesign_allocate
+export CC CXX STRIP CODESIGN_ALLOCATE
+
+LDFLAGS:=-lobjc -framework Foundation -framework UIKit -framework CoreFoundation \
+	-multiply_defined suppress -dynamiclib -init _$(tweak)Initialize -Wall \
+	-Werror -lsubstrate -lobjc -ObjC++ -fobjc-exceptions -fobjc-call-cxx-cdtors $(LDFLAGS)
+
+ifdef DEBUG
+DEBUG_CFLAGS=-DDEBUG -ggdb
+STRIP=/bin/true
+endif
+
+CFLAGS:=-O2 $(CFLAGS) $(DEBUG_CFLAGS) -I$(FRAMEWORKDIR)/include
+export FRAMEWORKDIR
+export CFLAGS
+
+OFILES=Hook.o
+
+TARGET=$(tweak).dylib
+
+.PHONY: all clean package-local
+.PHONY: project-all project-clean project-package-local project-package-post
+
+all: $(TARGET)
+	@$(MAKE) project-all #|| true
+	@(for i in $(subdirs); do $(MAKE) -C $$i $@; done)
+
+$(TARGET): $(OFILES)
+	$(CXX) $(LDFLAGS) -o $@ $^
+	$(STRIP) -x $@
+	CODESIGN_ALLOCATE=$(CODESIGN_ALLOCATE) ldid -S $@
+
+%.o: %.mm
+	$(CXX) -c $(CFLAGS) $< -o $@
+
+clean:
+	rm -f *.o $(TARGET)
+	@$(MAKE) project-clean #|| true
+	@(for i in $(subdirs); do $(MAKE) -C $$i $@; done)
+
+package-local: $(TARGET)
+	cp $(TARGET) _/Library/MobileSubstrate/DynamicLibraries
+	@$(MAKE) project-package-local #|| true
+	chown 0.80 _ -R
+	@$(MAKE) project-package-post #|| true
+
+include $(FRAMEWORKDIR)/makefiles/DebMakefile
+
+%:: ;
