@@ -25,3 +25,6 @@ static inline SEL __getsel(const char *in) {
 }
 #define HOOK_MESSAGE_EX(class, sel) \
 	_ ## class ## $ ## sel = MSHookMessage($ ## class, __getsel(#sel), &$ ## class ## $ ## sel)
+
+#define HOOK_MESSAGE_F(class, sel, replace) \
+	_ ## class ## $ ## replace = MSHookMessage($ ## class, @selector(sel), &$ ## class ## $ ## replace)
