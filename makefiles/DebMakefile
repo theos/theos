@@ -1,10 +1,12 @@
 IP=root@ipod
 
+export TOP_DIR
+
 PACKAGE := $(shell grep Package layout/DEBIAN/control | cut -d' ' -f2)
 ARCH := $(shell grep Architecture layout/DEBIAN/control | cut -d' ' -f2)
 VERSION := $(shell grep Version layout/DEBIAN/control | cut -d' ' -f2)
 
-BUILDNUM = $(shell /home/dustin/bin/deb_build_num.sh $(PACKAGE) $(VERSION))
+BUILDNUM = $(shell TOP_DIR="$(TOP_DIR)" $(FRAMEWORKDIR)/scripts/deb_build_num.sh $(PACKAGE) $(VERSION))
 DEBVERSION = $(shell grep Version _/DEBIAN/control | cut -d' ' -f2)
 
 .PHONY: install appinstall package-pre package-build package-clean package-local package
@@ -24,7 +26,6 @@ voidinstall: install-base
 package-pre: all
 	rm -rf _
 	svn export layout _ || cp -r layout _
-	#(buildnum=$$(/home/dustin/bin/deb_build_num.sh $(PACKAGE) $(CLEANVERSION)); sed -i -e 's/Version: \(.*\)/Version: \1-'$$buildnum'/g' _/DEBIAN/control)
 	sed -i -e 's/Version: \(.*\)/Version: \1-$(BUILDNUM)/g' _/DEBIAN/control
 
 package-build:
