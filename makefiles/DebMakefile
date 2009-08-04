@@ -9,11 +9,17 @@ VERSION := $(shell grep Version layout/DEBIAN/control | cut -d' ' -f2)
 BUILDNUM = $(shell TOP_DIR="$(TOP_DIR)" $(FRAMEWORKDIR)/scripts/deb_build_num.sh $(PACKAGE) $(VERSION))
 DEBVERSION = $(shell grep Version _/DEBIAN/control | cut -d' ' -f2)
 
+ifdef STOREPACKAGE
+FILENAME = cydiastore_$(PACKAGE)_v$(DEBVERSION).deb
+else
+FILENAME = $(PACKAGE)_$(DEBVERSION)_$(ARCH).deb
+endif
+
 .PHONY: install appinstall package-pre package-build package-clean package-local package
 
 install-base:
-	scp $(PACKAGE)_$(DEBVERSION)_$(ARCH).deb $(IP):
-	ssh $(IP) dpkg -i $(PACKAGE)_$(DEBVERSION)_$(ARCH).deb
+	scp $(FILENAME) $(IP):
+	ssh $(IP) dpkg -i $(FILENAME)
 
 install: install-base
 	ssh $(IP) killall -HUP SpringBoard
@@ -30,9 +36,9 @@ package-pre: all
 
 package-build:
 	echo "Installed-Size: $(shell du -ks _ | cut -f 1)" >> _/DEBIAN/control
-	dpkg-deb -b _ $(PACKAGE)_$(DEBVERSION)_$(ARCH).deb
+	dpkg-deb -b _ $(FILENAME)
 
 package-clean:
-	rm -f $(PACKAGE)_*.deb
+	rm -f $(PACKAGE)_*.deb cydiastore_*.deb
 
 package: package-pre package-local package-build
