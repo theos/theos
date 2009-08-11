@@ -36,7 +36,7 @@ package-pre: all
 
 package-build:
 	echo "Installed-Size: $(shell du -ks _ | cut -f 1)" >> _/DEBIAN/control
-	dpkg-deb -b _ $(FILENAME)
+	fakeroot-ng -p "$(TOP_DIR)/.debmake/fakeroot" dpkg-deb -b _ $(FILENAME)
 
 package-clean:
 	rm -f $(PACKAGE)_*.deb cydiastore_*.deb

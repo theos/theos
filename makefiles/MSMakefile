@@ -48,7 +48,7 @@ clean:
 package-local: $(TARGET)
 	cp $(TARGET) _/Library/MobileSubstrate/DynamicLibraries
 	@$(MAKE) project-package-local #|| true
-	chown 0.80 _ -R
+	fakeroot-ng -p "$(TOP_DIR)/.debmake/fakeroot" chown 0.80 _ -R
 	@$(MAKE) project-package-post #|| true
 
 include $(FRAMEWORKDIR)/makefiles/DebMakefile
