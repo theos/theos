@@ -13,9 +13,6 @@
 #define HOOK_MESSAGE(class, sel) \
 	_ ## class ## $ ## sel = MSHookMessage($ ## class, @selector(sel), &$ ## class ## $ ## sel) 
 
-#define HOOK_MESSAGE_ARGS(class, sel) \
-	_ ## class ## $ ## sel ## $ = MSHookMessage($ ## class, @selector(sel:), &$ ## class ## $ ## sel ## $) 
-
 static inline SEL __getsel(const char *in) {
 	int len = strlen(in) + 1;
 	char selector[len];
@@ -23,8 +20,16 @@ static inline SEL __getsel(const char *in) {
 		selector[i] = (in[i] == '$' ? ':' : in[i]);
 	return sel_getUid(selector);
 }
-#define HOOK_MESSAGE_EX(class, sel) \
+#define HOOK_MESSAGE_AUTO(class, sel) \
 	_ ## class ## $ ## sel = MSHookMessage($ ## class, __getsel(#sel), &$ ## class ## $ ## sel)
 
-#define HOOK_MESSAGE_F(class, sel, replace) \
+#define HOOK_MESSAGE_REPLACEMENT(class, sel, replace) \
 	_ ## class ## $ ## replace = MSHookMessage($ ## class, @selector(sel), &$ ## class ## $ ## replace)
+
+#define HOOK_MESSAGE_ARGS HOOK_MESSAGE_WITH_SINGLE_ARG
+#define HOOK_MESSAGE_EX HOOK_MESSAGE_AUTO
+#define HOOK_MESSAGE_F HOOK_MESSAGE_REPLACEMENT
+
+#define DHGetClass GET_CLASS
+#define DHHookMessageWithReplacement HOOK_MESSAGE_REPLACEMENT
+#define DHHookMessageWithAutoRename HOOK_MESSAGE_AUTO
