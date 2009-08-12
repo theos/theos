@@ -16,7 +16,8 @@
  * 	  ...
  * 	}
  *
- * Creates a static variable to store the original message address, and a function to replace it.
+ * Creates a static variable (in the form of _class$name) to store the original message address, and a function to replace it,
+ * in the form of $class$name.
  * type is the return type, and args are all the message arguments, in order; args is optional.
  */
 #define HOOK(class, name, type, args...) \
@@ -28,9 +29,9 @@
  *
  * Example:
  * 	CALL_ORIG(Class, init);
- * 	CALL_ORIG(Class, initWithFrame$andOtherThing, frame, otherThing);
+ * 	CALL_ORIG(Class, initWithFrame$andOtherThing$, frame, otherThing);
  *
- * Calls an original implementation.
+ * Calls an original implementation (_class$name).
  */
 #define CALL_ORIG(class, name, args...) \
 	_ ## class ## $ ## name(self, sel, ## args)
