@@ -1,4 +1,5 @@
 IP=root@ipod
+FAKEROOT:=fakeroot-ng -p "$(TOP_DIR)/.debmake/fakeroot"
 
 export TOP_DIR
 
@@ -36,7 +37,7 @@ package-pre: all
 
 package-build:
 	echo "Installed-Size: $(shell du -ks _ | cut -f 1)" >> _/DEBIAN/control
-	fakeroot-ng -p "$(TOP_DIR)/.debmake/fakeroot" dpkg-deb -b _ $(FILENAME)
+	$(FAKEROOT) dpkg-deb -b _ $(FILENAME)
 
 package-clean:
 	rm -f $(PACKAGE)_*.deb cydiastore_*.deb
