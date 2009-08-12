@@ -70,6 +70,17 @@
 #define HOOK_MESSAGE(class, sel) \
 	_ ## class ## $ ## sel = MSHookMessage($ ## class, @selector(sel), &$ ## class ## $ ## sel) 
 
+/*
+ * HOOK_MESSAGE_WITH_SINGLE_ARG(class, sel)
+ *
+ * Example:
+ * 	HOOK_MESSAGE_WITH_SINGLE_ARG(Class, initWithFrame);
+ *
+ * Shorthand for HOOK_MESSAGE_REPLACEMENT(Class, sel:, sel$)
+ */
+#define HOOK_MESSAGE_WITH_SINGLE_ARG(class, sel) \
+	_ ## class ## $ ## sel ## $ = MSHookMessage($ ## class, @selector(sel:), &$ ## class ## $ ## sel ## $) 
+
 static inline SEL __getsel(const char *in) {
 	int len = strlen(in) + 1;
 	char selector[len];
