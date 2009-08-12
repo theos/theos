@@ -1,7 +1,14 @@
 #import <substrate.h>
 
 /*
+ * Many thanks to ashikase+saurik for the original HOOK/CALL_ORIG macros.
+ */
+
+/*
  * All hook names are created/specified with $ in place of : for selector names.
+ * init::: -> init$$$
+ * destroyChildren:withMethod: -> destroyChildren$withMethod$
+ * init -> init
  */
 
 /*
