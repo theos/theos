@@ -1,0 +1,27 @@
+#ifdef __OBJC__
+	#import <Foundation/Foundation.h>
+	#import <UIKit/UIKit.h>
+
+	#define CLASS(cls) objc_getClass(#cls)
+
+	#ifdef DEBUG
+		#define __DEBUG__
+	#endif
+	
+	#ifdef __DEBUG__
+		#define CMLog(format, ...) NSLog(@"(%s) in [%s:%d] ::: %@", __PRETTY_FUNCTION__, __FILE__, __LINE__, [NSString stringWithFormat:format, ## __VA_ARGS__])
+		#define MARK	CMLog(@"%s", __PRETTY_FUNCTION__);
+		#define START_TIMER NSTimeInterval start = [NSDate timeIntervalSinceReferenceDate];
+		#define END_TIMER(msg) 	NSTimeInterval stop = [NSDate timeIntervalSinceReferenceDate]; CMLog([NSString stringWithFormat:@"%@ Time = %f", msg, stop-start])
+	#else
+		#define CMLog(format, ...)
+		#define MARK
+		#define START_TIMER
+		#define END_TIMER(msg)
+		#define NSLog(...)
+	#endif
+
+	#define NB [NSBundle mainBundle]
+	#define UD [NSUserDefaults standardUserDefaults]
+	#define FM [NSFileManager defaultManager]
+#endif
