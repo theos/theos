@@ -1,5 +1,6 @@
 #import <substrate.h>
 #import <objc/runtime.h>
+#import <string.h>
 
 /*
  * Many thanks to ashikase+saurik for the original HOOK/CALL_ORIG macros.
