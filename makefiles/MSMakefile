@@ -37,8 +37,7 @@ $(TARGET): $(OFILES)
 	$(STRIP) -x $@
 	CODESIGN_ALLOCATE=$(CODESIGN_ALLOCATE) ldid -S $@
 
-%.o: %.mm
-	$(CXX) -c $(CFLAGS) $< -o $@
+include $(FRAMEWORKDIR)/makefiles/rules.make
 
 clean:
 	rm -f *.o $(TARGET)
