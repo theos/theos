@@ -17,7 +17,7 @@ DEBUG_CFLAGS=-DDEBUG -ggdb
 STRIP=/bin/true
 endif
 
-CFLAGS:=-O2 $(CFLAGS) $(DEBUG_CFLAGS) -I$(FRAMEWORKDIR)/include
+CFLAGS:=-O2 $(CFLAGS) $(DEBUG_CFLAGS) -I$(FRAMEWORKDIR)/include -include $(FRAMEWORKDIR)/Prefix.pch
 export FRAMEWORKDIR
 export CFLAGS
 
