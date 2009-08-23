@@ -10,14 +10,14 @@ export CC CXX STRIP CODESIGN_ALLOCATE
 
 LDFLAGS:=-lobjc -framework Foundation -framework UIKit -framework CoreFoundation \
 	-multiply_defined suppress -dynamiclib -init _$(tweak)Initialize -Wall \
-	-Werror -lsubstrate -lobjc -ObjC++ -fobjc-exceptions -fobjc-call-cxx-cdtors $(LDFLAGS)
+	-Werror -lsubstrate -ObjC++ -fobjc-exceptions -fobjc-call-cxx-cdtors $(LDFLAGS)
 
 ifdef DEBUG
 DEBUG_CFLAGS=-DDEBUG -ggdb
 STRIP=/bin/true
 endif
 
-CFLAGS:=-O2 $(CFLAGS) $(DEBUG_CFLAGS) -I$(FRAMEWORKDIR)/include -include $(FRAMEWORKDIR)/Prefix.pch
+CFLAGS:=-O2 $(CFLAGS) $(DEBUG_CFLAGS) -I$(FRAMEWORKDIR)/include -include $(FRAMEWORKDIR)/Prefix.pch -Wall -Werror
 export FRAMEWORKDIR
 export CFLAGS
 
