@@ -126,3 +126,4 @@ static inline SEL __getsel(const char *in) {
 #define DHGetClass GET_CLASS
 #define DHHookMessageWithReplacement HOOK_MESSAGE_REPLACEMENT
 #define DHHookMessageWithAutoRename HOOK_MESSAGE_AUTO
+#define DHHookMessage HOOK_MESSAGE_AUTO
