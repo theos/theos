@@ -10,7 +10,7 @@ cat > layout/DEBIAN/control << __END
 Package: net.howett.$LEXTENSION
 Name: $EXTENSION
 Depends: mobilesubstrate
-Version: 1.0.0
+Version: 0.0.1
 Architecture: iphoneos-arm
 Description: 
 Maintainer: Dustin Howett <dustin@howett.net>
@@ -30,23 +30,14 @@ tweak=$EXTENSION
 include \$(FRAMEWORKDIR)/makefiles/MSMakefile
 __END
 
-cat > Hook.h << __END
-#import <Foundation/Foundation.h>
-#import <objc/runtime.h>
+cat > Hook.mm << __END
 #import <DHHookCommon.h>
 
-extern "C" void ${EXTENSION}Initialize();
-__END
+//DHDeclareClass(Blah);
 
-cat > Hook.mm << __END
-#import "Hook.h"
-
-extern "C" void ${EXTENSION}Initialize() {
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
-	// GET_CLASS(Blah)
-	// HOOK_MESSAGE(Blah, blah);
-
-	[pool drain];
+static _Constructor void ${EXTENSION}Initialize() {
+	DHScopedAutoreleasePool();
+	//DHLoadLateClass(Blah);
+	//DHHookMessage(Blah, blah);
 }
 __END
