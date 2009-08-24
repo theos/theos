@@ -1,3 +1,4 @@
+#import <DHCommon.h>
 #import <substrate.h>
 #import <objc/runtime.h>
 #import <string.h>
@@ -70,7 +71,7 @@
  * or call __getsel
  */
 #define HOOK_MESSAGE(class, sel) \
-	_ ## class ## $ ## sel = MSHookMessage($ ## class, @selector(sel), &$ ## class ## $ ## sel) 
+	_ ## class ## $ ## sel = MSHookMessage(DHClass(class), @selector(sel), &$ ## class ## $ ## sel) 
 
 /*
  * HOOK_MESSAGE_WITH_SINGLE_ARG(class, sel)
@@ -81,8 +82,9 @@
  * Shorthand for HOOK_MESSAGE_REPLACEMENT(Class, sel:, sel$)
  */
 #define HOOK_MESSAGE_WITH_SINGLE_ARG(class, sel) \
-	_ ## class ## $ ## sel ## $ = MSHookMessage($ ## class, @selector(sel:), &$ ## class ## $ ## sel ## $) 
+	_ ## class ## $ ## sel ## $ = MSHookMessage(DHClass(class), @selector(sel:), &$ ## class ## $ ## sel ## $) 
 
+static inline SEL __getsel(const char *in) __attribute__((always_inline));
 static inline SEL __getsel(const char *in) {
 	int len = strlen(in) + 1;
 	char selector[len];
@@ -103,7 +105,7 @@ static inline SEL __getsel(const char *in) {
  * replacing it with $class$replace (created with HOOK).
  */
 #define HOOK_MESSAGE_AUTO(class, replace) \
-	_ ## class ## $ ## replace = MSHookMessage($ ## class, __getsel(#replace), &$ ## class ## $ ## replace)
+	_ ## class ## $ ## replace = MSHookMessage(DHClass(class), __getsel(#replace), &$ ## class ## $ ## replace)
 
 /*
  * HOOK_MESSAGE_REPLACEMENT(class, sel, replace)
@@ -115,7 +117,7 @@ static inline SEL __getsel(const char *in) {
  * replacing it with $class$replace (created with HOOK).
  */
 #define HOOK_MESSAGE_REPLACEMENT(class, sel, replace) \
-	_ ## class ## $ ## replace = MSHookMessage($ ## class, @selector(sel), &$ ## class ## $ ## replace)
+	_ ## class ## $ ## replace = MSHookMessage(DHClass(class), @selector(sel), &$ ## class ## $ ## replace)
 
 #define HOOK_MESSAGE_ARGS HOOK_MESSAGE_WITH_SINGLE_ARG
 #define HOOK_MESSAGE_EX HOOK_MESSAGE_AUTO

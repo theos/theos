@@ -8,9 +8,9 @@ STRIP=$(PREFIX)strip
 CODESIGN_ALLOCATE=$(PREFIX)codesign_allocate
 export CC CXX STRIP CODESIGN_ALLOCATE
 
-LDFLAGS:=-lobjc -framework Foundation -framework UIKit -framework CoreFoundation \
-	-multiply_defined suppress -dynamiclib -init _$(tweak)Initialize -Wall \
-	-Werror -lsubstrate -ObjC++ -fobjc-exceptions -fobjc-call-cxx-cdtors $(LDFLAGS)
+LDFLAGS:=-lobjc -framework Foundation -framework CoreFoundation -multiply_defined suppress \
+	-dynamiclib -Wall -Werror -ObjC++ -fobjc-exceptions \
+	-fobjc-call-cxx-cdtors -lsubstrate $(LDFLAGS)
 
 ifdef DEBUG
 DEBUG_CFLAGS=-DDEBUG -ggdb
