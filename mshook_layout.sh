@@ -33,11 +33,10 @@ __END
 cat > Hook.mm << __END
 #import <DHHookCommon.h>
 
-//DHDeclareClass(Blah);
+//DHLateClass(Blah);
 
 static _Constructor void ${EXTENSION}Initialize() {
 	DHScopedAutoreleasePool();
-	//DHLoadLateClass(Blah);
 	//DHHookMessage(Blah, blah);
 }
 __END
