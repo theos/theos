@@ -34,6 +34,8 @@
 	static type (*_ ## class ## $ ## name)(class *self, SEL sel, ## args); \
 	static type $ ## class ## $ ## name(class *self, SEL sel, ## args)
 
+#define IMPLEMENTATION(class, name, type, args...) \
+	static type $ ## class ## $ ## name(class *self, SEL sel, ## args)
 /*
  * CALL_ORIG(class, name, args...)
  *
@@ -72,6 +74,9 @@
  */
 #define HOOK_MESSAGE(class, sel) \
 	_ ## class ## $ ## sel = MSHookMessage(DHClass(class), @selector(sel), &$ ## class ## $ ## sel) 
+
+#define ADD_MESSAGE(class, sel) \
+	MSHookMessage(DHClass(class), @selector(sel), &$ ## class ## $ ## sel) 
 
 /*
  * HOOK_MESSAGE_WITH_SINGLE_ARG(class, sel)
@@ -119,9 +124,13 @@ static inline SEL __getsel(const char *in) {
 #define HOOK_MESSAGE_REPLACEMENT(class, sel, replace) \
 	_ ## class ## $ ## replace = MSHookMessage(DHClass(class), @selector(sel), &$ ## class ## $ ## replace)
 
+#define ADD_MESSAGE_REPLACEMENT(class, sel, replace) \
+	MSHookMessage(DHClass(class), @selector(sel), &$ ## class ## $ ## replace)
+
 #define HOOK_MESSAGE_ARGS HOOK_MESSAGE_WITH_SINGLE_ARG
 #define HOOK_MESSAGE_EX HOOK_MESSAGE_AUTO
 #define HOOK_MESSAGE_F HOOK_MESSAGE_REPLACEMENT
+#define ADD_MESSAGE_F ADD_MESSAGE_REPLACEMENT
 
 #define DHGetClass GET_CLASS
 #define DHHookMessageWithReplacement HOOK_MESSAGE_REPLACEMENT
