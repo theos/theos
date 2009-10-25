@@ -111,6 +111,8 @@ static inline SEL __getsel(const char *in) {
  */
 #define HOOK_MESSAGE_AUTO(class, replace) \
 	_ ## class ## $ ## replace = MSHookMessage(DHClass(class), __getsel(#replace), &$ ## class ## $ ## replace)
+#define ADD_MESSAGE_AUTO(class, replace) \
+	MSHookMessage(DHClass(class), __getsel(#replace), &$ ## class ## $ ## replace)
 
 /*
  * HOOK_MESSAGE_REPLACEMENT(class, sel, replace)
@@ -136,3 +138,4 @@ static inline SEL __getsel(const char *in) {
 #define DHHookMessageWithReplacement HOOK_MESSAGE_REPLACEMENT
 #define DHHookMessageWithAutoRename HOOK_MESSAGE_AUTO
 #define DHHookMessage HOOK_MESSAGE_AUTO
+#define DHAddMessage ADD_MESSAGE_AUTO
