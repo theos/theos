@@ -19,9 +19,9 @@ cmd=$*
 
 rm -f $persistence
 
-if test fakeroot-ng &> /dev/null; then
+if type fakeroot-ng &> /dev/null; then
 	fakeroot="fakeroot-ng -p $persistence -- "
-elif test fakeroot &> /dev/null; then
+elif type fakeroot &> /dev/null; then
 	fakeroot="fakeroot -s $persistence -- "
 else
 	if [[ $required -eq 1 ]]; then
