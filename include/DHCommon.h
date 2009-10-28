@@ -6,7 +6,7 @@
  */
 #define _Constructor __attribute__((constructor))
 #define DHLateClass(name) @class name; static Class $ ## name = objc_getClass(#name)
-#define DHEarlyClass(name) static Class $ ## name = = [name class]
+#define DHEarlyClass(name) static Class $ ## name = [name class]
 #define DHClass(name) $ ## name
 
 static inline void _DHRelease(id object) __attribute__((always_inline));
