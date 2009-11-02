@@ -2,7 +2,7 @@
 required=0
 persistence=/tmp/dhbxxx
 
-while getopts ":p:r" flag; do
+while getopts ":p:rc" flag; do
 	case "$flag" in
 		:)	echo "$0: Option -$OPTARG requires an argument." 1>&2
 			exit 1
@@ -12,12 +12,16 @@ while getopts ":p:r" flag; do
 			;;
 		p)	persistence="$OPTARG" ;;
 		r)	required=1 ;;
+		c)	delpersistence=1 ;;
 	esac
 done
 shift $((OPTIND-1))
 cmd=$*
 
-#rm -f $persistence
+if [[ $delpersistence -eq 1 ]]; then
+	rm -f $persistence
+	exit 0
+fi
 
 if type fakeroot-ng &> /dev/null; then
 	fakeroot="fakeroot-ng -p $persistence -- "
