@@ -17,7 +17,7 @@ done
 shift $((OPTIND-1))
 cmd=$*
 
-rm -f $persistence
+#rm -f $persistence
 
 if type fakeroot-ng &> /dev/null; then
 	fakeroot="fakeroot-ng -p $persistence -- "
