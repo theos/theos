@@ -2,6 +2,8 @@ IP=root@ipod
 FAKEROOT:=$(FRAMEWORKDIR)/scripts/fakeroot.sh -p "$(TOP_DIR)/.debmake/fakeroot"
 
 export TOP_DIR
+PACKAGE_STAGING_DIR := $(TOP_DIR)/_
+export PACKAGE_STAGING_DIR
 
 PACKAGE := $(shell grep Package layout/DEBIAN/control | cut -d' ' -f2)
 ARCH := $(shell grep Architecture layout/DEBIAN/control | cut -d' ' -f2)
@@ -31,14 +33,14 @@ appinstall: install-base
 voidinstall: install-base
 
 package-pre: all
-	rm -rf _
-	svn export layout _ || cp -r layout _
-	sed -i -e 's/Version: \(.*\)/Version: \1-$(BUILDNUM)/g' _/DEBIAN/control
+	rm -rf $(PACKAGE_STAGING_DIR)
+	svn export layout $(PACKAGE_STAGING_DIR) || cp -r layout $(PACKAGE_STAGING_DIR)
+	sed -i -e 's/Version: \(.*\)/Version: \1-$(BUILDNUM)/g' $(PACKAGE_STAGING_DIR)/DEBIAN/control
 	$(FAKEROOT) -c
 
 package-build:
-	echo "Installed-Size: $(shell du -ks _ | cut -f 1)" >> _/DEBIAN/control
-	$(FAKEROOT) -r dpkg-deb -b _ $(FILENAME)
+	echo "Installed-Size: $(shell du -ks _ | cut -f 1)" >> $(PACKAGE_STAGING_DIR)/DEBIAN/control
+	$(FAKEROOT) -r dpkg-deb -b $(PACKAGE_STAGING_DIR) $(FILENAME)
 
 package-clean:
 	rm -f $(PACKAGE)_*.deb cydiastore_*.deb
