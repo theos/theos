@@ -34,6 +34,7 @@ package-pre: all
 	rm -rf _
 	svn export layout _ || cp -r layout _
 	sed -i -e 's/Version: \(.*\)/Version: \1-$(BUILDNUM)/g' _/DEBIAN/control
+	$(FAKEROOT) -c
 
 package-build:
 	echo "Installed-Size: $(shell du -ks _ | cut -f 1)" >> _/DEBIAN/control
