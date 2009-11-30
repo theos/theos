@@ -44,7 +44,7 @@ include $(FW_MAKEDIR)/DebMakefile
 package-local: $(TARGET)
 	cp $(TARGET) _/Library/MobileSubstrate/DynamicLibraries
 	@$(MAKE) project-package-local #|| true
-	$(FAKEROOT) chown 0.80 _ -R
+	$(FAKEROOT) chown -R 0:80 _
 	@$(MAKE) project-package-post #|| true
 
 %:: ;
