@@ -1,5 +1,7 @@
+-include $(FRAMEWORKDIR)/makefiles/defs.mk
+
 uname_s := $(shell uname -s)
--include $(FRAMEWORKDIR)/makefiles/platform/$(uname_s).mk
+-include $(FW_MAKEDIR)/platform/$(uname_s).mk
 export CC CXX STRIP CODESIGN_ALLOCATE
 
 LDFLAGS:=-lobjc -framework Foundation -framework CoreFoundation -multiply_defined suppress \
@@ -11,7 +13,7 @@ DEBUG_CFLAGS=-DDEBUG -ggdb
 STRIP=:
 endif
 
-CFLAGS:=$(SDKFLAGS) -O2 $(CFLAGS) $(DEBUG_CFLAGS) -I$(FRAMEWORKDIR)/include -include $(FRAMEWORKDIR)/Prefix.pch -Wall -Werror
+CFLAGS:=$(SDKFLAGS) -O2 $(CFLAGS) $(DEBUG_CFLAGS) -I$(FW_INCDIR) -include $(FRAMEWORKDIR)/Prefix.pch -Wall -Werror
 export FRAMEWORKDIR CFLAGS SDKFLAGS
 
 OFILES=Hook.o
@@ -30,14 +32,14 @@ $(TARGET): $(OFILES)
 	$(STRIP) -x $@
 	CODESIGN_ALLOCATE=$(CODESIGN_ALLOCATE) ldid -S $@
 
-include $(FRAMEWORKDIR)/makefiles/rules.make
+include $(FW_MAKEDIR)/rules.make
 
 clean:
 	rm -f *.o $(TARGET)
 	@$(MAKE) project-clean #|| true
 	@(for i in $(subdirs); do $(MAKE) -C $$i $@; done)
 
-include $(FRAMEWORKDIR)/makefiles/DebMakefile
+include $(FW_MAKEDIR)/DebMakefile
 
 package-local: $(TARGET)
 	cp $(TARGET) _/Library/MobileSubstrate/DynamicLibraries

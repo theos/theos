@@ -1,5 +1,5 @@
 IP=root@ipod
-FAKEROOT:=$(FRAMEWORKDIR)/scripts/fakeroot.sh -p "$(TOP_DIR)/.debmake/fakeroot"
+FAKEROOT:=$(FW_SCRIPTDIR)/fakeroot.sh -p "$(TOP_DIR)/.debmake/fakeroot"
 
 export TOP_DIR
 PACKAGE_STAGING_DIR := $(TOP_DIR)/_
@@ -9,7 +9,7 @@ PACKAGE := $(shell grep Package layout/DEBIAN/control | cut -d' ' -f2)
 ARCH := $(shell grep Architecture layout/DEBIAN/control | cut -d' ' -f2)
 VERSION := $(shell grep Version layout/DEBIAN/control | cut -d' ' -f2)
 
-BUILDNUM = $(shell TOP_DIR="$(TOP_DIR)" $(FRAMEWORKDIR)/scripts/deb_build_num.sh $(PACKAGE) $(VERSION))
+BUILDNUM = $(shell TOP_DIR="$(TOP_DIR)" $(FW_SCRIPTDIR)/deb_build_num.sh $(PACKAGE) $(VERSION))
 DEBVERSION = $(shell grep Version _/DEBIAN/control | cut -d' ' -f2)
 
 ifdef STOREPACKAGE
@@ -35,7 +35,7 @@ voidinstall: install-base
 package-pre: all
 	rm -rf $(PACKAGE_STAGING_DIR)
 	svn export layout $(PACKAGE_STAGING_DIR) || cp -r layout $(PACKAGE_STAGING_DIR)
-	sed -i -e 's/Version: \(.*\)/Version: \1-$(BUILDNUM)/g' $(PACKAGE_STAGING_DIR)/DEBIAN/control
+	sed -i x -e 's/Version: \(.*\)/Version: \1-$(BUILDNUM)/g' $(PACKAGE_STAGING_DIR)/DEBIAN/control
 	$(FAKEROOT) -c
 
 package-build:
