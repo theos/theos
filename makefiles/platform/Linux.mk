@@ -2,7 +2,7 @@ TARGET ?= arm-apple-darwin9
 SDKBINPATH ?= /opt/iphone-sdk-3.0/prefix/bin
 SYSROOT ?= /opt/iphone-sdk-3.0/sysroot
 
-PREFIX:=$(SDKPREFIX)/$(TARGET)-
+PREFIX:=$(SDKBINPATH)/$(TARGET)-
 
 CC=$(PREFIX)gcc
 CXX=$(PREFIX)g++
