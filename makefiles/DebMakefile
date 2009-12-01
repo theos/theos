@@ -35,7 +35,7 @@ voidinstall: install-base
 package-pre: all
 	rm -rf $(PACKAGE_STAGING_DIR)
 	svn export layout $(PACKAGE_STAGING_DIR) || cp -r layout $(PACKAGE_STAGING_DIR)
-	sed -i x -e 's/Version: \(.*\)/Version: \1-$(BUILDNUM)/g' $(PACKAGE_STAGING_DIR)/DEBIAN/control
+	sed -i '' -e 's/Version: \(.*\)/Version: \1-$(BUILDNUM)/g' $(PACKAGE_STAGING_DIR)/DEBIAN/control
 	$(FAKEROOT) -c
 
 package-build:
