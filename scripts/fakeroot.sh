@@ -23,7 +23,9 @@ if [[ $delpersistence -eq 1 ]]; then
 	exit 0
 fi
 
-if type fakeroot-ng &> /dev/null; then
+if [[ "$USER" == "root" ]]; then
+	fakeroot=""
+elif type fakeroot-ng &> /dev/null; then
 	fakeroot="fakeroot-ng -p $persistence -- "
 elif type fakeroot &> /dev/null; then
 	fakeroot="fakeroot -s $persistence -- "
