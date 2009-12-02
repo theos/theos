@@ -13,16 +13,16 @@ BUILDNUM = $(shell TOP_DIR="$(TOP_DIR)" $(FW_SCRIPTDIR)/deb_build_num.sh $(PACKA
 DEBVERSION = $(shell grep Version _/DEBIAN/control | cut -d' ' -f2)
 
 ifdef STOREPACKAGE
-FILENAME = cydiastore_$(PACKAGE)_v$(DEBVERSION).deb
+FILENAME = cydiastore_$(PACKAGE)_v$(DEBVERSION)
 else
-FILENAME = $(PACKAGE)_$(DEBVERSION)_$(ARCH).deb
+FILENAME = $(PACKAGE)_$(DEBVERSION)_$(ARCH)
 endif
 
 .PHONY: install appinstall package-pre package-build package-clean package-local package
 
 install-base:
-	scp $(FILENAME) $(IP):
-	ssh $(IP) dpkg -i $(FILENAME)
+	scp $(FILENAME).deb $(IP):
+	ssh $(IP) dpkg -i $(FILENAME).deb
 
 install: install-base
 	ssh $(IP) killall -HUP SpringBoard
@@ -35,14 +35,28 @@ voidinstall: install-base
 package-pre: all
 	rm -rf $(PACKAGE_STAGING_DIR)
 	svn export layout $(PACKAGE_STAGING_DIR) || cp -r layout $(PACKAGE_STAGING_DIR)
-	sed -i '' -e 's/Version: \(.*\)/Version: \1-$(BUILDNUM)/g' $(PACKAGE_STAGING_DIR)/DEBIAN/control
 	$(FAKEROOT) -c
-
-package-build:
-	echo "Installed-Size: $(shell du -ks _ | cut -f 1)" >> $(PACKAGE_STAGING_DIR)/DEBIAN/control
-	$(FAKEROOT) -r dpkg-deb -b $(PACKAGE_STAGING_DIR) $(FILENAME)
 
 package-clean:
 	rm -f $(PACKAGE)_*.deb cydiastore_*.deb
 
-package: package-pre package-local package-build
+package-deb-pre: package-pre package-local
+	echo "Installed-Size: $(shell du -ks _ | cut -f 1)" >> $(PACKAGE_STAGING_DIR)/DEBIAN/control
+	sed -i '' -e 's/Version: \(.*\)/Version: \1-$(BUILDNUM)/g' $(PACKAGE_STAGING_DIR)/DEBIAN/control
+
+package-deb: package-deb-pre
+	$(FAKEROOT) -r dpkg-deb -b $(PACKAGE_STAGING_DIR) $(FILENAME).deb
+
+package-zip: package-pre package-local
+	(cd _; $(FAKEROOT) -r zip -qr ../$(FILENAME).zip .)
+
+package-tar: package-pre package-local
+	$(FAKEROOT) -r tar -c -f $(FILENAME).tar -C _ --exclude DEBIAN .
+
+package-tar-gz: package-tar
+	$(FAKEROOT) -r gzip $(FILENAME).tar
+
+package-tar-bz2: package-tar
+	$(FAKEROOT) -r bzip2 $(FILENAME).tar
+
+package: package-pre package-local package-deb
