@@ -1,5 +1,8 @@
 ifeq ($(TOP_DIR),)
 	TOP_DIR:=$(shell pwd)
+endif
+
+ifeq ($(FRAMEWORKDIR),)
 	FRAMEWORKDIR=$(TOP_DIR)/framework
 endif
 
