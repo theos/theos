@@ -1,0 +1,12 @@
+ifeq ($(FW_RULES_LOADED),)
+include $(FW_MAKEDIR)/rules.mk
+endif
+
+ALL_LDFLAGS += -dynamiclib -lsubstrate
+
+internal-tweak-all_:: $(FW_OBJ_DIR) $(FW_OBJ_DIR)/$(FW_INSTANCE).dylib
+
+$(FW_OBJ_DIR)/$(FW_INSTANCE).dylib: $(OBJ_FILES_TO_LINK)
+	$(CXX) $(ALL_LDFLAGS) -o $@ $^
+	$(STRIP) -x $@
+	CODESIGN_ALLOCATE=$(CODESIGN_ALLOCATE) ldid -S $@

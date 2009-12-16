@@ -11,3 +11,6 @@ CODESIGN_ALLOCATE=$(SDKBINPATH)/codesign_allocate
 
 ARCHS ?= armv6
 SDKFLAGS := -isysroot $(SYSROOT) $(foreach ARCH,$(ARCHS),-arch $(ARCH))
+SDK_CFLAGS := $(SDKFLAGS)
+SDK_OBJCFLAGS := $(SDKFLAGS)
+SDK_LDFLAGS := $(SDKFLAGS)
