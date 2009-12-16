@@ -1,4 +1,4 @@
--include $(FRAMEWORKDIR)/makefiles/defs.mk
+-include $(FRAMEWORKDIR)/makefiles/legacy/common.mk
 
 LDFLAGS:=-lobjc -framework Foundation -framework CoreFoundation -multiply_defined suppress \
 	-dynamiclib -Wall -Werror -ObjC++ -fobjc-exceptions \
@@ -28,7 +28,7 @@ $(TARGET): $(OFILES)
 	$(STRIP) -x $@
 	CODESIGN_ALLOCATE=$(CODESIGN_ALLOCATE) ldid -S $@
 
-include $(FW_MAKEDIR)/rules.make
+include $(FW_MAKEDIR)/legacy/rules.make
 
 clean:
 	rm -f *.o $(TARGET)
