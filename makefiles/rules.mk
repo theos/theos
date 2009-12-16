@@ -30,6 +30,11 @@ $(FW_OBJ_DIR)/%.c.o: %.c
 $(FW_OBJ_DIR)/%.cc.o: %.cc
 	$(CXX) -c $(ALL_CFLAGS) $(ALL_CFLAGS) $(ALL_CCFLAGS) $< -o $@
 
+ifneq ($(FW_BUILD_DIR),.)
+$(FW_BUILD_DIR):
+	@mkdir -p $(FW_BUILD_DIR)
+endif
+
 $(FW_OBJ_DIR):
 	@cd $(FW_BUILD_DIR); mkdir -p $(FW_OBJ_DIR)
 
