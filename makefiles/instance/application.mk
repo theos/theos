@@ -2,6 +2,8 @@ ifeq ($(FW_RULES_LOADED),)
 include $(FW_MAKEDIR)/rules.mk
 endif
 
+.PHONY: internal-application-all_
+
 ALL_LDFLAGS += -framework UIKit
 
 internal-application-all_:: $(FW_OBJ_DIR) $(FW_OBJ_DIR)/$(FW_INSTANCE)

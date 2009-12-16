@@ -38,6 +38,11 @@ endif
 $(FW_OBJ_DIR):
 	@cd $(FW_BUILD_DIR); mkdir -p $(FW_OBJ_DIR)
 
+$(FW_MAKEDIR)/*.mk: ;
+$(FW_MAKEDIR)/master/*.mk: ;
+$(FW_MAKEDIR)/instance/*.mk: ;
+$(FW_MAKEDIR)/platform/*.mk: ;
+
 endif
 
 # TODO MAKE A BUNCH OF THINGS PHONY
