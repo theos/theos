@@ -1,7 +1,11 @@
 .PHONY: all before-all internal-all after-all \
 	clean before-clean internal-clean after-clean
-
+ifeq ($(FW_BUILD_DIR),.)
 all:: before-all internal-all after-all
+else
+all:: $(FW_BUILD_DIR) before-all internal-all after-all
+endif
+
 clean:: before-clean internal-clean after-clean
 
 before-all::
