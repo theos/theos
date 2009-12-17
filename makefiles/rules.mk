@@ -38,6 +38,8 @@ endif
 $(FW_OBJ_DIR):
 	@cd $(FW_BUILD_DIR); mkdir -p $(FW_OBJ_DIR)
 
+Makefile: ;
+framework/makefiles/*.mk: ;
 $(FW_MAKEDIR)/*.mk: ;
 $(FW_MAKEDIR)/master/*.mk: ;
 $(FW_MAKEDIR)/instance/*.mk: ;
