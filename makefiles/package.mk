@@ -19,6 +19,7 @@ else
 endif
 
 FAKEROOT := $(FW_SCRIPTDIR)/fakeroot.sh -p "$(FW_PROJECT_DIR)/.debmake/fakeroot"
+export FAKEROOT
 
 # Only do the master packaging rules if we're the toplevel make invocation.
 ifeq ($(MAKELEVEL),0)
