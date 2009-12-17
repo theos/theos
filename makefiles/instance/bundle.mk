@@ -2,7 +2,7 @@ ifeq ($(FW_RULES_LOADED),)
 include $(FW_MAKEDIR)/rules.mk
 endif
 
-.PHONY: internal-bundle-all_
+.PHONY: internal-bundle-all_ internal-bundle-package_
 
 ALL_LDFLAGS += -dynamiclib
 

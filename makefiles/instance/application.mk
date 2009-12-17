@@ -2,7 +2,7 @@ ifeq ($(FW_RULES_LOADED),)
 include $(FW_MAKEDIR)/rules.mk
 endif
 
-.PHONY: internal-application-all_
+.PHONY: internal-application-all_ internal-application-package_
 
 ALL_LDFLAGS += -framework UIKit
 
