@@ -52,7 +52,7 @@ if [ "$($(basename $(basename $*))_SUBPROJECTS)" != "" ]; then \
     else \
       lbuilddir="$${abs_build_dir}/$$d"; \
     fi; \
-    if $(MAKE) -C $$d --no-keep-going $$operation \
+    if $(MAKE) -C $$d $(FW_NO_PRINT_DIRECTORY_FLAG) --no-keep-going $$operation \
         FW_BUILD_DIR="$$lbuilddir" \
        ; then\
        :; \
@@ -82,7 +82,7 @@ if [ "$($(basename $(basename $*))_SUBPROJECTS)" != "" ]; then \
     else \
       lbuilddir="$${abs_build_dir}/$$d"; \
     fi; \
-    if $(MAKE) -C $$d --no-keep-going $$operation \
+    if $(MAKE) -C $$d $(FW_NO_PRINT_DIRECTORY_FLAG) --no-keep-going $$operation \
         FW_BUILD_DIR="$$lbuilddir" \
        ; then\
        :; \

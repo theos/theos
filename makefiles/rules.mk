@@ -19,16 +19,16 @@ ALL_LDFLAGS = $(INTERNAL_LDFLAGS) $(ADDITIONAL_LDFLAGS) $(AUXILIARY_LDFLAGS) $(S
 .SUFFIXES: .m .mm .c .cc
 
 $(FW_OBJ_DIR)/%.m.o: %.m
-	$(CXX) -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $< -o $@
+	$(ECHO_COMPILING)$(CXX) -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $< -o $@$(ECHO_END)
 
 $(FW_OBJ_DIR)/%.mm.o: %.mm
-	$(CXX) -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_OBJCCFLAGS) $< -o $@
+	$(ECHO_COMPILING)$(CXX) -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_OBJCCFLAGS) $< -o $@$(ECHO_END)
 
 $(FW_OBJ_DIR)/%.c.o: %.c
-	$(CXX) -c $(ALL_CFLAGS) $(ALL_CFLAGS) $< -o $@
+	$(ECHO_COMPILING)$(CXX) -c $(ALL_CFLAGS) $(ALL_CFLAGS) $< -o $@$(ECHO_END)
 
 $(FW_OBJ_DIR)/%.cc.o: %.cc
-	$(CXX) -c $(ALL_CFLAGS) $(ALL_CFLAGS) $(ALL_CCFLAGS) $< -o $@
+	$(ECHO_COMPILING)$(CXX) -c $(ALL_CFLAGS) $(ALL_CFLAGS) $(ALL_CCFLAGS) $< -o $@$(ECHO_END)
 
 ifneq ($(FW_BUILD_DIR),.)
 $(FW_BUILD_DIR):
