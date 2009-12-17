@@ -2,6 +2,11 @@ ifeq ($(TOP_DIR),)
 	TOP_DIR:=$(shell pwd)
 endif
 
+ifeq ($(FW_PROJECT_DIR),)
+	FW_PROJECT_DIR := $(TOP_DIR)
+endif
+export FW_PROJECT_DIR
+
 ifeq ($(FRAMEWORKDIR),)
 	FRAMEWORKDIR=$(TOP_DIR)/framework
 endif
