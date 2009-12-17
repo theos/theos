@@ -30,4 +30,11 @@ FW_OBJ_DIR = $(FW_BUILD_DIR)/$(FW_OBJ_DIR_NAME)
 
 FW_PACKAGE_STAGING_DIR ?= $(FW_PROJECT_DIR)/_
 
+include $(FW_MAKEDIR)/messages.mk
+ifneq ($(messages),yes)
+	FW_NO_PRINT_DIRECTORY_FLAG = --no-print-directory
+else
+	FW_NO_PRINT_DIRECTORY_FLAG = 
+endif
+
 unexport FW_INSTANCE FW_TYPE
