@@ -6,7 +6,7 @@ endif
 
 internal-all:: $(APPLICATION_NAME:=.all.application.variables);
 
-internal-stage:: $(APPLICATION_NAME:=.stage.application.variables);
+internal-package:: $(APPLICATION_NAME:=.package.application.variables);
 
 APPLICATIONS_WITH_SUBPROJECTS = $(strip $(foreach application,$(APPLICATION_NAME),$(patsubst %,$(application),$($(application)_SUBPROJECTS))))
 ifneq ($(APPLICATIONS_WITH_SUBPROJECTS),)
