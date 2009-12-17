@@ -38,11 +38,50 @@ endif
 instance=$(basename $(basename $*)); \
 operation=$(subst .,,$(suffix $(basename $*))); \
 type=$(subst -,_,$(subst .,,$(suffix $*))); \
-absbuilddir=$(ABS_FW_BUILD_DIR); \
+abs_build_dir=$(ABS_FW_BUILD_DIR); \
+if [ "$($(basename $(basename $*))_SUBPROJECTS)" != "" ]; then \
+  echo Making $$operation in subprojects of $$type $$instance...; \
+  for d in $($(basename $(basename $*))_SUBPROJECTS); do \
+    if [ "$${abs_build_dir}" = "." ]; then \
+      lbuilddir="."; \
+    else \
+      lbuilddir="$${abs_build_dir}/$$d"; \
+    fi; \
+    if $(MAKE) -C $$d --no-keep-going $$operation \
+        FW_BUILD_DIR="$$lbuilddir" \
+       ; then\
+       :; \
+    else exit $$?; \
+    fi; \
+  done; \
+ fi; \
 echo Making $$operation for $$type $$instance...; \
 $(MAKE) --no-print-directory --no-keep-going \
 	internal-$${type}-$$operation \
 	FW_TYPE=$$type \
 	FW_INSTANCE=$$instance \
 	FW_OPERATION=$$operation \
-	FW_BUILD_DIR=$$absbuilddir
+	FW_BUILD_DIR=$$abs_build_dir
+
+%.subprojects:
+	@ \
+instance=$(basename $(basename $*)); \
+operation=$(subst .,,$(suffix $(basename $*))); \
+type=$(subst -,_,$(subst .,,$(suffix $*))); \
+abs_build_dir=$(ABS_FW_BUILD_DIR); \
+if [ "$($(basename $(basename $*))_SUBPROJECTS)" != "" ]; then \
+  echo Making $$operation in subprojects of $$type $$instance...; \
+  for d in $($(basename $(basename $*))_SUBPROJECTS); do \
+    if [ "$${abs_build_dir}" = "." ]; then \
+      lbuilddir="."; \
+    else \
+      lbuilddir="$${abs_build_dir}/$$d"; \
+    fi; \
+    if $(MAKE) -C $$d --no-keep-going $$operation \
+        FW_BUILD_DIR="$$lbuilddir" \
+       ; then\
+       :; \
+    else exit $$?; \
+    fi; \
+  done; \
+ fi
