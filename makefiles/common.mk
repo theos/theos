@@ -24,9 +24,8 @@ endif
 INTERNAL_CFLAGS = -O2 -I$(FW_INCDIR) -include $(FRAMEWORKDIR)/Prefix.pch -Wall -Werror
 INTERNAL_CFLAGS += $(SHARED_CFLAGS)
 
-ifeq ($(FW_BUILD_DIR),)
-	FW_BUILD_DIR = .
-endif
-FW_OBJ_DIR = $(FW_BUILD_DIR)/obj
+FW_BUILD_DIR ?= .
+FW_OBJ_DIR_NAME ?= obj
+FW_OBJ_DIR = $(FW_BUILD_DIR)/$(FW_OBJ_DIR_NAME)
 
 unexport FW_INSTANCE FW_TYPE

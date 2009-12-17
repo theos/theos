@@ -36,7 +36,7 @@ $(FW_BUILD_DIR):
 endif
 
 $(FW_OBJ_DIR):
-	@cd $(FW_BUILD_DIR); mkdir -p $(FW_OBJ_DIR)
+	@cd $(FW_BUILD_DIR); mkdir -p $(FW_OBJ_DIR_NAME)
 
 Makefile: ;
 framework/makefiles/*.mk: ;
