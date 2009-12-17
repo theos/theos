@@ -17,7 +17,10 @@ after-all::
 before-clean::
 
 internal-clean::
-	-rm -r $(FW_OBJ_DIR)
+	rm -rf $(FW_OBJ_DIR)
+ifeq ($(MAKELEVEL),0)
+	rm -rf $(FW_PACKAGE_STAGING_DIR)
+endif
 
 after-clean::
 
