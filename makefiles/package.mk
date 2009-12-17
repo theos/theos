@@ -5,9 +5,6 @@ FW_PACKAGING_RULES_LOADED := 1
 
 package:: all before-package internal-package after-package
 
-# Only do the master packaging rules if we're the toplevel make invocation.
-ifeq ($(MAKELEVEL),0)
-
 FW_PACKAGE_NAME := $(shell grep Package $(TOP_DIR)/layout/DEBIAN/control | cut -d' ' -f2)
 FW_PACKAGE_ARCH := $(shell grep Architecture $(TOP_DIR)/layout/DEBIAN/control | cut -d' ' -f2)
 FW_PACKAGE_VERSION := $(shell grep Version $(TOP_DIR)/layout/DEBIAN/control | cut -d' ' -f2)
@@ -22,6 +19,9 @@ else
 endif
 
 FAKEROOT := $(FW_SCRIPTDIR)/fakeroot.sh -p "$(FW_PROJECT_DIR)/.debmake/fakeroot"
+
+# Only do the master packaging rules if we're the toplevel make invocation.
+ifeq ($(MAKELEVEL),0)
 
 before-package::
 	-rm -rf $(FW_PACKAGE_STAGING_DIR)
