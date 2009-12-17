@@ -2,7 +2,7 @@ ifeq ($(FW_RULES_LOADED),)
 include $(FW_MAKEDIR)/rules.mk
 endif
 
-.PHONY: internal-tweak-all_
+.PHONY: internal-tweak-all_ internal-tweak-package_
 
 ALL_LDFLAGS += -dynamiclib -lsubstrate
 
