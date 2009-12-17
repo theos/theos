@@ -4,7 +4,7 @@ ifeq ($(FW_RULES_LOADED),)
 include $(FW_MAKEDIR)/rules.mk
 endif
 
-internal-all::
+internal-all:: $(NULL_NAME:=.all.null.variables);
 
 internal-package:: $(NULL_NAME:=.package.null.variables);
 
