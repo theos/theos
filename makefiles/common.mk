@@ -1,21 +1,13 @@
-ifeq ($(TOP_DIR),)
-	TOP_DIR:=$(shell pwd)
-endif
+TOP_DIR ?= $(shell pwd)
+FW_PROJECT_DIR ?= $(TOP_DIR)
 
-ifeq ($(FW_PROJECT_DIR),)
-	FW_PROJECT_DIR := $(TOP_DIR)
-endif
-export FW_PROJECT_DIR
-
-ifeq ($(FRAMEWORKDIR),)
-	FRAMEWORKDIR=$(TOP_DIR)/framework
-endif
-
+FRAMEWORKDIR ?= $(FW_PROJECT_DIR)/framework
 FW_SCRIPTDIR := $(FRAMEWORKDIR)/scripts
 FW_MAKEDIR := $(FRAMEWORKDIR)/makefiles
 FW_LIBDIR := $(FRAMEWORKDIR)/lib
 FW_INCDIR := $(FRAMEWORKDIR)/include
 export FRAMEWORKDIR FW_SCRIPTDIR FW_MAKEDIR FW_LIBDIR FW_INCDIR
+export FW_PROJECT_DIR
 
 uname_s := $(shell uname -s)
 -include $(FW_MAKEDIR)/platform/$(uname_s).mk
