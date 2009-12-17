@@ -6,7 +6,7 @@ OBJC_OBJS = $(patsubst %.m,%.m.o,$($(FW_INSTANCE)_OBJC_FILES))
 CC_OBJS = $(patsubst %.cc,%.cc.o,$($(FW_INSTANCE)_CC_FILES))
 C_OBJS = $(patsubst %.c,%.c.o,$($(FW_INSTANCE)_C_FILES))
 
-OBJ_FILES = $(strip $(OBJCC_OBJS) $(OBJC_OBJS) $(CC_OBJS) $(C_OBJS) $($(FW_INSTANCE)_OBJ_FILES))
+OBJ_FILES = $(strip $(OBJCC_OBJS) $(OBJC_OBJS) $(CC_OBJS) $(C_OBJS))
 OBJ_FILES_TO_LINK = $(addprefix $(FW_OBJ_DIR)/,$(OBJ_FILES)) $($(FW_INSTANCE)_OBJ_FILES)
 
 ADDITIONAL_CPPFLAGS += $($(FW_TYPE)_CPPFLAGS) $($(FW_INSTANCE)_CPPFLAGS)
