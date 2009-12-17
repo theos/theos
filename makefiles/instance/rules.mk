@@ -16,6 +16,16 @@ ADDITIONAL_CCFLAGS += $($(FW_TYPE)_CCFLAGS) $($(FW_INSTANCE)_CCFLAGS)
 ADDITIONAL_OBJCCFLAGS += $($(FW_TYPE)_OBJCCFLAGS) $($(FW_INSTANCE)_OBJCCFLAGS)
 ADDITIONAL_LDFLAGS += $($(FW_TYPE)_LDFLAGS) $($(FW_INSTANCE)_LDFLAGS)
 
+# If we have any Objective-C objects, link Foundation and libobjc.
+ifneq ($(OBJC_OBJS)$(OBJCC_OBJS),)
+	ADDITIONAL_LDFLAGS += -lobjc -framework Foundation -framework CoreFoundation
+endif
+
+# In addition, if we have any Objective-C++, add the ObjC++ linker flags.
+ifneq ($(OBJCC_OBJS),)
+	ADDITIONAL_LDFLAGS += -ObjC++ -fobjc-exceptions -fobjc-call-cxx-cdtors
+endif
+
 before-$(FW_INSTANCE)-all::
 
 after-$(FW_INSTANCE)-all::

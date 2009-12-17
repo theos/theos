@@ -16,8 +16,8 @@ uname_s := $(shell uname -s)
 -include $(FW_MAKEDIR)/platform/$(uname_s).mk
 export CC CXX STRIP CODESIGN_ALLOCATE
 
-INTERNAL_LDFLAGS = -lobjc -multiply_defined suppress -ObjC++ -fobjc-exceptions -fobjc-call-cxx-cdtors \
-		   -framework Foundation -framework CoreFoundation
+# ObjC/++ stuff is not here, it's in instance/rules.mk and only added if there are OBJC/OBJCC objects.
+INTERNAL_LDFLAGS = -multiply_defined suppress
 
 ifeq ($(DEBUG),1)
 DEBUG_CFLAGS=-DDEBUG -ggdb
