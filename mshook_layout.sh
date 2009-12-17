@@ -3,7 +3,6 @@ EXTENSION=$1
 LEXTENSION=$(echo $1 | tr 'A-Z' 'a-z')
 mkdir $LEXTENSION
 cd $LEXTENSION
-mkdir -p layout/Library/MobileSubstrate/DynamicLibraries
 mkdir -p layout/DEBIAN
 
 cat > layout/DEBIAN/control << __END
@@ -23,17 +22,19 @@ __END
 svn co http://svn.howett.net/svn/iphone-framework framework
 
 cat > Makefile << __END
-PWD:=\$(shell pwd)
-TOP_DIR:=\$(PWD)
-FRAMEWORKDIR=\$(TOP_DIR)/framework
-tweak=$EXTENSION
-include \$(FRAMEWORKDIR)/makefiles/MSMakefile
+TWEAK_NAME = $EXTENSION
+${EXTENSION}_OBJCC_FILES = Tweak.mm
+
+include framework/makefiles/common.mk
+include framework/makefiles/tweak.mk
 __END
 
-cat > Hook.mm << __END
+cat > Tweak.mm << __END
 #import <DHHookCommon.h>
 
 //DHLateClass(Blah);
+
+//HOOK(Blah, blah, void) { ... }
 
 static _Constructor void ${EXTENSION}Initialize() {
 	DHScopedAutoreleasePool();
