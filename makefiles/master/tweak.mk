@@ -6,7 +6,7 @@ endif
 
 internal-all:: $(TWEAK_NAME:=.all.tweak.variables);
 
-internal-stage:: $(TWEAK_NAME:=.stage.tweak.variables);
+internal-package:: $(TWEAK_NAME:=.package.tweak.variables);
 
 TWEAKS_WITH_SUBPROJECTS = $(strip $(foreach tweak,$(TWEAK_NAME),$(patsubst %,$(tweak),$($(tweak)_SUBPROJECTS))))
 ifneq ($(TWEAKS_WITH_SUBPROJECTS),)

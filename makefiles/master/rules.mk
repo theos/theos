@@ -21,6 +21,8 @@ internal-clean::
 
 after-clean::
 
+include $(FW_MAKEDIR)/package.mk
+
 .PRECIOUS: %.variables
 
 ifeq ($(MAKELEVEL),0)

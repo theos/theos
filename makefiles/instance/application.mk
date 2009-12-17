@@ -12,3 +12,13 @@ $(FW_OBJ_DIR)/$(FW_INSTANCE): $(OBJ_FILES_TO_LINK)
 	$(CXX) $(ALL_LDFLAGS) -o $@ $^
 	$(STRIP) -x $@
 	CODESIGN_ALLOCATE=$(CODESIGN_ALLOCATE) ldid -S $@
+
+ifeq ($($(FW_INSTANCE)_BUNDLE_NAME),)
+	LOCAL_BUNDLE_NAME = $($(FW_INSTANCE)_BUNDLE_NAME)
+else
+	LOCAL_BUNDLE_NAME = $(FW_INSTANCE)
+endif
+
+internal-application-package_::
+	mkdir -p $(FW_PACKAGE_STAGING_DIR)/Applications/$(LOCAL_BUNDLE_NAME).app
+	cp $(FW_OBJ_DIR)/$(FW_INSTANCE) $(FW_PACKAGE_STAGING_DIR)/Application/$(LOCAL_BUNDLE_NAME).app
