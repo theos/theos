@@ -31,8 +31,8 @@ before-package::
 internal-package::
 
 after-package-buildno::
+	sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)/g' $(FW_PROJECT_DIR)/layout/DEBIAN/control > $(FW_PACKAGE_STAGING_DIR)/DEBIAN/control
 	echo "Installed-Size: $(shell du $(DU_EXCLUDE) DEBIAN -ks $(FW_PACKAGE_STAGING_DIR) | cut -f 1)" >> $(FW_PACKAGE_STAGING_DIR)/DEBIAN/control
-	sed -i'' -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)/g' $(FW_PACKAGE_STAGING_DIR)/DEBIAN/control
 
 after-package:: after-package-buildno
 	$(FAKEROOT) -r dpkg-deb -b $(FW_PACKAGE_STAGING_DIR) $(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb
