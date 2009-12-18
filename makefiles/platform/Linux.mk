@@ -10,3 +10,5 @@ STRIP=$(PREFIX)strip
 CODESIGN_ALLOCATE=$(PREFIX)codesign_allocate
 
 SDKFLAGS :=
+
+DU_EXCLUDE = --exclude
