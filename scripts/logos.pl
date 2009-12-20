@@ -215,7 +215,7 @@ sub parseCommand {
 
 sub formatCharForArgType {
 	my ($argtype) = @_;
-	return "%d" if $argtype =~ /(int|long)/;
+	return "%d" if $argtype =~ /(int|long|bool)/i;
 	return "%s" if $argtype =~ /char\s*\*/;
 	return "%p" if $argtype =~ /void\s*\*/;
 	return "%f" if $argtype =~ /(double|float)/;
