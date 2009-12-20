@@ -15,7 +15,7 @@ open(FILE, $ARGV[0]);
 @classes = ();
 $numselectors = 0;
 @argnames = ();
-@argreturns = ();
+@argtypes = ();
 $argcount = 0;
 while($line = <FILE>) {
 	# Search for a discrete %x% or an open-ended %x
@@ -102,7 +102,7 @@ sub parseCommand {
 
 		$selector = "";
 		@argnames = ();
-		@argreturns = ();
+		@argtypes = ();
 		$argcount = 0;
 
 		# Yeah it's a hack to avoid finding a simple selector after a complex one.
@@ -122,7 +122,7 @@ sub parseCommand {
 				$selector .= $keyword.":";
 				$argreturn = $3;
 				$argname = $4;
-				$argreturns[$argcount] = $argreturn;
+				$argtypes[$argcount] = $argreturn;
 				$argnames[$argcount] = $argname;
 				$argcount++;
 				$complexselector = 1;
@@ -141,7 +141,7 @@ sub parseCommand {
 		$build = "META" if $scope eq "class";
 		$build .= "HOOK($class, $newselector, $return";
 		for($i = 0; $i < $argcount; $i++) {
-			$build .= ", ".$argreturns[$i]." ".$argnames[$i];
+			$build .= ", ".$argtypes[$i]." ".$argnames[$i];
 		}
 		$build .= ")";
 		$replacement = $build;
@@ -193,6 +193,32 @@ sub parseCommand {
 		for($i = 0; $i < $numselectors; $i++) {
 			$replacement .= "HOOK_MESSAGE_REPLACEMENT(".$classes[$i].", ".$selectors[$i].", ".$selectors2[$i].");";
 		}
+	} elsif($command eq "log") {
+		$replacement = "NSLog(\"$class";
+		if(index($selector, ":") != -1) {
+			my @keywords = split(/:/, $selector);
+			for($i = 0; $i < $argcount; $i++) {
+				$replacement .= " ".$keywords[$i].":".formatCharForArgType($argtypes[$i]);
+			}
+			$replacement .= "\"";
+			for($i = 0; $i < $argcount; $i++) {
+				$replacement .= ",".$argnames[$i];
+			}
+			$replacement .= ")";
+		} else {
+			$replacement .= "$selector\");";
+		}
+		$replacement .= $cmdspec if $cmdspec;
 	}
 	return $replacement;
+}
+
+sub formatCharForArgType {
+	my ($argtype) = @_;
+	return "%d" if $argtype =~ /(int|long)/;
+	return "%s" if $argtype =~ /char\s*\*/;
+	return "%p" if $argtype =~ /void\s*\*/;
+	return "%f" if $argtype =~ /(double|float)/;
+	return "%c" if $argtype =~ /char/;
+	return "%@";
 }
