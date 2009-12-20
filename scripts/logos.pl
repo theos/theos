@@ -23,7 +23,6 @@ while($line = <FILE>) {
 		# Start searches where the match starts.
 		my $searchpos = $-[0];
 
-		# Gather up all the quotes in the line.
 		while($remainder =~ /(%(.*?)($|%))/) {
 			my $cmdwrapper = $1;
 			my $cmdspec = $2;
@@ -35,6 +34,7 @@ while($line = <FILE>) {
 			# And chop it out of the string.
 			$remainder = $';
 
+			# Gather up all the quotes in the line.
 			my @quotes = ();
 			if(index($line, "\"") != -1) {
 				my $qpos = 0;
