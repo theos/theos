@@ -16,13 +16,7 @@ $numselectors = 0;
 @argreturns = ();
 $argcount = 0;
 while($line = <FILE>) {
-	if($line =~ /(%(.*?)%)/) {
-		my $cmdwrapper = $1;
-		my $cmdspec = $2;
-		my $replacement = parseCommand($cmdspec);
-		$line =~ s/\Q$cmdwrapper\E/$replacement/g;
-		print $line;
-	} elsif($line =~ /(%(.*?)$)/) {
+	if($line =~ /(%(.*?)($|%))/) {
 		my $cmdwrapper = $1;
 		my $cmdspec = $2;
 		my $replacement = parseCommand($cmdspec);
