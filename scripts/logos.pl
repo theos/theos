@@ -1,4 +1,6 @@
-#!/usr/bin/env perl -w
+#!/usr/bin/env perl
+
+use warnings;
 
 # I WARN YOU
 # THIS IS UGLY AS SIN
