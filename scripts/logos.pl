@@ -206,7 +206,7 @@ sub parseCommand {
 			}
 			$replacement .= ")";
 		} else {
-			$replacement .= " $selector\");";
+			$replacement .= " $selector\")";
 		}
 		$replacement .= $cmdspec if $cmdspec;
 	}
