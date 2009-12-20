@@ -20,6 +20,29 @@ while($line = <FILE>) {
 	if($line =~ /(%(.*?)($|%))/) {
 		my $cmdwrapper = $1;
 		my $cmdspec = $2;
+
+		if(index($line, "\"") != -1) {
+			my @quotes = ();
+			my $cmdidx = index($line, $cmdwrapper);
+			my $qpos = 0;
+			my $discard = 0;
+			while(($qpos = index($line, "\"", $qpos)) != -1) {
+				# If there's a \ before the quote, discard it.
+				if($qpos > 0 && substr($line, $qpos - 1, 1) eq "\\") { $qpos++; next; }
+				push(@quotes, $qpos);
+				$qpos++;
+			}
+			while($#quotes > 0) {
+				my $open = shift(@quotes);
+				my $close = shift(@quotes);
+				if($cmdidx > $open && $cmdidx < $close) { $discard = 1; last; }
+			}
+			if($discard == 1) {
+				print $line;
+				next;
+			}
+		}
+
 		my $replacement = parseCommand($cmdspec);
 		$line =~ s/\Q$cmdwrapper\E/$replacement/g;
 		print $line;
