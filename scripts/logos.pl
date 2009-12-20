@@ -194,7 +194,7 @@ sub parseCommand {
 			$replacement .= "HOOK_MESSAGE_REPLACEMENT(".$classes[$i].", ".$selectors[$i].", ".$selectors2[$i].");";
 		}
 	} elsif($command eq "log") {
-		$replacement = "NSLog(\"$class";
+		$replacement = "NSLog(\@\"$class";
 		if(index($selector, ":") != -1) {
 			my @keywords = split(/:/, $selector);
 			for($i = 0; $i < $argcount; $i++) {
