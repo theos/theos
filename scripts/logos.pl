@@ -109,17 +109,29 @@ sub parseCommand {
 			# Walk a string char-by-char, noting parenthesis depth.
 			# If we encounter a ) that puts us back at zero, we found a (
 			# and have reached its closing ).
-			# This does not account for things like (")") though. Meh.
 			my $parenmatch = $cmdspec;
 			my $pdepth = 0;
 			my $endindex = 0;
+			my $last = "";
+			my $ignore = 0;
 			while($parenmatch =~ /(.)/g) {
 				$endindex++;
-				$pdepth++ if $1 eq "(";
-				if($1 eq ")") {
-					$pdepth--;
-					if($pdepth == 0) { $hasparens = $endindex; last; }
+				if($ignore == 0) {
+					if($1 eq "(") { $pdepth++; }
+					elsif($1 eq ")") {
+						$pdepth--;
+						if($pdepth == 0) { $hasparens = $endindex; last; }
+					} elsif($1 eq "\"") {
+						# If we have an unescaped quote, turn on 'ignore' mode.
+						if($last ne "\\") { $ignore = 1; }
+					}
+				} else {
+					if($1 eq "\"") {
+						# If we have an unescaped quote, turn off 'ignore' mode.
+						if($last ne "\\") { $ignore = 0; }
+					}
 				}
+				$last = $1;
 			}
 		}
 		if($hasparens > 0) {
