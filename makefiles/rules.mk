@@ -30,6 +30,9 @@ $(FW_OBJ_DIR)/%.c.o: %.c
 $(FW_OBJ_DIR)/%.cc.o: %.cc
 	$(ECHO_COMPILING)$(CXX) -c $(ALL_CFLAGS) $(ALL_CFLAGS) $(ALL_CCFLAGS) $< -o $@$(ECHO_END)
 
+%.mm: %.l.mm
+	$(FW_SCRIPTDIR)/logos.pl $< > $@
+
 ifneq ($(FW_BUILD_DIR),.)
 $(FW_BUILD_DIR):
 	@mkdir -p $(FW_BUILD_DIR)
