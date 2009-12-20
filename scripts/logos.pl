@@ -121,12 +121,12 @@ sub parseCommand {
 					elsif($1 eq ")") {
 						$pdepth--;
 						if($pdepth == 0) { $hasparens = $endindex; last; }
-					} elsif($1 eq "\"") {
+					} elsif($1 eq "\"" || $1 eq "'") {
 						# If we have an unescaped quote, turn on 'ignore' mode.
 						if($last ne "\\") { $ignore = 1; }
 					}
 				} else {
-					if($1 eq "\"") {
+					if($1 eq "\"" || $1 eq "'") {
 						# If we have an unescaped quote, turn off 'ignore' mode.
 						if($last ne "\\") { $ignore = 0; }
 					}
