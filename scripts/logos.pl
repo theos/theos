@@ -18,33 +18,55 @@ $argcount = 0;
 while($line = <FILE>) {
 	# Search for a discrete %x% or an open-ended %x
 	if($line =~ /(%(.*?)($|%))/) {
-		my $cmdwrapper = $1;
-		my $cmdspec = $2;
+		my $remainder = $line;
 
+		# Start searches where the match starts.
+		my $searchpos = $-[0];
+
+		# Gather up all the quotes in the line.
+		my @quotes = ();
 		if(index($line, "\"") != -1) {
-			my @quotes = ();
-			my $cmdidx = index($line, $cmdwrapper);
 			my $qpos = 0;
-			my $discard = 0;
 			while(($qpos = index($line, "\"", $qpos)) != -1) {
 				# If there's a \ before the quote, discard it.
 				if($qpos > 0 && substr($line, $qpos - 1, 1) eq "\\") { $qpos++; next; }
 				push(@quotes, $qpos);
 				$qpos++;
 			}
-			while(@quotes > 0) {
-				my $open = shift(@quotes);
-				my $close = shift(@quotes);
-				if($cmdidx > $open && (!$close || $cmdidx < $close)) { $discard = 1; last; }
-			}
-			if($discard == 1) {
-				print $line;
-				next;
-			}
 		}
 
-		my $replacement = parseCommand($cmdspec);
-		$line =~ s/\Q$cmdwrapper\E/$replacement/g;
+		while($remainder =~ /(%(.*?)($|%))/) {
+			my $cmdwrapper = $1;
+			my $cmdspec = $2;
+
+			# Get the position of this command in the full line after $searchpos.
+			my $cmdidx = index($line, $cmdwrapper, $searchpos);
+			# Add the beginning of the match to the search position
+			$searchpos += $-[0];
+			# And chop it out of the string.
+			$remainder = $';
+
+			if(@quotes > 0) {
+				my $discard = 0;
+				@quotescopy = @quotes;
+				while(@quotescopy > 0) {
+					my $open = shift(@quotescopy);
+					my $close = shift(@quotescopy);
+					if($cmdidx > $open && (!$close || $cmdidx < $close)) { $discard = 1; last; }
+				}
+				if($discard == 1) {
+					# We're discarding this match, so, add the match length (+ - -) to the search position.
+					$searchpos += $+[0] - $-[0];
+					next;
+				}
+			}
+
+			my $replacement = parseCommand($cmdspec);
+			# This is so that we always replace "blahblah%command%" with "blahblah$REPLACEMENT"
+			my $preline = substr($line, 0, $cmdidx);
+			$searchpos += length($replacement) - $-[0]; # Add the replacement length to the search position.
+			$line =~ s/\Q$preline$cmdwrapper\E/$preline$replacement/;
+		}
 		print $line;
 	} else {
 		print $line;
