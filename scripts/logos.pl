@@ -32,10 +32,10 @@ while($line = <FILE>) {
 				push(@quotes, $qpos);
 				$qpos++;
 			}
-			while($#quotes > 0) {
+			while(@quotes > 0) {
 				my $open = shift(@quotes);
 				my $close = shift(@quotes);
-				if($cmdidx > $open && $cmdidx < $close) { $discard = 1; last; }
+				if($cmdidx > $open && (!$close || $cmdidx < $close)) { $discard = 1; last; }
 			}
 			if($discard == 1) {
 				print $line;
