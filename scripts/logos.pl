@@ -24,17 +24,6 @@ while($line = <FILE>) {
 		my $searchpos = $-[0];
 
 		# Gather up all the quotes in the line.
-		my @quotes = ();
-		if(index($line, "\"") != -1) {
-			my $qpos = 0;
-			while(($qpos = index($line, "\"", $qpos)) != -1) {
-				# If there's a \ before the quote, discard it.
-				if($qpos > 0 && substr($line, $qpos - 1, 1) eq "\\") { $qpos++; next; }
-				push(@quotes, $qpos);
-				$qpos++;
-			}
-		}
-
 		while($remainder =~ /(%(.*?)($|%))/) {
 			my $cmdwrapper = $1;
 			my $cmdspec = $2;
@@ -46,12 +35,20 @@ while($line = <FILE>) {
 			# And chop it out of the string.
 			$remainder = $';
 
-			if(@quotes > 0) {
+			my @quotes = ();
+			if(index($line, "\"") != -1) {
+				my $qpos = 0;
+				while(($qpos = index($line, "\"", $qpos)) != -1) {
+					# If there's a \ before the quote, discard it.
+					if($qpos > 0 && substr($line, $qpos - 1, 1) eq "\\") { $qpos++; next; }
+					push(@quotes, $qpos);
+					$qpos++;
+				}
+
 				my $discard = 0;
-				@quotescopy = @quotes;
-				while(@quotescopy > 0) {
-					my $open = shift(@quotescopy);
-					my $close = shift(@quotescopy);
+				while(@quotes > 0) {
+					my $open = shift(@quotes);
+					my $close = shift(@quotes);
 					if($cmdidx > $open && (!$close || $cmdidx < $close)) { $discard = 1; last; }
 				}
 				if($discard == 1) {
