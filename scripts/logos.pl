@@ -13,6 +13,9 @@ open(FILE, $ARGV[0]);
 @outputlines = ();
 $lineno = 0;
 
+$firsthookline = -1;
+$ctorline = -1;
+
 @selectors = ();
 @selectors2 = ();
 @classes = ();
@@ -22,6 +25,7 @@ $numselectors = 0;
 $argcount = 0;
 
 while($line = <FILE>) {
+	chomp($line);
 	$lineno++;
 	# Search for a discrete %x% or an open-ended %x (or %x with a { or ; after it)
 	if($line =~ /(%(.*?)(%|(?=\s*[{;])|$))/) {
@@ -72,7 +76,7 @@ while($line = <FILE>) {
 			$searchpos += length($replacement) - $-[0]; # Add the replacement length to the search position.
 			$line =~ s/\Q$preline$cmdwrapper\E/$preline$replacement/;
 		}
-		push(@outputlines, $line);
+		push(@outputlines, $line) #if $line; # Only add the line we've generated if it's not blank.
 	} else {
 		push(@outputlines, $line);
 	}
@@ -80,8 +84,19 @@ while($line = <FILE>) {
 
 close(FILE);
 
+if($firsthookline != -1) {
+	splice(@outputlines, $firsthookline - 1, 0, generateClassList());
+	my $ctor = generateConstructor();
+	if($ctorline != -1) {
+		$outputlines[$ctorline] = $ctor;
+	} else {
+		$ctorline = $lineno + 1 if $ctorline == -1;
+		splice(@outputlines, $ctorline, 0, $ctor);
+	}
+
+}
 foreach $oline (@outputlines) {
-	print $oline;
+	print $oline."\n";
 }
 
 
@@ -94,6 +109,7 @@ sub parseCommand {
 
 	$replacement = "";
 	if($command eq "hook") {
+		if($firsthookline == -1) { $firsthookline = $lineno; };
 		# Hook Macro Syntax
 		# %hook Class [+|-](returnvalue)keyword:(argtype)arg keyword:(argtype)arg
 		# %hook Class [+|-](returnvalue)keyword
@@ -200,9 +216,6 @@ sub parseCommand {
 		$replacement .= ")";
 		$replacement .= $cmdspec;
 	} elsif($command eq "init") {
-		for($i = 0; $i < $numselectors; $i++) {
-			$replacement .= "HOOK_MESSAGE_REPLACEMENT(".$classes[$i].", ".$selectors[$i].", ".$selectors2[$i].");";
-		}
 	} elsif($command eq "log") {
 		$replacement = "NSLog(\@\"$class";
 		if(index($selector, ":") != -1) {
@@ -219,10 +232,31 @@ sub parseCommand {
 			$replacement .= " $selector\")";
 		}
 		$replacement .= $cmdspec if $cmdspec;
+	} elsif($command eq "ctor") {
+		$replacement = "";
+		$ctorline = $lineno;
 	} else {
 		$replacement = undef;
 	}
 	return $replacement;
+}
+
+sub generateConstructor {
+	my $return = "";
+	$return .= "static __attribute__((constructor)) void _logosLocalInit() { ";
+	for($i = 0; $i < $numselectors; $i++) {
+		$return .= "HOOK_MESSAGE_REPLACEMENT(".$classes[$i].", ".$selectors[$i].", ".$selectors2[$i].");";
+	}
+	$return .= "}";
+	return $return;
+}
+
+sub generateClassList {
+	my $return = "";
+	for($i = 0; $i < $numselectors; $i++) {
+		$return .= "DHLateClass(".$classes[$i].");";
+	}
+	return $return;
 }
 
 sub formatCharForArgType {
