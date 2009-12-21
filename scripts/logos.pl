@@ -236,7 +236,7 @@ sub parseCommand {
 			$replacement .= " $selector\")";
 		}
 		$replacement .= $cmdspec if $cmdspec;
-	} elsif($command eq "ctor") {
+	} elsif($command eq "ctor" || $command eq "constructor") {
 		$replacement = "";
 		$ctorline = $lineno if $ctorline == -1;
 	} else {
