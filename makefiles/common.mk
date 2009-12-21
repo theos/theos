@@ -14,7 +14,7 @@ uname_s := $(shell uname -s)
 export CC CXX STRIP CODESIGN_ALLOCATE
 
 # ObjC/++ stuff is not here, it's in instance/rules.mk and only added if there are OBJC/OBJCC objects.
-INTERNAL_LDFLAGS = -multiply_defined suppress
+INTERNAL_LDFLAGS = -multiply_defined suppress -L$(FW_LIBDIR)
 
 ifeq ($(DEBUG),1)
 DEBUG_CFLAGS=-DDEBUG -ggdb
