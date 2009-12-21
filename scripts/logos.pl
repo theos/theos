@@ -11,6 +11,7 @@ use warnings;
 $filename = $ARGV[0];
 open(FILE, $filename);
 
+@inputlines = ();
 @outputlines = ();
 $lineno = 0;
 
@@ -28,8 +29,32 @@ $argcount = 0;
 $hassubstrateh = 0;
 $ignore = 0;
 
+my $readignore = 0;
+
+# This outright murder of comments is NOT SAFE FOR // /* */ IN STRINGS. :(
 while($line = <FILE>) {
 	chomp($line);
+	# Delete all single-line /* xxx */ comments.
+	$line =~ s/\/\*.*?\*\///g;
+	# Delete all single-line to-EOL // xxx comments.
+	$line =~ s/\/\/.*$//g;
+	
+	# Start of a multi-line /* comment.
+	if($line =~ /\/\*.*$/) {
+		$readignore = 1;
+		$line =~ s/\/\*.*$//g;
+		push(@inputlines, $line);
+		next;
+	} elsif($line =~ /^.*?\*\/\s*/) { # End of a multi-line comment.
+		$readignore = 0;
+		$line =~ s/^.*?\*\/\s*//g;
+		push(@inputlines, $line);
+		next;
+	}
+	push(@inputlines, $line) if !$readignore;
+}
+
+foreach $line (@inputlines) {
 	$lineno++;
 	# Search for a discrete %x% or an open-ended %x (or %x with a { or ; after it)
 	if($line =~ /\s*#\s*include\s*[<"]substrate\.h[">]/) {
