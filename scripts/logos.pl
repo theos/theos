@@ -38,13 +38,13 @@ while($line = <FILE>) {
 		$ignore = 1;
 	} elsif($ignore == 1 && $line =~ /^\s*#\s*endif/) {
 		$ignore = 0;
-	} elsif($ignore == 0 && $line =~ /(%(.*?)(%|(?=\s*[{;])|$))/) {
+	} elsif($ignore == 0 && $line =~ /(%(.*?)(%|(?=\s*[\/{;])|$))/) {
 		my $remainder = $line;
 
 		# Start searches where the match starts.
 		my $searchpos = $-[0];
 
-		while($remainder =~ /(%(.*?)(%|(?=\s*[{;])|$))/) {
+		while($remainder =~ /(%(.*?)(%|(?=\s*[\/{;])|$))/) {
 			my $cmdwrapper = $1;
 			my $cmdspec = $2;
 
