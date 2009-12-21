@@ -166,16 +166,21 @@ sub parseCommand {
 		$numselectors++;
 
 		$build = "";
-		$build = "META" if $scope eq "class";
-		$build .= "HOOK($class, $newselector, $return";
+		#$build = "META" if $scope eq "class";
+		$build .= "static $return (*_$class\$$newselector)($class *, SEL"; 
+		my $argtypelist = join(", ", @argtypes);
+		$build .= ", ".$argtypelist if $argtypelist;
+
+		my $arglist = "";
 		for($i = 0; $i < $argcount; $i++) {
-			$build .= ", ".$argtypes[$i]." ".$argnames[$i];
+			$arglist .= ", ".$argtypes[$i]." ".$argnames[$i];
 		}
-		$build .= ")";
+
+		$build .= "); static $return \$$class\$$newselector($class *self, SEL sel".$arglist.")";
 		$replacement = $build;
 		$replacement .= $cmdspec if $cmdspec ne "";
 	} elsif($command eq "orig" || $command eq "original") {
-		$replacement = "CALL_ORIG($class, $newselector";
+		$replacement = "_$class\$$newselector(self, sel";
 		my $hasparens = 0;
 		if($cmdspec) {
 			# Walk a string char-by-char, noting parenthesis depth.
@@ -211,9 +216,8 @@ sub parseCommand {
 			$cmdspec = substr($cmdspec, $hasparens);
 			$replacement .= ", ".$parenstring;
 		} else {
-			for($i = 0; $i < $argcount; $i++) {
-				$replacement .= ", ".$argnames[$i];
-			}
+			my $argnamelist = join(", ", @argnames);
+			$replacement .= ", ".$argnamelist if $argnamelist;
 		}
 		$replacement .= ")";
 		$replacement .= $cmdspec;
@@ -256,17 +260,29 @@ sub generateConstructor {
 sub generateConstructorBody {
 	my $return = "";
 	for($i = 0; $i < $numselectors; $i++) {
-		$return .= "HOOK_MESSAGE_REPLACEMENT(".$classes[$i].", ".$selectors[$i].", ".$selectors2[$i].");";
+		$return .= generateMSHookMessage($classes[$i], $selectors[$i], $selectors2[$i]);
 	}
 	return $return;
 }
 
+sub generateMSHookMessage {
+	my ($class, $original, $replacement) = @_;
+	return "MSHookMessageEx(\$$class, \@selector($original), (IMP)&\$$class\$$replacement, (IMP*)&_$class\$$replacement);"
+}
+
 sub generateClassList {
 	my $return = "";
-	for($i = 0; $i < $numselectors; $i++) {
-		$return .= "DHLateClass(".$classes[$i].");";
+	my %seenclasses;
+	@uniqclasses = grep(!$seenclasses{$_}++, @classes);
+	foreach $class (@uniqclasses) {
+		$return .= generateClassLine($class);
 	}
 	return $return;
+}
+
+sub generateClassLine {
+	my ($class) = @_;
+	return "\@class $class; static Class \$$class = objc_getClass(\"$class\");";
 }
 
 sub formatCharForArgType {
