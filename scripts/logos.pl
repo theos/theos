@@ -25,11 +25,16 @@ $numselectors = 0;
 @argtypes = ();
 $argcount = 0;
 
+$hassubstrateh = 0;
+
 while($line = <FILE>) {
 	chomp($line);
 	$lineno++;
 	# Search for a discrete %x% or an open-ended %x (or %x with a { or ; after it)
-	if($line =~ /(%(.*?)(%|(?=\s*[{;])|$))/) {
+	if($line =~ /\s*#\s*include\s*[<"]substrate\.h[">]/) {
+		$hassubstrateh = 1;
+		push(@outputlines, $line);
+	} elsif($line =~ /(%(.*?)(%|(?=\s*[{;])|$))/) {
 		my $remainder = $line;
 
 		# Start searches where the match starts.
@@ -86,15 +91,20 @@ while($line = <FILE>) {
 close(FILE);
 
 if($firsthookline != -1) {
-	splice(@outputlines, $firsthookline - 1, 0, generateClassList());
+	my $offset = 0;
+	if(!$hassubstrateh) {
+		splice(@outputlines, $firsthookline - 1, 0, "#include <substrate.h>");
+		$offset++;
+	}
+	splice(@outputlines, $firsthookline - 1 + $offset, 0, generateClassList());
+	$offset++;
 	my $ctor = generateConstructor();
 	if($ctorline == -2) {
 		# No-op, do not paste a constructor.
 	} elsif($ctorline != -1) {
-		$outputlines[$ctorline] = $ctor;
+		$outputlines[$ctorline + $offset - 1] = $ctor;
 	} else {
-		$ctorline = $lineno + 1 if $ctorline == -1;
-		splice(@outputlines, $ctorline, 0, $ctor);
+		push(@outputlines, $ctor);
 	}
 
 }
