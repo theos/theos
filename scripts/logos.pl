@@ -87,7 +87,9 @@ close(FILE);
 if($firsthookline != -1) {
 	splice(@outputlines, $firsthookline - 1, 0, generateClassList());
 	my $ctor = generateConstructor();
-	if($ctorline != -1) {
+	if($ctorline == -2) {
+		# No-op, do not paste a constructor.
+	} elsif($ctorline != -1) {
 		$outputlines[$ctorline] = $ctor;
 	} else {
 		$ctorline = $lineno + 1 if $ctorline == -1;
@@ -216,6 +218,8 @@ sub parseCommand {
 		$replacement .= ")";
 		$replacement .= $cmdspec;
 	} elsif($command eq "init") {
+		$replacement = generateConstructorBody();
+		$ctorline = -2; # "Do not generate a constructor."
 	} elsif($command eq "log") {
 		$replacement = "NSLog(\@\"$class";
 		if(index($selector, ":") != -1) {
@@ -234,7 +238,7 @@ sub parseCommand {
 		$replacement .= $cmdspec if $cmdspec;
 	} elsif($command eq "ctor") {
 		$replacement = "";
-		$ctorline = $lineno;
+		$ctorline = $lineno if $ctorline == -1;
 	} else {
 		$replacement = undef;
 	}
@@ -244,10 +248,16 @@ sub parseCommand {
 sub generateConstructor {
 	my $return = "";
 	$return .= "static __attribute__((constructor)) void _logosLocalInit() { ";
+	$return .= generateConstructorBody();
+	$return .= " }";
+	return $return;
+}
+
+sub generateConstructorBody {
+	my $return = "";
 	for($i = 0; $i < $numselectors; $i++) {
 		$return .= "HOOK_MESSAGE_REPLACEMENT(".$classes[$i].", ".$selectors[$i].", ".$selectors2[$i].");";
 	}
-	$return .= "}";
 	return $return;
 }
 
