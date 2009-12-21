@@ -33,6 +33,12 @@ $(FW_OBJ_DIR)/%.cc.o: %.cc
 %.mm: %.l.mm
 	$(FW_SCRIPTDIR)/logos.pl $< > $@
 
+%.mm: %.xmm
+	$(FW_SCRIPTDIR)/logos.pl $< > $@
+
+%.mm: %.xm
+	$(FW_SCRIPTDIR)/logos.pl $< > $@
+
 ifneq ($(FW_BUILD_DIR),.)
 $(FW_BUILD_DIR):
 	@mkdir -p $(FW_BUILD_DIR)
