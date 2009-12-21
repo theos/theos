@@ -6,17 +6,15 @@ cd $LEXTENSION
 mkdir -p layout/DEBIAN
 
 cat > layout/DEBIAN/control << __END
-Package: net.howett.$LEXTENSION
+Package: com.yourcompany.$LEXTENSION
 Name: $EXTENSION
 Depends: mobilesubstrate
 Version: 0.0.1
 Architecture: iphoneos-arm
 Description: 
-Maintainer: Dustin Howett <dustin@howett.net>
-Author: Dustin Howett <dustin@howett.net>
+Maintainer: $USER
+Author: $USER
 Section: Tweaks
-dev: dustinhowett
-Sponsor: thebigboss.org <http://thebigboss.org>
 __END
 
 svn co http://svn.howett.net/svn/iphone-framework framework
@@ -29,15 +27,6 @@ include framework/makefiles/common.mk
 include framework/makefiles/tweak.mk
 __END
 
-cat > Tweak.mm << __END
-#import <DHHookCommon.h>
-
-//DHLateClass(Blah);
-
-//HOOK(Blah, blah, void) { ... }
-
-static _Constructor void ${EXTENSION}Initialize() {
-	DHScopedAutoreleasePool();
-	//DHHookMessage(Blah, blah);
-}
+cat > Tweak.l.mm << __END
+// %hook Blah -(void)blah { ... }
 __END
