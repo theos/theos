@@ -26,6 +26,7 @@ $numselectors = 0;
 $argcount = 0;
 
 $hassubstrateh = 0;
+$ignore = 0;
 
 while($line = <FILE>) {
 	chomp($line);
@@ -33,8 +34,11 @@ while($line = <FILE>) {
 	# Search for a discrete %x% or an open-ended %x (or %x with a { or ; after it)
 	if($line =~ /\s*#\s*include\s*[<"]substrate\.h[">]/) {
 		$hassubstrateh = 1;
-		push(@outputlines, $line);
-	} elsif($line =~ /(%(.*?)(%|(?=\s*[{;])|$))/) {
+	} elsif($line =~ /^\s*#\s*if\s*0\s*$/) {
+		$ignore = 1;
+	} elsif($ignore == 1 && $line =~ /^\s*#\s*endif/) {
+		$ignore = 0;
+	} elsif($ignore == 0 && $line =~ /(%(.*?)(%|(?=\s*[{;])|$))/) {
 		my $remainder = $line;
 
 		# Start searches where the match starts.
@@ -82,10 +86,8 @@ while($line = <FILE>) {
 			$searchpos += length($replacement) - $-[0]; # Add the replacement length to the search position.
 			$line =~ s/\Q$preline$cmdwrapper\E/$preline$replacement/;
 		}
-		push(@outputlines, $line) #if $line; # Only add the line we've generated if it's not blank.
-	} else {
-		push(@outputlines, $line);
 	}
+	push(@outputlines, $line);
 }
 
 close(FILE);
