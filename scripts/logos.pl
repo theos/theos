@@ -154,9 +154,18 @@ sub parseCommand {
 		# Hook Macro Syntax
 		# %hook Class [+|-](returnvalue)keyword:(argtype)arg keyword:(argtype)arg
 		# %hook Class [+|-](returnvalue)keyword
-		$cmdspec =~ /^\s*([\$\w]+?)\s+/; # Any identifier, bounded by any number of spaces
-		$cmdspec = $';
-		$class = $1;
+		$class = "";
+		if($cmdspec =~ /^\s*([\$\w]+?)\s+/) { # Any identifier, bounded by any number of spaces
+			$cmdspec = $';
+			$class = $1;
+		}
+		if(!$class) {
+			$class = $savedclass;
+			if(!$class) {
+				print STDERR "Line $lineno: %hook without a class, and no %class before it.\n";
+				exit 1;
+			}
+		}
 
 		$cmdspec =~ /^\s*([-+]?)\s*/; # + or - bounded by any number of spaces
 		$cmdspec = $';
@@ -282,6 +291,10 @@ sub parseCommand {
 	} elsif($command eq "ctor" || $command eq "constructor") {
 		$replacement = "";
 		$ctorline = $lineno if $ctorline == -1;
+	} elsif($command eq "class") {
+		$cmdspec =~ /^\s*([\$\w]+)/;
+		$savedclass = $1;
+		$replacement = $';
 	} else {
 		$replacement = undef;
 	}
