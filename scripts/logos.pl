@@ -19,13 +19,13 @@ $numselectors = 0;
 $argcount = 0;
 while($line = <FILE>) {
 	# Search for a discrete %x% or an open-ended %x (or %x with a { or ; after it)
-	if($line =~ /(%(.*?)($|%|\s*(?=[{;])))/) {
+	if($line =~ /(%(.*?)(%|(?=\s*[{;])|$))/) {
 		my $remainder = $line;
 
 		# Start searches where the match starts.
 		my $searchpos = $-[0];
 
-		while($remainder =~ /(%(.*?)($|%|\s*(?=[{;])))/) {
+		while($remainder =~ /(%(.*?)(%|(?=\s*[{;])|$))/) {
 			my $cmdwrapper = $1;
 			my $cmdspec = $2;
 
