@@ -10,6 +10,9 @@ use warnings;
 
 open(FILE, $ARGV[0]);
 
+@outputlines = ();
+$lineno = 0;
+
 @selectors = ();
 @selectors2 = ();
 @classes = ();
@@ -17,7 +20,9 @@ $numselectors = 0;
 @argnames = ();
 @argtypes = ();
 $argcount = 0;
+
 while($line = <FILE>) {
+	$lineno++;
 	# Search for a discrete %x% or an open-ended %x (or %x with a { or ; after it)
 	if($line =~ /(%(.*?)(%|(?=\s*[{;])|$))/) {
 		my $remainder = $line;
@@ -61,18 +66,23 @@ while($line = <FILE>) {
 			}
 
 			my $replacement = parseCommand($cmdspec);
+			if(!$replacement) { next; }
 			# This is so that we always replace "blahblah%command%" with "blahblah$REPLACEMENT"
 			my $preline = substr($line, 0, $cmdidx);
 			$searchpos += length($replacement) - $-[0]; # Add the replacement length to the search position.
 			$line =~ s/\Q$preline$cmdwrapper\E/$preline$replacement/;
 		}
-		print $line;
+		push(@outputlines, $line);
 	} else {
-		print $line;
+		push(@outputlines, $line);
 	}
 }
 
 close(FILE);
+
+foreach $oline (@outputlines) {
+	print $oline;
+}
 
 
 sub parseCommand {
@@ -209,6 +219,8 @@ sub parseCommand {
 			$replacement .= " $selector\")";
 		}
 		$replacement .= $cmdspec if $cmdspec;
+	} else {
+		$replacement = undef;
 	}
 	return $replacement;
 }
