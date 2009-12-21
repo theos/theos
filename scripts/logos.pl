@@ -8,7 +8,8 @@ use warnings;
 #
 # NO WARRANTY YET
 
-open(FILE, $ARGV[0]);
+$filename = $ARGV[0];
+open(FILE, $filename);
 
 @outputlines = ();
 $lineno = 0;
@@ -97,6 +98,7 @@ if($firsthookline != -1) {
 	}
 
 }
+splice(@outputlines, 0, 0, "#line 0 \"$filename\"");
 foreach $oline (@outputlines) {
 	print $oline."\n";
 }
