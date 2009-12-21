@@ -66,7 +66,7 @@ while($line = <FILE>) {
 			}
 
 			my $replacement = parseCommand($cmdspec);
-			if(!$replacement) { next; }
+			if(!defined($replacement)) { next; }
 			# This is so that we always replace "blahblah%command%" with "blahblah$REPLACEMENT"
 			my $preline = substr($line, 0, $cmdidx);
 			$searchpos += length($replacement) - $-[0]; # Add the replacement length to the search position.
