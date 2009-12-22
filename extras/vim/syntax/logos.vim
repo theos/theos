@@ -11,8 +11,7 @@ runtime! syntax/objc.vim
 
 syn match logosHookInit '%\(hook\|class\)'
 syn match logosKeyword '%\(log\|orig\(inal\)\=\|c\(onstruc\)\=tor\|init\|end\)%\='
-"syn match logosSyntaxElements %hook %class %orig %
 
-"let b:currentsyntax = "logos"
+let b:currentsyntax = "logos"
 hi def link logosHookInit PreProc
 hi def link logosKeyword PreProc
