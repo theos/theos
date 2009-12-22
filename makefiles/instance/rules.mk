@@ -26,6 +26,7 @@ ifneq ($(OBJC_OBJS)$(OBJCC_OBJS),)
 
 	# Add all private frameworks from the type and instance, as well as -F for the private framework dir.
 	ifneq ($($(FW_TYPE)_PRIVATE_FRAMEWORKS)$($(FW_INSTANCE)_PRIVATE_FRAMEWORKS),)
+		ADDITIONAL_CFLAGS += -F/System/Library/PrivateFrameworks
 		ADDITIONAL_LDFLAGS += -F/System/Library/PrivateFrameworks
 	endif
 
