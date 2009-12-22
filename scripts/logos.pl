@@ -95,6 +95,9 @@ READLOOP: while($line = <FILE>) {
 close(FILE);
 
 my $inclass = 0;
+my $objc_currently_in = "";
+my $last_blockopen = -1;
+my $hook_using_objc_syntax = 0;
 foreach $line (@inputlines) {
 	# Search for a discrete %x% or an open-ended %x (or %x with a { or ; after it)
 	if($line =~ /\s*#\s*include\s*[<"]substrate\.h[">]/) {
@@ -105,9 +108,12 @@ foreach $line (@inputlines) {
 		$ignore = 0;
 	} elsif($ignore == 0) {
 		# %hook name
-		if($line =~ /^\s*%(hook|class)\s+([\$_\w]+)/) {
+		if($line =~ /^\s*([\@%])(hook)\s+([\$_\w]+)/) {
 			$firsthookline = $lineno if $firsthookline == -1;
-			$class = $2;
+			$hook_using_objc_syntax = ($1 eq '@');
+			die "Error: Nested $1$2 in a $objc_currently_in (opened on line $last_blockopen) near line ".$lineno."\n" if $objc_currently_in && $hook_using_objc_syntax;
+			$last_blockopen = $lineno;
+			$class = $3;
 			$inclass = 1;
 			$line = $';
 			redo;
@@ -170,7 +176,7 @@ foreach $line (@inputlines) {
 			$replacement .= $selnametext if $selnametext ne "";
 			$line = $replacement;
 			redo;
-		} elsif($line =~ /%orig(inal)?(%?)(?=\W?)/) {
+		} elsif($line =~ /[\@%]orig(inal)?([\@%]?)(?=\W?)/) {
 			$replacement = "_$class\$$newselector(self, sel";
 			my $hasparens = 0;
 			my $remaining = $';
@@ -215,7 +221,7 @@ foreach $line (@inputlines) {
 			$replacement .= $remaining;
 			$line = $`.$replacement;
 			redo;
-		} elsif($line =~ /%log(%?)(?=\W?)/) {
+		} elsif($line =~ /[\@%]log([\@%]?)(?=\W?)/) {
 			$replacement = "NSLog(\@\"$class";
 			if(index($selector, ":") != -1) {
 				my @keywords = split(/:/, $selector);
@@ -232,19 +238,28 @@ foreach $line (@inputlines) {
 			}
 			$line = $`.$replacement.$';
 			redo;
-		} elsif($line =~ /%c(onstruc)?tor(%?)(?=\W?)/) {
+		} elsif($line =~ /[\@%]c(onstruc)?tor([\@%]?)(?=\W?)/) {
 			$ctorline = $lineno if $ctorline == -1;
 			$line = $`.$';
 			redo;
-		} elsif($line =~ /%init(%?)(?=\W?)/) {
+		} elsif($line =~ /[\@%]init([\@%]?)(?=\W?)/) {
 			$line = $`.generateConstructorBody().$';
 			$ctorline = -2; # "Do not generate a constructor."
 			redo;
 		# %end (Make it the last thing we check for so we don't terminate something pre-emptively.
-		} elsif($inclass && $line =~ /%end(%?)/) {
-			$inclass = 0;
-			$line = $`.$';
-			redo;
+		} elsif($line =~ /\@(interface|implementation)/) {
+			die "Error: Nested $& in a \@hook (opened on line $last_blockopen) near line ".$lineno."\n" if $inclass && $hook_using_objc_syntax;
+			$objc_currently_in = $&;
+			$last_blockopen = $lineno;
+		} elsif($inclass && $line =~ /([\@%])end([\@%]?)/) {
+			print "// $1 $2\n";
+			if($hook_using_objc_syntax == 1 || $1 eq '%') {
+				$inclass = 0;
+				$line = $`.$';
+				redo;
+			}
+		} elsif(!$inclass && $line =~ /\@end/) {
+			$objc_currently_in = "";
 		}
 	}
 	$lineno++;
