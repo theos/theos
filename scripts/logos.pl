@@ -60,7 +60,7 @@ while($line = <FILE>) {
 			$built = $line;
 			next;
 		} elsif($building) {
-			$built .= $line;
+			$built .= " ".$line;
 			if(index($line,"{") != -1 || index($line,";") != -1) {
 				push(@inputlines, $built);
 				$building = 0;
