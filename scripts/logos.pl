@@ -107,7 +107,7 @@ foreach $line (@inputlines) {
 			my $complexselector = 0;
 
 			# word, then an optional: ": (argtype)argname"
-			while($selnametext =~ /([\$\w]+)(:[\s]*\((.+?)\)[\s]*([\$\w]+?)($|\s+))?/) {
+			while($selnametext =~ /([\$\w]+)(:[\s]*\((.+?)\)[\s]*([\$\w]+?)(?=(\{|$|\s+)))?/) {
 				$keyword = $1;
 				if(!$2 && $complexselector != 1) {
 					$selector = $keyword;
