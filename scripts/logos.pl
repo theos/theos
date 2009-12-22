@@ -307,7 +307,9 @@ foreach $oline (@outputlines) {
 sub generateConstructor {
 	my $return = "";
 	$return .= "static __attribute__((constructor)) void _logosLocalInit() { ";
-	$return .= generateConstructorBody();
+	$return .= "NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init]; ";
+	$return .= generateConstructorBody()." ";
+	$return .= "[pool drain];";
 	$return .= " }";
 	return $return;
 }
