@@ -9,7 +9,7 @@ use warnings;
 # NO WARRANTY YET
 
 $filename = $ARGV[0];
-open(FILE, $filename);
+open(FILE, $filename) or die "Could not open $filename";
 
 @inputlines = ();
 @outputlines = ();
