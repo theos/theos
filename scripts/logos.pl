@@ -252,7 +252,6 @@ foreach $line (@inputlines) {
 			$objc_currently_in = $&;
 			$last_blockopen = $lineno;
 		} elsif($inclass && $line =~ /([\@%])end([\@%]?)/) {
-			print "// $1 $2\n";
 			if($hook_using_objc_syntax == 1 || $1 eq '%') {
 				$inclass = 0;
 				$line = $`.$';
