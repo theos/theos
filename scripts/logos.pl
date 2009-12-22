@@ -31,28 +31,47 @@ $ignore = 0;
 
 my $readignore = 0;
 
-# This outright murder of comments is NOT SAFE FOR // /* */ IN STRINGS. :(
 my $built = "";
 my $building = 0;
-while($line = <FILE>) {
+READLOOP: while($line = <FILE>) {
 	chomp($line);
+
+	if($readignore && $line =~ /^.*?\*\/\s*/) {
+		$readignore = 0;
+		$line = $';
+	}
+	if($readignore) { next; }
+
+	my @quotes = quotes($line);
+
 	# Delete all single-line /* xxx */ comments.
-	$line =~ s/\/\*.*?\*\///g;
+
 	# Delete all single-line to-EOL // xxx comments.
-	$line =~ s/\/\/.*$//g;
+	while($line =~ /\/\//g) {
+		if(!fallsBetween($-[0], @quotes)) {
+			$line = $`;
+			@quotes = quotes($line); # Line was modified, re-generate the quotes.
+			last;
+		}
+	}
+
+	while($line =~ /\/\*.*?\*\//g) {
+		if(!fallsBetween($-[0], @quotes)) {
+			$line = $`.$';
+			@quotes = quotes($line); # Line was modified, re-generate the quotes.
+		}
+	}
 	
 	# Start of a multi-line /* comment.
-	if($line =~ /\/\*.*$/) {
-		$readignore = 1;
-		$line =~ s/\/\*.*$//g;
-		push(@inputlines, $line);
-		next;
-	} elsif($line =~ /^.*?\*\/\s*/) { # End of a multi-line comment.
-		$readignore = 0;
-		$line =~ s/^.*?\*\/\s*//g;
-		push(@inputlines, $line);
-		next;
+	while($line =~ /\/\*.*$/g) {
+		if(!fallsBetween($-[0], @quotes)) {
+			$line = $`;
+			push(@inputlines, $line);
+			$readignore = 1;
+			next READLOOP;
+		}
 	}
+
 	if(!$readignore) {
 		# Line starts with - (return), start gluing lines together until we find a { or ;...
 		if(!$building && $line =~ /^\s*([+-])\s*\(\s*(.*?)\s*\)/ && index($line, "{") == -1 && index($line, ";") == -1) {
@@ -227,54 +246,6 @@ foreach $line (@inputlines) {
 			$line = $`.$';
 			redo;
 		}
-		#} elsif($ignore == 0 && $line =~ /(%(.*?)(%|(?=\s*[\/{;])|$))/) {
-		#my $remainder = $line;
-		#
-		# Start searches where the match starts.
-		#my $searchpos = $-[0];
-		#
-		#while($remainder =~ /(%(.*?)(%|(?=\s*[\/{;])|$))/) {
-		#my $cmdwrapper = $1;
-		#my $cmdspec = $2;
-		#
-		## Get the position of this command in the full line after $searchpos.
-		#my $cmdidx = index($line, $cmdwrapper, $searchpos);
-		## Add the beginning of the match to the search position
-		#$searchpos += $-[0];
-		## And chop it out of the string.
-		#$remainder = $';
-		#
-		## Gather up all the quotes in the line.
-		#my @quotes = ();
-		#if(index($line, "\"") != -1) {
-		#my $qpos = 0;
-		#while(($qpos = index($line, "\"", $qpos)) != -1) {
-		## If there's a \ before the quote, discard it.
-		#if($qpos > 0 && substr($line, $qpos - 1, 1) eq "\\") { $qpos++; next; }
-		#push(@quotes, $qpos);
-		#$qpos++;
-		#}
-		#
-		#my $discard = 0;
-		#while(@quotes > 0) {
-		#my $open = shift(@quotes);
-		#my $close = shift(@quotes);
-		#if($cmdidx > $open && (!$close || $cmdidx < $close)) { $discard = 1; last; }
-		#}
-		#if($discard == 1) {
-		## We're discarding this match, so, add the match length (+ - -) to the search position.
-		#$searchpos += $+[0] - $-[0];
-		#next;
-		#}
-		#}
-		#
-		#my $replacement = parseCommand($cmdspec);
-		#if(!defined($replacement)) { next; }
-		## This is so that we always replace "blahblah%command%" with "blahblah$REPLACEMENT"
-		#my $preline = substr($line, 0, $cmdidx);
-		#$searchpos += length($replacement) - $-[0]; # Add the replacement length to the search position.
-		#$line =~ s/\Q$preline$cmdwrapper\E/$preline$replacement/;
-		#}
 	}
 	$lineno++;
 	push(@outputlines, $line);
@@ -346,4 +317,23 @@ sub formatCharForArgType {
 	return "%f" if $argtype =~ /(double|float)/;
 	return "%c" if $argtype =~ /char/;
 	return "%@";
+}
+
+sub quotes {
+	my ($line) = @_;
+	my @quotes = ();
+	while($line =~ /(?<!\\)\"/g) {
+		push(@quotes, $-[0]);
+	}
+	return @quotes;
+}
+
+sub fallsBetween {
+	my $idx = shift;
+	while(@_ > 0) {
+		my $start = shift;
+		my $end = shift;
+		return 1 if ($start < $idx && ($end > $idx || !defined($end)))
+	}
+	return 0;
 }
