@@ -21,7 +21,10 @@ DEBUG_CFLAGS=-DDEBUG -ggdb
 STRIP=:
 endif
 
-INTERNAL_CFLAGS = -O2 -I$(FW_INCDIR) -include $(FRAMEWORKDIR)/Prefix.pch -Wall -Werror
+INTERNAL_CFLAGS = -O2 -I$(FW_INCDIR) -include $(FRAMEWORKDIR)/Prefix.pch
+ifneq ($(GO_EASY_ON_ME),1)
+	INTERNAL_CFLAGS += -Wall -Werror
+endif
 INTERNAL_CFLAGS += $(SHARED_CFLAGS)
 
 FW_BUILD_DIR ?= .
