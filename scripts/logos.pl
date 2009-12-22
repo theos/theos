@@ -167,9 +167,7 @@ foreach $line (@inputlines) {
 			$build .= ", ".$argtypelist if $argtypelist;
 
 			my $arglist = "";
-			for($i = 0; $i < $argcount; $i++) {
-				$arglist .= ", ".$argtypes[$i]." ".$argnames[$i];
-			}
+			map $arglist .= ", ".$argtypes[$_]." ".$argnames[$_], (0..$argcount - 1);
 
 			$build .= "); static $return \$$class\$$newselector($class *self, SEL sel".$arglist.")";
 			$replacement = $build;
@@ -225,13 +223,10 @@ foreach $line (@inputlines) {
 			$replacement = "NSLog(\@\"$class";
 			if(index($selector, ":") != -1) {
 				my @keywords = split(/:/, $selector);
-				for($i = 0; $i < $argcount; $i++) {
-					$replacement .= " ".$keywords[$i].":".formatCharForArgType($argtypes[$i]);
-				}
+				map $replacement .= " ".$keywords[$_].":".formatCharForArgType($argtypes[$_]), (0..$argcount - 1);
 				$replacement .= "\"";
-				for($i = 0; $i < $argcount; $i++) {
-					$replacement .= ",".$argnames[$i];
-				}
+				my $argnamelist = join(", ", @argnames);
+				$replacement .= ", ".$argnamelist if $argnamelist;
 				$replacement .= ")";
 			} else {
 				$replacement .= " $selector\")";
