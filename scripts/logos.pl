@@ -234,6 +234,8 @@ if($firsthookline != -1) {
 	}
 	splice(@outputlines, $firsthookline - 1 + $offset, 0, generateClassList());
 	$offset++;
+	splice(@outputlines, $firsthookline - 1 + $offset, 0, "#line $firsthookline \"$filename\"");
+	$offset++;
 	my $ctor = generateConstructor();
 	if($ctorline == -2) {
 		# No-op, do not paste a constructor.
