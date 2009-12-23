@@ -259,7 +259,7 @@ sub generateConstructor {
 
 sub generateConstructorBody {
 	my $return = "";
-	map $return .= $hooks[$_]->buildHookCall, (0..$#hooks - 1);
+	map $return .= $hooks[$_]->buildHookCall, (0..$#hooks);
 	return $return;
 }
 
