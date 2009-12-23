@@ -9,8 +9,9 @@ endif
 
 runtime! syntax/objc.vim
 
-syn match logosHookInit '%\(hook\|class\)'
-syn match logosKeyword '%\(log\|orig\(inal\)\=\|c\(onstruc\)\=tor\|init\|end\)%\='
+syn match logosHookInit '[%@]hook'
+syn match logosKeyword '[%@]\(log\|orig\(inal\)\=\|c\(onstruc\)\=tor\|init\)[%@]\='
+syn match logosKeyword '%end%\='
 
 let b:currentsyntax = "logos"
 hi def link logosHookInit PreProc
