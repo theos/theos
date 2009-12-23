@@ -12,7 +12,8 @@ use Logos::Hook;
 # NO WARRANTY YET
 
 $filename = $ARGV[0];
-open(FILE, $filename) or die "Could not open $filename";
+die "Syntax: $FindBin::Script filename\n" if !$filename;
+open(FILE, $filename) or die "Could not open $filename.\n";
 
 @inputlines = ();
 @outputlines = ();
