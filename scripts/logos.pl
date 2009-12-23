@@ -40,7 +40,7 @@ READLOOP: while($line = <FILE>) {
 		$readignore = 0;
 		$line = $';
 	}
-	if($readignore) { next; }
+	if($readignore) { push(@inputlines, ""); next; }
 
 	my @quotes = quotes($line);
 
@@ -77,6 +77,7 @@ READLOOP: while($line = <FILE>) {
 		if(!$building && $line =~ /^\s*([+-])\s*\(\s*(.*?)\s*\)/ && index($line, "{") == -1 && index($line, ";") == -1) {
 			$building = $1;
 			$built = $line;
+			push(@inputlines, "");
 			next;
 		} elsif($building) {
 			$built .= " ".$line;
@@ -86,6 +87,7 @@ READLOOP: while($line = <FILE>) {
 				$built = "";
 				next;
 			}
+			push(@inputlines, "");
 			next;
 		}
 		push(@inputlines, $line) if !$readignore;
