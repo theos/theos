@@ -153,6 +153,7 @@ foreach $line (@inputlines) {
 			$line = $replacement;
 			redo;
 		} elsif($line =~ /[\@%]orig(inal)?([\@%]?)(?=\W?)/) {
+			die "Error: $& found outside of a ".($hook_using_objc_syntax?"\@":"%")."hook block at $lineno.\n" if !$inclass;
 			my $hasparens = 0;
 			my $remaining = $';
 			$replacement = "";
@@ -196,6 +197,7 @@ foreach $line (@inputlines) {
 			$line = $`.$replacement;
 			redo;
 		} elsif($line =~ /[\@%]log([\@%]?)(?=\W?)/) {
+			die "Error: $& found outside of a ".($hook_using_objc_syntax?"\@":"%")."hook block at $lineno.\n" if !$inclass;
 			$replacement = $hooks[$#hooks]->buildLogCall;
 			$line = $`.$replacement.$';
 			redo;
