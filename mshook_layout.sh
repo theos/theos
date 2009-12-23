@@ -27,6 +27,6 @@ include framework/makefiles/common.mk
 include framework/makefiles/tweak.mk
 __END
 
-cat > Tweak.l.mm << __END
+cat > Tweak.xm << __END
 // %hook Blah -(void)blah { ... }
 __END
