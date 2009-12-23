@@ -1,6 +1,9 @@
 #!/usr/bin/env perl
 
 use warnings;
+use FindBin;
+use lib "$FindBin::Bin/lib";
+use Logos::Hook;
 
 # I WARN YOU
 # THIS IS UGLY AS SIN
@@ -18,13 +21,9 @@ $lineno = 1;
 $firsthookline = -1;
 $ctorline = -1;
 
-@selectors = ();
-@selectors2 = ();
-@classes = ();
-$numselectors = 0;
-@argnames = ();
-@argtypes = ();
-$argcount = 0;
+@hooks = ();
+$numhooks = 0;
+%classes = ();
 
 $hassubstrateh = 0;
 $ignore = 0;
@@ -123,61 +122,37 @@ foreach $line (@inputlines) {
 			my $return = $2;
 			my $selnametext = $';
 
-			$selector = "";
-			@argnames = ();
-			@argtypes = ();
-			$argcount = 0;
+			my $curhook = Hook->new();
 
-			# Yeah it's a hack to avoid finding a simple selector after a complex one.
-			my $complexselector = 0;
+			$curhook->class($class);
+			$classes{$class}++;
+
+			$curhook->scope($scope);
+			$curhook->return($return);
+
+			my @selparts = ();
 
 			# word, then an optional: ": (argtype)argname"
 			while($selnametext =~ /([\$\w]+)(:[\s]*\((.+?)\)[\s]*([\$\w]+?)(?=(\{|$|\s+)))?/) {
 				$keyword = $1;
-				if(!$2 && $complexselector != 1) {
-					$selector = $keyword;
-					$selnametext = $';
-					last;
-				} elsif (!$2 && $complexselector == 1) {
-					last;
-				} else {
-					# build our selectors out of of keywords concat'd with :s
-					$selector .= $keyword.":";
-					$argreturn = $3;
-					$argname = $4;
-					$argtypes[$argcount] = $argreturn;
-					$argnames[$argcount] = $argname;
-					$argcount++;
-					$complexselector = 1;
-				}
+				push(@selparts, $keyword);
+				$curhook->addArgument($3, $4) if $2;
 				$selnametext = $';
+				last if !$2;
 			}
-			$newselector = $selector;
-			$newselector =~ s/:/\$/g;
 
-			$classes[$numselectors] = $class;
-			$selectors[$numselectors] = $selector;
-			$selectors2[$numselectors] = $newselector;
-			$numselectors++;
+			$curhook->setSelectorParts(@selparts);
+			push(@hooks, $curhook);
+			$numhooks++;
 
-			$build = "";
-			#$build = "META" if $scope eq "class";
-			$build .= "static $return (*_$class\$$newselector)($class *, SEL"; 
-			my $argtypelist = join(", ", @argtypes);
-			$build .= ", ".$argtypelist if $argtypelist;
-
-			my $arglist = "";
-			map $arglist .= ", ".$argtypes[$_]." ".$argnames[$_], (0..$argcount - 1);
-
-			$build .= "); static $return \$$class\$$newselector($class *self, SEL sel".$arglist.")";
-			$replacement = $build;
+			$replacement = $curhook->buildHookFunction;
 			$replacement .= $selnametext if $selnametext ne "";
 			$line = $replacement;
 			redo;
 		} elsif($line =~ /[\@%]orig(inal)?([\@%]?)(?=\W?)/) {
-			$replacement = "_$class\$$newselector(self, sel";
 			my $hasparens = 0;
 			my $remaining = $';
+			$replacement = "";
 			if($remaining) {
 				# Walk a string char-by-char, noting parenthesis depth.
 				# If we encounter a ) that puts us back at zero, we found a (
@@ -210,27 +185,15 @@ foreach $line (@inputlines) {
 			if($hasparens > 0) {
 				$parenstring = substr($remaining, 1, $hasparens-2);
 				$remaining = substr($remaining, $hasparens);
-				$replacement .= ", ".$parenstring;
+				$replacement .= $hooks[$#hooks]->buildOriginalCall($parenstring);
 			} else {
-				my $argnamelist = join(", ", @argnames);
-				$replacement .= ", ".$argnamelist if $argnamelist;
+				$replacement .= $hooks[$#hooks]->buildOriginalCall;
 			}
-			$replacement .= ")";
 			$replacement .= $remaining;
 			$line = $`.$replacement;
 			redo;
 		} elsif($line =~ /[\@%]log([\@%]?)(?=\W?)/) {
-			$replacement = "NSLog(\@\"$class";
-			if(index($selector, ":") != -1) {
-				my @keywords = split(/:/, $selector);
-				map $replacement .= " ".$keywords[$_].":".formatCharForArgType($argtypes[$_]), (0..$argcount - 1);
-				$replacement .= "\"";
-				my $argnamelist = join(", ", @argnames);
-				$replacement .= ", ".$argnamelist if $argnamelist;
-				$replacement .= ")";
-			} else {
-				$replacement .= " $selector\")";
-			}
+			$replacement = $hooks[$#hooks]->buildLogCall;
 			$line = $`.$replacement.$';
 			redo;
 		} elsif($line =~ /[\@%]c(onstruc)?tor([\@%]?)(?=\W?)/) {
@@ -296,36 +259,19 @@ sub generateConstructor {
 
 sub generateConstructorBody {
 	my $return = "";
-	map $return .= generateMSHookMessage($classes[$_], $selectors[$_], $selectors2[$_]), (0..$numselectors - 1);
+	map $return .= $hooks[$_]->buildHookCall, (0..$#hooks - 1);
 	return $return;
-}
-
-sub generateMSHookMessage {
-	my ($class, $original, $replacement) = @_;
-	return "MSHookMessageEx(\$$class, \@selector($original), (IMP)&\$$class\$$replacement, (IMP*)&_$class\$$replacement);"
 }
 
 sub generateClassList {
 	my $return = "";
-	my %seenclasses;
-	@uniqclasses = grep(!$seenclasses{$_}++, @classes);
-	map $return .= generateClassLine($_), @uniqclasses;
+	map $return .= generateClassLine($_), keys %classes;
 	return $return;
 }
 
 sub generateClassLine {
 	my ($class) = @_;
 	return "\@class $class; static Class \$$class = objc_getClass(\"$class\");";
-}
-
-sub formatCharForArgType {
-	my ($argtype) = @_;
-	return "%d" if $argtype =~ /(int|long|bool)/i;
-	return "%s" if $argtype =~ /char\s*\*/;
-	return "%p" if $argtype =~ /void\s*\*/;
-	return "%f" if $argtype =~ /(double|float)/;
-	return "%c" if $argtype =~ /char/;
-	return "%@";
 }
 
 sub quotes {
