@@ -8,9 +8,7 @@ sub new {
 	$self->{CLASS} = undef;
 	$self->{SCOPE} = undef;
 	$self->{RETURN} = undef;
-	$self->{SELECTOR} = undef;
-	$self->{NEW_SELECTOR} = undef;
-	$self->{SELPARTS} = [];
+	$self->{SELECTOR_PARTS} = [];
 	$self->{ARGNAMES} = [];
 	$self->{ARGTYPES} = [];
 	$self->{NUM_ARGS} = 0;
@@ -38,20 +36,26 @@ sub return {
 
 sub selector {
 	my $self = shift;
-	if(@_) { $self->{SELECTOR} = shift; }
-	return $self->{SELECTOR};
+	if($self->{NUM_ARGS} == 0) {
+		return $self->{SELECTOR_PARTS}[0];
+	} else {
+		return join(":", @{$self->{SELECTOR_PARTS}}).":";
+	}
 }
 
 sub new_selector {
 	my $self = shift;
-	if(@_) { $self->{NEW_SELECTOR} = shift; }
-	return $self->{NEW_SELECTOR};
+	if($self->{NUM_ARGS} == 0) {
+		return $self->{SELECTOR_PARTS}[0];
+	} else {
+		return join("\$", @{$self->{SELECTOR_PARTS}})."\$";
+	}
 }
 
-sub selparts {
+sub selectorParts {
 	my $self = shift;
-	if(@_) { @{$self->{SELPARTS}} = @_; }
-	return @{$self->{SELPARTS}};
+	if(@_) { @{$self->{SELECTOR_PARTS}} = @_; }
+	return @{$self->{SELECTOR_PARTS}};
 }
 
 sub argnames {
@@ -74,27 +78,14 @@ sub addArgument {
 	$self->{NUM_ARGS}++;
 }
 
-sub setSelectorParts {
-	my $self = shift;
-	my @selparts = @_;
-	if(@selparts == 1) {
-		$self->{SELECTOR} = $selparts[0];
-		$self->{NEW_SELECTOR} = $selparts[0];
-	} else {
-		$self->{SELECTOR} = join(":", @selparts).":";
-		$self->{NEW_SELECTOR} = join("\$", @selparts)."\$";
-	}
-	@{$self->{SELPARTS}} = @selparts;
-}
-
 sub originalFunctionName {
 	my $self = shift;
-	return "_".$self->{CLASS}."\$".$self->{NEW_SELECTOR};
+	return "_".$self->{CLASS}."\$".$self->new_selector;
 }
 
 sub newFunctionName {
 	my $self = shift;
-	return "\$".$self->{CLASS}."\$".$self->{NEW_SELECTOR};
+	return "\$".$self->{CLASS}."\$".$self->new_selector;
 }
 
 sub buildHookFunction {
@@ -127,7 +118,7 @@ sub buildOriginalCall {
 
 sub buildHookCall {
 	my $self = shift;
-	return "MSHookMessageEx(\$".$self->{CLASS}.", \@selector(".$self->{SELECTOR}."), (IMP)&".$self->newFunctionName.", (IMP*)&".$self->originalFunctionName.");"
+	return "MSHookMessageEx(\$".$self->{CLASS}.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", (IMP*)&".$self->originalFunctionName.");"
 }
 
 
@@ -135,11 +126,11 @@ sub buildLogCall {
 	my $self = shift;
 	my $build = "NSLog(\@\"".$self->{CLASS};
 	if($self->{NUM_ARGS} > 0) {
-		map $build .= " ".$self->{SELPARTS}[$_].":".formatCharForArgType($self->{ARGTYPES}[$_]), (0..$self->{NUM_ARGS} - 1);
+		map $build .= " ".$self->{SELECTOR_PARTS}[$_].":".formatCharForArgType($self->{ARGTYPES}[$_]), (0..$self->{NUM_ARGS} - 1);
 		my $argnamelist = join(", ", @{$self->{ARGNAMES}});
 		$build .= "\", ".$argnamelist.")";
 	} else {
-		$build .= " ".$self->{SELECTOR}."\")";
+		$build .= " ".$self->selector."\")";
 	}
 }
 

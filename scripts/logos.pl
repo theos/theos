@@ -144,7 +144,7 @@ foreach $line (@inputlines) {
 				last if !$2;
 			}
 
-			$curhook->setSelectorParts(@selparts);
+			$curhook->selectorParts(@selparts);
 			push(@hooks, $curhook);
 			$numhooks++;
 
