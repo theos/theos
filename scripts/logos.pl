@@ -295,7 +295,7 @@ sub fallsBetween {
 	while(@_ > 0) {
 		my $start = shift;
 		my $end = shift;
-		return 1 if ($start < $idx && ($end > $idx || !defined($end)))
+		return 1 if ($start < $idx && (!defined($end) || $end > $idx))
 	}
 	return 0;
 }
