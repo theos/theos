@@ -113,7 +113,7 @@ foreach $line (@inputlines) {
 		if($line =~ /^\s*([\@%])(hook)\s+([\$_\w]+)/) {
 			$firsthookline = $lineno if $firsthookline == -1;
 			$hook_using_objc_syntax = ($1 eq '@');
-			die "Error: Nested $1$2 in a $objc_currently_in (opened on line $last_blockopen) near line ".$lineno."\n" if $objc_currently_in && $hook_using_objc_syntax;
+			die "Error: Nested $1$2 in a $objc_currently_in (opened on line $last_blockopen) at or near line ".$lineno."\n" if $objc_currently_in && $hook_using_objc_syntax;
 			$last_blockopen = $lineno;
 			$class = $3;
 			$inclass = 1;
@@ -153,7 +153,7 @@ foreach $line (@inputlines) {
 			$line = $replacement;
 			redo;
 		} elsif($line =~ /[\@%]orig(inal)?([\@%]?)(?=\W?)/) {
-			die "Error: $& found outside of a ".($hook_using_objc_syntax?"\@":"%")."hook block at $lineno.\n" if !$inclass;
+			die "Error: $& found outside of a ".($hook_using_objc_syntax?"\@":"%")."hook block at or near line $lineno.\n" if !$inclass;
 			my $hasparens = 0;
 			my $remaining = $';
 			$replacement = "";
@@ -197,7 +197,7 @@ foreach $line (@inputlines) {
 			$line = $`.$replacement;
 			redo;
 		} elsif($line =~ /[\@%]log([\@%]?)(?=\W?)/) {
-			die "Error: $& found outside of a ".($hook_using_objc_syntax?"\@":"%")."hook block at $lineno.\n" if !$inclass;
+			die "Error: $& found outside of a ".($hook_using_objc_syntax?"\@":"%")."hook block at or near line $lineno.\n" if !$inclass;
 			$replacement = $hooks[$#hooks]->buildLogCall;
 			$line = $`.$replacement.$';
 			redo;
@@ -211,7 +211,7 @@ foreach $line (@inputlines) {
 			redo;
 		# %end (Make it the last thing we check for so we don't terminate something pre-emptively.
 		} elsif($line =~ /\@(interface|implementation)/) {
-			die "Error: Nested $& in a \@hook (opened on line $last_blockopen) near line ".$lineno."\n" if $inclass && $hook_using_objc_syntax;
+			die "Error: Nested $& in a \@hook (opened on line $last_blockopen) at or near line ".$lineno."\n" if $inclass && $hook_using_objc_syntax;
 			$objc_currently_in = $&;
 			$last_blockopen = $lineno;
 		} elsif($inclass && $line =~ /([\@%])end([\@%]?)/) {
