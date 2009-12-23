@@ -158,32 +158,18 @@ foreach $line (@inputlines) {
 			my $remaining = $';
 			$replacement = "";
 			if($remaining) {
-				# Walk a string char-by-char, noting parenthesis depth.
 				# If we encounter a ) that puts us back at zero, we found a (
 				# and have reached its closing ).
 				my $parenmatch = $remaining;
 				my $pdepth = 0;
-				my $endindex = 0;
-				my $last = "";
-				my $ignore = 0;
-				while($parenmatch =~ /(.)/g) {
-					$endindex++;
-					if($ignore == 0) {
-						if($1 eq "(") { $pdepth++; }
-						elsif($1 eq ")") {
-							$pdepth--;
-							if($pdepth == 0) { $hasparens = $endindex; last; }
-						} elsif($1 eq "\"" || $1 eq "'") {
-							# If we have an unescaped quote, turn on 'ignore' mode.
-							if($last ne "\\") { $ignore = 1; }
-						}
-					} else {
-						if($1 eq "\"" || $1 eq "'") {
-							# If we have an unescaped quote, turn off 'ignore' mode.
-							if($last ne "\\") { $ignore = 0; }
-						}
+				my @pquotes = quotes($parenmatch);
+				while($parenmatch =~ /[()]/g) {
+					next if fallsBetween($-[0], @pquotes);
+					if($& eq "(") { $pdepth++; }
+					elsif($& eq ")") {
+						$pdepth--;
+						if($pdepth == 0) { $hasparens = $+[0]; last; }
 					}
-					$last = $1;
 				}
 			}
 			if($hasparens > 0) {
