@@ -19,7 +19,7 @@ sub new {
 sub class {
 	my $self = shift;
 	if(@_) { $self->{CLASS} = shift; }
-	return $self->{CLASS};
+	return ($self->{SCOPE} eq "+" ? "meta\$" : "").$self->{CLASS};
 }
 
 sub scope {
@@ -80,33 +80,38 @@ sub addArgument {
 
 sub originalFunctionName {
 	my $self = shift;
-	return "_".$self->{CLASS}."\$".$self->new_selector;
+	return "_".$self->class."\$".$self->new_selector;
 }
 
 sub newFunctionName {
 	my $self = shift;
-	return "\$".$self->{CLASS}."\$".$self->new_selector;
+	return "\$".$self->class."\$".$self->new_selector;
 }
 
 sub buildHookFunction {
 	my $self = shift;
 	my $build = "";
-	#$build = "META" if $scope eq "class";
-	$build .= "static ".$self->{RETURN}." (*".$self->originalFunctionName.")(".$self->{CLASS}." *, SEL"; 
+	my $classargtype = "";
+	if($self->{SCOPE} eq "+") {
+		$classargtype = "Class";
+	} else {
+		$classargtype = $self->{CLASS}."*";
+	}
+	$build .= "static ".$self->{RETURN}." (*".$self->originalFunctionName.")(".$classargtype.", SEL"; 
 	my $argtypelist = join(", ", @{$self->{ARGTYPES}});
 	$build .= ", ".$argtypelist if $argtypelist;
 
 	my $arglist = "";
 	map $arglist .= ", ".$self->{ARGTYPES}[$_]." ".$self->{ARGNAMES}[$_], (0..$self->{NUM_ARGS} - 1);
 
-	$build .= "); static ".$self->{RETURN}." ".$self->newFunctionName."(".$self->{CLASS}." *self, SEL sel".$arglist.")";
+	$build .= "); static ".$self->{RETURN}." ".$self->newFunctionName."(".$classargtype." self, SEL _cmd".$arglist.")";
 	return $build;
 }
 
 sub buildOriginalCall {
 	my $self = shift;
 	my ($customargs) = @_;
-	my $build = $self->originalFunctionName."(self, sel";
+	my $build = $self->originalFunctionName."(self, _cmd";
 	if($customargs) {
 		$build .= ", ".$customargs;
 	} elsif($self->{NUM_ARGS} > 0) {
@@ -118,19 +123,19 @@ sub buildOriginalCall {
 
 sub buildHookCall {
 	my $self = shift;
-	return "MSHookMessageEx(\$".$self->{CLASS}.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", (IMP*)&".$self->originalFunctionName.");"
+	return "MSHookMessageEx(\$".$self->class.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", (IMP*)&".$self->originalFunctionName.");"
 }
 
 
 sub buildLogCall {
 	my $self = shift;
-	my $build = "NSLog(\@\"".$self->{CLASS};
+	my $build = "NSLog(\@\"".$self->{SCOPE}."[".$self->{CLASS};
 	if($self->{NUM_ARGS} > 0) {
 		map $build .= " ".$self->{SELECTOR_PARTS}[$_].":".formatCharForArgType($self->{ARGTYPES}[$_]), (0..$self->{NUM_ARGS} - 1);
 		my $argnamelist = join(", ", @{$self->{ARGNAMES}});
-		$build .= "\", ".$argnamelist.")";
+		$build .= "]\", ".$argnamelist.")";
 	} else {
-		$build .= " ".$self->selector."\")";
+		$build .= " ".$self->selector."]\")";
 	}
 }
 

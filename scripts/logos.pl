@@ -25,6 +25,7 @@ $ctorline = -1;
 @hooks = ();
 $numhooks = 0;
 %classes = ();
+%metaclasses = ();
 
 $hassubstrateh = 0;
 $ignore = 0;
@@ -128,7 +129,11 @@ foreach $line (@inputlines) {
 			my $curhook = Hook->new();
 
 			$curhook->class($class);
-			$classes{$class}++;
+			if($scope eq "+") {
+				$metaclasses{$class}++;
+			} else {
+				$classes{$class}++;
+			}
 
 			$curhook->scope($scope);
 			$curhook->return($return);
@@ -258,13 +263,24 @@ sub generateConstructorBody {
 
 sub generateClassList {
 	my $return = "";
+	my %uniqclasses = ();
+	map { $uniqclasses{$_}++; } keys %metaclasses;
+	map { $uniqclasses{$_}++; } keys %classes;
+
+	map $return .= "\@class $_; ", keys %uniqclasses;
+	map $return .= generateMetaClassLine($_), keys %metaclasses;
 	map $return .= generateClassLine($_), keys %classes;
 	return $return;
 }
 
+sub generateMetaClassLine {
+	my ($class) = @_;
+	return "static Class \$meta\$$class = objc_getMetaClass(\"$class\"); ";
+}
+
 sub generateClassLine {
 	my ($class) = @_;
-	return "\@class $class; static Class \$$class = objc_getClass(\"$class\");";
+	return "static Class \$$class = objc_getClass(\"$class\"); ";
 }
 
 sub quotes {
