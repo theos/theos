@@ -37,6 +37,18 @@ after-package-buildno::
 after-package:: after-package-buildno
 	$(FAKEROOT) -r dpkg-deb -b $(FW_PACKAGE_STAGING_DIR) $(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb
 
+ifeq ($(FW_DEVICE_IP),)
+install::
+	@echo "Error: $(MAKE) install requires that you set FW_DEVICE_IP in your environment.\nIt is also recommended that you have public-key authentication set up for root over SSH, or you'll be entering your password a lot."; exit 1
+else
+install:: internal-install after-install
+internal-install::
+	scp $(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb root@$(FW_DEVICE_IP):
+	ssh root@$(FW_DEVICE_IP) "dpkg -i $(FW_PACKAGE_FILENAME).deb"
+
+after-install::
+endif
+
 else
 
 before-package::
