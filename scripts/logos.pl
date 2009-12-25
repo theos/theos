@@ -60,8 +60,8 @@ READLOOP: while($line = <FILE>) {
 
 	if(!$readignore) {
 		# Line starts with - (return), start gluing lines together until we find a { or ;...
-		if(!$building && $line =~ /^\s*([+-])\s*\(\s*(.*?)\s*\)/ && index($line, "{") == -1 && index($line, ";") == -1) {
-			$building = $1;
+		if(!$building && $line =~ /^\s*(%new.*?)?\s*([+-])\s*\(\s*(.*?)\s*\)/ && index($line, "{") == -1 && index($line, ";") == -1) {
+			$building = 1;
 			$built = $line;
 			push(@inputlines, "");
 			next;
@@ -88,7 +88,7 @@ $lineno = 1;
 $firsthookline = -1;
 $ctorline = -1;
 
-%hooks = ( "_ungrouped" => [] );
+%hooks = ();
 %inittedGroups = ();
 %classes = ();
 %metaclasses = ();
@@ -101,6 +101,8 @@ my $inclass = 0;
 my $last_blockopen = -1;
 my $curgroup = "_ungrouped";
 my $lastHook;
+
+my $isNewMethod = undef;
 
 foreach $line (@inputlines) {
 	# Search for a discrete %x% or an open-ended %x (or %x with a { or ; after it)
@@ -152,7 +154,20 @@ foreach $line (@inputlines) {
 				nestingError($lineno, $1, $n) if $n;
 				nestPush($1, $lineno, \@nestingstack);
 				$curgroup = $2;
-				$hooks{$curgroup} = [];
+				$line = $`.$';
+
+				redo SCANLOOP;
+			}
+			
+			# %new(type) at the beginning of a line after any amount of space
+			while($line =~ /^\s*%new(\((.*?)\))?(%?)(?=\W?)/g) {
+				next if fallsBetween($-[0], @quotes);
+
+				fileError($lineno, "%new found outside of a %hook") if !nestingContains("hook", @nestingstack);
+				my $xtype = "v\@:";
+				$xtype = $2 if $2;
+				fileWarning($lineno, "%new without a type specifier, assuming v\@: (void return, id and SEL args)") if !$2;
+				$isNewMethod = $xtype;
 				$line = $`.$';
 
 				redo SCANLOOP;
@@ -162,6 +177,7 @@ foreach $line (@inputlines) {
 			while($inclass && $line =~ /^\s*([+-])\s*\(\s*(.*?)\s*\)/g) {
 				next if fallsBetween($-[0], @quotes);
 
+				$hooks{$curgroup} = [] if !defined($hooks{$curgroup});
 				my $scope = $1;
 				my $return = $2;
 				my $selnametext = $';
@@ -177,6 +193,12 @@ foreach $line (@inputlines) {
 
 				$curhook->scope($scope);
 				$curhook->return($return);
+
+				if($isNewMethod) {
+					$curhook->setNew(1);
+					$curhook->type($isNewMethod);
+					$isNewMethod = undef;
+				}
 
 				my @selparts = ();
 
@@ -204,6 +226,8 @@ foreach $line (@inputlines) {
 				next if fallsBetween($-[0], @quotes);
 
 				fileError($lineno, "$& found outside of a %hook") if !nestingContains("hook", @nestingstack);
+				fileWarning($lineno, "$& in a new method will be non-operative.") if $lastHook->isNew;
+
 				my $hasparens = 0;
 				my $remaining = $';
 				$replacement = "";
@@ -389,10 +413,16 @@ sub fallsBetween {
 	return 0;
 }
 
+sub fileWarning {
+	my $curline = shift;
+	my $reason = shift;
+	print STDERR "$filename:".($curline > -1 ? "$curline:" : "")." warning: $reason\n";
+}
+
 sub fileError {
 	my $curline = shift;
 	my $reason = shift;
-	die "$filename:".($curline > -1 ? "$curline:" : "")." $reason\n";
+	die "$filename:".($curline > -1 ? "$curline:" : "")." error: $reason\n";
 }
 
 sub nestingError {
