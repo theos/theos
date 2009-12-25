@@ -9,8 +9,8 @@ endif
 
 runtime! syntax/objc.vim
 
-syn match logosHookInit '[%@]hook'
-syn match logosKeyword '[%@]\(log\|orig\(inal\)\=\|c\(onstruc\)\=tor\|init\)[%@]\='
+syn match logosHookInit '%hook'
+syn match logosKeyword '%\(log\|orig\(inal\)\=\|c\(onstruc\)\=tor\|init\|group\)%\='
 syn match logosKeyword '%end%\='
 
 let b:currentsyntax = "logos"
