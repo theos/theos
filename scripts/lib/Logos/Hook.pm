@@ -134,7 +134,10 @@ sub buildLogCall {
 	my $build = "NSLog(\@\"".$self->{SCOPE}."[".$self->{CLASS};
 	if($self->{NUM_ARGS} > 0) {
 		map $build .= " ".$self->{SELECTOR_PARTS}[$_].":".formatCharForArgType($self->{ARGTYPES}[$_]), (0..$self->{NUM_ARGS} - 1);
-		my $argnamelist = join(", ", @{$self->{ARGNAMES}});
+		# This builds a list of args by making sure the format char isn't -- (or, what we're using for non-operational types)
+		# Map (in list context) "format char == -- ? nothing : arg name" over the indices of the arg list.
+		my @newarglist = map(formatCharForArgType($self->{ARGTYPES}[$_]) eq "--" ? undef : $self->{ARGNAMES}[$_], (0..$self->{NUM_ARGS} - 1));
+		my $argnamelist = join(", ", grep(defined($_), @newarglist));
 		$build .= "]\", ".$argnamelist.")";
 	} else {
 		$build .= " ".$self->selector."]\")";
@@ -142,12 +145,13 @@ sub buildLogCall {
 }
 
 sub formatCharForArgType {
-	my ($argtype) = @_;
-	return "%d" if $argtype =~ /(int|long|bool)/i;
-	return "%s" if $argtype =~ /char\s*\*/;
-	return "%p" if $argtype =~ /void\s*\*/;
-	return "%f" if $argtype =~ /(double|float)/;
-	return "%c" if $argtype =~ /char/;
+	my $argtype = shift;
+	return "%d" if $argtype =~ /\b(int|long|bool)\b/i;
+	return "%s" if $argtype =~ /\bchar\b\s*\*/;
+	return "%p" if $argtype =~ /\bvoid\b\s*\*/;
+	return "%f" if $argtype =~ /\b(double|float)\b/;
+	return "%c" if $argtype =~ /\bchar\b/;
+	return "--" if $argtype =~ /\b(CG\w*|CF\w*|void)\b/;
 	return "%@";
 }
 
