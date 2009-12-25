@@ -15,23 +15,8 @@ $filename = $ARGV[0];
 die "Syntax: $FindBin::Script filename\n" if !$filename;
 open(FILE, $filename) or die "Could not open $filename.\n";
 
-@inputlines = ();
-@outputlines = ();
-$lineno = 1;
-
-$firsthookline = -1;
-$ctorline = -1;
-
-@hooks = ();
-$numhooks = 0;
-%classes = ();
-%metaclasses = ();
-
-$hassubstrateh = 0;
-$ignore = 0;
-
+my @inputlines = ();
 my $readignore = 0;
-
 my $built = "";
 my $building = 0;
 READLOOP: while($line = <FILE>) {
@@ -97,10 +82,27 @@ READLOOP: while($line = <FILE>) {
 
 close(FILE);
 
+@outputlines = ();
+$lineno = 1;
+
+$firsthookline = -1;
+$ctorline = -1;
+
+%hooks = ( "_ungrouped" => [] );
+%classes = ();
+%metaclasses = ();
+
+$hassubstrateh = 0;
+$ignore = 0;
+
+my @nestingstack = ();
 my $inclass = 0;
-my $objc_currently_in = "";
 my $last_blockopen = -1;
-my $hook_using_objc_syntax = 0;
+my $curgroup = "_ungrouped";
+my $lastHook;
+
+my %inittedGroups = ();
+
 foreach $line (@inputlines) {
 	# Search for a discrete %x% or an open-ended %x (or %x with a { or ; after it)
 	if($line =~ /\s*#\s*include\s*[<"]substrate\.h[">]/) {
@@ -111,16 +113,26 @@ foreach $line (@inputlines) {
 		$ignore = 0;
 	} elsif($ignore == 0) {
 		# %hook name
-		if($line =~ /^\s*([\@%])(hook)\s+([\$_\w]+)/) {
+		if($line =~ /^\s*%(hook)\s+([\$_\w]+)/) {
+			my $n = checkDoubleNesting($1, @nestingstack);
+			nestingError($lineno, $1, $n) if $n;
+
 			$firsthookline = $lineno if $firsthookline == -1;
-			$hook_using_objc_syntax = ($1 eq '@');
-			die "Error: Nested $1$2 in a $objc_currently_in (opened on line $last_blockopen) at or near line ".$lineno."\n" if $objc_currently_in && $hook_using_objc_syntax;
-			$last_blockopen = $lineno;
-			$class = $3;
+
+			nestPush($1, $lineno, \@nestingstack);
+
+			$class = $2;
 			$inclass = 1;
 			$line = $';
 			redo;
 		# - (return), but only when we're in a %hook.
+		} elsif($line =~ /\s*%(group)\s+([\$_\w]+)/) {
+			my $n = checkDoubleNesting($1, @nestingstack);
+			nestingError($lineno, $1, $n) if $n;
+			nestPush($1, $lineno, \@nestingstack);
+			$curgroup = $2;
+			$hooks{$curgroup} = [];
+			$line = $`.$';
 		} elsif($inclass && $line =~ /^\s*([+-])\s*\(\s*(.*?)\s*\)/) {
 			my $scope = $1;
 			my $return = $2;
@@ -150,15 +162,15 @@ foreach $line (@inputlines) {
 			}
 
 			$curhook->selectorParts(@selparts);
-			push(@hooks, $curhook);
-			$numhooks++;
+			push(@{$hooks{$curgroup}}, $curhook);
+			$lastHook = $curhook;
 
 			$replacement = $curhook->buildHookFunction;
 			$replacement .= $selnametext if $selnametext ne "";
 			$line = $replacement;
 			redo;
-		} elsif($line =~ /[\@%]orig(inal)?([\@%]?)(?=\W?)/) {
-			die "Error: $& found outside of a ".($hook_using_objc_syntax?"\@":"%")."hook block at or near line $lineno.\n" if !$inclass;
+		} elsif($line =~ /%orig(inal)?(%?)(?=\W?)/) {
+			fileError($lineno, "$& found outside of a %hook") if !nestingContains("hook", @nestingstack);
 			my $hasparens = 0;
 			my $remaining = $';
 			$replacement = "";
@@ -180,44 +192,53 @@ foreach $line (@inputlines) {
 			if($hasparens > 0) {
 				$parenstring = substr($remaining, 1, $hasparens-2);
 				$remaining = substr($remaining, $hasparens);
-				$replacement .= $hooks[$#hooks]->buildOriginalCall($parenstring);
+				$replacement .= $lastHook->buildOriginalCall($parenstring);
 			} else {
-				$replacement .= $hooks[$#hooks]->buildOriginalCall;
+				$replacement .= $lastHook->buildOriginalCall;
 			}
 			$replacement .= $remaining;
 			$line = $`.$replacement;
 			redo;
-		} elsif($line =~ /[\@%]log([\@%]?)(?=\W?)/) {
-			die "Error: $& found outside of a ".($hook_using_objc_syntax?"\@":"%")."hook block at or near line $lineno.\n" if !$inclass;
-			$replacement = $hooks[$#hooks]->buildLogCall;
+		} elsif($line =~ /%log(%?)(?=\W?)/) {
+			fileError($lineno, "$& found outside of a %hook") if !nestingContains("hook", @nestingstack);
+			$replacement = $lastHook->buildLogCall;
 			$line = $`.$replacement.$';
 			redo;
-		} elsif($line =~ /[\@%]c(onstruc)?tor([\@%]?)(?=\W?)/) {
+		} elsif($line =~ /%c(onstruc)?tor(%?)(?=\W?)/) {
+			fileError($lineno, "$& found inside of a %hook") if nestingContains("hook", @nestingstack);
 			$ctorline = $lineno if $ctorline == -1;
 			$line = $`.$';
 			redo;
-		} elsif($line =~ /[\@%]init([\@%]?)(?=\W?)/) {
-			$line = $`.generateConstructorBody().$';
+		} elsif($line =~ /%init(\((.*?)\))?(%?)(?=\W?)/) {
+			my $group = "_ungrouped";
+			$group = $2 if $2;
+			fileError($lineno, "re-%init of %group $group") if defined($inittedGroups{$group});
+			$inittedGroups{$group} = 1;
+			$line = $`.generateInitLines($group).$';
 			$ctorline = -2; # "Do not generate a constructor."
 			redo;
 		# %end (Make it the last thing we check for so we don't terminate something pre-emptively.
-		} elsif($line =~ /\@(interface|implementation)/) {
-			die "Error: Nested $& in a \@hook (opened on line $last_blockopen) at or near line ".$lineno."\n" if $inclass && $hook_using_objc_syntax;
-			$objc_currently_in = $&;
-			$last_blockopen = $lineno;
-		} elsif($inclass && $line =~ /([\@%])end([\@%]?)/) {
-			if($hook_using_objc_syntax == 1 || $1 eq '%') {
+		} elsif($line =~ /%end(%?)/) {
+			my $closing = nestPop(\@nestingstack);
+			if($closing eq "group") {
+				$curgroup = "_ungrouped";
+			} elsif($closing eq "hook") {
 				$inclass = 0;
-				$line = $`.$';
-				redo;
 			}
-		} elsif(!$inclass && $line =~ /\@end/) {
-			$objc_currently_in = "";
+			$line = $`.$';
+			redo;
 		}
 	}
 	$lineno++;
 	push(@outputlines, $line);
 }
+
+my %unInitHookHash = ();
+map { $unInitHookHash{$_} = 1; } (keys %hooks);
+map { delete $unInitHookHash{$_}; } (keys %inittedGroups);
+my @unInitHooks = keys %unInitHookHash;
+my $numUnHooks = @unInitHooks;
+fileError(-1, "non-initialized hook group".($numUnHooks == 1 ? "" : "s").": ".join(", ", @unInitHooks)) if $numUnHooks > 0;
 
 if($firsthookline != -1) {
 	my $offset = 0;
@@ -229,13 +250,12 @@ if($firsthookline != -1) {
 	$offset++;
 	splice(@outputlines, $firsthookline - 1 + $offset, 0, "#line $firsthookline \"$filename\"");
 	$offset++;
-	my $ctor = generateConstructor();
 	if($ctorline == -2) {
 		# No-op, do not paste a constructor.
 	} elsif($ctorline != -1) {
-		$outputlines[$ctorline + $offset - 1] = $ctor;
+		$outputlines[$ctorline + $offset - 1] = generateConstructor();
 	} else {
-		push(@outputlines, $ctor);
+		push(@outputlines, generateConstructor());
 	}
 
 }
@@ -247,17 +267,24 @@ foreach $oline (@outputlines) {
 
 sub generateConstructor {
 	my $return = "";
+	fileError($ctorline, "Cannot generate an autoconstructor with multiple %groups. Please explicitly create a constructor.") if scalar(keys(%hooks)) > 1;
 	$return .= "static __attribute__((constructor)) void _logosLocalInit() { ";
 	$return .= "NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init]; ";
-	$return .= generateConstructorBody()." ";
+	$return .= generateInitLines("_ungrouped")." ";
 	$return .= "[pool drain];";
 	$return .= " }";
 	return $return;
 }
 
-sub generateConstructorBody {
+sub generateInitLines {
+	my $forGroup = shift;
+	$forGroup = "_ungrouped" if !$forGroup;
+
 	my $return = "";
-	map $return .= $hooks[$_]->buildHookCall, (0..$#hooks);
+	fileError($lineno, "%init for an undefined %group $forGroup") if !$hooks{$forGroup};
+
+	map $return .= ${$hooks{$forGroup}}[$_]->buildHookCall, (0..$#{$hooks{$forGroup}});
+
 	return $return;
 }
 
@@ -300,4 +327,52 @@ sub fallsBetween {
 		return 1 if ($start < $idx && (!defined($end) || $end > $idx))
 	}
 	return 0;
+}
+
+sub fileError {
+	my $curline = shift;
+	my $reason = shift;
+	die "$filename:".($curline > -1 ? "$curline:" : "")." $reason\n";
+}
+
+sub nestingError {
+	my $curline = shift;
+	my $thisblock = shift;
+	my $reason = shift;
+	my @parts = split(/:/, $reason);
+	fileError $curline, "%$thisblock inside a %".$parts[0].", opened on ".$parts[1];
+}
+
+sub checkDoubleNesting {
+	my $trying = shift;
+	my @stack = @_;
+	my $line = nestingContains($trying, @stack);
+	return $trying.":".$line if $line;
+	return undef;
+}
+
+sub nestingContains {
+	my $find = shift;
+	my @stack = @_;
+	my @parts = ();
+	foreach $nest (@stack) {
+		@parts = split(/:/, $nest);
+		return $parts[1] if $find eq $parts[0];
+	}
+	return undef;
+}
+
+sub nestPush {
+	my $type = shift;
+	my $line = shift;
+	my $ref_stack = shift;
+	push(@{$ref_stack}, $type.":".$line);
+}
+
+sub nestPop {
+	my $ref_stack = shift;
+	my $outgoing = pop(@{$ref_stack});
+	return undef if !$outgoing;
+	my @parts = split(/:/, $outgoing);
+	return $parts[0];
 }

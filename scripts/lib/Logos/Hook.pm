@@ -12,10 +12,14 @@ sub new {
 	$self->{ARGNAMES} = [];
 	$self->{ARGTYPES} = [];
 	$self->{NUM_ARGS} = 0;
+	$self->{GROUP} = "_ungrouped";
 	bless($self, $class);
 	return $self;
 }
 
+##################### #
+# Setters and Getters #
+# #####################
 sub class {
 	my $self = shift;
 	if(@_) { $self->{CLASS} = shift; }
@@ -34,6 +38,30 @@ sub return {
 	return $self->{RETURN};
 }
 
+sub selectorParts {
+	my $self = shift;
+	if(@_) { @{$self->{SELECTOR_PARTS}} = @_; }
+	return @{$self->{SELECTOR_PARTS}};
+}
+
+sub group {
+	my $self = shift;
+	if(@_) { $self->{GROUP} = shift; }
+	return $self->{GROUP};
+}
+
+##### #
+# END #
+# #####
+
+sub addArgument {
+	my $self = shift;
+	my ($type, $name) = @_;
+	push(@{$self->{ARGTYPES}}, $type);	
+	push(@{$self->{ARGNAMES}}, $name);
+	$self->{NUM_ARGS}++;
+}
+
 sub selector {
 	my $self = shift;
 	if($self->{NUM_ARGS} == 0) {
@@ -50,32 +78,6 @@ sub new_selector {
 	} else {
 		return join("\$", @{$self->{SELECTOR_PARTS}})."\$";
 	}
-}
-
-sub selectorParts {
-	my $self = shift;
-	if(@_) { @{$self->{SELECTOR_PARTS}} = @_; }
-	return @{$self->{SELECTOR_PARTS}};
-}
-
-sub argnames {
-	my $self = shift;
-	if(@_) { @{$self->{ARGNAMES}} = @_; }
-	return @{$self->{ARGNAMES}};
-}
-
-sub argtypes {
-	my $self = shift;
-	if(@_) { @{$self->{ARGTYPES}} = @_; }
-	return @{$self->{ARGTYPES}};
-}
-
-sub addArgument {
-	my $self = shift;
-	my ($type, $name) = @_;
-	push(@{$self->{ARGTYPES}}, $type);	
-	push(@{$self->{ARGNAMES}}, $name);
-	$self->{NUM_ARGS}++;
 }
 
 sub originalFunctionName {
