@@ -133,6 +133,7 @@ foreach $line (@inputlines) {
 			$curgroup = $2;
 			$hooks{$curgroup} = [];
 			$line = $`.$';
+			redo;
 		} elsif($inclass && $line =~ /^\s*([+-])\s*\(\s*(.*?)\s*\)/) {
 			my $scope = $1;
 			my $return = $2;
