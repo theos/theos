@@ -89,6 +89,7 @@ $firsthookline = -1;
 $ctorline = -1;
 
 %hooks = ( "_ungrouped" => [] );
+%inittedGroups = ();
 %classes = ();
 %metaclasses = ();
 
@@ -100,8 +101,6 @@ my $inclass = 0;
 my $last_blockopen = -1;
 my $curgroup = "_ungrouped";
 my $lastHook;
-
-my %inittedGroups = ();
 
 foreach $line (@inputlines) {
 	# Search for a discrete %x% or an open-ended %x (or %x with a { or ; after it)
@@ -213,8 +212,6 @@ foreach $line (@inputlines) {
 		} elsif($line =~ /%init(\((.*?)\))?(%?)(?=\W?)/) {
 			my $group = "_ungrouped";
 			$group = $2 if $2;
-			fileError($lineno, "re-%init of %group $group") if defined($inittedGroups{$group});
-			$inittedGroups{$group} = 1;
 			$line = $`.generateInitLines($group).$';
 			$ctorline = -2; # "Do not generate a constructor."
 			redo;
@@ -233,13 +230,6 @@ foreach $line (@inputlines) {
 	$lineno++;
 	push(@outputlines, $line);
 }
-
-my %unInitHookHash = ();
-map { $unInitHookHash{$_} = 1; } (keys %hooks);
-map { delete $unInitHookHash{$_}; } (keys %inittedGroups);
-my @unInitHooks = keys %unInitHookHash;
-my $numUnHooks = @unInitHooks;
-fileError(-1, "non-initialized hook group".($numUnHooks == 1 ? "" : "s").": ".join(", ", @unInitHooks)) if $numUnHooks > 0;
 
 if($firsthookline != -1) {
 	my $offset = 0;
@@ -261,6 +251,14 @@ if($firsthookline != -1) {
 
 }
 
+my %unInitHookHash = ();
+map { $unInitHookHash{$_} = 1; } (keys %hooks);
+map { delete $unInitHookHash{$_}; } (keys %inittedGroups);
+my @unInitHooks = keys %unInitHookHash;
+my $numUnHooks = @unInitHooks;
+fileError(-1, "non-initialized hook group".($numUnHooks == 1 ? "" : "s").": ".join(", ", @unInitHooks)) if $numUnHooks > 0;
+
+
 splice(@outputlines, 0, 0, "#line 0 \"$filename\"");
 foreach $oline (@outputlines) {
 	print $oline."\n" if defined($oline);
@@ -278,13 +276,16 @@ sub generateConstructor {
 }
 
 sub generateInitLines {
-	my $forGroup = shift;
-	$forGroup = "_ungrouped" if !$forGroup;
+	my $group = shift;
+	$group = "_ungrouped" if !$group;
+
+	fileError($lineno, "re-%init of %group $group") if defined($inittedGroups{$group});
+	$inittedGroups{$group} = 1;
 
 	my $return = "";
-	fileError($lineno, "%init for an undefined %group $forGroup") if !$hooks{$forGroup};
+	fileError($lineno, "%init for an undefined %group $group") if !$hooks{$group};
 
-	map $return .= ${$hooks{$forGroup}}[$_]->buildHookCall, (0..$#{$hooks{$forGroup}});
+	map $return .= ${$hooks{$group}}[$_]->buildHookCall, (0..$#{$hooks{$group}});
 
 	return $return;
 }
