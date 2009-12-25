@@ -112,119 +112,177 @@ foreach $line (@inputlines) {
 		$ignore = 0;
 	} elsif($ignore == 0) {
 		# %hook name
-		if($line =~ /^\s*%(hook)\s+([\$_\w]+)/) {
-			my $n = checkDoubleNesting($1, @nestingstack);
-			nestingError($lineno, $1, $n) if $n;
+		my $matched = 0;
+		
+		# The Big Scanning Loop
+		# Why is it this way? Why a giant loop with a bunch of small loops inside ending with redo?
+		# Merely so I could use /g global searches for each command type and auto-skip ones in quotes.
+		# Without /g, I'd process the same one over and over. /g only makes sense in a loop.
+		#
+		# We don't want to process in-order, either, so %group %thing %end won't kill itself automatically
+		# because it found a %end with the %group. This allows things to proceed out-of-order:
+		# we re-start the scan loop every time we find a match so that the commands don't need to
+		# be in the processed order on every line. That would be pointless.
+		SCANLOOP: while(1) {
+			@quotes = quotes($line);
 
-			$firsthookline = $lineno if $firsthookline == -1;
+			# %hook at the beginning of a line after any amount of space
+			while($line =~ /^\s*%(hook)\s+([\$_\w]+)/g) {
+				next if fallsBetween($-[0], @quotes);
 
-			nestPush($1, $lineno, \@nestingstack);
+				my $n = checkDoubleNesting($1, @nestingstack);
+				nestingError($lineno, $1, $n) if $n;
 
-			$class = $2;
-			$inclass = 1;
-			$line = $';
-			redo;
-		# - (return), but only when we're in a %hook.
-		} elsif($line =~ /\s*%(group)\s+([\$_\w]+)/) {
-			my $n = checkDoubleNesting($1, @nestingstack);
-			nestingError($lineno, $1, $n) if $n;
-			nestPush($1, $lineno, \@nestingstack);
-			$curgroup = $2;
-			$hooks{$curgroup} = [];
-			$line = $`.$';
-			redo;
-		} elsif($inclass && $line =~ /^\s*([+-])\s*\(\s*(.*?)\s*\)/) {
-			my $scope = $1;
-			my $return = $2;
-			my $selnametext = $';
+				$firsthookline = $lineno if $firsthookline == -1;
 
-			my $curhook = Hook->new();
+				nestPush($1, $lineno, \@nestingstack);
 
-			$curhook->class($class);
-			if($scope eq "+") {
-				$metaclasses{$class}++;
-			} else {
-				$classes{$class}++;
+				$class = $2;
+				$inclass = 1;
+				$line = $';
+
+				redo SCANLOOP;
 			}
 
-			$curhook->scope($scope);
-			$curhook->return($return);
+			# %group at the beginning of a line after any amount of space
+			while($line =~ /^\s*%(group)\s+([\$_\w]+)/g) {
+				next if fallsBetween($-[0], @quotes);
 
-			my @selparts = ();
+				my $n = checkDoubleNesting($1, @nestingstack);
+				nestingError($lineno, $1, $n) if $n;
+				nestPush($1, $lineno, \@nestingstack);
+				$curgroup = $2;
+				$hooks{$curgroup} = [];
+				$line = $`.$';
 
-			# word, then an optional: ": (argtype)argname"
-			while($selnametext =~ /([\$\w]+)(:[\s]*\((.+?)\)[\s]*([\$\w]+?)(?=(\{|$|\s+)))?/) {
-				$keyword = $1;
-				push(@selparts, $keyword);
-				$curhook->addArgument($3, $4) if $2;
-				$selnametext = $';
-				last if !$2;
+				redo SCANLOOP;
+			}
+			
+			# - (return), but only when we're in a %hook.
+			while($inclass && $line =~ /^\s*([+-])\s*\(\s*(.*?)\s*\)/g) {
+				next if fallsBetween($-[0], @quotes);
+
+				my $scope = $1;
+				my $return = $2;
+				my $selnametext = $';
+
+				my $curhook = Hook->new();
+
+				$curhook->class($class);
+				if($scope eq "+") {
+					$metaclasses{$class}++;
+				} else {
+					$classes{$class}++;
+				}
+
+				$curhook->scope($scope);
+				$curhook->return($return);
+
+				my @selparts = ();
+
+				# word, then an optional: ": (argtype)argname"
+				while($selnametext =~ /([\$\w]+)(:[\s]*\((.+?)\)[\s]*([\$\w]+?)(?=(\{|$|\s+)))?/) {
+					$keyword = $1;
+					push(@selparts, $keyword);
+					$curhook->addArgument($3, $4) if $2;
+					$selnametext = $';
+					last if !$2;
+				}
+
+				$curhook->selectorParts(@selparts);
+				push(@{$hooks{$curgroup}}, $curhook);
+				$lastHook = $curhook;
+
+				$replacement = $curhook->buildHookFunction;
+				$replacement .= $selnametext if $selnametext ne "";
+				$line = $replacement;
+
+				redo SCANLOOP;
 			}
 
-			$curhook->selectorParts(@selparts);
-			push(@{$hooks{$curgroup}}, $curhook);
-			$lastHook = $curhook;
+			while($line =~ /%orig(inal)?(%?)(?=\W?)/g) {
+				next if fallsBetween($-[0], @quotes);
 
-			$replacement = $curhook->buildHookFunction;
-			$replacement .= $selnametext if $selnametext ne "";
-			$line = $replacement;
-			redo;
-		} elsif($line =~ /%orig(inal)?(%?)(?=\W?)/) {
-			fileError($lineno, "$& found outside of a %hook") if !nestingContains("hook", @nestingstack);
-			my $hasparens = 0;
-			my $remaining = $';
-			$replacement = "";
-			if($remaining) {
-				# If we encounter a ) that puts us back at zero, we found a (
-				# and have reached its closing ).
-				my $parenmatch = $remaining;
-				my $pdepth = 0;
-				my @pquotes = quotes($parenmatch);
-				while($parenmatch =~ /[()]/g) {
-					next if fallsBetween($-[0], @pquotes);
-					if($& eq "(") { $pdepth++; }
-					elsif($& eq ")") {
-						$pdepth--;
-						if($pdepth == 0) { $hasparens = $+[0]; last; }
+				fileError($lineno, "$& found outside of a %hook") if !nestingContains("hook", @nestingstack);
+				my $hasparens = 0;
+				my $remaining = $';
+				$replacement = "";
+				if($remaining) {
+					# If we encounter a ) that puts us back at zero, we found a (
+					# and have reached its closing ).
+					my $parenmatch = $remaining;
+					my $pdepth = 0;
+					my @pquotes = quotes($parenmatch);
+					while($parenmatch =~ /[()]/g) {
+						next if fallsBetween($-[0], @pquotes);
+						if($& eq "(") { $pdepth++; }
+						elsif($& eq ")") {
+							$pdepth--;
+							if($pdepth == 0) { $hasparens = $+[0]; last; }
+						}
 					}
 				}
+				if($hasparens > 0) {
+					$parenstring = substr($remaining, 1, $hasparens-2);
+					$remaining = substr($remaining, $hasparens);
+					$replacement .= $lastHook->buildOriginalCall($parenstring);
+				} else {
+					$replacement .= $lastHook->buildOriginalCall;
+				}
+				$replacement .= $remaining;
+				$line = $`.$replacement;
+
+				redo SCANLOOP;
 			}
-			if($hasparens > 0) {
-				$parenstring = substr($remaining, 1, $hasparens-2);
-				$remaining = substr($remaining, $hasparens);
-				$replacement .= $lastHook->buildOriginalCall($parenstring);
-			} else {
-				$replacement .= $lastHook->buildOriginalCall;
+			
+			while($line =~ /%log(%?)(?=\W?)/g) {
+				next if fallsBetween($-[0], @quotes);
+
+				fileError($lineno, "$& found outside of a %hook") if !nestingContains("hook", @nestingstack);
+				$replacement = $lastHook->buildLogCall;
+				$line = $`.$replacement.$';
+
+				redo SCANLOOP;
 			}
-			$replacement .= $remaining;
-			$line = $`.$replacement;
-			redo;
-		} elsif($line =~ /%log(%?)(?=\W?)/) {
-			fileError($lineno, "$& found outside of a %hook") if !nestingContains("hook", @nestingstack);
-			$replacement = $lastHook->buildLogCall;
-			$line = $`.$replacement.$';
-			redo;
-		} elsif($line =~ /%c(onstruc)?tor(%?)(?=\W?)/) {
-			fileError($lineno, "$& found inside of a %hook") if nestingContains("hook", @nestingstack);
-			$ctorline = $lineno if $ctorline == -1;
-			$line = $`.$';
-			redo;
-		} elsif($line =~ /%init(\((.*?)\))?(%?)(?=\W?)/) {
-			my $group = "_ungrouped";
-			$group = $2 if $2;
-			$line = $`.generateInitLines($group).$';
-			$ctorline = -2; # "Do not generate a constructor."
-			redo;
-		# %end (Make it the last thing we check for so we don't terminate something pre-emptively.
-		} elsif($line =~ /%end(%?)/) {
-			my $closing = nestPop(\@nestingstack);
-			if($closing eq "group") {
-				$curgroup = "_ungrouped";
-			} elsif($closing eq "hook") {
-				$inclass = 0;
+			
+			while($line =~ /%c(onstruc)?tor(%?)(?=\W?)/g) {
+				next if fallsBetween($-[0], @quotes);
+
+				fileError($lineno, "$& found inside of a %hook") if nestingContains("hook", @nestingstack);
+				$ctorline = $lineno if $ctorline == -1;
+				$line = $`.$';
+
+				redo SCANLOOP;
 			}
-			$line = $`.$';
-			redo;
+
+			while($line =~ /%init(\((.*?)\))?(%?)(?=\W?)/g) {
+				next if fallsBetween($-[0], @quotes);
+
+				my $group = "_ungrouped";
+				$group = $2 if $2;
+				$line = $`.generateInitLines($group).$';
+				$ctorline = -2; # "Do not generate a constructor."
+
+				redo SCANLOOP;
+			}
+			
+			# %end (Make it the last thing we check for so we don't terminate something pre-emptively.
+			while($line =~ /%end(%?)/g) {
+				next if fallsBetween($-[0], @quotes);
+
+				my $closing = nestPop(\@nestingstack);
+				if($closing eq "group") {
+					$curgroup = "_ungrouped";
+				} elsif($closing eq "hook") {
+					$inclass = 0;
+				}
+				$line = $`.$';
+
+				redo SCANLOOP;
+			}
+
+			# If we made it here, there are no more non-quoted commands on this line! Yay! Break free!
+			last;
 		}
 	}
 	$lineno++;
