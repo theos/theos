@@ -13,6 +13,8 @@ sub new {
 	$self->{ARGTYPES} = [];
 	$self->{NUM_ARGS} = 0;
 	$self->{GROUP} = "_ungrouped";
+	$self->{NEW} = 0;
+	$self->{TYPE} = "";
 	bless($self, $class);
 	return $self;
 }
@@ -48,6 +50,23 @@ sub group {
 	my $self = shift;
 	if(@_) { $self->{GROUP} = shift; }
 	return $self->{GROUP};
+}
+
+sub setNew {
+	my $self = shift;
+	if(@_) { $self->{NEW} = shift; }
+	return $self->{NEW};
+}
+
+sub isNew {
+	my $self = shift;
+	return $self->{NEW};
+}
+
+sub type {
+	my $self = shift;
+	if(@_) { $self->{TYPE} = shift; }
+	return $self->{TYPE};
 }
 
 ##### #
@@ -99,20 +118,25 @@ sub buildHookFunction {
 	} else {
 		$classargtype = $self->{CLASS}."*";
 	}
-	$build .= "static ".$self->{RETURN}." (*".$self->originalFunctionName.")(".$classargtype.", SEL"; 
-	my $argtypelist = join(", ", @{$self->{ARGTYPES}});
-	$build .= ", ".$argtypelist if $argtypelist;
+	if(!$self->{NEW}) {
+		$build .= "static ".$self->{RETURN}." (*".$self->originalFunctionName.")(".$classargtype.", SEL"; 
+		my $argtypelist = join(", ", @{$self->{ARGTYPES}});
+		$build .= ", ".$argtypelist if $argtypelist;
 
+		$build .= ");"
+	}
 	my $arglist = "";
 	map $arglist .= ", ".$self->{ARGTYPES}[$_]." ".$self->{ARGNAMES}[$_], (0..$self->{NUM_ARGS} - 1);
 
-	$build .= "); static ".$self->{RETURN}." ".$self->newFunctionName."(".$classargtype." self, SEL _cmd".$arglist.")";
+	$build .= "static ".$self->{RETURN}." ".$self->newFunctionName."(".$classargtype." self, SEL _cmd".$arglist.")";
 	return $build;
 }
 
 sub buildOriginalCall {
 	my $self = shift;
 	my ($customargs) = @_;
+	return "" if $self->{NEW};
+
 	my $build = $self->originalFunctionName."(self, _cmd";
 	if($customargs) {
 		$build .= ", ".$customargs;
@@ -125,7 +149,11 @@ sub buildOriginalCall {
 
 sub buildHookCall {
 	my $self = shift;
-	return "MSHookMessageEx(\$".$self->class.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", (IMP*)&".$self->originalFunctionName.");"
+	if(!$self->{NEW}) {
+		return "MSHookMessageEx(\$".$self->class.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", (IMP*)&".$self->originalFunctionName.");";
+	} else {
+		return "class_addMethod(\$".$self->class.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", \"".$self->{TYPE}."\");";
+	}
 }
 
 
