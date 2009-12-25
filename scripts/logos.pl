@@ -199,12 +199,16 @@ foreach $line (@inputlines) {
 				my @selparts = ();
 
 				# word, then an optional: ": (argtype)argname"
-				while($selnametext =~ /([\$\w]+)(:[\s]*\((.+?)\)[\s]*([\$\w]+?)(?=(\{|$|\s+)))?/) {
-					$keyword = $1;
+				while($selnametext =~ /^\s*([\$\w]*)(:\s*\((.+?)\)\s*([\$\w]+?)\b)?/) {
+					last if !$1 && !$2; # Exit the loop if both Keywords and Args are missing: e.g. false positive.
+
+					$keyword = $1; # Add any keyword.
 					push(@selparts, $keyword);
-					$curhook->addArgument($3, $4) if $2;
+
 					$selnametext = $';
-					last if !$2;
+
+					last if !$2;  # Exit the loop if there are no args (single keyword.)
+					$curhook->addArgument($3, $4);
 				}
 
 				$curhook->selectorParts(@selparts);
