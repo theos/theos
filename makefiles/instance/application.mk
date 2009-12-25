@@ -23,4 +23,4 @@ endif
 
 internal-application-package_::
 	mkdir -p $(FW_PACKAGE_STAGING_DIR)/Applications/$(LOCAL_BUNDLE_NAME).app
-	cp $(FW_OBJ_DIR)/$(FW_INSTANCE) $(FW_PACKAGE_STAGING_DIR)/Application/$(LOCAL_BUNDLE_NAME).app
+	cp $(FW_OBJ_DIR)/$(FW_INSTANCE) $(FW_PACKAGE_STAGING_DIR)/Applications/$(LOCAL_BUNDLE_NAME).app
