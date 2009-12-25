@@ -22,6 +22,7 @@ my $building = 0;
 READLOOP: while($line = <FILE>) {
 	chomp($line);
 
+	# End of a multi-line comment while ignoring input.
 	if($readignore && $line =~ /^.*?\*\/\s*/) {
 		$readignore = 0;
 		$line = $';
@@ -30,32 +31,27 @@ READLOOP: while($line = <FILE>) {
 
 	my @quotes = quotes($line);
 
-	# Delete all single-line /* xxx */ comments.
-
 	# Delete all single-line to-EOL // xxx comments.
 	while($line =~ /\/\//g) {
-		if(!fallsBetween($-[0], @quotes)) {
-			$line = $`;
-			@quotes = quotes($line); # Line was modified, re-generate the quotes.
-			last;
-		}
+		next if fallsBetween($-[0], @quotes);
+		$line = $`;
+		redo READLOOP;
 	}
 
+	# Delete all single-line /* xxx */ comments.
 	while($line =~ /\/\*.*?\*\//g) {
-		if(!fallsBetween($-[0], @quotes)) {
-			$line = $`.$';
-			@quotes = quotes($line); # Line was modified, re-generate the quotes.
-		}
+		next if fallsBetween($-[0], @quotes);
+		$line = $`.$';
+		redo READLOOP;
 	}
 	
 	# Start of a multi-line /* comment.
 	while($line =~ /\/\*.*$/g) {
-		if(!fallsBetween($-[0], @quotes)) {
-			$line = $`;
-			push(@inputlines, $line);
-			$readignore = 1;
-			next READLOOP;
-		}
+		next if fallsBetween($-[0], @quotes);
+		$line = $`;
+		push(@inputlines, $line);
+		$readignore = 1;
+		next READLOOP;
 	}
 
 	if(!$readignore) {
