@@ -155,6 +155,23 @@ foreach $line (@inputlines) {
 				redo SCANLOOP;
 			}
 			
+			# %group at the beginning of a line after any amount of space
+			while($line =~ /^\s*%(class)\s+([+-])?([\$_\w]+)/g) {
+				next if fallsBetween($-[0], @quotes);
+
+				my $scope = $2;
+				$scope = "-" if !$scope;
+				$class = $3;
+				if($scope eq "+") {
+					$metaclasses{$class}++;
+				} else {
+					$classes{$class}++;
+				}
+				$line = $`.$';
+
+				redo SCANLOOP;
+			}
+			
 			# %new(type) at the beginning of a line after any amount of space
 			while($line =~ /^\s*%new(\((.*?)\))?(%?)(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
@@ -378,9 +395,9 @@ sub generateClassList {
 	map { $uniqclasses{$_}++; } keys %metaclasses;
 	map { $uniqclasses{$_}++; } keys %classes;
 
-	map $return .= "\@class $_; ", keys %uniqclasses;
-	map $return .= generateMetaClassLine($_), keys %metaclasses;
-	map $return .= generateClassLine($_), keys %classes;
+	map $return .= "\@class $_; ", sort keys %uniqclasses;
+	map $return .= generateMetaClassLine($_), sort keys %metaclasses;
+	map $return .= generateClassLine($_), sort keys %classes;
 	return $return;
 }
 
