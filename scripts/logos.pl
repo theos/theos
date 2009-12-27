@@ -191,7 +191,7 @@ foreach $line (@inputlines) {
 			while($inclass && $line =~ /^\s*([+-])\s*\(\s*(.*?)\s*\)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				if(!defined($groups{curgroup})) {
+				if(!defined($groups{$curgroup})) {
 					$groups{$curgroup} = Group->new();
 					$groups{$curgroup}->name($curgroup);
 				}
