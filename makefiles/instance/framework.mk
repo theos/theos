@@ -10,7 +10,7 @@ else
 LOCAL_FRAMEWORK_NAME = $($(FW_INSTANCE)_FRAMEWORK_NAME)
 endif
 
-ALL_LDFLAGS += -dynamiclib -install_name = $($(FW_INSTANCE)_INSTALL_PATH)/$(LOCAL_FRAMEWORK_NAME).framework/$(FW_INSTANCE)
+ALL_LDFLAGS += -dynamiclib -install_name $($(FW_INSTANCE)_INSTALL_PATH)/$(LOCAL_FRAMEWORK_NAME).framework/$(FW_INSTANCE)
 
 internal-framework-all_:: $(FW_OBJ_DIR) $(FW_OBJ_DIR)/$(FW_INSTANCE)
 
