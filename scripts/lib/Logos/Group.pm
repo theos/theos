@@ -34,11 +34,6 @@ sub initialized {
 	if(@_) { $self->{INITIALIZED} = shift; }
 	return $self->{INITIALIZED};
 }
-
-sub hooks {
-	my $self = shift;
-	return @{$self->{HOOKS}};
-}
 ##### #
 # END #
 # #####
