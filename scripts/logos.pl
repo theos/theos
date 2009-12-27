@@ -99,7 +99,7 @@ $ignore = 0;
 my @nestingstack = ();
 my $inclass = 0;
 my $last_blockopen = -1;
-my $curGroupName = "_ungrouped";
+my $curGroup = $defaultGroup;
 my $lastHook;
 
 my $isNewMethod = undef;
@@ -153,8 +153,11 @@ foreach $line (@inputlines) {
 				my $n = checkDoubleNesting($1, @nestingstack);
 				nestingError($lineno, $1, $n) if $n;
 				nestPush($1, $lineno, \@nestingstack);
-				$curGroupName = $2;
 				$line = $`.$';
+
+				$curGroup = Group->new();
+				$curGroup->name($2);
+				push(@groups, $curGroup);
 
 				redo SCANLOOP;
 			}
@@ -194,11 +197,6 @@ foreach $line (@inputlines) {
 			while($inclass && $line =~ /^\s*([+-])\s*\(\s*(.*?)\s*\)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				if(!($curGroup = getGroup($curGroupName))) {
-					$curGroup = Group->new();
-					$curGroup->name($curGroupName);
-					push(@groups, $curGroup);
-				}
 				my $scope = $1;
 				my $return = $2;
 				my $selnametext = $';
@@ -237,7 +235,7 @@ foreach $line (@inputlines) {
 				}
 
 				$curhook->selectorParts(@selparts);
-				$curhook->groupIdentifier(sanitize($curGroupName));
+				$curhook->groupIdentifier(sanitize($curGroup->name));
 				$curGroup->addHook($curhook);
 				$lastHook = $curhook;
 
@@ -322,7 +320,7 @@ foreach $line (@inputlines) {
 
 				my $closing = nestPop(\@nestingstack);
 				if($closing eq "group") {
-					$curGroupName = "_ungrouped";
+					$curGroup = getGroup("_ungrouped");
 				} elsif($closing eq "hook") {
 					$inclass = 0;
 				}
