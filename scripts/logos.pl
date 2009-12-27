@@ -85,7 +85,7 @@ $lineno = 1;
 $firsthookline = -1;
 $ctorline = -1;
 
-%groups = ();
+@groups = ();
 
 %classes = ();
 %metaclasses = ();
@@ -96,7 +96,7 @@ $ignore = 0;
 my @nestingstack = ();
 my $inclass = 0;
 my $last_blockopen = -1;
-my $curgroup = "_ungrouped";
+my $curGroupName = "_ungrouped";
 my $lastHook;
 
 my $isNewMethod = undef;
@@ -150,7 +150,7 @@ foreach $line (@inputlines) {
 				my $n = checkDoubleNesting($1, @nestingstack);
 				nestingError($lineno, $1, $n) if $n;
 				nestPush($1, $lineno, \@nestingstack);
-				$curgroup = $2;
+				$curGroupName = $2;
 				$line = $`.$';
 
 				redo SCANLOOP;
@@ -191,9 +191,10 @@ foreach $line (@inputlines) {
 			while($inclass && $line =~ /^\s*([+-])\s*\(\s*(.*?)\s*\)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				if(!defined($groups{$curgroup})) {
-					$groups{$curgroup} = Group->new();
-					$groups{$curgroup}->name($curgroup);
+				if(!($curGroup = getGroup($curGroupName))) {
+					$curGroup = Group->new();
+					$curGroup->name($curGroupName);
+					push(@groups, $curGroup);
 				}
 				my $scope = $1;
 				my $return = $2;
@@ -233,8 +234,8 @@ foreach $line (@inputlines) {
 				}
 
 				$curhook->selectorParts(@selparts);
-				$curhook->groupIdentifier(sanitize($curgroup));
-				$groups{$curgroup}->addHook($curhook);
+				$curhook->groupIdentifier(sanitize($curGroupName));
+				$curGroup->addHook($curhook);
 				$lastHook = $curhook;
 
 				$replacement = $curhook->buildHookFunction;
@@ -318,7 +319,7 @@ foreach $line (@inputlines) {
 
 				my $closing = nestPop(\@nestingstack);
 				if($closing eq "group") {
-					$curgroup = "_ungrouped";
+					$curGroupName = "_ungrouped";
 				} elsif($closing eq "hook") {
 					$inclass = 0;
 				}
@@ -356,8 +357,8 @@ if($firsthookline != -1) {
 }
 
 my @unInitGroups = ();
-foreach my $group (values %groups) {
-	push(@unInitGroups, $group->name) if !$group->initialized && $group->explicit;
+foreach(@groups) {
+	push(@unInitGroups, $_->name) if !$_->initialized && $_->explicit;
 }
 my $numUnGroups = @unInitGroups;
 fileError(-1, "non-initialized hook group".($numUnGroups == 1 ? "" : "s").": ".join(", ", @unInitGroups)) if $numUnGroups > 0;
@@ -370,8 +371,8 @@ foreach $oline (@outputlines) {
 sub generateConstructor {
 	my $return = "";
 	my $explicitGroups = 0;
-	foreach my $group (values %groups) {
-		$explicitGroups++ if $group->explicit;
+	foreach(@groups) {
+		$explicitGroups++ if $_->explicit;
 	}
 	fileError($ctorline, "Cannot generate an autoconstructor with multiple %groups. Please explicitly create a constructor.") if $explicitGroups > 1;
 	$return .= "static __attribute__((constructor)) void _logosLocalInit() { ";
@@ -385,7 +386,7 @@ sub generateConstructor {
 sub generateInitLines {
 	my $groupname = shift;
 	$groupname = "_ungrouped" if !$groupname;
-	my $group = $groups{$groupname};
+	my $group = getGroup($groupname);
 
 	if(!$group) {
 		fileError($lineno, "%init for an undefined %group $group");
@@ -501,4 +502,12 @@ sub sanitize {
 	my $output = $input;
 	$output =~ s/[^\w]//g;
 	return $output;
+}
+
+sub getGroup {
+	my $name = shift;
+	foreach(@groups) {
+		return $_ if $_->name eq $name;
+	}
+	return undef;
 }
