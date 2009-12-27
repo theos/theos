@@ -8,6 +8,7 @@ sub new {
 	$self->{CLASS} = undef;
 	$self->{SCOPE} = undef;
 	$self->{RETURN} = undef;
+	$self->{GROUP_IDENTIFIER} = undef;
 	$self->{SELECTOR_PARTS} = [];
 	$self->{ARGNAMES} = [];
 	$self->{ARGTYPES} = [];
@@ -38,6 +39,12 @@ sub return {
 	my $self = shift;
 	if(@_) { $self->{RETURN} = shift; }
 	return $self->{RETURN};
+}
+
+sub groupIdentifier {
+	my $self = shift;
+	if(@_) { $self->{GROUP_IDENTIFIER} = shift; }
+	return $self->{GROUP_IDENTIFIER};
 }
 
 sub selectorParts {
@@ -101,12 +108,12 @@ sub new_selector {
 
 sub originalFunctionName {
 	my $self = shift;
-	return "_".$self->class."\$".$self->new_selector;
+	return "_".$self->groupIdentifier."\$".$self->class."\$".$self->new_selector;
 }
 
 sub newFunctionName {
 	my $self = shift;
-	return "\$".$self->class."\$".$self->new_selector;
+	return "\$".$self->groupIdentifier."\$".$self->class."\$".$self->new_selector;
 }
 
 sub buildHookFunction {
