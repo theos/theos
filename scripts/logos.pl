@@ -85,7 +85,10 @@ $lineno = 1;
 $firsthookline = -1;
 $ctorline = -1;
 
-@groups = ();
+my $defaultGroup = Group->new();
+$defaultGroup->name("_ungrouped");
+$defaultGroup->explicit(0);
+@groups = ($defaultGroup);
 
 %classes = ();
 %metaclasses = ();
@@ -389,7 +392,7 @@ sub generateInitLines {
 	my $group = getGroup($groupname);
 
 	if(!$group) {
-		fileError($lineno, "%init for an undefined %group $group");
+		fileError($lineno, "%init for an undefined %group $groupname");
 		return;
 	}
 
