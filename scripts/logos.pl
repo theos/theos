@@ -4,6 +4,7 @@ use warnings;
 use FindBin;
 use lib "$FindBin::Bin/lib";
 use Logos::Hook;
+use Logos::Group;
 
 # I WARN YOU
 # THIS IS UGLY AS SIN
@@ -84,8 +85,8 @@ $lineno = 1;
 $firsthookline = -1;
 $ctorline = -1;
 
-%hooks = ();
-%inittedGroups = ();
+%groups = ();
+
 %classes = ();
 %metaclasses = ();
 
@@ -190,7 +191,10 @@ foreach $line (@inputlines) {
 			while($inclass && $line =~ /^\s*([+-])\s*\(\s*(.*?)\s*\)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				$hooks{$curgroup} = [] if !defined($hooks{$curgroup});
+				if(!defined($groups{curgroup})) {
+					$groups{$curgroup} = Group->new();
+					$groups{$curgroup}->name($curgroup);
+				}
 				my $scope = $1;
 				my $return = $2;
 				my $selnametext = $';
@@ -229,7 +233,8 @@ foreach $line (@inputlines) {
 				}
 
 				$curhook->selectorParts(@selparts);
-				push(@{$hooks{$curgroup}}, $curhook);
+				$curhook->groupIdentifier(sanitize($curgroup));
+				$groups{$curgroup}->addHook($curhook);
 				$lastHook = $curhook;
 
 				$replacement = $curhook->buildHookFunction;
@@ -350,13 +355,12 @@ if($firsthookline != -1) {
 
 }
 
-my %unInitHookHash = ();
-map { $unInitHookHash{$_} = 1; } (keys %hooks);
-map { delete $unInitHookHash{$_}; } (keys %inittedGroups);
-my @unInitHooks = keys %unInitHookHash;
-my $numUnHooks = @unInitHooks;
-fileError(-1, "non-initialized hook group".($numUnHooks == 1 ? "" : "s").": ".join(", ", @unInitHooks)) if $numUnHooks > 0;
-
+my @unInitGroups = ();
+foreach my $group (values %groups) {
+	push(@unInitGroups, $group->name) if !$group->initialized && $group->explicit;
+}
+my $numUnGroups = @unInitGroups;
+fileError(-1, "non-initialized hook group".($numUnGroups == 1 ? "" : "s").": ".join(", ", @unInitGroups)) if $numUnGroups > 0;
 
 splice(@outputlines, 0, 0, "#line 0 \"$filename\"");
 foreach $oline (@outputlines) {
@@ -365,7 +369,11 @@ foreach $oline (@outputlines) {
 
 sub generateConstructor {
 	my $return = "";
-	fileError($ctorline, "Cannot generate an autoconstructor with multiple %groups. Please explicitly create a constructor.") if scalar(keys(%hooks)) > 1;
+	my $explicitGroups = 0;
+	foreach my $group (values %groups) {
+		$explicitGroups++ if $group->explicit;
+	}
+	fileError($ctorline, "Cannot generate an autoconstructor with multiple %groups. Please explicitly create a constructor.") if $explicitGroups > 1;
 	$return .= "static __attribute__((constructor)) void _logosLocalInit() { ";
 	$return .= "NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init]; ";
 	$return .= generateInitLines("_ungrouped")." ";
@@ -375,17 +383,21 @@ sub generateConstructor {
 }
 
 sub generateInitLines {
-	my $group = shift;
-	$group = "_ungrouped" if !$group;
+	my $groupname = shift;
+	$groupname = "_ungrouped" if !$groupname;
+	my $group = $groups{$groupname};
 
-	fileError($lineno, "re-%init of %group $group") if defined($inittedGroups{$group});
-	$inittedGroups{$group} = 1;
+	if(!$group) {
+		fileError($lineno, "%init for an undefined %group $group");
+		return;
+	}
 
-	my $return = "";
-	fileError($lineno, "%init for an undefined %group $group") if !$hooks{$group};
+	if($group->initialized) {
+		fileError($lineno, "re-%init of %group $groupname");
+		return;
+	}
 
-	map $return .= ${$hooks{$group}}[$_]->buildHookCall, (0..$#{$hooks{$group}});
-
+	my $return = $group->initializers;
 	return $return;
 }
 
@@ -482,4 +494,11 @@ sub nestPop {
 	return undef if !$outgoing;
 	my @parts = split(/:/, $outgoing);
 	return $parts[0];
+}
+
+sub sanitize {
+	my $input = shift;
+	my $output = $input;
+	$output =~ s/[^\w]//g;
+	return $output;
 }
