@@ -303,7 +303,7 @@ foreach $line (@inputlines) {
 				redo SCANLOOP;
 			}
 
-			while($line =~ /%init(\((.*?)\))?(%?)(?=\W?)/g) {
+			while($line =~ /%init(\((.*?)\))?(%?);?(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
 				my $group = "_ungrouped";
@@ -319,6 +319,7 @@ foreach $line (@inputlines) {
 				next if fallsBetween($-[0], @quotes);
 
 				my $closing = nestPop(\@nestingstack);
+				fileError($lineno, "dangling %end") if !$closing;
 				if($closing eq "group") {
 					$curGroup = getGroup("_ungrouped");
 				} elsif($closing eq "hook") {

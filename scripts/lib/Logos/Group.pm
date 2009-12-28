@@ -49,9 +49,11 @@ sub initializers {
 	my $self = shift;
 	my $return = "";
 	$self->initialized(1);
+	$return .= "{";
 	foreach(@{$self->{HOOKS}}) {
 		$return .= $_->buildHookCall;
 	}
+	$return .= "}";
 	return $return;
 }
 
