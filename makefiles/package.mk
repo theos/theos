@@ -3,13 +3,16 @@ FW_PACKAGING_RULES_LOADED := 1
 
 .PHONY: package before-package internal-package after-package-buildno after-package
 
-package:: all before-package internal-package after-package
-
 FAKEROOT := $(FW_SCRIPTDIR)/fakeroot.sh -p "$(FW_PROJECT_DIR)/.debmake/fakeroot"
 export FAKEROOT
 
 # Only do the master packaging rules if we're the toplevel make invocation.
 ifeq ($(MAKELEVEL),0)
+FW_CAN_PACKAGE := $(shell [[ -d $(FW_PROJECT_DIR)/layout ]] && echo 1 || echo 0)
+
+ifeq ($(FW_CAN_PACKAGE),1)
+package:: all before-package internal-package after-package
+
 FW_PACKAGE_NAME := $(shell grep Package $(TOP_DIR)/layout/DEBIAN/control | cut -d' ' -f2)
 FW_PACKAGE_ARCH := $(shell grep Architecture $(TOP_DIR)/layout/DEBIAN/control | cut -d' ' -f2)
 FW_PACKAGE_VERSION := $(shell grep Version $(TOP_DIR)/layout/DEBIAN/control | cut -d' ' -f2)
@@ -40,7 +43,7 @@ after-package:: after-package-buildno
 ifeq ($(FW_DEVICE_IP),)
 install::
 	@echo "Error: $(MAKE) install requires that you set FW_DEVICE_IP in your environment.\nIt is also recommended that you have public-key authentication set up for root over SSH, or you'll be entering your password a lot."; exit 1
-else
+else # FW_DEVICE_IP
 install:: internal-install after-install
 internal-install::
 	scp $(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb root@$(FW_DEVICE_IP):
@@ -49,13 +52,14 @@ internal-install::
 after-install::
 endif
 
-else
+else # FW_CAN_PACKAGE
+package::
+	@echo "$(MAKE) package requires there to be a layout/ directory in the project root, containing the basic package structure."; exit 1
 
-before-package::
+endif # FW_CAN_PACKAGE
 
-internal-package::
-
-after-package::
+else # MAKELEVEL
+package::
 
 endif # MAKELEVEL
 
