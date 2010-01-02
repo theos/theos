@@ -2,6 +2,7 @@ ifeq ($(FW_PACKAGING_RULES_LOADED),)
 FW_PACKAGING_RULES_LOADED := 1
 
 .PHONY: package before-package internal-package after-package-buildno after-package
+package:: all before-package internal-package after-package
 
 FAKEROOT := $(FW_SCRIPTDIR)/fakeroot.sh -p "$(FW_PROJECT_DIR)/.debmake/fakeroot"
 export FAKEROOT
@@ -11,7 +12,6 @@ ifeq ($(MAKELEVEL),0)
 FW_CAN_PACKAGE := $(shell [[ -d $(FW_PROJECT_DIR)/layout ]] && echo 1 || echo 0)
 
 ifeq ($(FW_CAN_PACKAGE),1)
-package:: all before-package internal-package after-package
 
 FW_PACKAGE_NAME := $(shell grep Package $(TOP_DIR)/layout/DEBIAN/control | cut -d' ' -f2)
 FW_PACKAGE_ARCH := $(shell grep Architecture $(TOP_DIR)/layout/DEBIAN/control | cut -d' ' -f2)
@@ -53,13 +53,18 @@ after-install::
 endif
 
 else # FW_CAN_PACKAGE
-package::
+before-package::
 	@echo "$(MAKE) package requires there to be a layout/ directory in the project root, containing the basic package structure."; exit 1
+
+internal-package::
+after-package::
 
 endif # FW_CAN_PACKAGE
 
 else # MAKELEVEL
-package::
+before-package::
+internal-package::
+after-package::
 
 endif # MAKELEVEL
 
