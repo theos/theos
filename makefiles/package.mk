@@ -38,6 +38,7 @@ after-package-buildno::
 	echo "Installed-Size: $(shell du $(DU_EXCLUDE) DEBIAN -ks $(FW_PACKAGE_STAGING_DIR) | cut -f 1)" >> $(FW_PACKAGE_STAGING_DIR)/DEBIAN/control
 
 after-package:: after-package-buildno
+	-find $(FW_PACKAGE_STAGING_DIR) -name '.DS_Store' -delete
 	$(FAKEROOT) -r dpkg-deb -b $(FW_PACKAGE_STAGING_DIR) $(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb
 
 ifeq ($(FW_DEVICE_IP),)
