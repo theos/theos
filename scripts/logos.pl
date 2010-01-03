@@ -6,12 +6,6 @@ use lib "$FindBin::Bin/lib";
 use Logos::Hook;
 use Logos::Group;
 
-# I WARN YOU
-# THIS IS UGLY AS SIN
-# SIN IS PRETTY UGLY
-#
-# NO WARRANTY YET
-
 $filename = $ARGV[0];
 die "Syntax: $FindBin::Script filename\n" if !$filename;
 open(FILE, $filename) or die "Could not open $filename.\n";
@@ -165,6 +159,11 @@ foreach $line (@inputlines) {
 			# %group at the beginning of a line after any amount of space
 			while($line =~ /^\s*%(class)\s+([+-])?([\$_\w]+)/g) {
 				next if fallsBetween($-[0], @quotes);
+
+				# TODO: This will cause a constructor if you use %class but not %hook (blank constructor)
+				# Not a really big deal, but still nice to fix. Maybe with a list of patchups instead of
+				# "put this hre."
+				$firsthookline = $lineno if $firsthookline == -1;
 
 				my $scope = $2;
 				$scope = "-" if !$scope;
