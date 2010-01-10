@@ -84,6 +84,12 @@ $defaultGroup->name("_ungrouped");
 $defaultGroup->explicit(0);
 @groups = ($defaultGroup);
 
+my %illegalNesting = (
+	'hook' => ['hook', 'subclass'],
+	'subclass' => ['hook', 'group', 'subclass'],
+	'group' => ['group', 'subclass']
+);
+
 %classes = ();
 %metaclasses = ();
 
@@ -126,8 +132,7 @@ foreach $line (@inputlines) {
 			while($line =~ /^\s*%(hook)\s+([\$_\w]+)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				my $n = checkDoubleNesting($1, @nestingstack);
-				nestingError($lineno, $1, $n) if $n;
+				checkIllegalNesting($lineno, $1, @nestingstack);
 
 				$firsthookline = $lineno if $firsthookline == -1;
 
@@ -144,8 +149,7 @@ foreach $line (@inputlines) {
 			while($line =~ /^\s*%(group)\s+([\$_\w]+)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				my $n = checkDoubleNesting($1, @nestingstack);
-				nestingError($lineno, $1, $n) if $n;
+				checkIllegalNesting($lineno, $1, @nestingstack);
 				nestPush($1, $lineno, \@nestingstack);
 				$line = $`.$';
 
@@ -464,21 +468,34 @@ sub nestingError {
 	fileError $curline, "%$thisblock inside a %".$parts[0].", opened on ".$parts[1];
 }
 
-sub checkDoubleNesting {
+sub checkIllegalNesting {
+	my $lineno = shift;
 	my $trying = shift;
 	my @stack = @_;
-	my $line = nestingContains($trying, @stack);
-	return $trying.":".$line if $line;
-	return undef;
+	my @illegals = @{$illegalNesting{$trying}};
+	foreach $illegal (@illegals) {
+		my $found = nestingFind($illegal, @stack);
+		nestingError($lineno, $trying, $found) if $found;
+	}
 }
 
 sub nestingContains {
 	my $find = shift;
 	my @stack = @_;
+	my $found = nestingFind($find, @stack);
+	return undef if !$found;
+	my @parts = ();
+	@parts = split(/:/, $found);
+	return $parts[1];
+}
+
+sub nestingFind {
+	my $find = shift;
+	my @stack = @_;
 	my @parts = ();
 	foreach $nest (@stack) {
 		@parts = split(/:/, $nest);
-		return $parts[1] if $find eq $parts[0];
+		return $nest if $find eq $parts[0];
 	}
 	return undef;
 }
