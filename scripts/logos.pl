@@ -5,6 +5,7 @@ use FindBin;
 use lib "$FindBin::Bin/lib";
 use Logos::Method;
 use Logos::Group;
+use Logos::Subclass;
 
 $filename = $ARGV[0];
 die "Syntax: $FindBin::Script filename\n" if !$filename;
@@ -139,6 +140,28 @@ foreach $line (@inputlines) {
 				nestPush($1, $lineno, \@nestingstack);
 
 				$class = $2;
+				$inclass = 1;
+				$line = $';
+
+				redo SCANLOOP;
+			}
+
+			while($line =~ /^\s*%(subclass)\s+([\$_\w]+)/g) {
+				next if fallsBetween($-[0], @quotes);
+
+				checkIllegalNesting($lineno, $1, @nestingstack);
+
+				$firsthookline = $lineno if $firsthookline == -1;
+
+				nestPush($1, $lineno, \@nestingstack);
+
+				$class = $2;
+
+				$curGroup = Subclass->new();
+				$curGroup->name($lineno."_".$2);
+				$curGroup->class($2);
+				push(@groups, $curGroup);
+
 				$inclass = 1;
 				$line = $';
 
@@ -382,7 +405,10 @@ sub generateConstructor {
 	fileError($ctorline, "Cannot generate an autoconstructor with multiple %groups. Please explicitly create a constructor.") if $explicitGroups > 1;
 	$return .= "static __attribute__((constructor)) void _logosLocalInit() { ";
 	$return .= "NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init]; ";
-	$return .= generateInitLines("_ungrouped")." ";
+	foreach(@groups) {
+		next if $_->explicit;
+		$return .= generateInitLines($_->name)." ";
+	}
 	$return .= "[pool drain];";
 	$return .= " }";
 	return $return;
