@@ -8,8 +8,8 @@ sub new {
 	$self->{NAME} = undef;
 	$self->{EXPLICIT} = 1;
 	$self->{INITIALIZED} = 0;
-	$self->{HOOKS} = [];
-	$self->{NUM_HOOKS} = 0;
+	$self->{METHODS} = [];
+	$self->{NUM_METHODS} = 0;
 	bless($self, $class);
 	return $self;
 }
@@ -38,11 +38,11 @@ sub initialized {
 # END #
 # #####
 
-sub addHook {
+sub addMethod {
 	my $self = shift;
 	my $hook = shift;
-	push(@{$self->{HOOKS}}, $hook);
-	$self->{NUM_HOOKS}++;
+	push(@{$self->{METHODS}}, $hook);
+	$self->{NUM_METHODS}++;
 }
 
 sub initializers {
@@ -50,7 +50,7 @@ sub initializers {
 	my $return = "";
 	$self->initialized(1);
 	$return .= "{";
-	foreach(@{$self->{HOOKS}}) {
+	foreach(@{$self->{METHODS}}) {
 		$return .= $_->buildHookCall;
 	}
 	$return .= "}";

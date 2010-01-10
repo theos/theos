@@ -3,7 +3,7 @@
 use warnings;
 use FindBin;
 use lib "$FindBin::Bin/lib";
-use Logos::Hook;
+use Logos::Method;
 use Logos::Group;
 
 $filename = $ARGV[0];
@@ -94,7 +94,7 @@ my @nestingstack = ();
 my $inclass = 0;
 my $last_blockopen = -1;
 my $curGroup = $defaultGroup;
-my $lastHook;
+my $lastMethod;
 
 my $isNewMethod = undef;
 
@@ -200,21 +200,21 @@ foreach $line (@inputlines) {
 				my $return = $2;
 				my $selnametext = $';
 
-				my $curhook = Hook->new();
+				my $currentMethod = Method->new();
 
-				$curhook->class($class);
+				$currentMethod->class($class);
 				if($scope eq "+") {
 					$metaclasses{$class}++;
 				} else {
 					$classes{$class}++;
 				}
 
-				$curhook->scope($scope);
-				$curhook->return($return);
+				$currentMethod->scope($scope);
+				$currentMethod->return($return);
 
 				if($isNewMethod) {
-					$curhook->setNew(1);
-					$curhook->type($isNewMethod);
+					$currentMethod->setNew(1);
+					$currentMethod->type($isNewMethod);
 					$isNewMethod = undef;
 				}
 
@@ -230,15 +230,15 @@ foreach $line (@inputlines) {
 					$selnametext = $';
 
 					last if !$2;  # Exit the loop if there are no args (single keyword.)
-					$curhook->addArgument($3, $4);
+					$currentMethod->addArgument($3, $4);
 				}
 
-				$curhook->selectorParts(@selparts);
-				$curhook->groupIdentifier(sanitize($curGroup->name));
-				$curGroup->addHook($curhook);
-				$lastHook = $curhook;
+				$currentMethod->selectorParts(@selparts);
+				$currentMethod->groupIdentifier(sanitize($curGroup->name));
+				$curGroup->addMethod($currentMethod);
+				$lastMethod = $currentMethod;
 
-				$replacement = $curhook->buildHookFunction;
+				$replacement = $currentMethod->buildMethodSignature;
 				$replacement .= $selnametext if $selnametext ne "";
 				$line = $replacement;
 
@@ -249,7 +249,7 @@ foreach $line (@inputlines) {
 				next if fallsBetween($-[0], @quotes);
 
 				fileError($lineno, "$& found outside of a %hook") if !nestingContains("hook", @nestingstack);
-				fileWarning($lineno, "$& in a new method will be non-operative.") if $lastHook->isNew;
+				fileWarning($lineno, "$& in a new method will be non-operative.") if $lastMethod->isNew;
 
 				my $hasparens = 0;
 				my $remaining = $';
@@ -272,9 +272,9 @@ foreach $line (@inputlines) {
 				if($hasparens > 0) {
 					$parenstring = substr($remaining, 1, $hasparens-2);
 					$remaining = substr($remaining, $hasparens);
-					$replacement .= $lastHook->buildOriginalCall($parenstring);
+					$replacement .= $lastMethod->buildOriginalCall($parenstring);
 				} else {
-					$replacement .= $lastHook->buildOriginalCall;
+					$replacement .= $lastMethod->buildOriginalCall;
 				}
 				$replacement .= $remaining;
 				$line = $`.$replacement;
@@ -286,7 +286,7 @@ foreach $line (@inputlines) {
 				next if fallsBetween($-[0], @quotes);
 
 				fileError($lineno, "$& found outside of a %hook") if !nestingContains("hook", @nestingstack);
-				$replacement = $lastHook->buildLogCall;
+				$replacement = $lastMethod->buildLogCall;
 				$line = $`.$replacement.$';
 
 				redo SCANLOOP;
