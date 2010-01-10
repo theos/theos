@@ -5,6 +5,7 @@ use FindBin;
 use lib "$FindBin::Bin/lib";
 use Logos::Method;
 use Logos::Group;
+use Logos::StaticClassGroup;
 use Logos::Subclass;
 
 $filename = $ARGV[0];
@@ -91,6 +92,7 @@ my %illegalNesting = (
 	'group' => ['group', 'subclass']
 );
 
+my $staticClassGroup = StaticClassGroup->new();
 %classes = ();
 %metaclasses = ();
 
@@ -100,6 +102,7 @@ $ignore = 0;
 my @nestingstack = ();
 my $inclass = 0;
 my $last_blockopen = -1;
+my $lastInitLine = -1;
 my $curGroup = $defaultGroup;
 my $lastMethod;
 
@@ -196,10 +199,11 @@ foreach $line (@inputlines) {
 				$scope = "-" if !$scope;
 				$class = $3;
 				if($scope eq "+") {
-					$metaclasses{$class}++;
+					$staticClassGroup->addUsedMetaClass($class);
 				} else {
-					$classes{$class}++;
+					$staticClassGroup->addUsedClass($class);
 				}
+				$classes{$class}++;
 				$line = $`.$';
 
 				redo SCANLOOP;
@@ -232,8 +236,10 @@ foreach $line (@inputlines) {
 				$currentMethod->class($class);
 				if($scope eq "+") {
 					$metaclasses{$class}++;
+					$curGroup->addUsedMetaClass($class);
 				} else {
 					$classes{$class}++;
+					$curGroup->addUsedClass($class);
 				}
 
 				$currentMethod->scope($scope);
@@ -336,6 +342,7 @@ foreach $line (@inputlines) {
 				$group = $2 if $2;
 				$line = $`.generateInitLines($group).$';
 				$ctorline = -2; # "Do not generate a constructor."
+				$lastInitLine = $lineno;
 
 				redo SCANLOOP;
 			}
@@ -364,6 +371,8 @@ foreach $line (@inputlines) {
 	push(@outputlines, $line);
 }
 
+push(@groups, $staticClassGroup);
+
 if($firsthookline != -1) {
 	my $offset = 0;
 	if(!$hassubstrateh) {
@@ -372,10 +381,18 @@ if($firsthookline != -1) {
 	}
 	splice(@outputlines, $firsthookline - 1 + $offset, 0, generateClassList());
 	$offset++;
+	splice(@outputlines, $firsthookline - 1 + $offset, 0, $staticClassGroup->declarations);
+	$offset++;
 	splice(@outputlines, $firsthookline - 1 + $offset, 0, "#line $firsthookline \"$filename\"");
 	$offset++;
 	if($ctorline == -2) {
-		# No-op, do not paste a constructor.
+		# If the static class list hasn't been initialized, glue it under the last %init line.
+		if(!$staticClassGroup->initialized) {
+			splice(@outputlines, $lastInitLine + $offset, 0, $staticClassGroup->initializers);
+			$offset++;
+			splice(@outputlines, $lastInitLine + $offset, 0, "#line ".($lastInitLine+1)." \"$filename\"");
+			$offset++;
+		}
 	} elsif($ctorline != -1) {
 		$outputlines[$ctorline + $offset - 1] = generateConstructor();
 	} else {
@@ -435,24 +452,8 @@ sub generateInitLines {
 
 sub generateClassList {
 	my $return = "";
-	my %uniqclasses = ();
-	map { $uniqclasses{$_}++; } keys %metaclasses;
-	map { $uniqclasses{$_}++; } keys %classes;
-
-	map $return .= "\@class $_; ", sort keys %uniqclasses;
-	map $return .= generateMetaClassLine($_), sort keys %metaclasses;
-	map $return .= generateClassLine($_), sort keys %classes;
+	map $return .= "\@class $_; ", sort keys %classes;
 	return $return;
-}
-
-sub generateMetaClassLine {
-	my ($class) = @_;
-	return "static Class \$meta\$$class = objc_getMetaClass(\"$class\"); ";
-}
-
-sub generateClassLine {
-	my ($class) = @_;
-	return "static Class \$$class = objc_getClass(\"$class\"); ";
 }
 
 sub quotes {

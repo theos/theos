@@ -10,6 +10,8 @@ sub new {
 	$self->{INITIALIZED} = 0;
 	$self->{METHODS} = [];
 	$self->{NUM_METHODS} = 0;
+	$self->{USEDCLASSES} = {};
+	$self->{USEDMETACLASSES} = {};
 	bless($self, $class);
 	return $self;
 }
@@ -45,11 +47,29 @@ sub addMethod {
 	$self->{NUM_METHODS}++;
 }
 
+sub addUsedClass {
+	my $self = shift;
+	my $class = shift;
+	$self->{USEDCLASSES}{$class}++;
+}
+
+sub addUsedMetaClass {
+	my $self = shift;
+	my $class = shift;
+	$self->{USEDMETACLASSES}{$class}++;
+}
+
 sub initializers {
 	my $self = shift;
 	my $return = "";
 	$self->initialized(1);
 	$return .= "{";
+	foreach(keys %{$self->{USEDMETACLASSES}}) {
+		$return .= "Class \$\$meta\$$_ = objc_getMetaClass(\"$_\"); ";
+	}
+	foreach(keys %{$self->{USEDCLASSES}}) {
+		$return .= "Class \$\$$_ = objc_getClass(\"$_\"); ";
+	}
 	foreach(@{$self->{METHODS}}) {
 		$return .= $_->buildHookCall;
 	}
