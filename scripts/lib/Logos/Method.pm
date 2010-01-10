@@ -1,4 +1,4 @@
-package Hook;
+package Method;
 use strict;
 
 sub new {
@@ -116,7 +116,7 @@ sub newFunctionName {
 	return "\$".$self->groupIdentifier."\$".$self->class."\$".$self->new_selector;
 }
 
-sub buildHookFunction {
+sub buildMethodSignature {
 	my $self = shift;
 	my $build = "";
 	my $classargtype = "";
