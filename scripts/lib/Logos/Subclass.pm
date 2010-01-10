@@ -1,5 +1,5 @@
 package Subclass;
-use Group;
+use Logos::Group;
 @ISA = "Group";
 
 sub new {

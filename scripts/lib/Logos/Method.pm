@@ -157,9 +157,9 @@ sub buildOriginalCall {
 sub buildHookCall {
 	my $self = shift;
 	if(!$self->{NEW}) {
-		return "MSHookMessageEx(\$".$self->class.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", (IMP*)&".$self->originalFunctionName.");";
+		return "MSHookMessageEx(\$\$".$self->class.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", (IMP*)&".$self->originalFunctionName.");";
 	} else {
-		return "class_addMethod(\$".$self->class.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", \"".$self->{TYPE}."\");";
+		return "class_addMethod(\$\$".$self->class.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", \"".$self->{TYPE}."\");";
 	}
 }
 
