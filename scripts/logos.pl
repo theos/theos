@@ -87,9 +87,9 @@ $defaultGroup->explicit(0);
 @groups = ($defaultGroup);
 
 my %illegalNesting = (
-	'hook' => ['hook', 'subclass'],
-	'subclass' => ['hook', 'group', 'subclass'],
-	'group' => ['group', 'subclass']
+	'%hook' => ['hook', 'subclass'],
+	'%subclass' => ['hook', 'group', 'subclass'],
+	'%group' => ['group', 'subclass']
 );
 
 my $staticClassGroup = StaticClassGroup->new();
@@ -136,7 +136,7 @@ foreach $line (@inputlines) {
 			while($line =~ /^\s*%(hook)\s+([\$_\w]+)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				checkIllegalNesting($lineno, $1, @nestingstack);
+				checkIllegalNesting($lineno, "%$1", @nestingstack);
 
 				$firsthookline = $lineno if $firsthookline == -1;
 
@@ -152,7 +152,7 @@ foreach $line (@inputlines) {
 			while($line =~ /^\s*%(subclass)\s+([\$_\w]+)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				checkIllegalNesting($lineno, $1, @nestingstack);
+				checkIllegalNesting($lineno, "%$1", @nestingstack);
 
 				$firsthookline = $lineno if $firsthookline == -1;
 
@@ -175,7 +175,7 @@ foreach $line (@inputlines) {
 			while($line =~ /^\s*%(group)\s+([\$_\w]+)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				checkIllegalNesting($lineno, $1, @nestingstack);
+				checkIllegalNesting($lineno, "%$1", @nestingstack);
 				nestPush($1, $lineno, \@nestingstack);
 				$line = $`.$';
 
@@ -492,7 +492,7 @@ sub nestingError {
 	my $thisblock = shift;
 	my $reason = shift;
 	my @parts = split(/:/, $reason);
-	fileError $curline, "%$thisblock inside a %".$parts[0].", opened on ".$parts[1];
+	fileError $curline, "$thisblock inside a %".$parts[0].", opened on ".$parts[1];
 }
 
 sub nestingMustContain {
@@ -512,9 +512,7 @@ sub nestingMustNotContain {
 	my $stackref = shift;
 	my $legal = 0;
 	foreach $find (@_) {
-		if(nestingContains($find, @{$stackref})) {
-			fileError($lineno, "$trying found inside a %$find");
-		}
+		nestingError($lineno, $trying, $_) if nestingContains($find, @{$stackref});
 	}
 }
 
@@ -523,9 +521,7 @@ sub checkIllegalNesting {
 	my $trying = shift;
 	my @stack = @_;
 	my @illegals = @{$illegalNesting{$trying}};
-	foreach $illegal (@illegals) {
-		nestingError($lineno, $trying, $_) if nestingContains($illegal, @stack);
-	}
+	nestingMustNotContain($trying, \@stack, @illegals);
 }
 
 sub nestingContains {
