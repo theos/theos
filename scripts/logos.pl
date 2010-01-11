@@ -281,7 +281,7 @@ foreach $line (@inputlines) {
 			while($line =~ /%orig(inal)?(%?)(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				fileError($lineno, "$& found outside of a %hook") if !nestingContains("hook", @nestingstack);
+				nestingMustContain($&, \@nestingstack, "hook", "subclass");
 				fileWarning($lineno, "$& in a new method will be non-operative.") if $lastMethod->isNew;
 
 				my $hasparens = 0;
@@ -318,7 +318,7 @@ foreach $line (@inputlines) {
 			while($line =~ /%log(%?)(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				fileError($lineno, "$& found outside of a %hook") if !nestingContains("hook", @nestingstack);
+				nestingMustContain($&, \@nestingstack, "hook", "subclass");
 				$replacement = $lastMethod->buildLogCall;
 				$line = $`.$replacement.$';
 
@@ -328,7 +328,7 @@ foreach $line (@inputlines) {
 			while($line =~ /%c(onstruc)?tor(%?)(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				fileError($lineno, "$& found inside of a %hook") if nestingContains("hook", @nestingstack);
+				nestingMustNotContain($&, \@nestingstack, "hook", "subclass");
 				$ctorline = $lineno if $ctorline == -1;
 				$line = $`.$';
 
@@ -493,6 +493,29 @@ sub nestingError {
 	my $reason = shift;
 	my @parts = split(/:/, $reason);
 	fileError $curline, "%$thisblock inside a %".$parts[0].", opened on ".$parts[1];
+}
+
+sub nestingMustContain {
+	my $trying = shift;
+	my $stackref = shift;
+	my $legal = 0;
+	foreach $find (@_) {
+		if(nestingContains($find, @{$stackref})) {
+			return;
+		}
+	}
+	fileError($lineno, "$trying found outside of ".join(" or ", @_));
+}
+
+sub nestingMustNotContain {
+	my $trying = shift;
+	my $stackref = shift;
+	my $legal = 0;
+	foreach $find (@_) {
+		if(nestingContains($find, @{$stackref})) {
+			fileError($lineno, "$trying found inside a %$find");
+		}
+	}
 }
 
 sub checkIllegalNesting {
