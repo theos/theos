@@ -509,9 +509,9 @@ sub nestingContains {
 	my @stack = @$stackref;
 	my @search = @_;
 	my @parts = ();
-	foreach $find (@search) {
-		foreach $nest (@stack) {
-			@parts = split(/:/, $nest);
+	foreach $nest (@stack) {
+		@parts = split(/:/, $nest);
+		foreach $find (@search) {
 			if($find eq $parts[0]) {
 				$_ = $nest;
 				return $_;
