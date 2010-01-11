@@ -8,7 +8,8 @@ sub new {
 	my $self = $class->SUPER::new();
 	$self->{CLASS} = undef;
 	$self->{SUPERCLASS} = undef;
-	$self->{EXPLICIT} = 0;
+	$self->{PROTOCOLS} = {};
+	$self->explicit(0);
 	bless($self, $class);
 	return $self;
 }
@@ -31,6 +32,12 @@ sub superclass {
 # END #
 # #####
 
+sub addProtocol {
+	my $self = shift;
+	my $protocol = shift;
+	$self->{PROTOCOLS}{$protocol}++;
+}
+
 sub initializers {
 	my $self = shift;
 	my $return = "";
@@ -38,6 +45,9 @@ sub initializers {
 	$return .= "{ \$".$self->class." = objc_allocateClassPair(objc_getClass(\"".$self->superclass."\"), \"".$self->class."\", 0); ";
 	# <ivars>
 	# </ivars>
+	foreach(keys %{$self->{PROTOCOLS}}) {
+		$return .= "class_addProtocol(\$".$self->class.", objc_getProtocol(\"$_\")); ";
+	}
 	$return .= "objc_registerClassPair(\$".$self->class."); ";
 	foreach(keys %{$self->{USEDCLASSES}}) {
 		$return .= "Class \$\$$_ = \$$_; ";
