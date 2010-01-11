@@ -142,7 +142,7 @@ foreach $line (@inputlines) {
 				redo SCANLOOP;
 			}
 
-			while($line =~ /^\s*%(subclass)\s+([\$_\w]+)\s*:\s*([\$_\w]+)/g) {
+			while($line =~ /^\s*%(subclass)\s+([\$_\w]+)\s*:\s*([\$_\w]+)\s*(\<\s*(.*?)\s*\>)?/g) {
 				next if fallsBetween($-[0], @quotes);
 
 				nestingMustNotContain($lineno, "%$1", \@nestingstack, "hook", "group", "subclass");
@@ -157,6 +157,12 @@ foreach $line (@inputlines) {
 				$curGroup->name($lineno."_".$2);
 				$curGroup->class($2);
 				$curGroup->superclass($3);
+				if(defined($4) && defined($5)) {
+					my @protocols = split(/\s*,\s*/, $5);
+					foreach(@protocols) {
+						$curGroup->addProtocol($_);
+					}
+				}
 				push(@groups, $curGroup);
 
 				$staticClassGroup->addDeclaredOnlyClass($class);
