@@ -86,12 +86,6 @@ $defaultGroup->name("_ungrouped");
 $defaultGroup->explicit(0);
 @groups = ($defaultGroup);
 
-my %illegalNesting = (
-	'%hook' => ['hook', 'subclass'],
-	'%subclass' => ['hook', 'group', 'subclass'],
-	'%group' => ['group', 'subclass']
-);
-
 my $staticClassGroup = StaticClassGroup->new();
 %classes = ();
 %metaclasses = ();
@@ -136,7 +130,7 @@ foreach $line (@inputlines) {
 			while($line =~ /^\s*%(hook)\s+([\$_\w]+)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				checkIllegalNesting($lineno, "%$1", @nestingstack);
+				nestingMustNotContain($lineno, "%$1", \@nestingstack, "hook", "subclass");
 
 				$firsthookline = $lineno if $firsthookline == -1;
 
@@ -152,7 +146,7 @@ foreach $line (@inputlines) {
 			while($line =~ /^\s*%(subclass)\s+([\$_\w]+)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				checkIllegalNesting($lineno, "%$1", @nestingstack);
+				nestingMustNotContain($lineno, "%$1", \@nestingstack, "hook", "group", "subclass");
 
 				$firsthookline = $lineno if $firsthookline == -1;
 
@@ -175,7 +169,7 @@ foreach $line (@inputlines) {
 			while($line =~ /^\s*%(group)\s+([\$_\w]+)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				checkIllegalNesting($lineno, "%$1", @nestingstack);
+				nestingMustNotContain($lineno, "%$1", \@nestingstack, "group", "subclass");
 				nestPush($1, $lineno, \@nestingstack);
 				$line = $`.$';
 
@@ -281,7 +275,7 @@ foreach $line (@inputlines) {
 			while($line =~ /%orig(inal)?(%?)(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				nestingMustContain($&, \@nestingstack, "hook", "subclass");
+				nestingMustContain($lineno, $&, \@nestingstack, "hook", "subclass");
 				fileWarning($lineno, "$& in a new method will be non-operative.") if $lastMethod->isNew;
 
 				my $hasparens = 0;
@@ -318,7 +312,7 @@ foreach $line (@inputlines) {
 			while($line =~ /%log(%?)(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				nestingMustContain($&, \@nestingstack, "hook", "subclass");
+				nestingMustContain($lineno, $&, \@nestingstack, "hook", "subclass");
 				$replacement = $lastMethod->buildLogCall;
 				$line = $`.$replacement.$';
 
@@ -328,7 +322,7 @@ foreach $line (@inputlines) {
 			while($line =~ /%c(onstruc)?tor(%?)(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				nestingMustNotContain($&, \@nestingstack, "hook", "subclass");
+				nestingMustNotContain($lineno, $&, \@nestingstack, "hook", "subclass");
 				$ctorline = $lineno if $ctorline == -1;
 				$line = $`.$';
 
@@ -496,6 +490,7 @@ sub nestingError {
 }
 
 sub nestingMustContain {
+	my $lineno = shift;
 	my $trying = shift;
 	my $stackref = shift;
 	my $legal = 0;
@@ -508,20 +503,13 @@ sub nestingMustContain {
 }
 
 sub nestingMustNotContain {
+	my $lineno = shift;
 	my $trying = shift;
 	my $stackref = shift;
 	my $legal = 0;
 	foreach $find (@_) {
 		nestingError($lineno, $trying, $_) if nestingContains($find, @{$stackref});
 	}
-}
-
-sub checkIllegalNesting {
-	my $lineno = shift;
-	my $trying = shift;
-	my @stack = @_;
-	my @illegals = @{$illegalNesting{$trying}};
-	nestingMustNotContain($trying, \@stack, @illegals);
 }
 
 sub nestingContains {
