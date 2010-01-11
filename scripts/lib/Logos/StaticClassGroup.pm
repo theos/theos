@@ -22,7 +22,7 @@ sub addDeclaredOnlyClass {
 sub declarations {
 	my $self = shift;
 	my $return = "";
-	return "" if scalar(keys %{$self->{USEDMETACLASSES}}) + scalar(keys %{$self->{USEDCLASSES}}) == 0;
+	return "" if scalar(keys %{$self->{USEDMETACLASSES}}) + scalar(keys %{$self->{USEDCLASSES}}) + scalar(keys %{$self->{DECLAREDONLYCLASSES}}) == 0;
 	foreach(keys %{$self->{USEDMETACLASSES}}) {
 		$return .= "static Class \$meta\$$_; ";
 	}
