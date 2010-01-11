@@ -501,29 +501,22 @@ sub checkIllegalNesting {
 	my @stack = @_;
 	my @illegals = @{$illegalNesting{$trying}};
 	foreach $illegal (@illegals) {
-		my $found = nestingFind($illegal, @stack);
-		nestingError($lineno, $trying, $found) if $found;
+		nestingError($lineno, $trying, $_) if nestingContains($illegal, @stack);
 	}
 }
 
 sub nestingContains {
 	my $find = shift;
 	my @stack = @_;
-	my $found = nestingFind($find, @stack);
-	return undef if !$found;
-	my @parts = ();
-	@parts = split(/:/, $found);
-	return $parts[1];
-}
-
-sub nestingFind {
-	my $find = shift;
-	my @stack = @_;
 	my @parts = ();
 	foreach $nest (@stack) {
 		@parts = split(/:/, $nest);
-		return $nest if $find eq $parts[0];
+		if($find eq $parts[0]) {
+			$_ = $nest;
+			return $_;
+		}
 	}
+	$_ = undef;
 	return undef;
 }
 
