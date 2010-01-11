@@ -88,7 +88,6 @@ $defaultGroup->explicit(0);
 
 my $staticClassGroup = StaticClassGroup->new();
 %classes = ();
-%metaclasses = ();
 
 $hassubstrateh = 0;
 $ignore = 0;
@@ -143,7 +142,7 @@ foreach $line (@inputlines) {
 				redo SCANLOOP;
 			}
 
-			while($line =~ /^\s*%(subclass)\s+([\$_\w]+)/g) {
+			while($line =~ /^\s*%(subclass)\s+([\$_\w]+)\s*:\s*([\$_\w]+)/g) {
 				next if fallsBetween($-[0], @quotes);
 
 				nestingMustNotContain($lineno, "%$1", \@nestingstack, "hook", "group", "subclass");
@@ -157,7 +156,11 @@ foreach $line (@inputlines) {
 				$curGroup = Subclass->new();
 				$curGroup->name($lineno."_".$2);
 				$curGroup->class($2);
+				$curGroup->superclass($3);
 				push(@groups, $curGroup);
+
+				$staticClassGroup->addDeclaredOnlyClass($class);
+				$classes{$class}++;
 
 				$inclass = 1;
 				$line = $';
@@ -229,7 +232,6 @@ foreach $line (@inputlines) {
 
 				$currentMethod->class($class);
 				if($scope eq "+") {
-					$metaclasses{$class}++;
 					$curGroup->addUsedMetaClass($class);
 				} else {
 					$classes{$class}++;

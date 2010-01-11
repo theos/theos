@@ -35,7 +35,11 @@ sub initializers {
 	my $self = shift;
 	my $return = "";
 	$self->initialized(1);
-	$return .= "{";
+	$return .= "{ \$".$self->class." = objc_allocateClassPair(objc_getClass(\"".$self->superclass."\"), \"".$self->class."\", 0); ";
+	$return .= "Class \$\$".$self->class." = \$".$self->class."; ";
+	# <ivars>
+	# </ivars>
+	$return .= "objc_registerClassPair(\$".$self->class."); ";
 	foreach(@{$self->{METHODS}}) {
 		$return .= $_->buildHookCall;
 	}
