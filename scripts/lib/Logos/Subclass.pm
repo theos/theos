@@ -36,10 +36,15 @@ sub initializers {
 	my $return = "";
 	$self->initialized(1);
 	$return .= "{ \$".$self->class." = objc_allocateClassPair(objc_getClass(\"".$self->superclass."\"), \"".$self->class."\", 0); ";
-	$return .= "Class \$\$".$self->class." = \$".$self->class."; ";
 	# <ivars>
 	# </ivars>
 	$return .= "objc_registerClassPair(\$".$self->class."); ";
+	foreach(keys %{$self->{USEDCLASSES}}) {
+		$return .= "Class \$\$$_ = \$$_; ";
+	}
+	foreach(keys %{$self->{USEDMETACLASSES}}) {
+		$return .= "Class \$\$meta\$$_ = objc_getMetaClass(\"$_\"); ";
+	}
 	foreach(@{$self->{METHODS}}) {
 		$return .= $_->buildHookCall;
 	}
