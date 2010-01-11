@@ -8,8 +8,15 @@ sub new {
 	my $self = $class->SUPER::new();
 	$self->name("_staticClass");
 	$self->explicit(0);
+	$self->{DECLAREDONLYCLASSES} = {};
 	bless($self, $class);
 	return $self;
+}
+
+sub addDeclaredOnlyClass {
+	my $self = shift;
+	my $class = shift;
+	$self->{DECLAREDONLYCLASSES}{$class}++;
 }
 
 sub declarations {
@@ -20,6 +27,9 @@ sub declarations {
 		$return .= "static Class \$meta\$$_; ";
 	}
 	foreach(keys %{$self->{USEDCLASSES}}) {
+		$return .= "static Class \$$_; ";
+	}
+	foreach(keys %{$self->{DECLAREDONLYCLASSES}}) {
 		$return .= "static Class \$$_; ";
 	}
 	return $return;
