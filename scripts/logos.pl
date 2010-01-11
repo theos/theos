@@ -207,7 +207,7 @@ foreach $line (@inputlines) {
 			while($line =~ /^\s*%new(\((.*?)\))?(%?)(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				fileError($lineno, "%new found outside of a %hook") if !nestingContains("hook", @nestingstack);
+				nestingMustContain($lineno, "%new", \@nestingstack, "hook", "subclass");
 				my $xtype = "v\@:";
 				$xtype = $2 if $2;
 				fileWarning($lineno, "%new without a type specifier, assuming v\@: (void return, id and SEL args)") if !$2;
@@ -493,12 +493,7 @@ sub nestingMustContain {
 	my $lineno = shift;
 	my $trying = shift;
 	my $stackref = shift;
-	my $legal = 0;
-	foreach $find (@_) {
-		if(nestingContains($find, @{$stackref})) {
-			return;
-		}
-	}
+	return if nestingContains($stackref, @_);
 	fileError($lineno, "$trying found outside of ".join(" or ", @_));
 }
 
@@ -506,21 +501,21 @@ sub nestingMustNotContain {
 	my $lineno = shift;
 	my $trying = shift;
 	my $stackref = shift;
-	my $legal = 0;
-	foreach $find (@_) {
-		nestingError($lineno, $trying, $_) if nestingContains($find, @{$stackref});
-	}
+	nestingError($lineno, $trying, $_) if nestingContains($stackref, @_);
 }
 
 sub nestingContains {
-	my $find = shift;
-	my @stack = @_;
+	my $stackref = shift;
+	my @stack = @$stackref;
+	my @search = @_;
 	my @parts = ();
-	foreach $nest (@stack) {
-		@parts = split(/:/, $nest);
-		if($find eq $parts[0]) {
-			$_ = $nest;
-			return $_;
+	foreach $find (@search) {
+		foreach $nest (@stack) {
+			@parts = split(/:/, $nest);
+			if($find eq $parts[0]) {
+				$_ = $nest;
+				return $_;
+			}
 		}
 	}
 	$_ = undef;
