@@ -365,6 +365,12 @@ foreach $line (@inputlines) {
 	push(@outputlines, $line);
 }
 
+if(scalar(@nestingstack) > 0) {
+	my $closing = pop(@nestingstack);
+	my @parts = split(/:/, $closing);
+	fileWarning(-1, "missing %end (%".$parts[0]." opened on line ".$parts[1]." extends to EOF)");
+}
+
 push(@groups, $staticClassGroup);
 
 if($firsthookline != -1) {
@@ -486,7 +492,7 @@ sub nestingError {
 	my $thisblock = shift;
 	my $reason = shift;
 	my @parts = split(/:/, $reason);
-	fileError $curline, "$thisblock inside a %".$parts[0].", opened on ".$parts[1];
+	fileError $curline, "$thisblock inside a %".$parts[0].", opened on line ".$parts[1];
 }
 
 sub nestingMustContain {
