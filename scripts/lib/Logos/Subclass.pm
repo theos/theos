@@ -53,7 +53,7 @@ sub initializers {
 		$return .= "Class \$\$$_ = \$$_; ";
 	}
 	foreach(keys %{$self->{USEDMETACLASSES}}) {
-		$return .= "Class \$\$meta\$$_ = objc_getMetaClass(\"$_\"); ";
+		$return .= "Class \$\$meta\$$_ = object_getClass(\$\$$_); ";
 	}
 	foreach(@{$self->{METHODS}}) {
 		$return .= $_->buildHookCall;
