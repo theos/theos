@@ -9,7 +9,7 @@ export FAKEROOT
 
 # Only do the master packaging rules if we're the toplevel make invocation.
 ifeq ($(MAKELEVEL),0)
-FW_CAN_PACKAGE := $(shell [[ -d $(FW_PROJECT_DIR)/layout ]] && echo 1 || echo 0)
+FW_CAN_PACKAGE := $(shell [ -d $(FW_PROJECT_DIR)/layout ] && echo 1 || echo 0)
 
 ifeq ($(FW_CAN_PACKAGE),1)
 
