@@ -373,7 +373,7 @@ foreach $line (@inputlines) {
 	push(@outputlines, $line);
 }
 
-if(scalar(@nestingstack) > 0) {
+while(scalar(@nestingstack) > 0) {
 	my $closing = pop(@nestingstack);
 	my @parts = split(/:/, $closing);
 	fileWarning(-1, "missing %end (%".$parts[0]." opened on line ".$parts[1]." extends to EOF)");
