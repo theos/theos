@@ -172,8 +172,12 @@ sub buildLogCall {
 		# This builds a list of args by making sure the format char isn't -- (or, what we're using for non-operational types)
 		# Map (in list context) "format char == -- ? nothing : arg name" over the indices of the arg list.
 		my @newarglist = map(printArgForArgType($self->{ARGTYPES}[$_], $self->{ARGNAMES}[$_]), (0..$self->{NUM_ARGS} - 1));
-		my $argnamelist = join(", ", grep(defined($_), @newarglist));
-		$build .= "]\", ".$argnamelist.")";
+		my @existingargs = grep(defined($_), @newarglist);
+		my $argnamelist = "";
+		if(scalar(@existingargs) > 0) {
+			$argnamelist = ", ".join(", ", grep(defined($_), @existingargs));
+		}
+		$build .= "]\"".$argnamelist.")";
 	} else {
 		$build .= " ".$self->selector."]\")";
 	}
@@ -182,7 +186,7 @@ sub buildLogCall {
 sub printArgForArgType {
 	my $argtype = shift;
 	my $argname = shift;
-	return "NSStringFromCG$1($argname)" if $argtype =~ /\bCG(Rect|Point|Offset)\b/;
+	return "NSStringFromCG$1($argname)" if $argtype =~ /\bCG(Rect|Point|Size)\b/;
 	return undef if $argtype =~ /\b(CG\w*|CF\w*|void)\b/;
 	return $argname;
 }
@@ -194,7 +198,7 @@ sub formatCharForArgType {
 	return "%p" if $argtype =~ /\bvoid\b\s*\*/;
 	return "%f" if $argtype =~ /\b(double|float)\b/;
 	return "%c" if $argtype =~ /\bchar\b/;
-	return "%@" if $argtype =~ /\bCG(Rect|Point|Offset)\b/;
+	return "%@" if $argtype =~ /\bCG(Rect|Point|Size)\b/;
 	return "--" if $argtype =~ /\b(CG\w*|CF\w*|void)\b/;
 	return "%@";
 }
