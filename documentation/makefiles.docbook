@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V5.0//EN"
-"/opt/local/share/xml/docbook/5.0/dtd/docbook.dtd" [
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+"http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
 <!ENTITY project "<literal>Theos</literal>">
 ]>
-<chapter xmlns="http://docbook.org/ns/docbook">
+<chapter>
     <title>Makefiles</title>
 
   <section id="intro">
