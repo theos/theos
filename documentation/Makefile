@@ -1,4 +1,4 @@
-all: project.html
+all: makefiles.html
 
 %.html: %.docbook
 	xsltproc --output $@ /opt/local/share/xsl/docbook-xsl/html/docbook.xsl $<

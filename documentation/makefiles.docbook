@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V5.0//EN"
+"/opt/local/share/xml/docbook/5.0/dtd/docbook.dtd" [
+<!ENTITY project "<literal>Theos</literal>">
+]>
+<chapter xmlns="http://docbook.org/ns/docbook">
+    <title>Makefiles</title>
+
+  <section id="intro">
+    <title>Introduction</title>
+
+    <para>&project; is a set of Makefiles designed to take away the complexity
+    of building and organizing iPhoneOS projects without the use of Xcode (or
+    even Mac OS X.)</para>
+  </section>
+
+  <section id="structure">
+    <title>Structure of a Makefile</title>
+
+    <para>Here is an example makefile for a project using &project;</para>
+
+    <programlisting>TWEAK_NAME = Simple
+Simple_OBJCC_FILES = Tweak.mm
+
+include theos/makefiles/common.mk
+include theos/makefiles/tweak.mk</programlisting>
+  </section>
+
+  <section id="project-types">
+    <title>Project Types</title>
+
+    <para>Projects are divided into different types, briefly described below.
+    To create a project of a given type, simply include its makefile. For
+    example, to create a command-line tool:</para>
+
+    <programlisting>include theos/makefiles/tool.mk</programlisting>
+
+    <para>From one Makefile, you can build multiple types of project (just
+    include both project type makefiles). An example:</para>
+
+    <programlisting>TWEAK_NAME = Simple
+Simple_OBJCC_FILES = Tweak.mm
+
+TOOL_NAME = simpleutility
+simpleutility_C_FILES = su.c
+
+include theos/makefiles/common.mk
+include theos/makefiles/tweak.mk
+include theos/makefiles/tool.mk</programlisting>
+
+    <para>You can also build multiple instances of a single project type from
+    one Makefile.</para>
+
+    <programlisting>TWEAK_NAME = Simple Complex
+Simple_OBJCC_FILES = Tweak.mm
+Complex_OBJCC_FILES = 1.mm 2.mm 3.mm 4.mm
+
+include theos/makefiles/common.mk
+include theos/makefiles/tweak.mk</programlisting>
+
+    <section>
+      <title>Aggregate (<literal>aggregate.mk</literal>)</title>
+
+      <para>An Aggregate project is a project that consists of several
+      subprojects. Each subproject can be any valid type (including another
+      Aggregate).</para>
+
+      <variablelist>
+        <varlistentry>
+          <term>Variable: <literal>SUBPROJECTS</literal></term>
+
+          <listitem>
+            <para><literal>The SUBPROJECTS</literal> variable defines the
+            directory names that contain the subprojects this Aggregate
+            project should build.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
+
+    <section>
+      <title>UIKit Applications (<literal>application.mk</literal>)</title>
+
+      <para>An application is an Objective-C program that includes a GUI
+      component, and by default links against <literal>UIKit</literal>.</para>
+    </section>
+
+    <section>
+      <title>Command Line Tools (<literal>tool.mk</literal>)</title>
+
+      <para>A tool is a program that does not have a GUI component, and does
+      not link against UIKit. This project type is intended for command-line
+      tools, daemons, etc.</para>
+    </section>
+
+    <section>
+      <title>MobileSubstrate Tweaks (<literal>tweak.mk</literal>)</title>
+
+      <para>A tweak is a dynamic library that links against
+      <literal>MobileSubstrate</literal> for the purposes of adding and
+      replacing functions and methods at runtime.</para>
+
+      <para>Tweaks in &project; are often written with the help of the Logos
+      preprocessor.</para>
+    </section>
+
+    <section>
+      <title>Bundles (<literal>bundle.mk</literal>)</title>
+
+      <para>A bundle is a dynamic library meant to be loaded into another
+      application, using the <literal>NSBundle</literal> class.</para>
+    </section>
+  </section>
+
+  <section>
+    <title>Project Variables</title>
+
+    <para>The various project type makefiles all support a common set of
+    variables, described below. In this list, <literal>xxx</literal> is
+    assumed to be the project instance name.</para>
+
+    <variablelist>
+      <varlistentry>
+        <term>Variable: <literal>xxx_C_FILES</literal>,
+        <literal>xxx_CC_FILES</literal>, <literal>xxx_OBJC_FILES</literal>,
+        <literal> xxx_OBJCC_FILES</literal></term>
+
+        <listitem>
+          <para>The <literal>FILES</literal> variables contain space-delimited
+          lists of the source files comprising the project. Including
+          <literal>OBJC_FILES</literal> or <literal>OBJCC_FILES</literal>
+          causes the Objective-C runtime and Foundation framework to be linked
+          with your project.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>Variable: <literal>xxx_OBJ_FILES</literal></term>
+
+        <listitem>
+          <para>The <literal>OBJ_FILES</literal> variable contains a
+          space-delimited list of precompiled object files
+          (<filename>.o</filename>) to be linked with the project.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>Variable: <literal>xxx_FRAMEWORKS</literal>,
+        <literal>xxx_PRIVATE_FRAMEWORKS</literal></term>
+
+        <listitem>
+          <para>The <literal>FRAMEWORKS</literal> variables contain
+          space-delimited lists of frameworks to link with the project, if
+          Objective-C source files are used. Including
+          <literal>PRIVATE_FRAMEWORKS</literal> causes the private Framework
+          directory to be included in the Framework search path.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>Variable: <literal>xxx_CFLAGS</literal>,
+        <literal>xxx_CCFLAGS</literal>, <literal>xxx_OBJCFLAGS</literal>,
+        <literal> xxx_OBJCCFLAGS</literal></term>
+
+        <listitem>
+          <para>The <literal>FLAGS</literal> variables contain flags passed to
+          the compiler for a given filetype.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>Variable: <literal>xxx_LDFLAGS</literal></term>
+
+        <listitem>
+          <para>The <literal>LDFLAGS</literal> variable contains flags passed
+          to the linker for a project.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>Variable: <literal>Blah</literal></term>
+
+        <listitem>
+          <para>Description</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>Variable: <literal>Blah</literal></term>
+
+        <listitem>
+          <para>Description</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>Variable: <literal>Blah</literal></term>
+
+        <listitem>
+          <para>Description</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>Variable: <literal>Blah</literal></term>
+
+        <listitem>
+          <para>Description</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>Variable: <literal>Blah</literal></term>
+
+        <listitem>
+          <para>Description</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>Variable: <literal>Blah</literal></term>
+
+        <listitem>
+          <para>Description</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>Variable: <literal>Blah</literal></term>
+
+        <listitem>
+          <para>Description</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </section>
+</chapter>
