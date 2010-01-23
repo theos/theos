@@ -4,7 +4,7 @@
 <!ENTITY project "<literal>Theos</literal>">
 ]>
 <chapter>
-    <title>Makefiles</title>
+  <title>Makefiles</title>
 
   <section id="intro">
     <title>Introduction</title>
@@ -102,6 +102,13 @@ include theos/makefiles/tweak.mk</programlisting>
 
       <para>Tweaks in &project; are often written with the help of the Logos
       preprocessor.</para>
+
+      <note>
+        <para>A tweak does not, by default, link against
+        <literal>UIKit</literal>. If you want to link against
+        <literal>UIKit</literal>, add it to
+        <literal>xxx_FRAMEWORKS</literal>.</para>
+      </note>
     </section>
 
     <section>
@@ -113,125 +120,207 @@ include theos/makefiles/tweak.mk</programlisting>
   </section>
 
   <section>
-    <title>Project Variables</title>
+    <title>Variables</title>
 
-    <para>The various project type makefiles all support a common set of
-    variables, described below. In this list, <literal>xxx</literal> is
-    assumed to be the project instance name.</para>
+    <section>
+      <title>System Variables</title>
 
-    <variablelist>
-      <varlistentry>
-        <term>Variable: <literal>xxx_C_FILES</literal>,
-        <literal>xxx_CC_FILES</literal>, <literal>xxx_OBJC_FILES</literal>,
-        <literal> xxx_OBJCC_FILES</literal></term>
+      <para>These variables are listed for use in toplevel Makefiles, but if
+      you really want to change them, you can.</para>
 
-        <listitem>
-          <para>The <literal>FILES</literal> variables contain space-delimited
-          lists of the source files comprising the project. Including
-          <literal>OBJC_FILES</literal> or <literal>OBJCC_FILES</literal>
-          causes the Objective-C runtime and Foundation framework to be linked
-          with your project.</para>
-        </listitem>
-      </varlistentry>
+      <variablelist>
+        <varlistentry>
+          <term>Variable: <literal>FW_BUILD_DIR</literal></term>
 
-      <varlistentry>
-        <term>Variable: <literal>xxx_OBJ_FILES</literal></term>
+          <listitem>
+            <para>Build directory (objects are placed in
+            <filename>$(FW_BUILD_DIR)/$(FW_OBJ_DIR_NAME)</filename>). Defaults
+            to the current directory.</para>
+          </listitem>
+        </varlistentry>
 
-        <listitem>
-          <para>The <literal>OBJ_FILES</literal> variable contains a
-          space-delimited list of precompiled object files
-          (<filename>.o</filename>) to be linked with the project.</para>
-        </listitem>
-      </varlistentry>
+        <varlistentry>
+          <term>Variable: <literal>FW_OBJ_DIR_NAME</literal></term>
 
-      <varlistentry>
-        <term>Variable: <literal>xxx_FRAMEWORKS</literal>,
-        <literal>xxx_PRIVATE_FRAMEWORKS</literal></term>
+          <listitem>
+            <para>Output file directory name. Defaults to
+            <filename>obj</filename>.</para>
+          </listitem>
+        </varlistentry>
 
-        <listitem>
-          <para>The <literal>FRAMEWORKS</literal> variables contain
-          space-delimited lists of frameworks to link with the project, if
-          Objective-C source files are used. Including
-          <literal>PRIVATE_FRAMEWORKS</literal> causes the private Framework
-          directory to be included in the Framework search path.</para>
-        </listitem>
-      </varlistentry>
+        <varlistentry>
+          <term>Variable: <literal>FW_PACKAGE_STAGING_DIR</literal></term>
 
-      <varlistentry>
-        <term>Variable: <literal>xxx_CFLAGS</literal>,
-        <literal>xxx_CCFLAGS</literal>, <literal>xxx_OBJCFLAGS</literal>,
-        <literal> xxx_OBJCCFLAGS</literal></term>
+          <listitem>
+            <para>Package staging directory. Defaults to
+            <filename>$(FW_PROJECT_DIR)/_</filename>.</para>
+          </listitem>
+        </varlistentry>
 
-        <listitem>
-          <para>The <literal>FLAGS</literal> variables contain flags passed to
-          the compiler for a given filetype.</para>
-        </listitem>
-      </varlistentry>
+        <varlistentry>
+          <term>Variable: <literal>CC</literal>, <literal>CXX</literal>,
+          <literal>STRIP</literal>, <literal>LD</literal></term>
 
-      <varlistentry>
-        <term>Variable: <literal>xxx_LDFLAGS</literal></term>
+          <listitem>
+            <para>Commands used to build and link projects.</para>
+          </listitem>
+        </varlistentry>
 
-        <listitem>
-          <para>The <literal>LDFLAGS</literal> variable contains flags passed
-          to the linker for a project.</para>
-        </listitem>
-      </varlistentry>
+        <varlistentry>
+          <term>Variable: <literal>Blah</literal></term>
 
-      <varlistentry>
-        <term>Variable: <literal>Blah</literal></term>
+          <listitem>
+            <para>Description</para>
+          </listitem>
+        </varlistentry>
 
-        <listitem>
-          <para>Description</para>
-        </listitem>
-      </varlistentry>
+        <varlistentry>
+          <term>Variable: <literal>Blah</literal></term>
 
-      <varlistentry>
-        <term>Variable: <literal>Blah</literal></term>
+          <listitem>
+            <para>Description</para>
+          </listitem>
+        </varlistentry>
 
-        <listitem>
-          <para>Description</para>
-        </listitem>
-      </varlistentry>
+        <varlistentry>
+          <term>Variable: <literal>Blah</literal></term>
 
-      <varlistentry>
-        <term>Variable: <literal>Blah</literal></term>
+          <listitem>
+            <para>Description</para>
+          </listitem>
+        </varlistentry>
 
-        <listitem>
-          <para>Description</para>
-        </listitem>
-      </varlistentry>
+        <varlistentry>
+          <term>Variable: <literal>Blah</literal></term>
 
-      <varlistentry>
-        <term>Variable: <literal>Blah</literal></term>
+          <listitem>
+            <para>Description</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
 
-        <listitem>
-          <para>Description</para>
-        </listitem>
-      </varlistentry>
+    <section>
+      <title>Project Variables</title>
 
-      <varlistentry>
-        <term>Variable: <literal>Blah</literal></term>
+      <para>The various project type makefiles all support a common set of
+      variables, described below. In this list, <literal>xxx</literal> is
+      assumed to be the project instance name.</para>
 
-        <listitem>
-          <para>Description</para>
-        </listitem>
-      </varlistentry>
+      <variablelist>
+        <varlistentry>
+          <term>Variable: <literal>xxx_C_FILES</literal>,
+          <literal>xxx_CC_FILES</literal>, <literal>xxx_OBJC_FILES</literal>,
+          <literal>xxx_OBJCC_FILES</literal></term>
 
-      <varlistentry>
-        <term>Variable: <literal>Blah</literal></term>
+          <listitem>
+            <para>The <literal>FILES</literal> variables contain
+            space-delimited lists of the source files comprising the project.
+            Including <literal>OBJC_FILES</literal> or
+            <literal>OBJCC_FILES</literal> causes the Objective-C runtime and
+            Foundation framework to be linked with your project.</para>
+          </listitem>
+        </varlistentry>
 
-        <listitem>
-          <para>Description</para>
-        </listitem>
-      </varlistentry>
+        <varlistentry>
+          <term>Variable: <literal>xxx_OBJ_FILES</literal></term>
 
-      <varlistentry>
-        <term>Variable: <literal>Blah</literal></term>
+          <listitem>
+            <para>The <literal>OBJ_FILES</literal> variable contains a
+            space-delimited list of precompiled object files
+            (<filename>.o</filename>) to be linked with the project.</para>
+          </listitem>
+        </varlistentry>
 
-        <listitem>
-          <para>Description</para>
-        </listitem>
-      </varlistentry>
-    </variablelist>
+        <varlistentry>
+          <term>Variable: <literal>xxx_FRAMEWORKS</literal>,
+          <literal>xxx_PRIVATE_FRAMEWORKS</literal></term>
+
+          <listitem>
+            <para>The <literal>FRAMEWORKS</literal> variables contain
+            space-delimited lists of frameworks to link with the project, if
+            Objective-C source files are used. Including
+            <literal>PRIVATE_FRAMEWORKS</literal> causes the private Framework
+            directory to be included in the Framework search path.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Variable: <literal>xxx_CFLAGS</literal>,
+          <literal>xxx_CCFLAGS</literal>, <literal>xxx_OBJCFLAGS</literal>,
+          <literal>xxx_OBJCCFLAGS</literal></term>
+
+          <listitem>
+            <para>The <literal>FLAGS</literal> variables contain flags passed
+            to the compiler for a given filetype.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Variable: <literal>xxx_LDFLAGS</literal></term>
+
+          <listitem>
+            <para>The <literal>LDFLAGS</literal> variable contains flags
+            passed to the linker for a project.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Variable: <literal>Blah</literal></term>
+
+          <listitem>
+            <para>Description</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Variable: <literal>Blah</literal></term>
+
+          <listitem>
+            <para>Description</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Variable: <literal>Blah</literal></term>
+
+          <listitem>
+            <para>Description</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Variable: <literal>Blah</literal></term>
+
+          <listitem>
+            <para>Description</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Variable: <literal>Blah</literal></term>
+
+          <listitem>
+            <para>Description</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Variable: <literal>Blah</literal></term>
+
+          <listitem>
+            <para>Description</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>Variable: <literal>Blah</literal></term>
+
+          <listitem>
+            <para>Description</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
   </section>
 </chapter>
