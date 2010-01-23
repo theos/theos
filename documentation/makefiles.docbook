@@ -188,14 +188,19 @@ include theos/makefiles/tweak.mk</programlisting>
             additional compilation flags for an entire project. These
             variables are not passed into subdirectories or subprojects, but
             can be made to do so with <command>export</command>, as in
-	    <command>export <varname>ADDITIONAL_CFLAGS</varname></command>.</para>
+            <command>export
+            <varname>ADDITIONAL_CFLAGS</varname></command>.</para>
           </listitem>
         </varlistentry>
 
         <varlistentry>
-          <term><varname>CFLAGS</varname>,
-          <varname>CCFLAGS</varname>, <varname>OBJCFLAGS</varname>,
-          <varname>OBJCCFLAGS</varname></term>
+          <term><varname>CFLAGS</varname></term>
+
+          <term><varname>CCFLAGS</varname></term>
+
+          <term><varname>OBJCFLAGS</varname></term>
+
+          <term><varname>OBJCCFLAGS</varname></term>
 
           <listitem>
             <para>The unqualified <varname>FLAGS</varname> variables can be
@@ -271,9 +276,13 @@ include theos/makefiles/tweak.mk</programlisting>
 
       <variablelist>
         <varlistentry>
-          <term><varname>xxx_C_FILES</varname>,
-          <varname>xxx_CC_FILES</varname>, <varname>xxx_OBJC_FILES</varname>,
-          <varname>xxx_OBJCC_FILES</varname></term>
+          <term><varname>xxx_C_FILES</varname></term>
+
+          <term><varname>xxx_CC_FILES</varname></term>
+
+          <term><varname>xxx_OBJC_FILES</varname></term>
+
+          <term><varname>xxx_OBJCC_FILES</varname></term>
 
           <listitem>
             <para>The <varname>FILES</varname> variables contain
@@ -308,9 +317,13 @@ include theos/makefiles/tweak.mk</programlisting>
         </varlistentry>
 
         <varlistentry>
-          <term><varname>xxx_CFLAGS</varname>,
-          <varname>xxx_CCFLAGS</varname>, <varname>xxx_OBJCFLAGS</varname>,
-          <varname>xxx_OBJCCFLAGS</varname></term>
+          <term><varname>xxx_CFLAGS</varname></term>
+
+          <term><varname>xxx_CCFLAGS</varname></term>
+
+          <term><varname>xxx_OBJCFLAGS</varname></term>
+
+          <term><varname>xxx_OBJCCFLAGS</varname></term>
 
           <listitem>
             <para>The <varname>FLAGS</varname> variables contain flags passed
