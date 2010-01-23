@@ -16,12 +16,14 @@ export CC CXX STRIP CODESIGN_ALLOCATE
 # ObjC/++ stuff is not here, it's in instance/rules.mk and only added if there are OBJC/OBJCC objects.
 INTERNAL_LDFLAGS = -multiply_defined suppress -L$(FW_LIBDIR)
 
+OPTFLAG ?= -O2
 ifeq ($(DEBUG),1)
-DEBUG_CFLAGS=-DDEBUG -ggdb
-STRIP=:
+DEBUG_CFLAGS = -DDEBUG -ggdb
+OPTFLAG := $(filter-out -O%, $(OPTFLAG))
+STRIP = :
 endif
 
-INTERNAL_CFLAGS = -O2 -I$(FW_INCDIR) -include $(FRAMEWORKDIR)/Prefix.pch -Wall
+INTERNAL_CFLAGS = $(OPTFLAG) -I$(FW_INCDIR) -include $(FRAMEWORKDIR)/Prefix.pch -Wall
 ifneq ($(GO_EASY_ON_ME),1)
 	INTERNAL_CFLAGS += -Werror
 endif
