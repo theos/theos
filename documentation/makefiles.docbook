@@ -178,10 +178,15 @@ include theos/makefiles/tweak.mk</programlisting>
 
       <variablelist>
         <varlistentry>
-          <term><varname>ADDITIONAL_CFLAGS</varname>,
-          <varname>ADDITIONAL_CCFLAGS</varname>,
-          <varname>ADDITIONAL_OBJCFLAGS</varname>,
-          <varname>ADDITIONAL_OBJCCFLAGS</varname></term>
+          <term><varname>ADDITIONAL_CFLAGS</varname></term>
+
+          <term><varname>ADDITIONAL_CCFLAGS</varname></term>
+
+          <term><varname>ADDITIONAL_OBJCFLAGS</varname></term>
+
+          <term><varname>ADDITIONAL_OBJCCFLAGS</varname></term>
+
+          <term><varname>ADDITIONAL_LDFLAGS</varname></term>
 
           <listitem>
             <para>The <varname>ADDITIONAL_FLAGS</varname> variables control
@@ -201,6 +206,8 @@ include theos/makefiles/tweak.mk</programlisting>
           <term><varname>OBJCFLAGS</varname></term>
 
           <term><varname>OBJCCFLAGS</varname></term>
+
+          <term><varname>LDFLAGS</varname></term>
 
           <listitem>
             <para>The unqualified <varname>FLAGS</varname> variables can be
