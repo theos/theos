@@ -79,34 +79,36 @@ include theos/makefiles/tweak.mk</programlisting>
     </section>
 
     <section>
-      <title>UIKit Applications (<filename>application.mk</filename>)</title>
+      <title><systemitem class="library">UIKit</systemitem> Applications
+      (<filename>application.mk</filename>)</title>
 
       <para>An application is an Objective-C program that includes a GUI
-      component, and by default links against <literal>UIKit</literal>.</para>
+      component, and by default links against <systemitem
+      class="library">UIKit</systemitem>.</para>
     </section>
 
     <section>
       <title>Command Line Tools (<filename>tool.mk</filename>)</title>
 
       <para>A tool is a program that does not have a GUI component, and does
-      not link against UIKit. This project type is intended for command-line
-      tools, daemons, etc.</para>
+      not link against <systemitem class="library">UIKit</systemitem>. This
+      project type is intended for command-line tools, daemons, etc.</para>
     </section>
 
     <section>
       <title>MobileSubstrate Tweaks (<filename>tweak.mk</filename>)</title>
 
-      <para>A tweak is a dynamic library that links against
-      <literal>MobileSubstrate</literal> for the purposes of adding and
-      replacing functions and methods at runtime.</para>
+      <para>A tweak is a dynamic library that links against <systemitem
+      class="library">MobileSubstrate</systemitem> for the purposes of adding
+      and replacing functions and methods at runtime.</para>
 
       <para>Tweaks in &project; are often written with the help of the Logos
       preprocessor.</para>
 
       <note>
-        <para>A tweak does not, by default, link against
-        <literal>UIKit</literal>. If you want to link against
-        <literal>UIKit</literal>, add it to
+        <para>A tweak does not, by default, link against <systemitem
+        class="library">UIKit</systemitem>. If you want to link against
+        <systemitem class="library">UIKit</systemitem>, add it to
         <varname>xxx_FRAMEWORKS</varname>.</para>
       </note>
     </section>
@@ -115,7 +117,7 @@ include theos/makefiles/tweak.mk</programlisting>
       <title>Bundles (<filename>bundle.mk</filename>)</title>
 
       <para>A bundle is a dynamic library meant to be loaded into another
-      application, using the <literal>NSBundle</literal> class.</para>
+      application, using the <classname>NSBundle</classname> class.</para>
     </section>
   </section>
 
