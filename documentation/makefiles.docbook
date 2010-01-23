@@ -67,7 +67,7 @@ include theos/makefiles/tweak.mk</programlisting>
 
       <variablelist>
         <varlistentry>
-          <term>Variable: <varname>SUBPROJECTS</varname></term>
+          <term><varname>SUBPROJECTS</varname></term>
 
           <listitem>
             <para><varname>The SUBPROJECTS</varname> variable defines the
@@ -132,7 +132,7 @@ include theos/makefiles/tweak.mk</programlisting>
 
       <variablelist>
         <varlistentry>
-          <term>Variable: <varname>FW_BUILD_DIR</varname></term>
+          <term><varname>FW_BUILD_DIR</varname></term>
 
           <listitem>
             <para>Build directory (objects are placed in
@@ -142,7 +142,7 @@ include theos/makefiles/tweak.mk</programlisting>
         </varlistentry>
 
         <varlistentry>
-          <term>Variable: <varname>FW_OBJ_DIR_NAME</varname></term>
+          <term><varname>FW_OBJ_DIR_NAME</varname></term>
 
           <listitem>
             <para>Output file directory name. Defaults to
@@ -151,7 +151,7 @@ include theos/makefiles/tweak.mk</programlisting>
         </varlistentry>
 
         <varlistentry>
-          <term>Variable: <varname>FW_PACKAGE_STAGING_DIR</varname></term>
+          <term><varname>FW_PACKAGE_STAGING_DIR</varname></term>
 
           <listitem>
             <para>Package staging directory. Defaults to
@@ -160,7 +160,7 @@ include theos/makefiles/tweak.mk</programlisting>
         </varlistentry>
 
         <varlistentry>
-          <term>Variable: <varname>Blah</varname></term>
+          <term><varname>Blah</varname></term>
 
           <listitem>
             <para>Description</para>
@@ -178,7 +178,7 @@ include theos/makefiles/tweak.mk</programlisting>
 
       <variablelist>
         <varlistentry>
-          <term>Variable: <varname>ADDITIONAL_CFLAGS</varname>,
+          <term><varname>ADDITIONAL_CFLAGS</varname>,
           <varname>ADDITIONAL_CCFLAGS</varname>,
           <varname>ADDITIONAL_OBJCFLAGS</varname>,
           <varname>ADDITIONAL_OBJCCFLAGS</varname></term>
@@ -193,7 +193,7 @@ include theos/makefiles/tweak.mk</programlisting>
         </varlistentry>
 
         <varlistentry>
-          <term>Variable: <varname>CFLAGS</varname>,
+          <term><varname>CFLAGS</varname>,
           <varname>CCFLAGS</varname>, <varname>OBJCFLAGS</varname>,
           <varname>OBJCCFLAGS</varname></term>
 
@@ -206,7 +206,7 @@ include theos/makefiles/tweak.mk</programlisting>
         </varlistentry>
 
         <varlistentry>
-          <term>Variable: <varname>OPTFLAG</varname></term>
+          <term><varname>OPTFLAG</varname></term>
 
           <listitem>
             <para>The <varname>OPTFLAG</varname> variable controls
@@ -215,7 +215,7 @@ include theos/makefiles/tweak.mk</programlisting>
         </varlistentry>
 
         <varlistentry>
-          <term>Variable: <varname>DEBUG</varname></term>
+          <term><varname>DEBUG</varname></term>
 
           <listitem>
             <para>The <varname>DEBUG</varname> variable controls compilation
@@ -229,7 +229,7 @@ include theos/makefiles/tweak.mk</programlisting>
         </varlistentry>
 
         <varlistentry>
-          <term>Variable: <varname>Blah</varname></term>
+          <term><varname>Blah</varname></term>
 
           <listitem>
             <para>Description</para>
@@ -237,7 +237,7 @@ include theos/makefiles/tweak.mk</programlisting>
         </varlistentry>
 
         <varlistentry>
-          <term>Variable: <varname>Blah</varname></term>
+          <term><varname>Blah</varname></term>
 
           <listitem>
             <para>Description</para>
@@ -245,7 +245,7 @@ include theos/makefiles/tweak.mk</programlisting>
         </varlistentry>
 
         <varlistentry>
-          <term>Variable: <varname>Blah</varname></term>
+          <term><varname>Blah</varname></term>
 
           <listitem>
             <para>Description</para>
@@ -253,7 +253,7 @@ include theos/makefiles/tweak.mk</programlisting>
         </varlistentry>
 
         <varlistentry>
-          <term>Variable: <varname>Blah</varname></term>
+          <term><varname>Blah</varname></term>
 
           <listitem>
             <para>Description</para>
@@ -271,7 +271,7 @@ include theos/makefiles/tweak.mk</programlisting>
 
       <variablelist>
         <varlistentry>
-          <term>Variable: <varname>xxx_C_FILES</varname>,
+          <term><varname>xxx_C_FILES</varname>,
           <varname>xxx_CC_FILES</varname>, <varname>xxx_OBJC_FILES</varname>,
           <varname>xxx_OBJCC_FILES</varname></term>
 
@@ -285,7 +285,7 @@ include theos/makefiles/tweak.mk</programlisting>
         </varlistentry>
 
         <varlistentry>
-          <term>Variable: <varname>xxx_OBJ_FILES</varname></term>
+          <term><varname>xxx_OBJ_FILES</varname></term>
 
           <listitem>
             <para>The <varname>OBJ_FILES</varname> variable contains a
@@ -295,7 +295,7 @@ include theos/makefiles/tweak.mk</programlisting>
         </varlistentry>
 
         <varlistentry>
-          <term>Variable: <varname>xxx_FRAMEWORKS</varname>,
+          <term><varname>xxx_FRAMEWORKS</varname>,
           <varname>xxx_PRIVATE_FRAMEWORKS</varname></term>
 
           <listitem>
@@ -308,7 +308,7 @@ include theos/makefiles/tweak.mk</programlisting>
         </varlistentry>
 
         <varlistentry>
-          <term>Variable: <varname>xxx_CFLAGS</varname>,
+          <term><varname>xxx_CFLAGS</varname>,
           <varname>xxx_CCFLAGS</varname>, <varname>xxx_OBJCFLAGS</varname>,
           <varname>xxx_OBJCCFLAGS</varname></term>
 
@@ -319,7 +319,7 @@ include theos/makefiles/tweak.mk</programlisting>
         </varlistentry>
 
         <varlistentry>
-          <term>Variable: <varname>xxx_LDFLAGS</varname></term>
+          <term><varname>xxx_LDFLAGS</varname></term>
 
           <listitem>
             <para>The <varname>LDFLAGS</varname> variable contains flags
@@ -328,7 +328,7 @@ include theos/makefiles/tweak.mk</programlisting>
         </varlistentry>
 
         <varlistentry>
-          <term>Variable: <varname>Blah</varname></term>
+          <term><varname>Blah</varname></term>
 
           <listitem>
             <para>Description</para>
