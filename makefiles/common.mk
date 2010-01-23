@@ -21,6 +21,7 @@ ifeq ($(DEBUG),1)
 DEBUG_CFLAGS = -DDEBUG -ggdb
 OPTFLAG := $(filter-out -O%, $(OPTFLAG))
 STRIP = :
+PACKAGE_BUILDNAME ?= debug
 endif
 
 INTERNAL_CFLAGS = $(OPTFLAG) -I$(FW_INCDIR) -include $(FRAMEWORKDIR)/Prefix.pch -Wall

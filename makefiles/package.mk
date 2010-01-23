@@ -34,7 +34,11 @@ before-package::
 internal-package::
 
 after-package-buildno::
+ifeq ($(PACKAGE_BUILDNAME),)
 	sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)/g' $(FW_PROJECT_DIR)/layout/DEBIAN/control > $(FW_PACKAGE_STAGING_DIR)/DEBIAN/control
+else
+	sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)+$(PACKAGE_BUILDNAME)/g' $(FW_PROJECT_DIR)/layout/DEBIAN/control > $(FW_PACKAGE_STAGING_DIR)/DEBIAN/control
+endif
 	echo "Installed-Size: $(shell du $(DU_EXCLUDE) DEBIAN -ks $(FW_PACKAGE_STAGING_DIR) | cut -f 1)" >> $(FW_PACKAGE_STAGING_DIR)/DEBIAN/control
 
 after-package:: after-package-buildno
