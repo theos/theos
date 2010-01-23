@@ -187,8 +187,8 @@ include theos/makefiles/tweak.mk</programlisting>
             <para>The <varname>ADDITIONAL_FLAGS</varname> variables control
             additional compilation flags for an entire project. These
             variables are not passed into subdirectories or subprojects, but
-            can be made to do so with <literal>export</literal>, as in
-            <command>export ADDITIONAL_CFLAGS</command>.</para>
+            can be made to do so with <command>export</command>, as in
+	    <command>export <varname>ADDITIONAL_CFLAGS</varname></command>.</para>
           </listitem>
         </varlistentry>
 
