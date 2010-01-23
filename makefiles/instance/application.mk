@@ -4,7 +4,7 @@ endif
 
 .PHONY: internal-application-all_ internal-application-package_
 
-ALL_LDFLAGS += -framework UIKit
+AUXILIARY_LDFLAGS += -framework UIKit
 
 internal-application-all_:: $(FW_OBJ_DIR) $(FW_OBJ_DIR)/$(FW_INSTANCE)
 

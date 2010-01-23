@@ -4,7 +4,7 @@ endif
 
 .PHONY: internal-tweak-all_ internal-tweak-package_
 
-ALL_LDFLAGS += -dynamiclib -lsubstrate
+AUXILIARY_LDFLAGS += -dynamiclib -lsubstrate
 
 internal-tweak-all_:: $(FW_OBJ_DIR) $(FW_OBJ_DIR)/$(FW_INSTANCE).dylib
 

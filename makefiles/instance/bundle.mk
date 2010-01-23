@@ -4,7 +4,7 @@ endif
 
 .PHONY: internal-bundle-all_ internal-bundle-package_
 
-ALL_LDFLAGS += -dynamiclib
+AUXILIARY_LDFLAGS += -dynamiclib
 
 internal-bundle-all_:: $(FW_OBJ_DIR) $(FW_OBJ_DIR)/$(FW_INSTANCE)
 
