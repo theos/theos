@@ -28,7 +28,7 @@ endif
 
 before-package::
 	-rm -rf $(FW_PACKAGE_STAGING_DIR)
-	svn export $(FW_PROJECT_DIR)/layout $(FW_PACKAGE_STAGING_DIR) || cp -r $(FW_PROJECT_DIR)/layout $(FW_PACKAGE_STAGING_DIR)
+	svn export $(FW_PROJECT_DIR)/layout $(FW_PACKAGE_STAGING_DIR) || cp -a $(FW_PROJECT_DIR)/layout $(FW_PACKAGE_STAGING_DIR)
 	$(FAKEROOT) -c
 
 internal-package::
