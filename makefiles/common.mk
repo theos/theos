@@ -17,8 +17,9 @@ export CC CXX STRIP CODESIGN_ALLOCATE
 INTERNAL_LDFLAGS = -multiply_defined suppress -L$(FW_LIBDIR)
 
 OPTFLAG ?= -O2
+DEBUGFLAG ?= -ggdb
 ifeq ($(DEBUG),1)
-DEBUG_CFLAGS = -DDEBUG -ggdb
+DEBUG_CFLAGS = -DDEBUG $(DEBUGFLAG)
 OPTFLAG := $(filter-out -O%, $(OPTFLAG))
 STRIP = :
 PACKAGE_BUILDNAME ?= debug
