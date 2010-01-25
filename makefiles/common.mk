@@ -10,6 +10,8 @@ export FRAMEWORKDIR FW_SCRIPTDIR FW_MAKEDIR FW_LIBDIR FW_INCDIR
 export FW_PROJECT_DIR
 
 uname_s := $(shell uname -s)
+uname_p := $(shell uname -p)
+-include $(FW_MAKEDIR)/platform/$(uname_s)-$(uname_p).mk
 -include $(FW_MAKEDIR)/platform/$(uname_s).mk
 export CC CXX STRIP CODESIGN_ALLOCATE
 

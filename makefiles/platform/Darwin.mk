@@ -1,3 +1,6 @@
+ifeq ($(FW_PLATFORM_LOADED),)
+FW_PLATFORM_LOADED := 1
+
 TARGET ?= arm-apple-darwin9
 SDKBINPATH ?= /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin
 SDKVERSION ?= 3.1.2
@@ -16,3 +19,5 @@ SDK_OBJCFLAGS := $(SDKFLAGS)
 SDK_LDFLAGS := $(SDKFLAGS)
 
 DU_EXCLUDE = -I
+
+endif
