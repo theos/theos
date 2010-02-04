@@ -26,8 +26,6 @@ after-clean::
 
 include $(FW_MAKEDIR)/package.mk
 
-.PRECIOUS: %.variables
-
 ifeq ($(MAKELEVEL),0)
 ifneq ($(FW_BUILD_DIR),.)
 ABS_FW_BUILD_DIR = $(shell (cd "$(FW_BUILD_DIR)"; pwd))
@@ -37,6 +35,12 @@ endif
 else
 ABS_FW_BUILD_DIR = $(strip $(FW_BUILD_DIR))
 endif
+
+ifeq ($(_FW_TOP_INVOCATION_DONE),)
+export _FW_TOP_INVOCATION_DONE = 1
+endif
+
+.PRECIOUS: %.variables
 
 %.variables:
 	@ \

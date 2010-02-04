@@ -2,13 +2,20 @@ ifeq ($(FW_PACKAGING_RULES_LOADED),)
 FW_PACKAGING_RULES_LOADED := 1
 
 .PHONY: package before-package internal-package after-package-buildno after-package
+
+# For the toplevel invocation of make, mark 'all' and the *-package rules as prerequisites.
+# We do not do this for anything else, because otherwise, all the packaging rules would run for every subproject.
+ifeq ($(_FW_TOP_INVOCATION_DONE),)
 package:: all before-package internal-package after-package
+else
+package:: internal-package
+endif
 
 FAKEROOT := $(FW_SCRIPTDIR)/fakeroot.sh -p "$(FW_PROJECT_DIR)/.debmake/fakeroot"
 export FAKEROOT
 
 # Only do the master packaging rules if we're the toplevel make invocation.
-ifeq ($(MAKELEVEL),0)
+ifeq ($(_FW_TOP_INVOCATION_DONE),)
 FW_CAN_PACKAGE := $(shell [ -d $(FW_PROJECT_DIR)/layout ] && echo 1 || echo 0)
 
 ifeq ($(FW_CAN_PACKAGE),1)
@@ -30,8 +37,6 @@ before-package::
 	-rm -rf $(FW_PACKAGE_STAGING_DIR)
 	svn export $(FW_PROJECT_DIR)/layout $(FW_PACKAGE_STAGING_DIR) || cp -a $(FW_PROJECT_DIR)/layout $(FW_PACKAGE_STAGING_DIR)
 	$(FAKEROOT) -c
-
-internal-package::
 
 after-package-buildno::
 ifeq ($(PACKAGE_BUILDNAME),)
@@ -61,16 +66,12 @@ else # FW_CAN_PACKAGE
 before-package::
 	@echo "$(MAKE) package requires there to be a layout/ directory in the project root, containing the basic package structure."; exit 1
 
-internal-package::
 after-package::
 
 endif # FW_CAN_PACKAGE
 
-else # MAKELEVEL
-before-package::
-internal-package::
-after-package::
+endif # _FW_TOP_INVOCATION_DONE
 
-endif # MAKELEVEL
+internal-package::
 
 endif # FW_PACKAGING_RULES_LOADED
