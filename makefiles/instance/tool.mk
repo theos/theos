@@ -2,9 +2,19 @@ ifeq ($(FW_RULES_LOADED),)
 include $(FW_MAKEDIR)/rules.mk
 endif
 
-.PHONY: internal-tool-all_ internal-tool-package_
+.PHONY: internal-tool-all_ internal-tool-package_ internal-tool-compile
 
+ifeq ($(FW_MAKE_PARALLEL_BUILDING), no)
 internal-tool-all_:: $(FW_OBJ_DIR) $(FW_OBJ_DIR)/$(FW_INSTANCE)
+else
+internal-tool-all_:: $(FW_OBJ_DIR)
+	$(ECHO_NOTHING)$(MAKE) --no-print-directory --no-keep-going \
+		internal-tool-compile \
+		FW_TYPE=$(FW_TYPE) FW_INSTANCE=$(FW_INSTANCE) FW_OPERATION=compile \
+		FW_BUILD_DIR="$(FW_BUILD_DIR)" _FW_MAKE_PARALLEL=yes$(ECHO_END)
+
+internal-tool-compile: $(FW_OBJ_DIR)/$(FW_INSTANCE)
+endif
 
 $(FW_OBJ_DIR)/$(FW_INSTANCE): $(OBJ_FILES_TO_LINK)
 	$(ECHO_LINKING)$(CXX) $(ALL_LDFLAGS) -o $@ $^$(ECHO_END)

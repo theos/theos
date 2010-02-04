@@ -47,3 +47,5 @@ else
 endif
 
 unexport FW_INSTANCE FW_TYPE
+
+FW_MAKE_PARALLEL_BUILDING ?= yes

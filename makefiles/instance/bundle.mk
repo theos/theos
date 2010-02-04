@@ -2,11 +2,21 @@ ifeq ($(FW_RULES_LOADED),)
 include $(FW_MAKEDIR)/rules.mk
 endif
 
-.PHONY: internal-bundle-all_ internal-bundle-package_
+.PHONY: internal-bundle-all_ internal-bundle-package_ internal-bundle-compile
 
 AUXILIARY_LDFLAGS += -dynamiclib
 
+ifeq ($(FW_MAKE_PARALLEL_BUILDING), no)
 internal-bundle-all_:: $(FW_OBJ_DIR) $(FW_OBJ_DIR)/$(FW_INSTANCE)
+else
+internal-bundle-all_:: $(FW_OBJ_DIR)
+	$(ECHO_NOTHING)$(MAKE) --no-print-directory --no-keep-going \
+		internal-bundle-compile \
+		FW_TYPE=$(FW_TYPE) FW_INSTANCE=$(FW_INSTANCE) FW_OPERATION=compile \
+		FW_BUILD_DIR="$(FW_BUILD_DIR)" _FW_MAKE_PARALLEL=yes$(ECHO_END)
+
+internal-bundle-compile: $(FW_OBJ_DIR)/$(FW_INSTANCE)
+endif
 
 $(FW_OBJ_DIR)/$(FW_INSTANCE): $(OBJ_FILES_TO_LINK)
 	$(ECHO_LINKING)$(CXX) $(ALL_LDFLAGS) -o $@ $^$(ECHO_END)
