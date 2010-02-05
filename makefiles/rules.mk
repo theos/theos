@@ -47,6 +47,9 @@ $(FW_OBJ_DIR)/%.cc.o: %.cc
 %.mm: %.xm
 	$(FW_SCRIPTDIR)/logos.pl $< > $@
 
+%.m: %.xm
+	$(FW_SCRIPTDIR)/logos.pl $< > $@
+
 ifneq ($(FW_BUILD_DIR),.)
 $(FW_BUILD_DIR):
 	@mkdir -p $(FW_BUILD_DIR)
