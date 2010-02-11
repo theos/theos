@@ -5,12 +5,13 @@ TARGET ?= arm-apple-darwin9
 SDKBINPATH ?= /opt/iphone-sdk-3.0/prefix/bin
 SYSROOT ?= /opt/iphone-sdk-3.0/sysroot
 
-PREFIX:=$(SDKBINPATH)/$(TARGET)-
+PREFIX := $(SDKBINPATH)/$(TARGET)-
 
-CC=$(PREFIX)gcc
-CXX=$(PREFIX)g++
-STRIP=$(PREFIX)strip
-CODESIGN_ALLOCATE=$(PREFIX)codesign_allocate
+TARGET_CC ?= $(PREFIX)gcc
+TARGET_CXX ?= $(PREFIX)g++
+TARGET_STRIP ?= $(PREFIX)strip
+TARGET_CODESIGN_ALLOCATE ?= $(PREFIX)codesign_allocate
+TARGET_CODESIGN ?= ldid
 
 SDKFLAGS :=
 
