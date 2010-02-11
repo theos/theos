@@ -13,7 +13,7 @@ uname_s := $(shell uname -s)
 uname_p := $(shell uname -p)
 -include $(FW_MAKEDIR)/platform/$(uname_s)-$(uname_p).mk
 -include $(FW_MAKEDIR)/platform/$(uname_s).mk
-export CC CXX STRIP CODESIGN_ALLOCATE
+export TARGET_CC TARGET_CXX TARGET_STRIP TARGET_CODESIGN_ALLOCATE TARGET_CODESIGN
 
 # ObjC/++ stuff is not here, it's in instance/rules.mk and only added if there are OBJC/OBJCC objects.
 INTERNAL_LDFLAGS = -multiply_defined suppress -L$(FW_LIBDIR)
@@ -23,7 +23,7 @@ DEBUGFLAG ?= -ggdb
 ifeq ($(DEBUG),1)
 DEBUG_CFLAGS = -DDEBUG $(DEBUGFLAG)
 OPTFLAG := $(filter-out -O%, $(OPTFLAG))
-STRIP = :
+TARGET_STRIP = :
 PACKAGE_BUILDNAME ?= debug
 endif
 

@@ -5,12 +5,13 @@ TARGET ?= arm-apple-darwin9
 SDKBINPATH ?= /usr/bin
 SYSROOT ?= /var/sdk
 
-PREFIX:=$(SDKBINPATH)/$(TARGET)-
+PREFIX := $(SDKBINPATH)/$(TARGET)-
 
-CC=$(PREFIX)gcc
-CXX=$(PREFIX)g++
-STRIP=strip
-CODESIGN_ALLOCATE=codesign_allocate
+TARGET_CC ?= $(PREFIX)gcc
+TARGET_CXX ?= $(PREFIX)g++
+TARGET_STRIP ?= strip
+TARGET_CODESIGN_ALLOCATE ?= codesign_allocate
+TARGET_CODESIGN ?= ldid
 
 SDKFLAGS := -isysroot $(SYSROOT)
 SDK_CFLAGS := $(SDKFLAGS)

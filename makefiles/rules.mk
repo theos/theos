@@ -27,16 +27,16 @@ endif
 .SUFFIXES: .m .mm .c .cc
 
 $(FW_OBJ_DIR)/%.m.o: %.m
-	$(ECHO_COMPILING)$(CXX) -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $< -o $@$(ECHO_END)
+	$(ECHO_COMPILING)$(TARGET_CXX) -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $< -o $@$(ECHO_END)
 
 $(FW_OBJ_DIR)/%.mm.o: %.mm
-	$(ECHO_COMPILING)$(CXX) -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_OBJCCFLAGS) $< -o $@$(ECHO_END)
+	$(ECHO_COMPILING)$(TARGET_CXX) -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_OBJCCFLAGS) $< -o $@$(ECHO_END)
 
 $(FW_OBJ_DIR)/%.c.o: %.c
-	$(ECHO_COMPILING)$(CXX) -c $(ALL_CFLAGS) $(ALL_CFLAGS) $< -o $@$(ECHO_END)
+	$(ECHO_COMPILING)$(TARGET_CXX) -c $(ALL_CFLAGS) $(ALL_CFLAGS) $< -o $@$(ECHO_END)
 
 $(FW_OBJ_DIR)/%.cc.o: %.cc
-	$(ECHO_COMPILING)$(CXX) -c $(ALL_CFLAGS) $(ALL_CFLAGS) $(ALL_CCFLAGS) $< -o $@$(ECHO_END)
+	$(ECHO_COMPILING)$(TARGET_CXX) -c $(ALL_CFLAGS) $(ALL_CFLAGS) $(ALL_CCFLAGS) $< -o $@$(ECHO_END)
 
 %.mm: %.l.mm
 	$(FW_SCRIPTDIR)/logos.pl $< > $@
