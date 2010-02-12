@@ -4,7 +4,7 @@ endif
 
 SUBPROJECTS := $(strip $(SUBPROJECTS))
 ifneq ($(SUBPROJECTS),)
-internal-all internal-install internal-package internal-clean::
+internal-all internal-package internal-clean::
 	@operation=$(subst internal-,,$@); \
 	abs_build_dir=$(ABS_FW_BUILD_DIR); \
 	for d in $(SUBPROJECTS); do \
