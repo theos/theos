@@ -295,8 +295,12 @@ foreach $line (@inputlines) {
 					my $parenmatch = $remaining;
 					my $pdepth = 0;
 					my @pquotes = quotes($parenmatch);
-					while($parenmatch =~ /[()]/g) {
+					while($parenmatch =~ /[;()]/g) {
 						next if fallsBetween($-[0], @pquotes);
+
+						# If we hit a ; at depth 0 without having a ( ) pair, bail.
+						last if $& eq ";" && $pdepth == 0;
+
 						if($& eq "(") { $pdepth++; }
 						elsif($& eq ")") {
 							$pdepth--;
