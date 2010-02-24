@@ -13,7 +13,7 @@ uname_s := $(shell uname -s)
 uname_p := $(shell uname -p)
 -include $(FW_MAKEDIR)/platform/$(uname_s)-$(uname_p).mk
 -include $(FW_MAKEDIR)/platform/$(uname_s).mk
-export TARGET_CC TARGET_CXX TARGET_STRIP TARGET_CODESIGN_ALLOCATE TARGET_CODESIGN
+export TARGET_CC TARGET_CXX TARGET_STRIP TARGET_CODESIGN_ALLOCATE TARGET_CODESIGN TARGET_CODESIGN_FLAGS
 
 # ObjC/++ stuff is not here, it's in instance/rules.mk and only added if there are OBJC/OBJCC objects.
 INTERNAL_LDFLAGS = -multiply_defined suppress -L$(FW_LIBDIR)
@@ -47,5 +47,7 @@ else
 endif
 
 unexport FW_INSTANCE FW_TYPE
+
+FW_CODESIGN_COMMANDLINE = CODESIGN_ALLOCATE=$(TARGET_CODESIGN_ALLOCATE) $(TARGET_CODESIGN) $(TARGET_CODESIGN_FLAGS)
 
 FW_MAKE_PARALLEL_BUILDING ?= yes
