@@ -12,6 +12,7 @@ TARGET_CXX ?= $(SDKBINPATH)/g++-4.2
 TARGET_STRIP ?= $(SDKBINPATH)/strip
 TARGET_CODESIGN_ALLOCATE ?= $(SDKBINPATH)/codesign_allocate
 TARGET_CODESIGN ?= ldid
+TARGET_CODESIGN_FLAGS ?= -S
 
 ARCHS ?= armv6
 SDKFLAGS := -isysroot $(SYSROOT) $(foreach ARCH,$(ARCHS),-arch $(ARCH))
