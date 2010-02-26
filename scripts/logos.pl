@@ -361,7 +361,7 @@ foreach $line (@inputlines) {
 				fileError($lineno, "dangling %end") if !$closing;
 				if($closing eq "group") {
 					$curGroup = getGroup("_ungrouped");
-				} elsif($closing eq "hook") {
+				} elsif($closing eq "hook" || $closing eq "subclass") {
 					$inclass = 0;
 				}
 				$line = $`.$';
