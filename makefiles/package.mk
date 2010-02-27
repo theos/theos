@@ -59,7 +59,7 @@ internal-install::
 	scp "$(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb" root@$(FW_DEVICE_IP):
 	ssh root@$(FW_DEVICE_IP) "dpkg -i $(FW_PACKAGE_FILENAME).deb"
 
-after-install::
+after-install:: internal-after-install
 endif
 
 else # FW_CAN_PACKAGE
@@ -73,5 +73,7 @@ endif # FW_CAN_PACKAGE
 endif # _FW_TOP_INVOCATION_DONE
 
 internal-package::
+
+internal-after-install::
 
 endif # FW_PACKAGING_RULES_LOADED

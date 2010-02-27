@@ -10,7 +10,7 @@ internal-package:: $(APPLICATION_NAME:=.package.application.variables);
 
 # Maybe, disabled for further discussion
 # ssh mobile@$(FW_DEVICE_IP) "uicache"
-internal-install::
+internal-after-install::
 
 APPLICATIONS_WITH_SUBPROJECTS = $(strip $(foreach application,$(APPLICATION_NAME),$(patsubst %,$(application),$($(application)_SUBPROJECTS))))
 ifneq ($(APPLICATIONS_WITH_SUBPROJECTS),)
