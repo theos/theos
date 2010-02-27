@@ -22,7 +22,7 @@ internal-all internal-package internal-clean::
 	  fi; \
 	done;
 
-internal-install::
+internal-after-install::
 	@operation=$@; \
 	abs_build_dir=$(ABS_FW_BUILD_DIR); \
 	for d in $(SUBPROJECTS); do \

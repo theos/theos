@@ -8,7 +8,7 @@ internal-all:: $(TWEAK_NAME:=.all.tweak.variables);
 
 internal-package:: $(TWEAK_NAME:=.package.tweak.variables);
 
-internal-install::
+internal-after-install::
 	ssh root@$(FW_DEVICE_IP) "killall -9 SpringBoard"
 
 TWEAKS_WITH_SUBPROJECTS = $(strip $(foreach tweak,$(TWEAK_NAME),$(patsubst %,$(tweak),$($(tweak)_SUBPROJECTS))))
