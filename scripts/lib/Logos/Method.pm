@@ -166,21 +166,25 @@ sub buildHookCall {
 
 sub buildLogCall {
 	my $self = shift;
-	my $build = "NSLog(\@\"".$self->{SCOPE}."[".$self->{CLASS};
+	# Log preamble
+	my $build = "NSLog(\@\"".$self->{SCOPE}."[<".$self->{CLASS}.": %p>";
+	my $argnamelist = "";
 	if($self->{NUM_ARGS} > 0) {
+		# For each argument, add its keyword and a format char to the log string.
 		map $build .= " ".$self->{SELECTOR_PARTS}[$_].":".formatCharForArgType($self->{ARGTYPES}[$_]), (0..$self->{NUM_ARGS} - 1);
 		# This builds a list of args by making sure the format char isn't -- (or, what we're using for non-operational types)
 		# Map (in list context) "format char == -- ? nothing : arg name" over the indices of the arg list.
 		my @newarglist = map(printArgForArgType($self->{ARGTYPES}[$_], $self->{ARGNAMES}[$_]), (0..$self->{NUM_ARGS} - 1));
 		my @existingargs = grep(defined($_), @newarglist);
-		my $argnamelist = "";
 		if(scalar(@existingargs) > 0) {
 			$argnamelist = ", ".join(", ", grep(defined($_), @existingargs));
 		}
-		$build .= "]\"".$argnamelist.")";
 	} else {
-		$build .= " ".$self->selector."]\")";
+		# Space and then the only keyword in the selector.
+		$build .= " ".$self->selector;
 	}
+	# Log postamble
+	$build .= "]\", self".$argnamelist.")";
 }
 
 sub printArgForArgType {
