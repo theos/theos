@@ -190,20 +190,42 @@ sub buildLogCall {
 sub printArgForArgType {
 	my $argtype = shift;
 	my $argname = shift;
-	return "NSStringFromCG$1($argname)" if $argtype =~ /\bCG(Rect|Point|Size)\b/;
+	return "NSStringFromCG$2($argname)" if $argtype =~ /\b(CG|NS)(Rect|Point|Size)\b/;
+	return "$argname.location, $argname.length" if $argtype =~ /\bNSRange\b/;
 	return undef if $argtype =~ /\b(CG\w*|CF\w*|void)\b/;
+	return undef if $argtype =~ /\bNS(HashTable(Callbacks)?|Map(Table((Key|Value)Callbacks)?|Enumerator))\b/;
 	return $argname;
 }
 
 sub formatCharForArgType {
 	my $argtype = shift;
+
+	# Integral Types
 	return "%d" if $argtype =~ /\b(int|long|bool)\b/i;
+	return "%d" if $argtype =~ /\bNS(U?Integer|SocketNativeHandle|StringEncoding|SortOptions|ComparisonResult|EnumerationOptions|(Hash|Map)TableOptions|SearchPath(Directory|DomainMask))\b/i;
+	return "%c" if $argtype =~ /\bchar\b/;
+
+	# Pointer Types
 	return "%s" if $argtype =~ /\bchar\b\s*\*/;
 	return "%p" if $argtype =~ /\bvoid\b\s*\*/;
-	return "%f" if $argtype =~ /\b(double|float)\b/;
-	return "%c" if $argtype =~ /\bchar\b/;
-	return "%@" if $argtype =~ /\bCG(Rect|Point|Size)\b/;
+	return "%p" if $argtype =~ /\bNS.*?(Pointer|Array)\b/;
+
+	# Floating-Point Types
+	return "%f" if $argtype =~ /\b(double|float|CGFloat|CGDouble)\b/;
+	return "%f" if $argtype =~ /\bNS(TimeInterval)\b/;
+	
+	# Special Types (should also have an entry in printArgForArgType
+	return "%@" if $argtype =~ /\b(CG|NS)(Rect|Point|Size)\b/;
+	return "(%d:%d)" if $argtype =~ /\bNSRange\b/;
+
+	# Opaque Types (pointer)
+	#return "%p" if $argtype =~ /\bNSZone\b/;
+
+	# Discarded Types
 	return "--" if $argtype =~ /\b(CG\w*|CF\w*|void)\b/;
+	return "--" if $argtype =~ /\bNS(HashTable(Callbacks)?|Map(Table((Key|Value)Callbacks)?|Enumerator))\b/;
+
+	# Fallthrough
 	return "%@";
 }
 
