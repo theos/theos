@@ -20,4 +20,6 @@ SDK_LDFLAGS := $(SDKFLAGS)
 
 DU_EXCLUDE = --exclude
 
+INSTALL_LOCAL = 1
+
 endif
