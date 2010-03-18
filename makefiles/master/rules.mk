@@ -8,6 +8,9 @@ endif
 
 clean:: before-clean internal-clean after-clean
 
+do:: package install
+	respring
+
 before-all::
 
 internal-all::
