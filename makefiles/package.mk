@@ -24,8 +24,12 @@ FW_PACKAGE_NAME := $(shell grep Package "$(FW_PROJECT_DIR)/layout/DEBIAN/control
 FW_PACKAGE_ARCH := $(shell grep Architecture "$(FW_PROJECT_DIR)/layout/DEBIAN/control" | cut -d' ' -f2)
 FW_PACKAGE_VERSION := $(shell grep Version "$(FW_PROJECT_DIR)/layout/DEBIAN/control" | cut -d' ' -f2)
 
+ifeq($(PACKAGE_FINAL_BUILD),)
 FW_PACKAGE_BUILDNUM = $(shell TOP_DIR="$(TOP_DIR)" $(FW_SCRIPTDIR)/deb_build_num.sh $(FW_PACKAGE_NAME) $(FW_PACKAGE_VERSION))
 FW_PACKAGE_DEBVERSION = $(shell grep Version "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control" | cut -d' ' -f2)
+else
+FW_PACKAGE_DEBVERSION = $(FW_PACKAGE_VERSION)
+endif
 
 ifdef STOREPACKAGE
 	FW_PACKAGE_FILENAME = cydiastore_$(FW_PACKAGE_NAME)_v$(FW_PACKAGE_DEBVERSION)
@@ -35,7 +39,7 @@ endif
 
 before-package::
 	-@rm -rf "$(FW_PACKAGE_STAGING_DIR)"
-	@svn export "$(FW_PROJECT_DIR)/layout" "$(FW_PACKAGE_STAGING_DIR)" || cp -a "$(FW_PROJECT_DIR)/layout" "$(FW_PACKAGE_STAGING_DIR)"
+	@cp -a "$(FW_PROJECT_DIR)/layout" "$(FW_PACKAGE_STAGING_DIR)"
 	@$(FAKEROOT) -c
 
 after-package-buildno::
@@ -52,7 +56,7 @@ endif
 
 after-package:: after-package-buildno
 	- @find "$(FW_PACKAGE_STAGING_DIR)" -name '.DS_Store' -delete
-	@$(FAKEROOT) -r dpkg-deb -b "$(FW_PACKAGE_STAGING_DIR)" "$(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb"
+	@$(FAKEROOT) -r dpkg-deb -b "$(FW_PACKAGE_STAGING_DIR)" "$(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb" 2> /dev/null
 
 ifeq ($(INSTALL_LOCAL),1)
 install:: internal-install after-install

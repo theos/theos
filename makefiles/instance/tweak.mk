@@ -27,5 +27,5 @@ endif
 
 
 internal-tweak-package_::
-	mkdir -p "$(FW_PACKAGE_STAGING_DIR)/Library/MobileSubstrate/DynamicLibraries"
-	cp $(FW_OBJ_DIR)/$(FW_INSTANCE).dylib "$(FW_PACKAGE_STAGING_DIR)/Library/MobileSubstrate/DynamicLibraries"
+	@mkdir -p "$(FW_PACKAGE_STAGING_DIR)/Library/MobileSubstrate/DynamicLibraries"
+	@cp $(FW_OBJ_DIR)/$(FW_INSTANCE).dylib "$(FW_PACKAGE_STAGING_DIR)/Library/MobileSubstrate/DynamicLibraries"
