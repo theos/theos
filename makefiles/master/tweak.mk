@@ -8,7 +8,7 @@ internal-all:: $(TWEAK_NAME:=.all.tweak.variables);
 
 internal-package:: $(TWEAK_NAME:=.package.tweak.variables);
 
-internal-install::
+internal-after-install::
 ifeq ($(INSTALL_LOCAL),1)
 	killall -9 SpringBoard
 else # INSTALL_LOCAL
