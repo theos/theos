@@ -24,11 +24,11 @@ FW_PACKAGE_NAME := $(shell grep Package "$(FW_PROJECT_DIR)/layout/DEBIAN/control
 FW_PACKAGE_ARCH := $(shell grep Architecture "$(FW_PROJECT_DIR)/layout/DEBIAN/control" | cut -d' ' -f2)
 FW_PACKAGE_VERSION := $(shell grep Version "$(FW_PROJECT_DIR)/layout/DEBIAN/control" | cut -d' ' -f2)
 
-ifeq($(PACKAGE_FINAL_BUILD),)
+ifdef FINALPACKAGE
+FW_PACKAGE_DEBVERSION = $(FW_PACKAGE_VERSION)
+else
 FW_PACKAGE_BUILDNUM = $(shell TOP_DIR="$(TOP_DIR)" $(FW_SCRIPTDIR)/deb_build_num.sh $(FW_PACKAGE_NAME) $(FW_PACKAGE_VERSION))
 FW_PACKAGE_DEBVERSION = $(shell grep Version "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control" | cut -d' ' -f2)
-else
-FW_PACKAGE_DEBVERSION = $(FW_PACKAGE_VERSION)
 endif
 
 ifdef STOREPACKAGE
@@ -43,14 +43,14 @@ before-package::
 	@$(FAKEROOT) -c
 
 after-package-buildno::
-ifeq ($(PACKAGE_FINAL_BUILD),)
+ifdef FINALPACKAGE
+	@cp "$(FW_PROJECT_DIR)/layout/DEBIAN/control" > "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"
+else
 ifeq ($(PACKAGE_BUILDNAME),)
 	@sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)/g' "$(FW_PROJECT_DIR)/layout/DEBIAN/control" > "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"
 else
 	@sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)+$(PACKAGE_BUILDNAME)/g' "$(FW_PROJECT_DIR)/layout/DEBIAN/control" > "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"
 endif
-else
-	@cp "$(FW_PROJECT_DIR)/layout/DEBIAN/control" > "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"
 endif
 	@echo "Installed-Size: $(shell du $(DU_EXCLUDE) DEBIAN -ks "$(FW_PACKAGE_STAGING_DIR)" | cut -f 1)" >> "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"
 
