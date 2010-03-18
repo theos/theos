@@ -34,21 +34,25 @@ else
 endif
 
 before-package::
-	-rm -rf "$(FW_PACKAGE_STAGING_DIR)"
-	svn export "$(FW_PROJECT_DIR)/layout" "$(FW_PACKAGE_STAGING_DIR)" || cp -a "$(FW_PROJECT_DIR)/layout" "$(FW_PACKAGE_STAGING_DIR)"
-	$(FAKEROOT) -c
+	-@rm -rf "$(FW_PACKAGE_STAGING_DIR)"
+	@svn export "$(FW_PROJECT_DIR)/layout" "$(FW_PACKAGE_STAGING_DIR)" || cp -a "$(FW_PROJECT_DIR)/layout" "$(FW_PACKAGE_STAGING_DIR)"
+	@$(FAKEROOT) -c
 
 after-package-buildno::
+ifeq ($(PACKAGE_FINAL_BUILD),)
 ifeq ($(PACKAGE_BUILDNAME),)
-	sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)/g' "$(FW_PROJECT_DIR)/layout/DEBIAN/control" > "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"
+	@sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)/g' "$(FW_PROJECT_DIR)/layout/DEBIAN/control" > "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"
 else
-	sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)+$(PACKAGE_BUILDNAME)/g' "$(FW_PROJECT_DIR)/layout/DEBIAN/control" > "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"
+	@sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)+$(PACKAGE_BUILDNAME)/g' "$(FW_PROJECT_DIR)/layout/DEBIAN/control" > "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"
 endif
-	echo "Installed-Size: $(shell du $(DU_EXCLUDE) DEBIAN -ks "$(FW_PACKAGE_STAGING_DIR)" | cut -f 1)" >> "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"
+else
+	@cp "$(FW_PROJECT_DIR)/layout/DEBIAN/control" > "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"
+endif
+	@echo "Installed-Size: $(shell du $(DU_EXCLUDE) DEBIAN -ks "$(FW_PACKAGE_STAGING_DIR)" | cut -f 1)" >> "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"
 
 after-package:: after-package-buildno
-	-find "$(FW_PACKAGE_STAGING_DIR)" -name '.DS_Store' -delete
-	$(FAKEROOT) -r dpkg-deb -b "$(FW_PACKAGE_STAGING_DIR)" "$(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb"
+	- @find "$(FW_PACKAGE_STAGING_DIR)" -name '.DS_Store' -delete
+	@$(FAKEROOT) -r dpkg-deb -b "$(FW_PACKAGE_STAGING_DIR)" "$(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb"
 
 ifeq ($(INSTALL_LOCAL),1)
 install:: internal-install after-install
