@@ -44,7 +44,7 @@ before-package::
 
 after-package-buildno::
 ifdef FINALPACKAGE
-	@cp "$(FW_PROJECT_DIR)/layout/DEBIAN/control" > "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"
+	@cp "$(FW_PROJECT_DIR)/layout/DEBIAN/control" "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"
 else
 ifeq ($(PACKAGE_BUILDNAME),)
 	@sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)/g' "$(FW_PROJECT_DIR)/layout/DEBIAN/control" > "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"
