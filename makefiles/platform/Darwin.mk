@@ -3,7 +3,7 @@ FW_PLATFORM_LOADED := 1
 
 TARGET ?= arm-apple-darwin9
 SDKBINPATH ?= /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin
-SDKVERSION ?= 3.1.2
+SDKVERSION ?= 3.0
 #SYSROOT ?= /opt/iphone-sdk-3.0/sysroot
 SYSROOT ?= /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDKVERSION).sdk
 
