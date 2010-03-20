@@ -1,23 +1,7 @@
 ifeq ($(FW_PLATFORM_LOADED),)
 FW_PLATFORM_LOADED := 1
+FW_PLATFORM_NAME := iphone
 
-TARGET ?= arm-apple-darwin9
-SDKBINPATH ?= /usr/bin
-SYSROOT ?= /var/sdk
-
-PREFIX := $(SDKBINPATH)/$(TARGET)-
-
-TARGET_CC ?= $(PREFIX)gcc
-TARGET_CXX ?= $(PREFIX)g++
-TARGET_STRIP ?= strip
-TARGET_CODESIGN_ALLOCATE ?= codesign_allocate
-TARGET_CODESIGN ?= ldid
-TARGET_CODESIGN_FLAGS ?= -S
-
-SDKFLAGS := -isysroot $(SYSROOT)
-SDK_CFLAGS := $(SDKFLAGS)
-SDK_LDFLAGS := $(SDKFLAGS)
-
+FW_PLATFORM_DEFAULT_TARGET := native
 DU_EXCLUDE = --exclude
-
 endif
