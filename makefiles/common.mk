@@ -11,12 +11,28 @@ export FW_PROJECT_DIR
 
 uname_s := $(shell uname -s)
 uname_p := $(shell uname -p)
+FW_PLATFORM_ARCH = $(uname_s)-$(uname_p)
+FW_PLATFORM = $(uname_s)
 -include $(FW_MAKEDIR)/platform/$(uname_s)-$(uname_p).mk
 -include $(FW_MAKEDIR)/platform/$(uname_s).mk
+
+TARGET ?= $(target)
+ifeq ($(TARGET),)
+TARGET := $(FW_PLATFORM_DEFAULT_TARGET)
+endif
+
+FW_TARGET_SUPPORT = $(shell [ -f "$(FW_MAKEDIR)/targets/$(FW_PLATFORM_ARCH)/$(TARGET).mk" -o -f "$(FW_MAKEDIR)/targets/$(FW_PLATFORM)/$(TARGET).mk" ] && echo 1 || echo 0)
+ifeq ($(FW_TARGET_SUPPORT),0)
+$(error The "$(TARGET)" target is not supported on this platform)
+endif
+
+-include $(FW_MAKEDIR)/targets/$(FW_PLATFORM_ARCH)/$(TARGET).mk
+-include $(FW_MAKEDIR)/targets/$(FW_PLATFORM)/$(TARGET).mk
+
 export TARGET_CC TARGET_CXX TARGET_STRIP TARGET_CODESIGN_ALLOCATE TARGET_CODESIGN TARGET_CODESIGN_FLAGS
 
 # ObjC/++ stuff is not here, it's in instance/rules.mk and only added if there are OBJC/OBJCC objects.
-INTERNAL_LDFLAGS = -multiply_defined suppress -L$(FW_LIBDIR)
+INTERNAL_LDFLAGS = -L$(FW_LIBDIR)
 
 OPTFLAG ?= -O2
 DEBUGFLAG ?= -ggdb
@@ -34,7 +50,13 @@ endif
 INTERNAL_CFLAGS += $(SHARED_CFLAGS)
 
 FW_BUILD_DIR ?= .
-FW_OBJ_DIR_NAME ?= obj
+
+# If we're not using the default target, put the output in a folder named after the target.
+ifneq ($(FW_TARGET_NAME),$(FW_PLATFORM_DEFAULT_TARGET))
+	FW_OBJ_DIR_NAME ?= obj/$(FW_TARGET_NAME)
+else
+	FW_OBJ_DIR_NAME ?= obj
+endif
 FW_OBJ_DIR = $(FW_BUILD_DIR)/$(FW_OBJ_DIR_NAME)
 
 FW_PACKAGE_STAGING_DIR_NAME ?= _
