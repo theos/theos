@@ -18,4 +18,6 @@ TARGET_CODESIGN_FLAGS ?= -S
 SDKFLAGS := -isysroot $(SYSROOT)
 TARGET_CFLAGS := $(SDKFLAGS)
 TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress
+
+INSTALL_LOCAL := 1
 endif
