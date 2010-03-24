@@ -100,5 +100,4 @@ if [ "$($(basename $(basename $*))_SUBPROJECTS)" != "" ]; then \
  fi
 
 update-framework::
-	@cd framework && git pull origin master
-	@git submodule update --init --recursive
+	@cd framework && git pull origin master && git submodule update --init --recursive
