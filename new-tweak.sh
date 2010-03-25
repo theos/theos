@@ -20,7 +20,8 @@ __END
 cat > Makefile << __END
 ifeq (\$(shell [ -f ./framework/makefiles/common.mk ] && echo 1 || echo 0),0)
 all clean package install::
-	git submodule update --init --recursive
+	git submodule update --init
+	framework/git-submodule-recur.sh init
 	\$(MAKE) \$(MAKEFLAGS) MAKELEVEL=0 $@
 else
 
@@ -62,5 +63,6 @@ __END
 
 git init
 git submodule add git://github.com/rpetrich/theos.git framework
-git submodule update --init --recursive
+git submodule update --init
+framework/git-submodule-recur.sh init
 git add Tweak.m Makefile layout/DEBIAN/control .gitignore
