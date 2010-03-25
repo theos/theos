@@ -1,11 +1,17 @@
 #!/bin/bash
+
+if [ -z $1 ]; then
+echo "usage: $0 tweakname"
+else
+
 EXTENSION=$1
 LEXTENSION=$(echo $1 | tr 'A-Z' 'a-z')
-mkdir $LEXTENSION
-cd $LEXTENSION
-mkdir -p layout/DEBIAN
+SELF=$(cd ${0%/*} && echo $PWD/${0##*/})
+SELFDIR=$(dirname "$SELF")
 
-cat > layout/DEBIAN/control << __END
+mkdir -p $LEXTENSION/layout/DEBIAN
+
+cat > $LEXTENSION/layout/DEBIAN/control << __END
 Package: com.yourcompany.$LEXTENSION
 Name: $EXTENSION
 Depends: mobilesubstrate
@@ -17,11 +23,11 @@ Author: $USER
 Section: Tweaks
 __END
 
-cat > Makefile << __END
+cat > $LEXTENSION/Makefile << __END
 ifeq (\$(shell [ -f ./framework/makefiles/common.mk ] && echo 1 || echo 0),0)
 all clean package install::
 	git submodule update --init
-	framework/git-submodule-recur.sh init
+	./framework/git-submodule-recur.sh init
 	\$(MAKE) \$(MAKEFLAGS) MAKELEVEL=0 \$@
 else
 
@@ -34,7 +40,7 @@ include framework/makefiles/tweak.mk
 endif
 __END
 
-cat > Tweak.m << __END
+cat > $LEXTENSION/Tweak.m << __END
 #import <CaptainHook/CaptainHook.h>
 
 CHDeclareClass(ClassName);
@@ -52,7 +58,7 @@ CHConstructor
 
 __END
 
-cat > .gitignore << __END
+cat > $LEXTENSION/.gitignore << __END
 ._*
 .DS_Store
 *.deb
@@ -61,7 +67,11 @@ obj
 .debmake
 __END
 
+cd $LEXTENSION
+
 git init
 git submodule add git://github.com/rpetrich/theos.git framework
-`pwd`/framework/git-submodule-recur.sh init
+"$SELFDIR/git-submodule-recur.sh" init
 git add Tweak.m Makefile layout/DEBIAN/control .gitignore
+
+fi
