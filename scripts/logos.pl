@@ -359,9 +359,10 @@ foreach $line (@inputlines) {
 
 				my $closing = nestPop(\@nestingstack);
 				fileError($lineno, "dangling %end") if !$closing;
-				if($closing eq "group") {
+				if($closing eq "group" || $closing eq "subclass") {
 					$curGroup = getGroup("_ungrouped");
-				} elsif($closing eq "hook" || $closing eq "subclass") {
+				} 
+				if($closing eq "hook" || $closing eq "subclass") {
 					$inclass = 0;
 				}
 				$line = $`.$';
