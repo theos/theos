@@ -1,0 +1,3 @@
+[submodule "include"]
+	path = include
+	url = git://github.com/rpetrich/iphoneheaders.git

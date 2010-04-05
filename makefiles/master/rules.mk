@@ -1,5 +1,6 @@
 .PHONY: all before-all internal-all after-all \
-	clean before-clean internal-clean after-clean
+	clean before-clean internal-clean after-clean \
+	update-framework
 ifeq ($(FW_BUILD_DIR),.)
 all:: before-all internal-all after-all
 else
@@ -97,3 +98,6 @@ if [ "$($(basename $(basename $*))_SUBPROJECTS)" != "" ]; then \
     fi; \
   done; \
  fi
+
+update-framework::
+	@cd framework && git pull origin master && ./git-submodule-recur.sh init
