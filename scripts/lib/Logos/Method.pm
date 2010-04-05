@@ -192,8 +192,7 @@ sub printArgForArgType {
 	my $argname = shift;
 	return "NSStringFromCG$2($argname)" if $argtype =~ /\b(CG|NS)(Rect|Point|Size)\b/;
 	return "$argname.location, $argname.length" if $argtype =~ /\bNSRange\b/;
-	return undef if $argtype =~ /\b(CG\w*|CF\w*|void)\b/;
-	return undef if $argtype =~ /\bNS(HashTable(Callbacks)?|Map(Table((Key|Value)Callbacks)?|Enumerator))\b/;
+	return undef if formatCharForArgType($argtype) == "--";
 	return $argname;
 }
 
@@ -203,6 +202,7 @@ sub formatCharForArgType {
 	# Integral Types
 	return "%d" if $argtype =~ /\b(int|long|bool)\b/i;
 	return "%d" if $argtype =~ /\bNS(U?Integer|SocketNativeHandle|StringEncoding|SortOptions|ComparisonResult|EnumerationOptions|(Hash|Map)TableOptions|SearchPath(Directory|DomainMask))\b/i;
+	return "%d" if $argtype =~ /\bGS(FontTraitMask)\b/i;
 	return "%c" if $argtype =~ /\bchar\b/;
 
 	# Pointer Types

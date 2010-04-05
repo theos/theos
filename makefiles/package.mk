@@ -38,25 +38,24 @@ else
 endif
 
 before-package::
-	-@rm -rf "$(FW_PACKAGE_STAGING_DIR)"
-	@svn export "$(FW_PROJECT_DIR)/layout" "$(FW_PACKAGE_STAGING_DIR)" 2>/dev/null || cp -a "$(FW_PROJECT_DIR)/layout" "$(FW_PACKAGE_STAGING_DIR)"
-	@$(FAKEROOT) -c
+	$(ECHO_NOTHING)rm -rf "$(FW_PACKAGE_STAGING_DIR)"$(ECHO_END)
+	$(ECHO_NOTHING)rsync -a "$(FW_PROJECT_DIR)/layout/" "$(FW_PACKAGE_STAGING_DIR)" --exclude "_MTN" --exclude ".git" --exclude ".svn" --exclude ".DS_Store" --exclude "._.*"$(ECHO_END)
+	$(ECHO_NOTHING)$(FAKEROOT) -c$(ECHO_END)
 
 after-package-buildno::
 ifdef FINALPACKAGE
-	@cp "$(FW_PROJECT_DIR)/layout/DEBIAN/control" "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"
+	$(ECHO_NOTHING)cp "$(FW_PROJECT_DIR)/layout/DEBIAN/control" "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
 else
 ifeq ($(PACKAGE_BUILDNAME),)
-	@sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)/g' "$(FW_PROJECT_DIR)/layout/DEBIAN/control" > "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"
+	$(ECHO_NOTHING)sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)/g' "$(FW_PROJECT_DIR)/layout/DEBIAN/control" > "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
 else
-	@sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)+$(PACKAGE_BUILDNAME)/g' "$(FW_PROJECT_DIR)/layout/DEBIAN/control" > "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"
+	$(ECHO_NOTHING)sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)+$(PACKAGE_BUILDNAME)/g' "$(FW_PROJECT_DIR)/layout/DEBIAN/control" > "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
 endif
 endif
-	@echo "Installed-Size: $(shell du $(DU_EXCLUDE) DEBIAN -ks "$(FW_PACKAGE_STAGING_DIR)" | cut -f 1)" >> "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"
+	$(ECHO_NOTHING)echo "Installed-Size: $(shell du $(DU_EXCLUDE) DEBIAN -ks "$(FW_PACKAGE_STAGING_DIR)" | cut -f 1)" >> "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
 
 after-package:: after-package-buildno
-	-@find "$(FW_PACKAGE_STAGING_DIR)" -name '.DS_Store' -delete
-	@$(FAKEROOT) -r dpkg-deb -b "$(FW_PACKAGE_STAGING_DIR)" "$(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb" 2>/dev/null
+	$(ECHO_NOTHING)$(FAKEROOT) -r dpkg-deb -b "$(FW_PACKAGE_STAGING_DIR)" "$(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb" 2>/dev/null$(ECHO_END)
 
 ifeq ($(INSTALL_LOCAL),1)
 install:: internal-install after-install
