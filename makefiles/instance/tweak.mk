@@ -4,7 +4,11 @@ endif
 
 .PHONY: internal-tweak-all_ internal-tweak-package_ internal-tweak-compile
 
-AUXILIARY_LDFLAGS += -dynamiclib -lsubstrate
+AUXILIARY_LDFLAGS += -dynamiclib
+
+ifneq ($($(FW_INSTANCE)_USESUBSTRATE),0)
+AUXILIARY_LDFLAGS += -lsubstrate
+endif
 
 ifeq ($(FW_MAKE_PARALLEL_BUILDING), no)
 internal-tweak-all_:: $(FW_OBJ_DIR) $(FW_OBJ_DIR)/$(FW_INSTANCE).dylib
