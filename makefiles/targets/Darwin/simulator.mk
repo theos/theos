@@ -16,5 +16,5 @@ TARGET_CODESIGN_FLAGS ?= -S
 ARCHS ?= i386
 SDKFLAGS := -isysroot $(SYSROOT) $(foreach ARCH,$(ARCHS),-arch $(ARCH)) -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(SDKVERSION))
 TARGET_CFLAGS := $(SDKFLAGS)
-TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress
+TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress -mmacosx-version-min=10.5
 endif
