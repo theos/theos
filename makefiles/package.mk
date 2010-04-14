@@ -37,6 +37,15 @@ else
 	FW_PACKAGE_FILENAME = $(FW_PACKAGE_NAME)_$(FW_PACKAGE_DEBVERSION)_$(FW_PACKAGE_ARCH)
 endif
 
+FW_DEVICE_USER ?= root
+
+ifdef FW_DEVICE_TUNNEL
+FW_DEVICE_PORT = 2222
+FW_DEVICE_IP = 127.0.0.1
+else
+FW_DEVICE_PORT ?= 22
+endif
+
 before-package::
 	$(ECHO_NOTHING)rm -rf "$(FW_PACKAGE_STAGING_DIR)"$(ECHO_END)
 	$(ECHO_NOTHING)rsync -a "$(FW_PROJECT_DIR)/layout/" "$(FW_PACKAGE_STAGING_DIR)" --exclude "_MTN" --exclude ".git" --exclude ".svn" --exclude ".DS_Store" --exclude "._.*"$(ECHO_END)
@@ -70,8 +79,8 @@ install::
 else # FW_DEVICE_IP
 install:: internal-install after-install
 internal-install::
-	scp "$(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb" root@$(FW_DEVICE_IP):
-	ssh root@$(FW_DEVICE_IP) "dpkg -i $(FW_PACKAGE_FILENAME).deb"
+	scp -P $(FW_DEVICE_PORT) "$(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb" $(FW_DEVICE_USER)@$(FW_DEVICE_IP):
+	ssh $(FW_DEVICE_USER)@$(FW_DEVICE_IP) -p $(FW_DEVICE_PORT) "dpkg -i $(FW_PACKAGE_FILENAME).deb"
 
 after-install:: internal-after-install
 endif
