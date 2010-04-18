@@ -4,7 +4,7 @@ endif
 
 .PHONY: internal-library-all_ internal-library-package_ internal-library-compile
 
-LOCAL_INSTALL_PATH = $(strip $($(FW_INSTANCE)_INSTALL_PATH))
+LOCAL_INSTALL_PATH ?= $(strip $($(FW_INSTANCE)_INSTALL_PATH))
 ifeq ($(LOCAL_INSTALL_PATH),)
 	LOCAL_INSTALL_PATH = /usr/lib
 endif
