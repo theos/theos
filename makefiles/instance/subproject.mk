@@ -2,7 +2,7 @@ ifeq ($(FW_RULES_LOADED),)
 include $(FW_MAKEDIR)/rules.mk
 endif
 
-.PHONY: internal-subproject-all_ internal-subproject-package_ internal-subproject-compile
+.PHONY: internal-subproject-all_ internal-subproject-stage_ internal-subproject-compile
 
 ifeq ($(FW_MAKE_PARALLEL_BUILDING), no)
 internal-subproject-all_:: $(FW_OBJ_DIR) $(FW_OBJ_DIR)/$(FW_SUBPROJECT_PRODUCT)

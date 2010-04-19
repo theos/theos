@@ -2,7 +2,7 @@ ifeq ($(FW_RULES_LOADED),)
 include $(FW_MAKEDIR)/rules.mk
 endif
 
-.PHONY: internal-application-all_ internal-application-package_ internal-application-compile
+.PHONY: internal-application-all_ internal-application-stage_ internal-application-compile
 
 AUXILIARY_LDFLAGS += -framework UIKit
 
@@ -31,6 +31,6 @@ else
 LOCAL_BUNDLE_NAME = $($(FW_INSTANCE)_BUNDLE_NAME)
 endif
 
-internal-application-package_::
-	$(ECHO_NOTHING)mkdir -p "$(FW_PACKAGE_STAGING_DIR)/Applications/$(LOCAL_BUNDLE_NAME).app"$(ECHO_END)
-	$(ECHO_NOTHING)cp $(FW_OBJ_DIR)/$(FW_INSTANCE) "$(FW_PACKAGE_STAGING_DIR)/Applications/$(LOCAL_BUNDLE_NAME).app"$(ECHO_END)
+internal-application-stage_::
+	$(ECHO_NOTHING)mkdir -p "$(FW_STAGING_DIR)/Applications/$(LOCAL_BUNDLE_NAME).app"$(ECHO_END)
+	$(ECHO_NOTHING)cp $(FW_OBJ_DIR)/$(FW_INSTANCE) "$(FW_STAGING_DIR)/Applications/$(LOCAL_BUNDLE_NAME).app"$(ECHO_END)

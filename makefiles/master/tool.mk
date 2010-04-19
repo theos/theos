@@ -6,7 +6,7 @@ endif
 
 internal-all:: $(TOOL_NAME:=.all.tool.variables);
 
-internal-package:: $(TOOL_NAME:=.package.tool.variables);
+internal-stage:: $(TOOL_NAME:=.stage.tool.variables);
 
 TOOLS_WITH_SUBPROJECTS = $(strip $(foreach tool,$(TOOL_NAME),$(patsubst %,$(tool),$($(tool)_SUBPROJECTS))))
 ifneq ($(TOOLS_WITH_SUBPROJECTS),)

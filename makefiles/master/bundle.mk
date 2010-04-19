@@ -6,7 +6,7 @@ endif
 
 internal-all:: $(BUNDLE_NAME:=.all.bundle.variables);
 
-internal-package:: $(BUNDLE_NAME:=.package.bundle.variables);
+internal-stage:: $(BUNDLE_NAME:=.stage.bundle.variables);
 
 BUNDLES_WITH_SUBPROJECTS = $(strip $(foreach bundle,$(BUNDLE_NAME),$(patsubst %,$(bundle),$($(bundle)_SUBPROJECTS))))
 ifneq ($(BUNDLES_WITH_SUBPROJECTS),)

@@ -1,5 +1,5 @@
 .PHONY: before-$(FW_INSTANCE)-all after-$(FW_INSTANCE)-all internal-$(FW_TYPE)-all \
-	before-$(FW_INSTANCE)-package after-$(FW_INSTANCE)-package internal-$(FW_TYPE)-package
+	before-$(FW_INSTANCE)-stage after-$(FW_INSTANCE)-stage internal-$(FW_TYPE)-stage
 
 OBJCC_OBJS = $(patsubst %.mm,%.mm.o,$($(FW_INSTANCE)_OBJCC_FILES)) $(patsubst %.xm,%.xm.o,$($(FW_INSTANCE)_LOGOS_FILES))
 OBJC_OBJS = $(patsubst %.m,%.m.o,$($(FW_INSTANCE)_OBJC_FILES))
@@ -50,9 +50,9 @@ after-$(FW_INSTANCE)-all::
 
 internal-$(FW_TYPE)-all:: before-$(FW_INSTANCE)-all internal-$(FW_TYPE)-all_ after-$(FW_INSTANCE)-all
 
-before-$(FW_INSTANCE)-package::
+before-$(FW_INSTANCE)-stage::
 
-after-$(FW_INSTANCE)-package::
+after-$(FW_INSTANCE)-stage::
 
-internal-$(FW_TYPE)-package:: before-$(FW_INSTANCE)-package internal-$(FW_TYPE)-package_ after-$(FW_INSTANCE)-package
+internal-$(FW_TYPE)-stage:: before-$(FW_INSTANCE)-stage internal-$(FW_TYPE)-stage_ after-$(FW_INSTANCE)-stage
 

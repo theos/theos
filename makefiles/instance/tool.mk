@@ -2,7 +2,7 @@ ifeq ($(FW_RULES_LOADED),)
 include $(FW_MAKEDIR)/rules.mk
 endif
 
-.PHONY: internal-tool-all_ internal-tool-package_ internal-tool-compile
+.PHONY: internal-tool-all_ internal-tool-stage_ internal-tool-compile
 
 ifeq ($(FW_MAKE_PARALLEL_BUILDING), no)
 internal-tool-all_:: $(FW_OBJ_DIR) $(FW_OBJ_DIR)/$(FW_INSTANCE)
@@ -31,6 +31,6 @@ ifeq ($(LOCAL_INSTALL_PATH),)
 	endif
 endif
 
-internal-tool-package_::
-	$(ECHO_NOTHING)mkdir -p "$(FW_PACKAGE_STAGING_DIR)$(LOCAL_INSTALL_PATH)"$(ECHO_END)
-	$(ECHO_NOTHING)cp $(FW_OBJ_DIR)/$(FW_INSTANCE) "$(FW_PACKAGE_STAGING_DIR)$(LOCAL_INSTALL_PATH)"$(ECHO_END)
+internal-tool-stage_::
+	$(ECHO_NOTHING)mkdir -p "$(FW_STAGING_DIR)$(LOCAL_INSTALL_PATH)"$(ECHO_END)
+	$(ECHO_NOTHING)cp $(FW_OBJ_DIR)/$(FW_INSTANCE) "$(FW_STAGING_DIR)$(LOCAL_INSTALL_PATH)"$(ECHO_END)
