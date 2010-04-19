@@ -53,11 +53,7 @@ package-build-deb-buildno::
 ifeq ($(FW_HAS_LAYOUT),1) # If we have a layout/ directory, copy layout/DEBIAN to the staging directory.
 	$(ECHO_NOTHING)rsync -a "$(FW_PROJECT_DIR)/layout/DEBIAN/" "$(FW_STAGING_DIR)/DEBIAN" --exclude "_MTN" --exclude ".git" --exclude ".svn" --exclude ".DS_Store" --exclude "._.*"$(ECHO_END)
 endif # FW_HAS_LAYOUT
-ifeq ($(PACKAGE_BUILDNAME),)
-	$(ECHO_NOTHING)sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)/g' "$(FW_PACKAGE_CONTROL_PATH)" > "$(FW_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
-else
-	$(ECHO_NOTHING)sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)+$(PACKAGE_BUILDNAME)/g' "$(FW_PACKAGE_CONTROL_PATH)" > "$(FW_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
-endif
+	$(ECHO_NOTHING)sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)$(if $(PACKAGE_BUILDNAME),+$(PACKAGE_BUILDNAME),)/g' "$(FW_PACKAGE_CONTROL_PATH)" > "$(FW_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
 	$(ECHO_NOTHING)echo "Installed-Size: $(shell du $(DU_EXCLUDE) DEBIAN -ks "$(FW_STAGING_DIR)" | cut -f 1)" >> "$(FW_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
 
 package-build-deb:: package-build-deb-buildno
