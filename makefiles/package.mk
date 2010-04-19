@@ -65,7 +65,6 @@ ifeq ($(PACKAGE_BUILDNAME),)
 else
 	$(ECHO_NOTHING)sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)+$(PACKAGE_BUILDNAME)/g' "$(FW_PROJECT_DIR)/layout/DEBIAN/control" > "$(FW_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
 endif
-endif
 	$(ECHO_NOTHING)echo "Installed-Size: $(shell du $(DU_EXCLUDE) DEBIAN -ks "$(FW_STAGING_DIR)" | cut -f 1)" >> "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
 
 package-build-deb:: package-build-deb-buildno
