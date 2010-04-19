@@ -20,21 +20,28 @@ export FAKEROOT
 # Only do the master packaging rules if we're the toplevel make invocation.
 ifeq ($(_FW_TOP_INVOCATION_DONE),)
 FW_HAS_LAYOUT := $(shell [ -d "$(FW_PROJECT_DIR)/layout" ] && echo 1 || echo 0)
+ifeq ($(FW_HAS_LAYOUT),1)
+	FW_PACKAGE_CONTROL_PATH := $(FW_PROJECT_DIR)/layout/DEBIAN/control
+	FW_CAN_PACKAGE := 1
+else # FW_HAS_LAYOUT == 0
+	FW_PACKAGE_CONTROL_PATH := $(FW_PROJECT_DIR)/control
+	FW_CAN_PACKAGE := $(shell [ -f "$(FW_PACKAGE_CONTROL_PATH)" ] && echo 1 || echo 0)
+endif # FW_HAS_LAYOUT
 
 before-stage::
 	$(ECHO_NOTHING)rm -rf "$(FW_STAGING_DIR)"$(ECHO_END)
 	$(ECHO_NOTHING)$(FAKEROOT) -c$(ECHO_END)
 ifeq ($(FW_HAS_LAYOUT),1)
-	$(ECHO_NOTHING)rsync -a "$(FW_PROJECT_DIR)/layout/" "$(FW_STAGING_DIR)" --exclude "_MTN" --exclude ".git" --exclude ".svn" --exclude ".DS_Store" --exclude "._.*"$(ECHO_END)
-else
+	$(ECHO_NOTHING)rsync -a "$(FW_PROJECT_DIR)/layout/" "$(FW_STAGING_DIR)" --exclude "DEBIAN" --exclude "_MTN" --exclude ".git" --exclude ".svn" --exclude ".DS_Store" --exclude "._.*"$(ECHO_END)
+else # FW_HAS_LAYOUT == 0
 	$(ECHO_NOTHING)mkdir -p "$(FW_STAGING_DIR)"$(ECHO_END)
-endif
+endif # FW_HAS_LAYOUT
 
-ifeq ($(FW_HAS_LAYOUT),1) # You can stage without a layout, but you currently can't package without one.
+ifeq ($(FW_CAN_PACKAGE),1) # Control file found (or layout/ found.)
 
-FW_PACKAGE_NAME := $(shell grep Package "$(FW_PROJECT_DIR)/layout/DEBIAN/control" | cut -d' ' -f2)
-FW_PACKAGE_ARCH := $(shell grep Architecture "$(FW_PROJECT_DIR)/layout/DEBIAN/control" | cut -d' ' -f2)
-FW_PACKAGE_VERSION := $(shell grep Version "$(FW_PROJECT_DIR)/layout/DEBIAN/control" | cut -d' ' -f2)
+FW_PACKAGE_NAME := $(shell grep Package "$(FW_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2)
+FW_PACKAGE_ARCH := $(shell grep Architecture "$(FW_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2)
+FW_PACKAGE_VERSION := $(shell grep Version "$(FW_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2)
 
 ifdef FINALPACKAGE
 FW_PACKAGE_DEBVERSION = $(FW_PACKAGE_VERSION)
@@ -43,11 +50,7 @@ FW_PACKAGE_BUILDNUM = $(shell TOP_DIR="$(TOP_DIR)" $(FW_SCRIPTDIR)/deb_build_num
 FW_PACKAGE_DEBVERSION = $(shell grep Version "$(FW_STAGING_DIR)/DEBIAN/control" | cut -d' ' -f2)
 endif
 
-ifdef STOREPACKAGE
-	FW_PACKAGE_FILENAME = cydiastore_$(FW_PACKAGE_NAME)_v$(FW_PACKAGE_DEBVERSION)
-else
-	FW_PACKAGE_FILENAME = $(FW_PACKAGE_NAME)_$(FW_PACKAGE_DEBVERSION)_$(FW_PACKAGE_ARCH)
-endif
+FW_PACKAGE_FILENAME = $(FW_PACKAGE_NAME)_$(FW_PACKAGE_DEBVERSION)_$(FW_PACKAGE_ARCH)
 
 FW_DEVICE_USER ?= root
 
@@ -60,12 +63,11 @@ endif
 
 package-build-deb-buildno::
 	$(ECHO_NOTHING)mkdir -p $(FW_STAGING_DIR)/DEBIAN$(ECHO_END)
-ifeq ($(PACKAGE_BUILDNAME),)
-	$(ECHO_NOTHING)sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)/g' "$(FW_PROJECT_DIR)/layout/DEBIAN/control" > "$(FW_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
-else
-	$(ECHO_NOTHING)sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)+$(PACKAGE_BUILDNAME)/g' "$(FW_PROJECT_DIR)/layout/DEBIAN/control" > "$(FW_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
-endif
-	$(ECHO_NOTHING)echo "Installed-Size: $(shell du $(DU_EXCLUDE) DEBIAN -ks "$(FW_STAGING_DIR)" | cut -f 1)" >> "$(FW_PACKAGE_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
+ifeq ($(FW_HAS_LAYOUT),1) # If we have a layout/ directory, copy layout/DEBIAN to the staging directory.
+	$(ECHO_NOTHING)rsync -a "$(FW_PROJECT_DIR)/layout/DEBIAN/" "$(FW_STAGING_DIR)/DEBIAN" --exclude "_MTN" --exclude ".git" --exclude ".svn" --exclude ".DS_Store" --exclude "._.*"$(ECHO_END)
+endif # FW_HAS_LAYOUT
+	$(ECHO_NOTHING)sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)$(if $(PACKAGE_BUILDNAME),+$(PACKAGE_BUILDNAME),)/g' "$(FW_PACKAGE_CONTROL_PATH)" > "$(FW_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
+	$(ECHO_NOTHING)echo "Installed-Size: $(shell du $(DU_EXCLUDE) DEBIAN -ks "$(FW_STAGING_DIR)" | cut -f 1)" >> "$(FW_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
 
 package-build-deb:: package-build-deb-buildno
 	$(ECHO_NOTHING)$(FAKEROOT) -r dpkg-deb -b "$(FW_STAGING_DIR)" "$(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb" 2>/dev/null$(ECHO_END)
@@ -90,11 +92,11 @@ after-install:: internal-after-install
 endif
 endif
 
-else # FW_HAS_LAYOUT == 0
+else # FW_CAN_PACKAGE == 0
 package-build-deb::
-	@echo "$(MAKE) package requires there to be a layout/ directory in the project root, containing the basic package structure."; exit 1
+	@echo "$(MAKE) package requires you to have a layout/ directory in the project root, containing the basic package structure, or a control file in the project root describing the package."; exit 1
 
-endif # FW_HAS_LAYOUT
+endif # FW_CAN_PACKAGE
 
 endif # _FW_TOP_INVOCATION_DONE
 
