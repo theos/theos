@@ -1,14 +1,10 @@
 .PHONY: before-$(FW_INSTANCE)-all after-$(FW_INSTANCE)-all internal-$(FW_TYPE)-all \
-	before-$(FW_INSTANCE)-package after-$(FW_INSTANCE)-package internal-$(FW_TYPE)-package
-OBJCC_OBJS := $(patsubst %.mm,%.mm.o,$($(FW_INSTANCE)_OBJCC_FILES))
-ifeq ($(OBJCC_OBJS),)
-OBJCC_OBJS := $(patsubst %.xm,%.xm.o,$($(FW_INSTANCE)_LOGOS_FILES))
-else
-OBJCC_OBJS += $(patsubst %.xm,%.xm.o,$($(FW_INSTANCE)_LOGOS_FILES))
-endif
-OBJC_OBJS := $(patsubst %.m,%.m.o,$($(FW_INSTANCE)_OBJC_FILES))
-CC_OBJS := $(patsubst %.cc,%.cc.o,$($(FW_INSTANCE)_CC_FILES))
-C_OBJS := $(patsubst %.c,%.c.o,$($(FW_INSTANCE)_C_FILES))
+	before-$(FW_INSTANCE)-stage after-$(FW_INSTANCE)-stage internal-$(FW_TYPE)-stage
+
+OBJCC_OBJS = $(patsubst %.mm,%.mm.o,$($(FW_INSTANCE)_OBJCC_FILES)) $(patsubst %.xm,%.xm.o,$($(FW_INSTANCE)_LOGOS_FILES))
+OBJC_OBJS = $(patsubst %.m,%.m.o,$($(FW_INSTANCE)_OBJC_FILES))
+CC_OBJS = $(patsubst %.cc,%.cc.o,$($(FW_INSTANCE)_CC_FILES))
+C_OBJS = $(patsubst %.c,%.c.o,$($(FW_INSTANCE)_C_FILES))
 
 ifneq ($($(FW_INSTANCE)_SUBPROJECTS),)
 #SUBPROJECT_OBJ_FILES = $(foreach d, $($(FW_INSTANCE)_SUBPROJECTS), \ $(addprefix $(FW_BUILD_DIR)/$(d)/, $(FW_OBJ_DIR_NAME)/$(FW_SUBPROJECT_PRODUCT)))
@@ -54,9 +50,9 @@ after-$(FW_INSTANCE)-all::
 
 internal-$(FW_TYPE)-all:: before-$(FW_INSTANCE)-all internal-$(FW_TYPE)-all_ after-$(FW_INSTANCE)-all
 
-before-$(FW_INSTANCE)-package::
+before-$(FW_INSTANCE)-stage::
 
-after-$(FW_INSTANCE)-package::
+after-$(FW_INSTANCE)-stage::
 
-internal-$(FW_TYPE)-package:: before-$(FW_INSTANCE)-package internal-$(FW_TYPE)-package_ after-$(FW_INSTANCE)-package
+internal-$(FW_TYPE)-stage:: before-$(FW_INSTANCE)-stage internal-$(FW_TYPE)-stage_ after-$(FW_INSTANCE)-stage
 

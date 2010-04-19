@@ -2,7 +2,7 @@ ifeq ($(FW_RULES_LOADED),)
 include $(FW_MAKEDIR)/rules.mk
 endif
 
-.PHONY: internal-framework-all_ internal-framework-package_ internal-framework-compile
+.PHONY: internal-framework-all_ internal-framework-stage_ internal-framework-compile
 
 ifeq ($($(FW_INSTANCE)_FRAMEWORK_NAME),)
 LOCAL_FRAMEWORK_NAME = $(FW_INSTANCE)
@@ -33,6 +33,6 @@ endif
 	$(ECHO_SIGNING)$(FW_CODESIGN_COMMANDLINE) $@$(ECHO_END)
 
 
-internal-framework-package_::
-	$(ECHO_NOTHING)mkdir -p "$(FW_PACKAGE_STAGING_DIR)$($(FW_INSTANCE)_INSTALL_PATH)/$(LOCAL_FRAMEWORK_NAME).framework"$(ECHO_END)
-	$(ECHO_NOTHING)cp $(FW_OBJ_DIR)/$(FW_INSTANCE) "$(FW_PACKAGE_STAGING_DIR)$($(FW_INSTANCE)_INSTALL_PATH)/$(LOCAL_FRAMEWORK_NAME).framework"$(ECHO_END)
+internal-framework-stage_::
+	$(ECHO_NOTHING)mkdir -p "$(FW_STAGING_DIR)$($(FW_INSTANCE)_INSTALL_PATH)/$(LOCAL_FRAMEWORK_NAME).framework"$(ECHO_END)
+	$(ECHO_NOTHING)cp $(FW_OBJ_DIR)/$(FW_INSTANCE) "$(FW_STAGING_DIR)$($(FW_INSTANCE)_INSTALL_PATH)/$(LOCAL_FRAMEWORK_NAME).framework"$(ECHO_END)

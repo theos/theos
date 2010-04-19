@@ -6,7 +6,7 @@ endif
 
 internal-all:: $(NULL_NAME:=.all.null.variables);
 
-internal-package:: $(NULL_NAME:=.package.null.variables);
+internal-stage:: $(NULL_NAME:=.stage.null.variables);
 
 NULLS_WITH_SUBPROJECTS = $(strip $(foreach null,$(NULL_NAME),$(patsubst %,$(null),$($(null)_SUBPROJECTS))))
 ifneq ($(NULLS_WITH_SUBPROJECTS),)

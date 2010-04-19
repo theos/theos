@@ -2,9 +2,9 @@ ifeq ($(FW_RULES_LOADED),)
 include $(FW_MAKEDIR)/rules.mk
 endif
 
-.PHONY: internal-library-all_ internal-library-package_ internal-library-compile
+.PHONY: internal-library-all_ internal-library-stage_ internal-library-compile
 
-LOCAL_INSTALL_PATH = $(strip $($(FW_INSTANCE)_INSTALL_PATH))
+LOCAL_INSTALL_PATH ?= $(strip $($(FW_INSTANCE)_INSTALL_PATH))
 ifeq ($(LOCAL_INSTALL_PATH),)
 	LOCAL_INSTALL_PATH = /usr/lib
 endif
@@ -32,6 +32,6 @@ endif
 	$(ECHO_SIGNING)$(FW_CODESIGN_COMMANDLINE) $@$(ECHO_END)
 
 
-internal-library-package_::
-	$(ECHO_NOTHING)mkdir -p "$(FW_PACKAGE_STAGING_DIR)$(LOCAL_INSTALL_PATH)/"$(ECHO_END)
-	$(ECHO_NOTHING)cp $(FW_OBJ_DIR)/$(FW_INSTANCE).dylib "$(FW_PACKAGE_STAGING_DIR)$(LOCAL_INSTALL_PATH)/"$(ECHO_END)
+internal-library-stage_::
+	$(ECHO_NOTHING)mkdir -p "$(FW_STAGING_DIR)$(LOCAL_INSTALL_PATH)/"$(ECHO_END)
+	$(ECHO_NOTHING)cp $(FW_OBJ_DIR)/$(FW_INSTANCE).dylib "$(FW_STAGING_DIR)$(LOCAL_INSTALL_PATH)/"$(ECHO_END)

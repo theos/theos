@@ -6,7 +6,7 @@ endif
 
 internal-all:: $(TWEAK_NAME:=.all.tweak.variables);
 
-internal-package:: $(TWEAK_NAME:=.package.tweak.variables);
+internal-stage:: $(TWEAK_NAME:=.stage.tweak.variables);
 
 internal-after-install::
 ifeq ($(INSTALL_LOCAL),1)

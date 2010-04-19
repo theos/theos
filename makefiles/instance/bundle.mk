@@ -2,7 +2,7 @@ ifeq ($(FW_RULES_LOADED),)
 include $(FW_MAKEDIR)/rules.mk
 endif
 
-.PHONY: internal-bundle-all_ internal-bundle-package_ internal-bundle-compile
+.PHONY: internal-bundle-all_ internal-bundle-stage_ internal-bundle-compile
 
 AUXILIARY_LDFLAGS += -dynamiclib
 
@@ -39,6 +39,6 @@ else
 LOCAL_BUNDLE_EXTENSION = $($(FW_INSTANCE)_BUNDLE_EXTENSION)
 endif
 
-internal-bundle-package_::
-	$(ECHO_NOTHING)mkdir -p "$(FW_PACKAGE_STAGING_DIR)$($(FW_INSTANCE)_INSTALL_PATH)/$(LOCAL_BUNDLE_NAME).$(LOCAL_BUNDLE_EXTENSION)"$(ECHO_END)
-	$(ECHO_NOTHING)cp $(FW_OBJ_DIR)/$(FW_INSTANCE) "$(FW_PACKAGE_STAGING_DIR)$($(FW_INSTANCE)_INSTALL_PATH)/$(LOCAL_BUNDLE_NAME).$(LOCAL_BUNDLE_EXTENSION)"$(ECHO_END)
+internal-bundle-stage_::
+	$(ECHO_NOTHING)mkdir -p "$(FW_STAGING_DIR)$($(FW_INSTANCE)_INSTALL_PATH)/$(LOCAL_BUNDLE_NAME).$(LOCAL_BUNDLE_EXTENSION)"$(ECHO_END)
+	$(ECHO_NOTHING)cp $(FW_OBJ_DIR)/$(FW_INSTANCE) "$(FW_STAGING_DIR)$($(FW_INSTANCE)_INSTALL_PATH)/$(LOCAL_BUNDLE_NAME).$(LOCAL_BUNDLE_EXTENSION)"$(ECHO_END)
