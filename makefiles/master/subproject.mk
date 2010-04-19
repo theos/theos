@@ -11,7 +11,7 @@ endif
 
 internal-all:: $(SUBPROJECT_NAME:=.all.subproject.variables);
 
-internal-package:: $(SUBPROJECT_NAME:=.package.subproject.variables);
+internal-stage:: $(SUBPROJECT_NAME:=.stage.subproject.variables);
 
 SUBPROJECTS_WITH_SUBPROJECTS = $(strip $(foreach subproject,$(SUBPROJECT_NAME),$(patsubst %,$(subproject),$($(subproject)_SUBPROJECTS))))
 ifneq ($(SUBPROJECTS_WITH_SUBPROJECTS),)

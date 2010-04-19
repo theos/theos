@@ -6,7 +6,7 @@ endif
 
 internal-all:: $(APPLICATION_NAME:=.all.application.variables);
 
-internal-package:: $(APPLICATION_NAME:=.package.application.variables);
+internal-stage:: $(APPLICATION_NAME:=.stage.application.variables);
 
 # Maybe, disabled for further discussion
 # ssh mobile@$(FW_DEVICE_IP) "uicache"

@@ -6,7 +6,7 @@ endif
 
 internal-all:: $(FRAMEWORK_NAME:=.all.framework.variables);
 
-internal-package:: $(FRAMEWORK_NAME:=.package.framework.variables);
+internal-stage:: $(FRAMEWORK_NAME:=.stage.framework.variables);
 
 FRAMEWORKS_WITH_SUBPROJECTS = $(strip $(foreach framework,$(FRAMEWORK_NAME),$(patsubst %,$(framework),$($(framework)_SUBPROJECTS))))
 ifneq ($(FRAMEWORKS_WITH_SUBPROJECTS),)
