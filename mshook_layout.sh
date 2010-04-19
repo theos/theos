@@ -17,7 +17,7 @@ Author: $USER
 Section: Tweaks
 __END
 
-svn co http://svn.howett.net/svn/iphone-framework framework
+svn co http://svn.howett.net/svn/theos/trunk framework
 
 cat > Makefile << __END
 TWEAK_NAME = $EXTENSION
