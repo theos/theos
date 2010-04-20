@@ -32,7 +32,7 @@ before-stage::
 	$(ECHO_NOTHING)rm -rf "$(FW_STAGING_DIR)"$(ECHO_END)
 	$(ECHO_NOTHING)$(FAKEROOT) -c$(ECHO_END)
 ifeq ($(FW_HAS_LAYOUT),1)
-	$(ECHO_NOTHING)rsync -a "$(FW_PROJECT_DIR)/layout/" "$(FW_STAGING_DIR)" --exclude "DEBIAN" --exclude "_MTN" --exclude ".git" --exclude ".svn" --exclude ".DS_Store" --exclude "._.*"$(ECHO_END)
+	$(ECHO_NOTHING)rsync -a "$(FW_PROJECT_DIR)/layout/" "$(FW_STAGING_DIR)" --exclude "DEBIAN" $(FW_RSYNC_EXCLUDES)$(ECHO_END)
 else # FW_HAS_LAYOUT == 0
 	$(ECHO_NOTHING)mkdir -p "$(FW_STAGING_DIR)"$(ECHO_END)
 endif # FW_HAS_LAYOUT
@@ -51,7 +51,7 @@ FW_PACKAGE_FILENAME = $(FW_PACKAGE_NAME)_$(FW_PACKAGE_DEBVERSION)_$(FW_PACKAGE_A
 package-build-deb-buildno::
 	$(ECHO_NOTHING)mkdir -p $(FW_STAGING_DIR)/DEBIAN$(ECHO_END)
 ifeq ($(FW_HAS_LAYOUT),1) # If we have a layout/ directory, copy layout/DEBIAN to the staging directory.
-	$(ECHO_NOTHING)rsync -a "$(FW_PROJECT_DIR)/layout/DEBIAN/" "$(FW_STAGING_DIR)/DEBIAN" --exclude "_MTN" --exclude ".git" --exclude ".svn" --exclude ".DS_Store" --exclude "._.*"$(ECHO_END)
+	$(ECHO_NOTHING)rsync -a "$(FW_PROJECT_DIR)/layout/DEBIAN/" "$(FW_STAGING_DIR)/DEBIAN" $(FW_RSYNC_EXCLUDES)$(ECHO_END)
 endif # FW_HAS_LAYOUT
 	$(ECHO_NOTHING)sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)$(if $(PACKAGE_BUILDNAME),+$(PACKAGE_BUILDNAME),)/g' "$(FW_PACKAGE_CONTROL_PATH)" > "$(FW_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
 	$(ECHO_NOTHING)echo "Installed-Size: $(shell du $(DU_EXCLUDE) DEBIAN -ks "$(FW_STAGING_DIR)" | cut -f 1)" >> "$(FW_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
