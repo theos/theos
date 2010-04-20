@@ -18,12 +18,21 @@ internal-bundle-all_:: $(FW_OBJ_DIR)
 internal-bundle-compile: $(FW_OBJ_DIR)/$(FW_INSTANCE)
 endif
 
+ifneq ($(OBJ_FILES_TO_LINK),)
+
 $(FW_OBJ_DIR)/$(FW_INSTANCE): $(OBJ_FILES_TO_LINK)
 	$(ECHO_LINKING)$(TARGET_CXX) $(ALL_LDFLAGS) -o $@ $^$(ECHO_END)
 ifeq ($(DEBUG),)
 	$(ECHO_STRIPPING)$(TARGET_STRIP) -x $@$(ECHO_END)
-endif   
+endif # DEBUG
 	$(ECHO_SIGNING)$(FW_CODESIGN_COMMANDLINE) $@$(ECHO_END)
+
+else # OBJ_FILES_TO_LINK == ""
+
+$(FW_OBJ_DIR)/$(FW_INSTANCE):
+	$(NOTICE_EMPTY_LINKING)
+
+endif # OBJ_FILES_TO_LINK
 
 
 ifeq ($($(FW_INSTANCE)_BUNDLE_NAME),)
@@ -43,4 +52,6 @@ include $(FW_MAKEDIR)/instance/shared/bundle.mk
 
 internal-bundle-stage_:: shared-instance-bundle-stage
 	$(ECHO_NOTHING)mkdir -p "$(FW_SHARED_BUNDLE_RESOURCE_PATH)"$(ECHO_END)
+ifneq ($(OBJ_FILES_TO_LINK),)
 	$(ECHO_NOTHING)cp $(FW_OBJ_DIR)/$(FW_INSTANCE) "$(FW_SHARED_BUNDLE_RESOURCE_PATH)"$(ECHO_END)
+endif

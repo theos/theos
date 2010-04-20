@@ -24,6 +24,9 @@ internal-library-compile: $(FW_OBJ_DIR)/$(FW_INSTANCE).dylib
 endif
 
 $(FW_OBJ_DIR)/$(FW_INSTANCE).dylib: $(OBJ_FILES_TO_LINK)
+ifeq ($(OBJ_FILES_TO_LINK),)
+	$(WARNING_EMPTY_LINKING)
+endif
 	$(ECHO_LINKING)$(TARGET_CXX) $(ALL_LDFLAGS) -o $@ $^$(ECHO_END)
 ifeq ($(DEBUG),)
 	$(ECHO_STRIPPING)$(TARGET_STRIP) -x $@$(ECHO_END)

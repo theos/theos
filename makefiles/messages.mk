@@ -20,3 +20,8 @@ else
 	ECHO_NOTHING = 
 	ECHO_END = 
 endif
+
+WARNING_EMPTY_LINKING = @(echo " Warning! No files to link. Please check your Makefile! Make sure you set $(FW_INSTANCE)_OBJC_FILES (or similar variables)")
+
+# (bundle)
+NOTICE_EMPTY_LINKING = @(echo " Notice: No files to link - creating a bundle containing only resources")
