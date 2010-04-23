@@ -16,3 +16,4 @@ include $(FW_MAKEDIR)/instance/library.mk
 internal-tweak-all_:: internal-library-all_
 
 internal-tweak-stage_:: internal-library-stage_
+	$(ECHO_NOTHING)if [ -f $(FW_INSTANCE).plist ]; then cp $(FW_INSTANCE).plist "$(FW_STAGING_DIR)$(LOCAL_INSTALL_PATH)/"; fi$(ECHO_END)

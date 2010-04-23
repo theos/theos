@@ -80,4 +80,6 @@ unexport FW_INSTANCE FW_TYPE
 
 FW_CODESIGN_COMMANDLINE = CODESIGN_ALLOCATE=$(TARGET_CODESIGN_ALLOCATE) $(TARGET_CODESIGN) $(TARGET_CODESIGN_FLAGS)
 
+FW_RSYNC_EXCLUDES := --exclude "_MTN" --exclude ".git" --exclude ".svn" --exclude ".DS_Store" --exclude "._.*"
+
 FW_MAKE_PARALLEL_BUILDING ?= yes
