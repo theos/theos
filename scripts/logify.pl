@@ -10,9 +10,9 @@
 # an @implementation, as well.
 $interface = 0;
 while($line = <>) {
-	if($line =~ m/^[+-]\s?\((.*?)\).*?(?=;)/ && $interface == 1) {
+	if($line =~ m/^[+-]\s*\((.*?)\).*?(?=;)/ && $interface == 1) {
 		print "$& { %log; ".($1 ne "void" ? "return " : "")."%orig; }\n";
-	} elsif($line =~ m/^\@interface\s+(.*?)\s+:/ && $interface == 0) {
+	} elsif($line =~ m/^\@interface\s+(.*?)\s*[:(]/ && $interface == 0) {
 		print "%hook $1\n";
 		$interface = 1;
 	} elsif($line =~ m/^\@end/ && $interface == 1) {
