@@ -192,7 +192,7 @@ sub printArgForArgType {
 	my $argname = shift;
 	return "NSStringFromCG$2($argname)" if $argtype =~ /\b(CG|NS)(Rect|Point|Size)\b/;
 	return "$argname.location, $argname.length" if $argtype =~ /\bNSRange\b/;
-	return undef if formatCharForArgType($argtype) == "--";
+	return undef if formatCharForArgType($argtype) eq "--";
 	return $argname;
 }
 
