@@ -14,4 +14,4 @@ internal-clean:: $(LIBRARYS_WITH_SUBPROJECTS:=.clean.library.subprojects)
 endif
 
 $(LIBRARY_NAME):
-	@$(MAKE) -f $(MAKEFILE_NAME) --no-print-directory --no-keep-going $@.all.library.variables
+	@$(MAKE) --no-print-directory --no-keep-going $@.all.library.variables

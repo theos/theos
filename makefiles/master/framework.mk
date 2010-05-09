@@ -14,4 +14,4 @@ internal-clean:: $(FRAMEWORKS_WITH_SUBPROJECTS:=.clean.framework.subprojects)
 endif
 
 $(FRAMEWORK_NAME):
-	@$(MAKE) -f $(MAKEFILE_NAME) --no-print-directory --no-keep-going $@.all.framework.variables
+	@$(MAKE) --no-print-directory --no-keep-going $@.all.framework.variables
