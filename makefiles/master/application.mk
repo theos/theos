@@ -18,4 +18,4 @@ internal-clean:: $(APPLICATIONS_WITH_SUBPROJECTS:=.clean.application.subprojects
 endif
 
 $(APPLICATION_NAME):
-	@$(MAKE) -f $(MAKEFILE_NAME) --no-print-directory --no-keep-going $@.all.application.variables
+	@$(MAKE) --no-print-directory --no-keep-going $@.all.application.variables

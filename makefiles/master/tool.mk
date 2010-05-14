@@ -14,4 +14,4 @@ internal-clean:: $(TOOLS_WITH_SUBPROJECTS:=.clean.tool.subprojects)
 endif
 
 $(TOOL_NAME):
-	@$(MAKE) -f $(MAKEFILE_NAME) --no-print-directory --no-keep-going $@.all.tool.variables
+	@$(MAKE) --no-print-directory --no-keep-going $@.all.tool.variables

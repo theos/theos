@@ -14,4 +14,4 @@ internal-clean:: $(NULLS_WITH_SUBPROJECTS:=.clean.null.subprojects)
 endif
 
 $(NULL_NAME):
-	@$(MAKE) -f $(MAKEFILE_NAME) --no-print-directory --no-keep-going $@.all.null.variables
+	@$(MAKE) --no-print-directory --no-keep-going $@.all.null.variables

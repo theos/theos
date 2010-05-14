@@ -14,4 +14,4 @@ internal-clean:: $(BUNDLES_WITH_SUBPROJECTS:=.clean.bundle.subprojects)
 endif
 
 $(BUNDLE_NAME):
-	@$(MAKE) -f $(MAKEFILE_NAME) --no-print-directory --no-keep-going $@.all.bundle.variables
+	@$(MAKE) --no-print-directory --no-keep-going $@.all.bundle.variables

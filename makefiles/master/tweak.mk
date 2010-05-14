@@ -21,4 +21,4 @@ internal-clean:: $(TWEAKS_WITH_SUBPROJECTS:=.clean.tweak.subprojects)
 endif
 
 $(TWEAK_NAME):
-	@$(MAKE) -f $(MAKEFILE_NAME) --no-print-directory --no-keep-going $@.all.tweak.variables
+	@$(MAKE) --no-print-directory --no-keep-going $@.all.tweak.variables

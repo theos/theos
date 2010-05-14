@@ -19,4 +19,4 @@ internal-clean:: $(SUBPROJECTS_WITH_SUBPROJECTS:=.clean.subproject.subprojects)
 endif
 
 $(SUBPROJECT_NAME):
-	@$(MAKE) -f $(MAKEFILE_NAME) --no-print-directory --no-keep-going $@.all.subproject.variables
+	@$(MAKE) --no-print-directory --no-keep-going $@.all.subproject.variables
