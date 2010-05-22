@@ -191,6 +191,7 @@ sub printArgForArgType {
 	my $argtype = shift;
 	my $argname = shift;
 	return "NSStringFromCG$2($argname)" if $argtype =~ /\b(CG|NS)(Rect|Point|Size)\b/;
+	return "NSStringFromSelector($argname)" if $argtype =~ /\bSEL\b/;
 	return "$argname.location, $argname.length" if $argtype =~ /\bNSRange\b/;
 	return undef if formatCharForArgType($argtype) eq "--";
 	return $argname;
@@ -215,6 +216,7 @@ sub formatCharForArgType {
 	return "%f" if $argtype =~ /\bNS(TimeInterval)\b/;
 	
 	# Special Types (should also have an entry in printArgForArgType
+	return "%@" if $argtype =~ /\bSEL\b/;
 	return "%@" if $argtype =~ /\b(CG|NS)(Rect|Point|Size)\b/;
 	return "(%d:%d)" if $argtype =~ /\bNSRange\b/;
 
