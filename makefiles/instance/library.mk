@@ -23,16 +23,7 @@ internal-library-all_:: $(FW_OBJ_DIR)
 internal-library-compile: $(FW_OBJ_DIR)/$(FW_INSTANCE).dylib
 endif
 
-$(FW_OBJ_DIR)/$(FW_INSTANCE).dylib: $(OBJ_FILES_TO_LINK)
-ifeq ($(OBJ_FILES_TO_LINK),)
-	$(WARNING_EMPTY_LINKING)
-endif
-	$(ECHO_LINKING)$(TARGET_CXX) $(ALL_LDFLAGS) -o $@ $^$(ECHO_END)
-ifeq ($(DEBUG),)
-	$(ECHO_STRIPPING)$(TARGET_STRIP) -x $@$(ECHO_END)
-endif   
-	$(ECHO_SIGNING)$(FW_CODESIGN_COMMANDLINE) $@$(ECHO_END)
-
+$(eval $(call _FW_TEMPLATE_DEFAULT_LINKING_RULE,$(FW_INSTANCE).dylib))
 
 internal-library-stage_::
 	$(ECHO_NOTHING)mkdir -p "$(FW_STAGING_DIR)$(LOCAL_INSTALL_PATH)/"$(ECHO_END)
