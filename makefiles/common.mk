@@ -76,7 +76,11 @@ endif
 
 unexport FW_INSTANCE FW_TYPE
 
+ifneq ($(TARGET_CODESIGN),)
 FW_CODESIGN_COMMANDLINE = CODESIGN_ALLOCATE=$(TARGET_CODESIGN_ALLOCATE) $(TARGET_CODESIGN) $(TARGET_CODESIGN_FLAGS)
+else
+FW_CODESIGN_COMMANDLINE = 
+endif
 
 FW_RSYNC_EXCLUDES := --exclude "_MTN" --exclude ".git" --exclude ".svn" --exclude ".DS_Store" --exclude "._.*"
 
