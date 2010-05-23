@@ -421,7 +421,7 @@ foreach(@groups) {
 my $numUnGroups = @unInitGroups;
 fileError(-1, "non-initialized hook group".($numUnGroups == 1 ? "" : "s").": ".join(", ", @unInitGroups)) if $numUnGroups > 0;
 
-splice(@outputlines, 0, 0, "#line 0 \"$filename\"");
+splice(@outputlines, 0, 0, "#line 1 \"$filename\"");
 foreach $oline (@outputlines) {
 	print $oline."\n" if defined($oline);
 }
