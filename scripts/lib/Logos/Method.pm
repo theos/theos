@@ -190,9 +190,11 @@ sub buildLogCall {
 sub printArgForArgType {
 	my $argtype = shift;
 	my $argname = shift;
-	return "NSStringFromCG$2($argname)" if $argtype =~ /\b(CG|NS)(Rect|Point|Size)\b/;
 	return "NSStringFromSelector($argname)" if $argtype =~ /\bSEL\b/;
 	return "$argname.location, $argname.length" if $argtype =~ /\bNSRange\b/;
+	return "$argname.origin.x, $argname.origin.y, $argname.size.width, $argname.size.height" if $argtype =~ /\b(CG|NS)Rect\b/;
+	return "$argname.x, $argname.y" if $argtype =~ /\b(CG|NS)Point\b/;
+	return "$argname.width, $argname.height" if $argtype =~ /\b(CG|NS)Size\b/;
 	return undef if formatCharForArgType($argtype) eq "--";
 	return $argname;
 }
@@ -217,8 +219,12 @@ sub formatCharForArgType {
 	
 	# Special Types (should also have an entry in printArgForArgType
 	return "%@" if $argtype =~ /\bSEL\b/;
-	return "%@" if $argtype =~ /\b(CG|NS)(Rect|Point|Size)\b/;
+
+	# Even-more-special expanded types
 	return "(%d:%d)" if $argtype =~ /\bNSRange\b/;
+	return "{{%g, %g}, {%g, %g}}" if $argtype =~ /\b(CG|NS)Rect\b/;
+	return "{%g, %g}" if $argtype =~ /\b(CG|NS)Point\b/;
+	return "{%g, %g}" if $argtype =~ /\b(CG|NS)Size\b/;
 
 	# Opaque Types (pointer)
 	#return "%p" if $argtype =~ /\bNSZone\b/;
