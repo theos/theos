@@ -21,13 +21,12 @@ ifeq ($(TARGET),)
 TARGET := $(FW_PLATFORM_DEFAULT_TARGET)
 endif
 
-FW_TARGET_SUPPORT = $(shell [ -f "$(FW_MAKEDIR)/targets/$(FW_PLATFORM_ARCH)/$(TARGET).mk" -o -f "$(FW_MAKEDIR)/targets/$(FW_PLATFORM)/$(TARGET).mk" ] && echo 1 || echo 0)
-ifeq ($(FW_TARGET_SUPPORT),0)
-$(error The "$(TARGET)" target is not supported on this platform)
-endif
-
 -include $(FW_MAKEDIR)/targets/$(FW_PLATFORM_ARCH)/$(TARGET).mk
 -include $(FW_MAKEDIR)/targets/$(FW_PLATFORM)/$(TARGET).mk
+
+ifneq ($(FW_TARGET_LOADED),1)
+$(error The "$(TARGET)" target is not supported on this platform)
+endif
 
 export TARGET_CC TARGET_CXX TARGET_STRIP TARGET_CODESIGN_ALLOCATE TARGET_CODESIGN TARGET_CODESIGN_FLAGS
 
