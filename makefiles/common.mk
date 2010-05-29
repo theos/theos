@@ -88,7 +88,7 @@ else
 FW_CODESIGN_COMMANDLINE = 
 endif
 
-FW_RSYNC_EXCLUDES := --exclude "_MTN" --exclude ".git" --exclude ".svn" --exclude ".DS_Store" --exclude "._.*"
+FW_RSYNC_EXCLUDES := --exclude "_MTN" --exclude ".git" --exclude ".svn" --exclude ".DS_Store" --exclude "._*"
 
 FW_MAKE_PARALLEL_BUILDING ?= yes
 
