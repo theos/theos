@@ -26,8 +26,10 @@ endif
 
 -include $(FW_MAKEDIR)/targets/$(FW_PLATFORM_ARCH)/$(TARGET).mk
 -include $(FW_MAKEDIR)/targets/$(FW_PLATFORM)/$(TARGET).mk
+-include $(FW_MAKEDIR)/targets/$(TARGET).mk
 -include $(foreach mod,$(_FW_MODULES),$(FW_MODDIR)/$(mod)/targets/$(FW_PLATFORM_ARCH)/$(TARGET).mk)
 -include $(foreach mod,$(_FW_MODULES),$(FW_MODDIR)/$(mod)/targets/$(FW_PLATFORM)/$(TARGET).mk)
+-include $(foreach mod,$(_FW_MODULES),$(FW_MODDIR)/$(mod)/targets/$(TARGET).mk)
 
 ifneq ($(FW_TARGET_LOADED),1)
 $(error The "$(TARGET)" target is not supported on this platform)
