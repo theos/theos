@@ -3,8 +3,10 @@ FW_RULES_LOADED := 1
 
 ifeq ($(FW_INSTANCE),)
 	include $(FW_MAKEDIR)/master/rules.mk
+	-include $(foreach mod,$(_FW_MODULES),$(FW_MODDIR)/$(mod)/master/rules.mk)
 else
 	include $(FW_MAKEDIR)/instance/rules.mk
+	-include $(foreach mod,$(_FW_MODULES),$(FW_MODDIR)/$(mod)/instance/rules.mk)
 endif
 
 ALL_CFLAGS = $(INTERNAL_CFLAGS) $(ADDITIONAL_CFLAGS) $(AUXILIARY_CFLAGS) $(TARGET_CFLAGS) $(DEBUG_CFLAGS) $(CFLAGS)
@@ -73,3 +75,4 @@ $(FW_MAKEDIR)/platform/*.mk: ;
 endif
 
 # TODO MAKE A BUNCH OF THINGS PHONY
+-include $(foreach mod,$(_FW_MODULES),$(FW_MODDIR)/$(mod)/rules.mk)

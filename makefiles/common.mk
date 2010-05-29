@@ -6,8 +6,11 @@ FW_SCRIPTDIR := $(FRAMEWORKDIR)/scripts
 FW_MAKEDIR := $(FRAMEWORKDIR)/makefiles
 FW_LIBDIR := $(FRAMEWORKDIR)/lib
 FW_INCDIR := $(FRAMEWORKDIR)/include
+FW_MODDIR := $(FRAMEWORKDIR)/mod
 export FRAMEWORKDIR FW_SCRIPTDIR FW_MAKEDIR FW_LIBDIR FW_INCDIR
 export FW_PROJECT_DIR
+
+_FW_MODULES := $(MODULES)
 
 uname_s := $(shell uname -s)
 uname_p := $(shell uname -p)
@@ -23,6 +26,8 @@ endif
 
 -include $(FW_MAKEDIR)/targets/$(FW_PLATFORM_ARCH)/$(TARGET).mk
 -include $(FW_MAKEDIR)/targets/$(FW_PLATFORM)/$(TARGET).mk
+-include $(foreach mod,$(_FW_MODULES),$(FW_MODDIR)/$(mod)/targets/$(FW_PLATFORM_ARCH)/$(TARGET).mk)
+-include $(foreach mod,$(_FW_MODULES),$(FW_MODDIR)/$(mod)/targets/$(FW_PLATFORM)/$(TARGET).mk)
 
 ifneq ($(FW_TARGET_LOADED),1)
 $(error The "$(TARGET)" target is not supported on this platform)
@@ -84,3 +89,5 @@ endif
 FW_RSYNC_EXCLUDES := --exclude "_MTN" --exclude ".git" --exclude ".svn" --exclude ".DS_Store" --exclude "._.*"
 
 FW_MAKE_PARALLEL_BUILDING ?= yes
+
+-include $(foreach mod,$(_FW_MODULES),$(FRAMEWORKDIR)/mod/$(mod)/common.mk)
