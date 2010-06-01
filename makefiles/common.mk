@@ -1,7 +1,10 @@
 TOP_DIR ?= $(shell pwd)
 FW_PROJECT_DIR ?= $(TOP_DIR)
 
-FRAMEWORKDIR ?= $(FW_PROJECT_DIR)/framework
+ifeq ($(FRAMEWORKDIR),)
+_FW_RELATIVE_MAKE_DIR = $(dir $(lastword $(MAKEFILE_LIST)))
+FRAMEWORKDIR := $(shell cd $(_FW_RELATIVE_MAKE_DIR); cd ..; pwd)
+endif
 FW_SCRIPTDIR := $(FRAMEWORKDIR)/scripts
 FW_MAKEDIR := $(FRAMEWORKDIR)/makefiles
 FW_LIBDIR := $(FRAMEWORKDIR)/lib
