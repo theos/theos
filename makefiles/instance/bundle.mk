@@ -20,13 +20,7 @@ endif
 
 ifneq ($(OBJ_FILES_TO_LINK),)
 
-$(FW_OBJ_DIR)/$(FW_INSTANCE): $(OBJ_FILES_TO_LINK)
-ifeq ($(DEBUG),)
-	$(ECHO_LINKING_WITH_STRIP)$(TARGET_CXX) $(ALL_LDFLAGS) -Wl,-single_module,-x -o $@ $^$(ECHO_END)
-else
-	$(ECHO_LINKING)$(TARGET_CXX) $(ALL_LDFLAGS) -o $@ $^$(ECHO_END)
-endif   
-	$(ECHO_SIGNING)$(FW_CODESIGN_COMMANDLINE) $@$(ECHO_END)
+$(eval $(call _FW_TEMPLATE_NOWARNING_LINKING_RULE,$(FW_INSTANCE)))
 
 else # OBJ_FILES_TO_LINK == ""
 

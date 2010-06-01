@@ -18,16 +18,7 @@ internal-application-all_:: $(FW_OBJ_DIR)
 internal-application-compile: $(FW_OBJ_DIR)/$(FW_INSTANCE)
 endif
 
-$(FW_OBJ_DIR)/$(FW_INSTANCE): $(OBJ_FILES_TO_LINK)
-ifeq ($(OBJ_FILES_TO_LINK),)
-	$(WARNING_EMPTY_LINKING)
-endif
-ifeq ($(DEBUG),)
-	$(ECHO_LINKING_WITH_STRIP)$(TARGET_CXX) $(ALL_LDFLAGS) -Wl,-single_module,-x -o $@ $^$(ECHO_END)
-else
-	$(ECHO_LINKING)$(TARGET_CXX) $(ALL_LDFLAGS) -o $@ $^$(ECHO_END)
-endif   
-	$(ECHO_SIGNING)$(FW_CODESIGN_COMMANDLINE) $@$(ECHO_END)
+$(eval $(call _FW_TEMPLATE_DEFAULT_LINKING_RULE,$(FW_INSTANCE)))
 
 ifeq ($($(FW_INSTANCE)_BUNDLE_NAME),)
 LOCAL_BUNDLE_NAME = $(FW_INSTANCE)

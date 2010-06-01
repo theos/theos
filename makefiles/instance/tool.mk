@@ -16,16 +16,7 @@ internal-tool-all_:: $(FW_OBJ_DIR)
 internal-tool-compile: $(FW_OBJ_DIR)/$(FW_INSTANCE)
 endif
 
-$(FW_OBJ_DIR)/$(FW_INSTANCE): $(OBJ_FILES_TO_LINK)
-ifeq ($(OBJ_FILES_TO_LINK),)
-	$(WARNING_EMPTY_LINKING)
-endif
-ifeq ($(DEBUG),)
-	$(ECHO_LINKING_WITH_STRIP)$(TARGET_CXX) $(ALL_LDFLAGS) -Wl,-single_module,-x -o $@ $^$(ECHO_END)
-else
-	$(ECHO_LINKING)$(TARGET_CXX) $(ALL_LDFLAGS) -o $@ $^$(ECHO_END)
-endif   
-	$(ECHO_SIGNING)$(FW_CODESIGN_COMMANDLINE) $@$(ECHO_END)
+$(eval $(call _FW_TEMPLATE_DEFAULT_LINKING_RULE,$(FW_INSTANCE)))
 
 LOCAL_INSTALL_PATH = $(strip $($(FW_INSTANCE)_INSTALL_PATH))
 ifeq ($(LOCAL_INSTALL_PATH),)

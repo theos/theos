@@ -9,6 +9,7 @@ SYSROOT ?= /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDKVE
 TARGET_CC ?= $(SDKBINPATH)/gcc-4.2
 TARGET_CXX ?= $(SDKBINPATH)/g++-4.2
 TARGET_STRIP ?= $(SDKBINPATH)/strip
+TARGET_STRIP_FLAGS ?= -x
 TARGET_CODESIGN_ALLOCATE ?= $(SDKBINPATH)/codesign_allocate
 TARGET_CODESIGN ?= ldid
 TARGET_CODESIGN_FLAGS ?= -S

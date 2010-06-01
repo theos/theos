@@ -7,8 +7,11 @@ FW_MAKEDIR := $(FRAMEWORKDIR)/makefiles
 FW_LIBDIR := $(FRAMEWORKDIR)/lib
 FW_INCDIR := $(FRAMEWORKDIR)/include
 FW_FALLBACKINCDIR := $(FRAMEWORKDIR)/include/_fallback
+FW_MODDIR := $(FRAMEWORKDIR)/mod
 export FRAMEWORKDIR FW_SCRIPTDIR FW_MAKEDIR FW_LIBDIR FW_INCDIR
 export FW_PROJECT_DIR
+
+_FW_MODULES := $(MODULES)
 
 uname_s := $(shell uname -s)
 uname_p := $(shell uname -p)
@@ -22,13 +25,16 @@ ifeq ($(TARGET),)
 TARGET := $(FW_PLATFORM_DEFAULT_TARGET)
 endif
 
-FW_TARGET_SUPPORT = $(shell [ -f "$(FW_MAKEDIR)/targets/$(FW_PLATFORM_ARCH)/$(TARGET).mk" -o -f "$(FW_MAKEDIR)/targets/$(FW_PLATFORM)/$(TARGET).mk" ] && echo 1 || echo 0)
-ifeq ($(FW_TARGET_SUPPORT),0)
-$(error The "$(TARGET)" target is not supported on this platform)
-endif
-
 -include $(FW_MAKEDIR)/targets/$(FW_PLATFORM_ARCH)/$(TARGET).mk
 -include $(FW_MAKEDIR)/targets/$(FW_PLATFORM)/$(TARGET).mk
+-include $(FW_MAKEDIR)/targets/$(TARGET).mk
+-include $(foreach mod,$(_FW_MODULES),$(FW_MODDIR)/$(mod)/targets/$(FW_PLATFORM_ARCH)/$(TARGET).mk)
+-include $(foreach mod,$(_FW_MODULES),$(FW_MODDIR)/$(mod)/targets/$(FW_PLATFORM)/$(TARGET).mk)
+-include $(foreach mod,$(_FW_MODULES),$(FW_MODDIR)/$(mod)/targets/$(TARGET).mk)
+
+ifneq ($(FW_TARGET_LOADED),1)
+$(error The "$(TARGET)" target is not supported on this platform)
+endif
 
 export TARGET_CC TARGET_CXX TARGET_STRIP TARGET_CODESIGN_ALLOCATE TARGET_CODESIGN TARGET_CODESIGN_FLAGS
 
@@ -78,8 +84,14 @@ endif
 
 unexport FW_INSTANCE FW_TYPE
 
+ifneq ($(TARGET_CODESIGN),)
 FW_CODESIGN_COMMANDLINE = CODESIGN_ALLOCATE=$(TARGET_CODESIGN_ALLOCATE) $(TARGET_CODESIGN) $(TARGET_CODESIGN_FLAGS)
+else
+FW_CODESIGN_COMMANDLINE = 
+endif
 
-FW_RSYNC_EXCLUDES := --exclude "_MTN" --exclude ".git" --exclude ".svn" --exclude ".DS_Store" --exclude "._.*"
+FW_RSYNC_EXCLUDES := --exclude "_MTN" --exclude ".git" --exclude ".svn" --exclude ".DS_Store" --exclude "._*"
 
 FW_MAKE_PARALLEL_BUILDING ?= yes
+
+-include $(foreach mod,$(_FW_MODULES),$(FRAMEWORKDIR)/mod/$(mod)/common.mk)

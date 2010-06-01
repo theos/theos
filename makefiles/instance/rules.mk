@@ -56,3 +56,27 @@ after-$(FW_INSTANCE)-stage::
 
 internal-$(FW_TYPE)-stage:: before-$(FW_INSTANCE)-stage internal-$(FW_TYPE)-stage_ after-$(FW_INSTANCE)-stage
 
+define _FW_TEMPLATE_DEFAULT_LINKING_RULE
+$$(FW_OBJ_DIR)/$(1): $$(OBJ_FILES_TO_LINK)
+ifeq ($$(OBJ_FILES_TO_LINK),)
+	$$(WARNING_EMPTY_LINKING)
+endif
+	$$(ECHO_LINKING)$$(TARGET_CXX) $$(ALL_LDFLAGS) -o $$@ $$^$$(ECHO_END)
+ifeq ($$(DEBUG),)
+	$$(ECHO_STRIPPING)$$(TARGET_STRIP) $$(TARGET_STRIP_FLAGS) $$@$$(ECHO_END)
+endif
+ifneq ($$(FW_CODESIGN_COMMANDLINE),)
+	$$(ECHO_SIGNING)$$(FW_CODESIGN_COMMANDLINE) $$@$$(ECHO_END)
+endif
+endef
+
+define _FW_TEMPLATE_NOWARNING_LINKING_RULE
+$$(FW_OBJ_DIR)/$(1): $$(OBJ_FILES_TO_LINK)
+	$$(ECHO_LINKING)$$(TARGET_CXX) $$(ALL_LDFLAGS) -o $$@ $$^$$(ECHO_END)
+ifeq ($$(DEBUG),)
+	$$(ECHO_STRIPPING)$$(TARGET_STRIP) $$(TARGET_STRIP_FLAGS) $$@$$(ECHO_END)
+endif
+ifneq ($$(FW_CODESIGN_COMMANDLINE),)
+	$$(ECHO_SIGNING)$$(FW_CODESIGN_COMMANDLINE) $$@$$(ECHO_END)
+endif
+endef
