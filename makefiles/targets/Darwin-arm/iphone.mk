@@ -1,6 +1,7 @@
 ifeq ($(FW_TARGET_LOADED),)
 FW_TARGET_LOADED := 1
 FW_TARGET_NAME := iphone
+INSTALL_LOCAL := 1
 
 SDKTARGET ?= arm-apple-darwin9
 SDKBINPATH ?= /usr/bin
