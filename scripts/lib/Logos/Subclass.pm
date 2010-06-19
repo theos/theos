@@ -8,6 +8,7 @@ sub new {
 	my $self = $class->SUPER::new();
 	$self->{SUPERCLASS} = undef;
 	$self->{PROTOCOLS} = {};
+	$self->{IVARS} = [];
 	bless($self, $class);
 	return $self;
 }
@@ -40,11 +41,30 @@ sub addProtocol {
 	$self->{PROTOCOLS}{$protocol}++;
 }
 
+sub addIvar {
+	my $self = shift;
+	my $ivar = shift;
+	$ivar->class($self);
+	push(@{$self->{IVARS}}, $ivar);
+}
+
+sub getIvarNamed {
+	my $self = shift;
+	my $name = shift;
+	foreach(@{$self->{IVARS}}) {
+		return $_ if $_->name eq $name;
+	}
+	return undef;
+}
+
 sub initializers {
 	my $self = shift;
 	my $return = "";
 	$return .= "{ \$".$self->name." = objc_allocateClassPair(objc_getClass(\"".$self->superclass."\"), \"".$self->name."\", 0); ";
 	# <ivars>
+	foreach(@{$self->{IVARS}}) {
+		$return .= $_->initializers;
+	}
 	# </ivars>
 	foreach(keys %{$self->{PROTOCOLS}}) {
 		$return .= "class_addProtocol(\$".$self->name.", objc_getProtocol(\"$_\")); ";
