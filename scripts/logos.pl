@@ -398,6 +398,10 @@ foreach $line (@inputlines) {
 					$class->metaexpression($expr) if $scope eq "+";
 				}
 
+				if(!$group) {
+					fileError($lineno, "%init for an undefined %group $groupname");
+				}
+
 				$line = $before.generateInitLines($group).$after;
 				$ctorline = -2; # "Do not generate a constructor."
 				$lastInitLine = $lineno;
@@ -500,13 +504,8 @@ sub generateInitLines {
 	my $group = shift;
 	$group = getGroup("_ungrouped") if !$group;
 
-	if(!$group) {
-		fileError($lineno, "%init for an undefined %group $groupname");
-		return;
-	}
-
 	if($group->initialized) {
-		fileError($lineno, "re-%init of %group $groupname");
+		fileError($lineno, "re-%init of %group ".$group->name);
 		return;
 	}
 
