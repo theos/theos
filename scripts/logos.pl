@@ -351,9 +351,53 @@ foreach $line (@inputlines) {
 			while($line =~ /%init(\((.*?)\))?(%?);?(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				my $group = "_ungrouped";
-				$group = $2 if $2;
-				$line = $`.generateInitLines($group).$';
+				$before = $`;
+				$after = $';
+
+				my $groupname = "_ungrouped";
+				my @args = split(/,/, $2);
+
+				my $tempgroupname = undef;
+				$tempgroupname = $args[0] if $args[0] && $args[0] !~ /=/;
+				if(defined($tempgroupname)) {
+					$groupname = $tempgroupname;
+					shift(@args);
+				}
+
+				my $group = getGroup($groupname);
+
+				foreach $arg (@args) {
+					$arg =~ s/\s+//;
+					if($arg !~ /=/) {
+						fileWarning($lineno, "unknown argument to %init: $arg");
+						next;
+					}
+
+					my @parts = split(/\s*=\s*/, $arg);
+					if(!defined($parts[0]) || !defined($parts[1])) {
+						fileWarning($lineno, "invalid class=expr in %init");
+						next;
+					}
+
+					my $classname = $parts[0];
+					my $expr = $parts[1];
+					my $scope = "-";
+					if($classname =~ /^([+-])/) {
+						$scope = $1;
+						$classname = $';
+					}
+
+					my $class = $group->getClassNamed($classname);
+					if(!defined($class)) {
+						fileWarning($lineno, "tried to set expression for unknown class $classname in group $groupname");
+						next;
+					}
+
+					$class->expression($expr) if $scope eq "-";
+					$class->metaexpression($expr) if $scope eq "+";
+				}
+
+				$line = $before.generateInitLines($group).$after;
 				$ctorline = -2; # "Do not generate a constructor."
 				$lastInitLine = $lineno;
 
@@ -444,7 +488,7 @@ sub generateConstructor {
 	$return .= "NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init]; ";
 	foreach(@groups) {
 		next if $_->explicit;
-		$return .= generateInitLines($_->name)." ";
+		$return .= generateInitLines($_)." ";
 	}
 	$return .= "[pool drain];";
 	$return .= " }";
@@ -452,9 +496,8 @@ sub generateConstructor {
 }
 
 sub generateInitLines {
-	my $groupname = shift;
-	$groupname = "_ungrouped" if !$groupname;
-	my $group = getGroup($groupname);
+	my $group = shift;
+	$group = getGroup("_ungrouped") if !$group;
 
 	if(!$group) {
 		fileError($lineno, "%init for an undefined %group $groupname");
