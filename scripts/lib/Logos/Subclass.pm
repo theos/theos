@@ -49,14 +49,9 @@ sub initializers {
 		$return .= "class_addProtocol(\$".$self->class.", objc_getProtocol(\"$_\")); ";
 	}
 	$return .= "objc_registerClassPair(\$".$self->class."); ";
-	foreach(keys %{$self->{USEDCLASSES}}) {
-		$return .= "Class \$\$$_ = \$$_; ";
-	}
-	foreach(keys %{$self->{USEDMETACLASSES}}) {
-		$return .= "Class \$\$meta\$$_ = object_getClass(\$\$$_); ";
-	}
-	foreach(@{$self->{METHODS}}) {
-		$return .= $_->buildHookCall;
+	print STDERR $self->{CLASSES};
+	foreach(@{$self->{CLASSES}}) {
+		$return .= $_->initializers;
 	}
 	$return .= "}";
 	return $return;

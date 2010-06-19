@@ -135,7 +135,7 @@ foreach $line (@inputlines) {
 
 				nestPush($1, $lineno, \@nestingstack);
 
-				$class = $2;
+				$class = $curGroup->addClass($2);
 				$inclass = 1;
 				$line = $';
 
@@ -151,11 +151,10 @@ foreach $line (@inputlines) {
 
 				nestPush($1, $lineno, \@nestingstack);
 
-				$class = $2;
-
+				my $classname = $2;
 				$curGroup = Subclass->new();
 				$curGroup->name($lineno."_".$2);
-				$curGroup->class($2);
+				$curGroup->class($classname);
 				$curGroup->superclass($3);
 				if(defined($4) && defined($5)) {
 					my @protocols = split(/\s*,\s*/, $5);
@@ -165,8 +164,10 @@ foreach $line (@inputlines) {
 				}
 				push(@groups, $curGroup);
 
-				$staticClassGroup->addDeclaredOnlyClass($class);
-				$classes{$class}++;
+				$class = $curGroup->addClass($classname);
+
+				$staticClassGroup->addDeclaredOnlyClass($classname);
+				$classes{$classname}++;
 
 				$inclass = 1;
 				$line = $';
@@ -203,13 +204,13 @@ foreach $line (@inputlines) {
 
 				my $scope = $2;
 				$scope = "-" if !$scope;
-				my $class = $3;
+				my $classname = $3;
 				if($scope eq "+") {
-					$staticClassGroup->addUsedMetaClass($class);
+					$staticClassGroup->addUsedMetaClass($classname);
 				} else {
-					$staticClassGroup->addUsedClass($class);
+					$staticClassGroup->addUsedClass($classname);
 				}
-				$classes{$class}++;
+				$classes{$classname}++;
 				$line = $`.$';
 
 				redo SCANLOOP;
@@ -241,10 +242,10 @@ foreach $line (@inputlines) {
 
 				$currentMethod->class($class);
 				if($scope eq "+") {
-					$curGroup->addUsedMetaClass($class);
+					$class->hasmetahooks(1);
 				} else {
-					$classes{$class}++;
-					$curGroup->addUsedClass($class);
+					$classes{$class->name}++;
+					$class->hasinstancehooks(1);
 				}
 
 				$currentMethod->scope($scope);
@@ -273,7 +274,7 @@ foreach $line (@inputlines) {
 
 				$currentMethod->selectorParts(@selparts);
 				$currentMethod->groupIdentifier(sanitize($curGroup->name));
-				$curGroup->addMethod($currentMethod);
+				$class->addMethod($currentMethod);
 				$lastMethod = $currentMethod;
 
 				$replacement = $currentMethod->buildMethodSignature;
@@ -435,7 +436,7 @@ sub generateConstructor {
 	foreach(@groups) {
 		$explicitGroups++ if $_->explicit;
 	}
-	fileError($ctorline, "Cannot generate an autoconstructor with multiple %groups. Please explicitly create a constructor.") if $explicitGroups > 1;
+	fileError($ctorline, "Cannot generate an autoconstructor with multiple %groups. Please explicitly create a constructor.") if $explicitGroups > 0;
 	$return .= "static __attribute__((constructor)) void _logosLocalInit() { ";
 	$return .= "NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init]; ";
 	foreach(@groups) {
