@@ -159,7 +159,7 @@ foreach $line (@inputlines) {
 				if(defined($4) && defined($5)) {
 					my @protocols = split(/\s*,\s*/, $5);
 					foreach(@protocols) {
-						$curGroup->addProtocol($_);
+						$class->addProtocol($_);
 					}
 				}
 				$curGroup->addClass($class);
