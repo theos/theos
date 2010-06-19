@@ -231,6 +231,12 @@ foreach $line (@inputlines) {
 			while($inclass && $line =~ /^\s*([+-])\s*\(\s*(.*?)\s*\)/g) {
 				next if fallsBetween($-[0], @quotes);
 
+				# Gasp! We've been moved to a different group!
+				if($class->group != $curGroup) {
+					my $classname = $class->name;
+					$class = $curGroup->addClassNamed($classname);
+				}
+
 				my $scope = $1;
 				my $return = $2;
 				my $selnametext = $';

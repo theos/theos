@@ -13,6 +13,7 @@ sub new {
 	$self->{INST} = 0;
 	$self->{METHODS} = [];
 	$self->{NUM_METHODS} = 0;
+	$self->{GROUP} = undef;
 	bless($self, $class);
 	return $self;
 }
@@ -57,6 +58,12 @@ sub hasinstancehooks {
 	my $self = shift;
 	if(@_) { $self->{INST} = shift; }
 	return $self->{INST};
+}
+
+sub group {
+	my $self = shift;
+	if(@_) { $self->{GROUP} = shift; }
+	return $self->{GROUP};
 }
 
 ##### #

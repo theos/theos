@@ -41,6 +41,7 @@ sub initialized {
 sub addClass {
 	my $self = shift;
 	my $class = shift;
+	$class->group($self);
 	push(@{$self->{CLASSES}}, $class);
 }
 
