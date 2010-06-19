@@ -200,7 +200,7 @@ foreach $line (@inputlines) {
 
 				my $scope = $2;
 				$scope = "-" if !$scope;
-				$class = $3;
+				my $class = $3;
 				if($scope eq "+") {
 					$staticClassGroup->addUsedMetaClass($class);
 				} else {
