@@ -182,9 +182,12 @@ foreach $line (@inputlines) {
 				nestPush($1, $lineno, \@nestingstack);
 				$line = $`.$';
 
-				$curGroup = Group->new();
-				$curGroup->name($2);
-				push(@groups, $curGroup);
+				$curGroup = getGroup($2);
+				if(!defined($curGroup)) {
+					$curGroup = Group->new();
+					$curGroup->name($2);
+					push(@groups, $curGroup);
+				}
 
 				redo SCANLOOP;
 			}
