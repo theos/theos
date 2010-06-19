@@ -136,6 +136,7 @@ foreach $line (@inputlines) {
 				nestPush($1, $lineno, \@nestingstack);
 
 				$class = $curGroup->addClassNamed($2);
+				$classes{$class->name}++;
 				$inclass = 1;
 				$line = $';
 
@@ -247,7 +248,6 @@ foreach $line (@inputlines) {
 				if($scope eq "+") {
 					$class->hasmetahooks(1);
 				} else {
-					$classes{$class->name}++;
 					$class->hasinstancehooks(1);
 				}
 
