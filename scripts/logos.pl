@@ -355,7 +355,8 @@ foreach $line (@inputlines) {
 				$after = $';
 
 				my $groupname = "_ungrouped";
-				my @args = split(/,/, $2);
+				my @args;
+				@args = split(/,/, $2) if defined($2);
 
 				my $tempgroupname = undef;
 				$tempgroupname = $args[0] if $args[0] && $args[0] !~ /=/;
