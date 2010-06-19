@@ -1,15 +1,13 @@
 package Subclass;
-use Logos::Group;
-@ISA = "Group";
+use Logos::Class;
+@ISA = "Class";
 
 sub new {
 	my $proto = shift;
 	my $class = ref($proto) || $proto;
 	my $self = $class->SUPER::new();
-	$self->{CLASS} = undef;
 	$self->{SUPERCLASS} = undef;
 	$self->{PROTOCOLS} = {};
-	$self->explicit(0);
 	bless($self, $class);
 	return $self;
 }
@@ -17,10 +15,14 @@ sub new {
 ##################### #
 # Setters and Getters #
 # #####################
-sub class {
+sub name {
 	my $self = shift;
-	if(@_) { $self->{CLASS} = shift; }
-	return $self->{CLASS};
+	if(@_) {
+		$self->{NAME} = shift;
+		$self->expression("\$".$self->{NAME});
+		$self->metaexpression("object_getClass(\$".$self->{NAME}.")");
+	}
+	return $self->{NAME};
 }
 
 sub superclass {
@@ -41,18 +43,14 @@ sub addProtocol {
 sub initializers {
 	my $self = shift;
 	my $return = "";
-	$self->initialized(1);
-	$return .= "{ \$".$self->class." = objc_allocateClassPair(objc_getClass(\"".$self->superclass."\"), \"".$self->class."\", 0); ";
+	$return .= "{ \$".$self->name." = objc_allocateClassPair(objc_getClass(\"".$self->superclass."\"), \"".$self->name."\", 0); ";
 	# <ivars>
 	# </ivars>
 	foreach(keys %{$self->{PROTOCOLS}}) {
-		$return .= "class_addProtocol(\$".$self->class.", objc_getProtocol(\"$_\")); ";
+		$return .= "class_addProtocol(\$".$self->name.", objc_getProtocol(\"$_\")); ";
 	}
-	$return .= "objc_registerClassPair(\$".$self->class."); ";
-	print STDERR $self->{CLASSES};
-	foreach(@{$self->{CLASSES}}) {
-		$return .= $_->initializers;
-	}
+	$return .= "objc_registerClassPair(\$".$self->name."); ";
+	$return .= $self->SUPER::initializers;
 	$return .= "}";
 	return $return;
 }

@@ -40,18 +40,24 @@ sub initialized {
 
 sub addClass {
 	my $self = shift;
+	my $class = shift;
+	push(@{$self->{CLASSES}}, $class);
+}
+
+sub addClassNamed {
+	my $self = shift;
 	my $name = shift;
 
-	my $class = $self->getClass($name);
+	my $class = $self->getClassNamed($name);
 	return $class if defined($class);
 
 	$class = Class->new();
 	$class->name($name);
-	push(@{$self->{CLASSES}}, $class);
+	$self->addClass($class);
 	return $class;
 }
 
-sub getClass {
+sub getClassNamed {
 	my $self = shift;
 	my $name = shift;
 	foreach(@{$self->{CLASSES}}) {

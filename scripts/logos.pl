@@ -135,7 +135,7 @@ foreach $line (@inputlines) {
 
 				nestPush($1, $lineno, \@nestingstack);
 
-				$class = $curGroup->addClass($2);
+				$class = $curGroup->addClassNamed($2);
 				$inclass = 1;
 				$line = $';
 
@@ -145,26 +145,23 @@ foreach $line (@inputlines) {
 			while($line =~ /^\s*%(subclass)\s+([\$_\w]+)\s*:\s*([\$_\w]+)\s*(\<\s*(.*?)\s*\>)?/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				nestingMustNotContain($lineno, "%$1", \@nestingstack, "hook", "group", "subclass");
+				nestingMustNotContain($lineno, "%$1", \@nestingstack, "hook", "subclass");
 
 				$firsthookline = $lineno if $firsthookline == -1;
 
 				nestPush($1, $lineno, \@nestingstack);
 
 				my $classname = $2;
-				$curGroup = Subclass->new();
-				$curGroup->name($lineno."_".$2);
-				$curGroup->class($classname);
-				$curGroup->superclass($3);
+				$class = Subclass->new();
+				$class->name($classname);
+				$class->superclass($3);
 				if(defined($4) && defined($5)) {
 					my @protocols = split(/\s*,\s*/, $5);
 					foreach(@protocols) {
 						$curGroup->addProtocol($_);
 					}
 				}
-				push(@groups, $curGroup);
-
-				$class = $curGroup->addClass($classname);
+				$curGroup->addClass($class);
 
 				$staticClassGroup->addDeclaredOnlyClass($classname);
 				$classes{$classname}++;
@@ -179,7 +176,7 @@ foreach $line (@inputlines) {
 			while($line =~ /^\s*%(group)\s+([\$_\w]+)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				nestingMustNotContain($lineno, "%$1", \@nestingstack, "group", "subclass");
+				nestingMustNotContain($lineno, "%$1", \@nestingstack, "group");
 				nestPush($1, $lineno, \@nestingstack);
 				$line = $`.$';
 
@@ -363,7 +360,7 @@ foreach $line (@inputlines) {
 
 				my $closing = nestPop(\@nestingstack);
 				fileError($lineno, "dangling %end") if !$closing;
-				if($closing eq "group" || $closing eq "subclass") {
+				if($closing eq "group") {
 					$curGroup = getGroup("_ungrouped");
 				} 
 				if($closing eq "hook" || $closing eq "subclass") {
