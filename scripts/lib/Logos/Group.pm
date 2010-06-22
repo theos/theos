@@ -1,4 +1,5 @@
 package Group;
+use Logos::Class;
 use strict;
 
 sub new {
@@ -8,10 +9,7 @@ sub new {
 	$self->{NAME} = undef;
 	$self->{EXPLICIT} = 1;
 	$self->{INITIALIZED} = 0;
-	$self->{METHODS} = [];
-	$self->{NUM_METHODS} = 0;
-	$self->{USEDCLASSES} = {};
-	$self->{USEDMETACLASSES} = {};
+	$self->{CLASSES} = [];
 	bless($self, $class);
 	return $self;
 }
@@ -40,23 +38,33 @@ sub initialized {
 # END #
 # #####
 
-sub addMethod {
-	my $self = shift;
-	my $hook = shift;
-	push(@{$self->{METHODS}}, $hook);
-	$self->{NUM_METHODS}++;
-}
-
-sub addUsedClass {
+sub addClass {
 	my $self = shift;
 	my $class = shift;
-	$self->{USEDCLASSES}{$class}++;
+	$class->group($self);
+	push(@{$self->{CLASSES}}, $class);
 }
 
-sub addUsedMetaClass {
+sub addClassNamed {
 	my $self = shift;
-	my $class = shift;
-	$self->{USEDMETACLASSES}{$class}++;
+	my $name = shift;
+
+	my $class = $self->getClassNamed($name);
+	return $class if defined($class);
+
+	$class = Class->new();
+	$class->name($name);
+	$self->addClass($class);
+	return $class;
+}
+
+sub getClassNamed {
+	my $self = shift;
+	my $name = shift;
+	foreach(@{$self->{CLASSES}}) {
+		return $_ if $_->name eq $name;
+	}
+	return undef;
 }
 
 sub initializers {
@@ -64,14 +72,8 @@ sub initializers {
 	my $return = "";
 	$self->initialized(1);
 	$return .= "{";
-	foreach(keys %{$self->{USEDMETACLASSES}}) {
-		$return .= "Class \$\$meta\$$_ = objc_getMetaClass(\"$_\"); ";
-	}
-	foreach(keys %{$self->{USEDCLASSES}}) {
-		$return .= "Class \$\$$_ = objc_getClass(\"$_\"); ";
-	}
-	foreach(@{$self->{METHODS}}) {
-		$return .= $_->buildHookCall;
+	foreach(@{$self->{CLASSES}}) {
+		$return .= $_->initializers;
 	}
 	$return .= "}";
 	return $return;

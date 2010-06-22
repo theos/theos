@@ -135,7 +135,8 @@ foreach $line (@inputlines) {
 
 				nestPush($1, $lineno, \@nestingstack);
 
-				$class = $2;
+				$class = $curGroup->addClassNamed($2);
+				$classes{$class->name}++;
 				$inclass = 1;
 				$line = $';
 
@@ -145,28 +146,26 @@ foreach $line (@inputlines) {
 			while($line =~ /^\s*%(subclass)\s+([\$_\w]+)\s*:\s*([\$_\w]+)\s*(\<\s*(.*?)\s*\>)?/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				nestingMustNotContain($lineno, "%$1", \@nestingstack, "hook", "group", "subclass");
+				nestingMustNotContain($lineno, "%$1", \@nestingstack, "hook", "subclass");
 
 				$firsthookline = $lineno if $firsthookline == -1;
 
 				nestPush($1, $lineno, \@nestingstack);
 
-				$class = $2;
-
-				$curGroup = Subclass->new();
-				$curGroup->name($lineno."_".$2);
-				$curGroup->class($2);
-				$curGroup->superclass($3);
+				my $classname = $2;
+				$class = Subclass->new();
+				$class->name($classname);
+				$class->superclass($3);
 				if(defined($4) && defined($5)) {
 					my @protocols = split(/\s*,\s*/, $5);
 					foreach(@protocols) {
-						$curGroup->addProtocol($_);
+						$class->addProtocol($_);
 					}
 				}
-				push(@groups, $curGroup);
+				$curGroup->addClass($class);
 
-				$staticClassGroup->addDeclaredOnlyClass($class);
-				$classes{$class}++;
+				$staticClassGroup->addDeclaredOnlyClass($classname);
+				$classes{$classname}++;
 
 				$inclass = 1;
 				$line = $';
@@ -178,13 +177,16 @@ foreach $line (@inputlines) {
 			while($line =~ /^\s*%(group)\s+([\$_\w]+)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				nestingMustNotContain($lineno, "%$1", \@nestingstack, "group", "subclass");
+				nestingMustNotContain($lineno, "%$1", \@nestingstack, "group");
 				nestPush($1, $lineno, \@nestingstack);
 				$line = $`.$';
 
-				$curGroup = Group->new();
-				$curGroup->name($2);
-				push(@groups, $curGroup);
+				$curGroup = getGroup($2);
+				if(!defined($curGroup)) {
+					$curGroup = Group->new();
+					$curGroup->name($2);
+					push(@groups, $curGroup);
+				}
 
 				redo SCANLOOP;
 			}
@@ -200,13 +202,13 @@ foreach $line (@inputlines) {
 
 				my $scope = $2;
 				$scope = "-" if !$scope;
-				$class = $3;
+				my $classname = $3;
 				if($scope eq "+") {
-					$staticClassGroup->addUsedMetaClass($class);
+					$staticClassGroup->addUsedMetaClass($classname);
 				} else {
-					$staticClassGroup->addUsedClass($class);
+					$staticClassGroup->addUsedClass($classname);
 				}
-				$classes{$class}++;
+				$classes{$classname}++;
 				$line = $`.$';
 
 				redo SCANLOOP;
@@ -230,6 +232,12 @@ foreach $line (@inputlines) {
 			while($inclass && $line =~ /^\s*([+-])\s*\(\s*(.*?)\s*\)/g) {
 				next if fallsBetween($-[0], @quotes);
 
+				# Gasp! We've been moved to a different group!
+				if($class->group != $curGroup) {
+					my $classname = $class->name;
+					$class = $curGroup->addClassNamed($classname);
+				}
+
 				my $scope = $1;
 				my $return = $2;
 				my $selnametext = $';
@@ -238,10 +246,9 @@ foreach $line (@inputlines) {
 
 				$currentMethod->class($class);
 				if($scope eq "+") {
-					$curGroup->addUsedMetaClass($class);
+					$class->hasmetahooks(1);
 				} else {
-					$classes{$class}++;
-					$curGroup->addUsedClass($class);
+					$class->hasinstancehooks(1);
 				}
 
 				$currentMethod->scope($scope);
@@ -270,7 +277,7 @@ foreach $line (@inputlines) {
 
 				$currentMethod->selectorParts(@selparts);
 				$currentMethod->groupIdentifier(sanitize($curGroup->name));
-				$curGroup->addMethod($currentMethod);
+				$class->addMethod($currentMethod);
 				$lastMethod = $currentMethod;
 
 				$replacement = $currentMethod->buildMethodSignature;
@@ -344,9 +351,58 @@ foreach $line (@inputlines) {
 			while($line =~ /%init(\((.*?)\))?(%?);?(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				my $group = "_ungrouped";
-				$group = $2 if $2;
-				$line = $`.generateInitLines($group).$';
+				$before = $`;
+				$after = $';
+
+				my $groupname = "_ungrouped";
+				my @args;
+				@args = split(/,/, $2) if defined($2);
+
+				my $tempgroupname = undef;
+				$tempgroupname = $args[0] if $args[0] && $args[0] !~ /=/;
+				if(defined($tempgroupname)) {
+					$groupname = $tempgroupname;
+					shift(@args);
+				}
+
+				my $group = getGroup($groupname);
+
+				foreach $arg (@args) {
+					$arg =~ s/\s+//;
+					if($arg !~ /=/) {
+						fileWarning($lineno, "unknown argument to %init: $arg");
+						next;
+					}
+
+					my @parts = split(/\s*=\s*/, $arg);
+					if(!defined($parts[0]) || !defined($parts[1])) {
+						fileWarning($lineno, "invalid class=expr in %init");
+						next;
+					}
+
+					my $classname = $parts[0];
+					my $expr = $parts[1];
+					my $scope = "-";
+					if($classname =~ /^([+-])/) {
+						$scope = $1;
+						$classname = $';
+					}
+
+					my $class = $group->getClassNamed($classname);
+					if(!defined($class)) {
+						fileWarning($lineno, "tried to set expression for unknown class $classname in group $groupname");
+						next;
+					}
+
+					$class->expression($expr) if $scope eq "-";
+					$class->metaexpression($expr) if $scope eq "+";
+				}
+
+				if(!$group) {
+					fileError($lineno, "%init for an undefined %group $groupname");
+				}
+
+				$line = $before.generateInitLines($group).$after;
 				$ctorline = -2; # "Do not generate a constructor."
 				$lastInitLine = $lineno;
 
@@ -359,7 +415,7 @@ foreach $line (@inputlines) {
 
 				my $closing = nestPop(\@nestingstack);
 				fileError($lineno, "dangling %end") if !$closing;
-				if($closing eq "group" || $closing eq "subclass") {
+				if($closing eq "group") {
 					$curGroup = getGroup("_ungrouped");
 				} 
 				if($closing eq "hook" || $closing eq "subclass") {
@@ -432,12 +488,12 @@ sub generateConstructor {
 	foreach(@groups) {
 		$explicitGroups++ if $_->explicit;
 	}
-	fileError($ctorline, "Cannot generate an autoconstructor with multiple %groups. Please explicitly create a constructor.") if $explicitGroups > 1;
+	fileError($ctorline, "Cannot generate an autoconstructor with multiple %groups. Please explicitly create a constructor.") if $explicitGroups > 0;
 	$return .= "static __attribute__((constructor)) void _logosLocalInit() { ";
 	$return .= "NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init]; ";
 	foreach(@groups) {
 		next if $_->explicit;
-		$return .= generateInitLines($_->name)." ";
+		$return .= generateInitLines($_)." ";
 	}
 	$return .= "[pool drain];";
 	$return .= " }";
@@ -445,17 +501,11 @@ sub generateConstructor {
 }
 
 sub generateInitLines {
-	my $groupname = shift;
-	$groupname = "_ungrouped" if !$groupname;
-	my $group = getGroup($groupname);
-
-	if(!$group) {
-		fileError($lineno, "%init for an undefined %group $groupname");
-		return;
-	}
+	my $group = shift;
+	$group = getGroup("_ungrouped") if !$group;
 
 	if($group->initialized) {
-		fileError($lineno, "re-%init of %group $groupname");
+		fileError($lineno, "re-%init of %group ".$group->name);
 		return;
 	}
 

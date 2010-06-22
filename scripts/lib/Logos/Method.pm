@@ -26,7 +26,7 @@ sub new {
 sub class {
 	my $self = shift;
 	if(@_) { $self->{CLASS} = shift; }
-	return ($self->{SCOPE} eq "+" ? "meta\$" : "").$self->{CLASS};
+	return $self->{CLASS};
 }
 
 sub scope {
@@ -80,6 +80,11 @@ sub type {
 # END #
 # #####
 
+sub classname {
+	my $self = shift;
+	return ($self->{SCOPE} eq "+" ? "meta\$" : "").$self->class->name;
+}
+
 sub addArgument {
 	my $self = shift;
 	my ($type, $name) = @_;
@@ -108,12 +113,12 @@ sub new_selector {
 
 sub originalFunctionName {
 	my $self = shift;
-	return "_".$self->groupIdentifier."\$".$self->class."\$".$self->new_selector;
+	return "_".$self->groupIdentifier."\$".$self->classname."\$".$self->new_selector;
 }
 
 sub newFunctionName {
 	my $self = shift;
-	return "\$".$self->groupIdentifier."\$".$self->class."\$".$self->new_selector;
+	return "\$".$self->groupIdentifier."\$".$self->classname."\$".$self->new_selector;
 }
 
 sub buildMethodSignature {
@@ -123,7 +128,7 @@ sub buildMethodSignature {
 	if($self->{SCOPE} eq "+") {
 		$classargtype = "Class";
 	} else {
-		$classargtype = $self->{CLASS}."*";
+		$classargtype = $self->class->type;
 	}
 	if(!$self->{NEW}) {
 		$build .= "static ".$self->{RETURN}." (*".$self->originalFunctionName.")(".$classargtype.", SEL"; 
@@ -157,9 +162,9 @@ sub buildOriginalCall {
 sub buildHookCall {
 	my $self = shift;
 	if(!$self->{NEW}) {
-		return "MSHookMessageEx(\$\$".$self->class.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", (IMP*)&".$self->originalFunctionName.");";
+		return "MSHookMessageEx(\$\$".$self->classname.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", (IMP*)&".$self->originalFunctionName.");";
 	} else {
-		return "class_addMethod(\$\$".$self->class.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", \"".$self->{TYPE}."\");";
+		return "class_addMethod(\$\$".$self->classname.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", \"".$self->{TYPE}."\");";
 	}
 }
 
@@ -167,7 +172,7 @@ sub buildHookCall {
 sub buildLogCall {
 	my $self = shift;
 	# Log preamble
-	my $build = "NSLog(\@\"".$self->{SCOPE}."[<".$self->{CLASS}.": %p>";
+	my $build = "NSLog(\@\"".$self->{SCOPE}."[<".$self->class->name.": %p>";
 	my $argnamelist = "";
 	if($self->{NUM_ARGS} > 0) {
 		# For each argument, add its keyword and a format char to the log string.

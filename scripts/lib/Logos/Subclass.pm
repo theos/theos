@@ -1,15 +1,14 @@
 package Subclass;
-use Logos::Group;
-@ISA = "Group";
+use Logos::Class;
+@ISA = "Class";
 
 sub new {
 	my $proto = shift;
 	my $class = ref($proto) || $proto;
 	my $self = $class->SUPER::new();
-	$self->{CLASS} = undef;
 	$self->{SUPERCLASS} = undef;
 	$self->{PROTOCOLS} = {};
-	$self->explicit(0);
+	$self->{IVARS} = [];
 	bless($self, $class);
 	return $self;
 }
@@ -17,10 +16,14 @@ sub new {
 ##################### #
 # Setters and Getters #
 # #####################
-sub class {
+sub name {
 	my $self = shift;
-	if(@_) { $self->{CLASS} = shift; }
-	return $self->{CLASS};
+	if(@_) {
+		$self->{NAME} = shift;
+		$self->expression("\$".$self->{NAME});
+		$self->metaexpression("object_getClass(\$".$self->{NAME}.")");
+	}
+	return $self->{NAME};
 }
 
 sub superclass {
@@ -38,26 +41,36 @@ sub addProtocol {
 	$self->{PROTOCOLS}{$protocol}++;
 }
 
+sub addIvar {
+	my $self = shift;
+	my $ivar = shift;
+	$ivar->class($self);
+	push(@{$self->{IVARS}}, $ivar);
+}
+
+sub getIvarNamed {
+	my $self = shift;
+	my $name = shift;
+	foreach(@{$self->{IVARS}}) {
+		return $_ if $_->name eq $name;
+	}
+	return undef;
+}
+
 sub initializers {
 	my $self = shift;
 	my $return = "";
-	$self->initialized(1);
-	$return .= "{ \$".$self->class." = objc_allocateClassPair(objc_getClass(\"".$self->superclass."\"), \"".$self->class."\", 0); ";
+	$return .= "{ \$".$self->name." = objc_allocateClassPair(objc_getClass(\"".$self->superclass."\"), \"".$self->name."\", 0); ";
 	# <ivars>
+	foreach(@{$self->{IVARS}}) {
+		$return .= $_->initializers;
+	}
 	# </ivars>
 	foreach(keys %{$self->{PROTOCOLS}}) {
-		$return .= "class_addProtocol(\$".$self->class.", objc_getProtocol(\"$_\")); ";
+		$return .= "class_addProtocol(\$".$self->name.", objc_getProtocol(\"$_\")); ";
 	}
-	$return .= "objc_registerClassPair(\$".$self->class."); ";
-	foreach(keys %{$self->{USEDCLASSES}}) {
-		$return .= "Class \$\$$_ = \$$_; ";
-	}
-	foreach(keys %{$self->{USEDMETACLASSES}}) {
-		$return .= "Class \$\$meta\$$_ = object_getClass(\$\$$_); ";
-	}
-	foreach(@{$self->{METHODS}}) {
-		$return .= $_->buildHookCall;
-	}
+	$return .= "objc_registerClassPair(\$".$self->name."); ";
+	$return .= $self->SUPER::initializers;
 	$return .= "}";
 	return $return;
 }

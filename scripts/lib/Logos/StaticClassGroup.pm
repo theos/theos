@@ -9,8 +9,22 @@ sub new {
 	$self->name("_staticClass");
 	$self->explicit(0);
 	$self->{DECLAREDONLYCLASSES} = {};
+	$self->{USEDCLASSES} = {};
+	$self->{USEDMETACLASSES} = {};
 	bless($self, $class);
 	return $self;
+}
+
+sub addUsedClass {
+	my $self = shift;
+	my $class = shift;
+	$self->{USEDCLASSES}{$class}++;
+}
+
+sub addUsedMetaClass {
+	my $self = shift;
+	my $class = shift;
+	$self->{USEDMETACLASSES}{$class}++;
 }
 
 sub addDeclaredOnlyClass {
