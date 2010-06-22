@@ -1,17 +1,16 @@
 .PHONY: before-$(FW_INSTANCE)-all after-$(FW_INSTANCE)-all internal-$(FW_TYPE)-all \
 	before-$(FW_INSTANCE)-stage after-$(FW_INSTANCE)-stage internal-$(FW_TYPE)-stage
 
-OBJCC_OBJS = $(patsubst %.mm,%.mm.o,$($(FW_INSTANCE)_OBJCC_FILES)) $(patsubst %.xm,%.xm.o,$($(FW_INSTANCE)_LOGOS_FILES))
-OBJC_OBJS = $(patsubst %.m,%.m.o,$($(FW_INSTANCE)_OBJC_FILES))
-CC_OBJS = $(patsubst %.cc,%.cc.o,$($(FW_INSTANCE)_CC_FILES))
-C_OBJS = $(patsubst %.c,%.c.o,$($(FW_INSTANCE)_C_FILES))
+OBJ_FILES = $(strip $(patsubst %,%.o,$($(FW_INSTANCE)_FILES) $($(FW_INSTANCE)_OBJCC_FILES) $($(FW_INSTANCE)_LOGOS_FILES) $($(FW_INSTANCE)_OBJC_FILES) $($(FW_INSTANCE)_CC_FILES) $($(FW_INSTANCE)_C_FILES)))
+
+_OBJC_FILE_COUNT = $(words $(filter %.m.o %.mm.o %.xm.o,$(OBJ_FILES)))
+_OBJCC_FILE_COUNT = $(words $(filter %.mm.o %.xm.o,$(OBJ_FILES)))
 
 ifneq ($($(FW_INSTANCE)_SUBPROJECTS),)
 #SUBPROJECT_OBJ_FILES = $(foreach d, $($(FW_INSTANCE)_SUBPROJECTS), \ $(addprefix $(FW_BUILD_DIR)/$(d)/, $(FW_OBJ_DIR_NAME)/$(FW_SUBPROJECT_PRODUCT)))
 SUBPROJECT_OBJ_FILES = $(addsuffix /$(FW_OBJ_DIR_NAME)/$(FW_SUBPROJECT_PRODUCT), $(addprefix $(FW_BUILD_DIR)/,$($(FW_INSTANCE)_SUBPROJECTS)))
 endif
 
-OBJ_FILES = $(strip $(OBJCC_OBJS) $(OBJC_OBJS) $(CC_OBJS) $(C_OBJS))
 OBJ_FILES_TO_LINK = $(strip $(addprefix $(FW_OBJ_DIR)/,$(OBJ_FILES)) $($(FW_INSTANCE)_OBJ_FILES) $(SUBPROJECT_OBJ_FILES))
 
 ADDITIONAL_CPPFLAGS += $($(FW_INSTANCE)_CPPFLAGS)
@@ -22,7 +21,7 @@ ADDITIONAL_OBJCCFLAGS += $($(FW_INSTANCE)_OBJCCFLAGS)
 ADDITIONAL_LDFLAGS += $($(FW_INSTANCE)_LDFLAGS)
 
 # If we have any Objective-C objects, link Foundation and libobjc.
-ifneq ($(words $(OBJC_OBJS)$(OBJCC_OBJS)),0)
+ifneq ($(_OBJC_FILE_COUNT),0)
 	AUXILIARY_LDFLAGS += -lobjc -framework Foundation -framework CoreFoundation
 
 	# Add all frameworks from the type and instance.
@@ -40,7 +39,7 @@ ifneq ($(words $(OBJC_OBJS)$(OBJCC_OBJS)),0)
 endif
 
 # In addition, if we have any Objective-C++, add the ObjC++ linker flags.
-ifneq ($(words $(OBJCC_OBJS)),0)
+ifneq ($(_OBJCC_FILE_COUNT),0)
 	AUXILIARY_LDFLAGS += -ObjC++ -fobjc-exceptions -fobjc-call-cxx-cdtors
 endif
 

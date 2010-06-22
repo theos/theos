@@ -1,7 +1,10 @@
 TOP_DIR ?= $(shell pwd)
 FW_PROJECT_DIR ?= $(TOP_DIR)
 
-FRAMEWORKDIR ?= $(FW_PROJECT_DIR)/framework
+ifeq ($(FRAMEWORKDIR),)
+_FW_RELATIVE_MAKE_DIR = $(dir $(lastword $(MAKEFILE_LIST)))
+FRAMEWORKDIR := $(shell cd $(_FW_RELATIVE_MAKE_DIR); cd ..; pwd)
+endif
 FW_SCRIPTDIR := $(FRAMEWORKDIR)/scripts
 FW_MAKEDIR := $(FRAMEWORKDIR)/makefiles
 FW_LIBDIR := $(FRAMEWORKDIR)/lib
@@ -36,6 +39,8 @@ ifneq ($(FW_TARGET_LOADED),1)
 $(error The "$(TARGET)" target is not supported on this platform)
 endif
 
+_FW_TARGET_NAME_DEFINE := $(shell echo "$(FW_TARGET_NAME)" | tr 'a-z' 'A-Z')
+
 export TARGET_CC TARGET_CXX TARGET_STRIP TARGET_CODESIGN_ALLOCATE TARGET_CODESIGN TARGET_CODESIGN_FLAGS
 
 # ObjC/++ stuff is not here, it's in instance/rules.mk and only added if there are OBJC/OBJCC objects.
@@ -51,7 +56,7 @@ PACKAGE_BUILDNAME ?= debug
 endif
 
 CFLAGS += -I$(FW_FALLBACKINCDIR)
-INTERNAL_CFLAGS = $(OPTFLAG) -I$(FW_INCDIR) -include $(FRAMEWORKDIR)/Prefix.pch -Wall
+INTERNAL_CFLAGS = -DTARGET_$(_FW_TARGET_NAME_DEFINE)=1 $(OPTFLAG) -I$(FW_INCDIR) -include $(FRAMEWORKDIR)/Prefix.pch -Wall
 ifneq ($(GO_EASY_ON_ME),1)
 	INTERNAL_CFLAGS += -Werror
 endif
