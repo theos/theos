@@ -10,5 +10,7 @@ TARGET_CODESIGN_ALLOCATE ?=
 TARGET_CODESIGN ?=
 TARGET_CODESIGN_FLAGS ?=
 
+include $(FW_MAKEDIR)/targets/_common/linux.mk
+
 SDKFLAGS :=
 endif
