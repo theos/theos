@@ -24,11 +24,10 @@ ifeq ($(_FW_TOP_INVOCATION_DONE),)
 FW_HAS_LAYOUT := $(shell [ -d "$(FW_PROJECT_DIR)/layout" ] && echo 1 || echo 0)
 ifeq ($(FW_HAS_LAYOUT),1)
 	FW_PACKAGE_CONTROL_PATH := $(FW_PROJECT_DIR)/layout/DEBIAN/control
-	FW_CAN_PACKAGE := 1
 else # FW_HAS_LAYOUT == 0
 	FW_PACKAGE_CONTROL_PATH := $(FW_PROJECT_DIR)/control
-	FW_CAN_PACKAGE := $(shell [ -f "$(FW_PACKAGE_CONTROL_PATH)" ] && echo 1 || echo 0)
 endif # FW_HAS_LAYOUT
+FW_CAN_PACKAGE := $(shell [ -f "$(FW_PACKAGE_CONTROL_PATH)" ] && echo 1 || echo 0)
 
 before-stage::
 	$(ECHO_NOTHING)rm -rf "$(FW_STAGING_DIR)"$(ECHO_END)
