@@ -14,6 +14,8 @@ TARGET_CODESIGN_ALLOCATE ?= $(SDKBINPATH)/codesign_allocate
 TARGET_CODESIGN ?= ldid
 TARGET_CODESIGN_FLAGS ?= -S
 
+include $(FW_MAKEDIR)/targets/_common/darwin.mk
+
 ARCHS ?= armv6
 SDKFLAGS := -isysroot $(SYSROOT) $(foreach ARCH,$(ARCHS),-arch $(ARCH)) -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(SDKVERSION))
 TARGET_CFLAGS := $(SDKFLAGS)

@@ -9,10 +9,10 @@ ifeq ($(LOCAL_INSTALL_PATH),)
 	LOCAL_INSTALL_PATH = /usr/lib
 endif
 
-AUXILIARY_LDFLAGS += -dynamiclib -install_name $(LOCAL_INSTALL_PATH)/$(FW_INSTANCE).dylib
+AUXILIARY_LDFLAGS += -dynamiclib -install_name $(LOCAL_INSTALL_PATH)/$(FW_INSTANCE)$(TARGET_LIB_EXT)
 
 ifeq ($(FW_MAKE_PARALLEL_BUILDING), no)
-internal-library-all_:: $(FW_OBJ_DIR) $(FW_OBJ_DIR)/$(FW_INSTANCE).dylib
+internal-library-all_:: $(FW_OBJ_DIR) $(FW_OBJ_DIR)/$(FW_INSTANCE)$(TARGET_LIB_EXT)
 else
 internal-library-all_:: $(FW_OBJ_DIR)
 	$(ECHO_NOTHING)$(MAKE) --no-print-directory --no-keep-going \
@@ -20,11 +20,11 @@ internal-library-all_:: $(FW_OBJ_DIR)
 		FW_TYPE=$(FW_TYPE) FW_INSTANCE=$(FW_INSTANCE) FW_OPERATION=compile \
 		FW_BUILD_DIR="$(FW_BUILD_DIR)" _FW_MAKE_PARALLEL=yes$(ECHO_END)
 
-internal-library-compile: $(FW_OBJ_DIR)/$(FW_INSTANCE).dylib
+internal-library-compile: $(FW_OBJ_DIR)/$(FW_INSTANCE)$(TARGET_LIB_EXT)
 endif
 
-$(eval $(call _FW_TEMPLATE_DEFAULT_LINKING_RULE,$(FW_INSTANCE).dylib))
+$(eval $(call _FW_TEMPLATE_DEFAULT_LINKING_RULE,$(FW_INSTANCE)$(TARGET_LIB_EXT)))
 
 internal-library-stage_::
 	$(ECHO_NOTHING)mkdir -p "$(FW_STAGING_DIR)$(LOCAL_INSTALL_PATH)/"$(ECHO_END)
-	$(ECHO_NOTHING)cp $(FW_OBJ_DIR)/$(FW_INSTANCE).dylib "$(FW_STAGING_DIR)$(LOCAL_INSTALL_PATH)/"$(ECHO_END)
+	$(ECHO_NOTHING)cp $(FW_OBJ_DIR)/$(FW_INSTANCE)$(TARGET_LIB_EXT) "$(FW_STAGING_DIR)$(LOCAL_INSTALL_PATH)/"$(ECHO_END)

@@ -12,6 +12,8 @@ TARGET_CODESIGN_ALLOCATE ?= $(SDKBINPATH)/codesign_allocate
 TARGET_CODESIGN ?=
 TARGET_CODESIGN_FLAGS ?=
 
+include $(FW_MAKEDIR)/targets/_common/darwin.mk
+
 ARCHS ?= i386 x86_64
 SDKFLAGS := $(foreach ARCH,$(ARCHS),-arch $(ARCH))
 TARGET_CFLAGS := $(SDKFLAGS)

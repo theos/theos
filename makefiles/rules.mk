@@ -40,6 +40,9 @@ $(FW_OBJ_DIR)/%.c.o: %.c
 $(FW_OBJ_DIR)/%.cc.o: %.cc
 	$(ECHO_COMPILING)$(TARGET_CXX) -c $(ALL_CFLAGS) $(ALL_CFLAGS) $(ALL_CCFLAGS) $< -o $@$(ECHO_END)
 
+$(FW_OBJ_DIR)/%.cpp.o: %.cpp
+	$(ECHO_COMPILING)$(TARGET_CXX) -c $(ALL_CFLAGS) $(ALL_CFLAGS) $(ALL_CCFLAGS) $< -o $@$(ECHO_END)
+
 $(FW_OBJ_DIR)/%.xm.o: %.xm
 	$(ECHO_LOGOS)$(FW_SCRIPTDIR)/logos.pl $< > $(FW_OBJ_DIR)/$<.mm$(ECHO_END)
 	$(ECHO_COMPILING)$(TARGET_CXX) -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_OBJCCFLAGS) $(FW_OBJ_DIR)/$<.mm -o $@$(ECHO_END)
