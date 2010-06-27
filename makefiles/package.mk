@@ -9,9 +9,11 @@ FW_PACKAGING_RULES_LOADED := 1
 ifeq ($(_FW_TOP_INVOCATION_DONE),)
 stage:: all before-stage internal-stage after-stage
 package:: stage package-build-deb
+install:: internal-install after-install
 else
 stage:: internal-stage
 package::
+install::
 endif
 
 FAKEROOT := $(FW_BINDIR)/fakeroot.sh -p "$(FW_PROJECT_DIR)/.debmake/fakeroot"
@@ -59,18 +61,6 @@ endif # FW_HAS_LAYOUT
 package-build-deb:: package-build-deb-buildno
 	$(ECHO_NOTHING)$(FAKEROOT) -r dpkg-deb -b "$(FW_STAGING_DIR)" "$(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb" 2>/dev/null$(ECHO_END)
 
-ifeq ($(FW_DEVICE_IP),)
-install::
-	@echo "Error: $(MAKE) install requires that you set FW_DEVICE_IP in your environment.\nIt is also recommended that you have public-key authentication set up for root over SSH, or you'll be entering your password a lot."; exit 1
-else # FW_DEVICE_IP
-install:: internal-install after-install
-internal-install::
-	scp "$(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb" root@$(FW_DEVICE_IP):
-	ssh root@$(FW_DEVICE_IP) "dpkg -i $(FW_PACKAGE_FILENAME).deb"
-
-after-install:: internal-after-install
-endif
-
 else # FW_CAN_PACKAGE == 0
 package-build-deb::
 	@echo "$(MAKE) package requires you to have a layout/ directory in the project root, containing the basic package structure, or a control file in the project root describing the package."; exit 1
@@ -84,6 +74,7 @@ internal-package after-package::
 internal-stage:: internal-package
 after-stage:: after-package
 
+after-install:: internal-after-install
 internal-after-install::
 
 endif # FW_PACKAGING_RULES_LOADED

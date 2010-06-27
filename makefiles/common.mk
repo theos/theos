@@ -1,3 +1,5 @@
+all::
+
 TOP_DIR ?= $(shell pwd)
 FW_PROJECT_DIR ?= $(TOP_DIR)
 
