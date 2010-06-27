@@ -9,11 +9,7 @@ internal-all:: $(TWEAK_NAME:=.all.tweak.variables);
 internal-stage:: $(TWEAK_NAME:=.stage.tweak.variables);
 
 internal-after-install::
-ifeq ($(INSTALL_LOCAL),1)
-	killall -9 SpringBoard
-else # INSTALL_LOCAL
-	ssh root@$(FW_DEVICE_IP) "killall -9 SpringBoard"
-endif
+	install.exec "killall -9 SpringBoard"
 
 TWEAKS_WITH_SUBPROJECTS = $(strip $(foreach tweak,$(TWEAK_NAME),$(patsubst %,$(tweak),$($(tweak)_SUBPROJECTS))))
 ifneq ($(TWEAKS_WITH_SUBPROJECTS),)

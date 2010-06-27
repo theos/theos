@@ -17,6 +17,7 @@ TARGET_CODESIGN_ALLOCATE ?= codesign_allocate
 TARGET_CODESIGN ?= ldid
 TARGET_CODESIGN_FLAGS ?= -S
 
+include $(FW_MAKEDIR)/targets/_common/install_deb_local.mk
 include $(FW_MAKEDIR)/targets/_common/darwin.mk
 
 SDKFLAGS := -isysroot $(SYSROOT)

@@ -9,12 +9,14 @@ FW_PACKAGING_RULES_LOADED := 1
 ifeq ($(_FW_TOP_INVOCATION_DONE),)
 stage:: all before-stage internal-stage after-stage
 package:: stage package-build-deb
+install:: internal-install after-install
 else
 stage:: internal-stage
 package::
+install::
 endif
 
-FAKEROOT := $(FW_SCRIPTDIR)/fakeroot.sh -p "$(FW_PROJECT_DIR)/.debmake/fakeroot"
+FAKEROOT := $(FW_BINDIR)/fakeroot.sh -p "$(FW_PROJECT_DIR)/.debmake/fakeroot"
 export FAKEROOT
 
 # Only do the master packaging rules if we're the toplevel make invocation.
@@ -22,11 +24,10 @@ ifeq ($(_FW_TOP_INVOCATION_DONE),)
 FW_HAS_LAYOUT := $(shell [ -d "$(FW_PROJECT_DIR)/layout" ] && echo 1 || echo 0)
 ifeq ($(FW_HAS_LAYOUT),1)
 	FW_PACKAGE_CONTROL_PATH := $(FW_PROJECT_DIR)/layout/DEBIAN/control
-	FW_CAN_PACKAGE := 1
 else # FW_HAS_LAYOUT == 0
 	FW_PACKAGE_CONTROL_PATH := $(FW_PROJECT_DIR)/control
-	FW_CAN_PACKAGE := $(shell [ -f "$(FW_PACKAGE_CONTROL_PATH)" ] && echo 1 || echo 0)
 endif # FW_HAS_LAYOUT
+FW_CAN_PACKAGE := $(shell [ -f "$(FW_PACKAGE_CONTROL_PATH)" ] && echo 1 || echo 0)
 
 before-stage::
 	$(ECHO_NOTHING)rm -rf "$(FW_STAGING_DIR)"$(ECHO_END)
@@ -46,7 +47,7 @@ FW_PACKAGE_VERSION := $(shell grep Version "$(FW_PACKAGE_CONTROL_PATH)" | cut -d
 ifdef FINALPACKAGE
 FW_PACKAGE_DEBVERSION = $(FW_PACKAGE_VERSION)
 else
-FW_PACKAGE_BUILDNUM = $(shell TOP_DIR="$(TOP_DIR)" $(FW_SCRIPTDIR)/deb_build_num.sh $(FW_PACKAGE_NAME) $(FW_PACKAGE_VERSION))
+FW_PACKAGE_BUILDNUM = $(shell TOP_DIR="$(TOP_DIR)" $(FW_BINDIR)/deb_build_num.sh $(FW_PACKAGE_NAME) $(FW_PACKAGE_VERSION))
 FW_PACKAGE_DEBVERSION = $(shell grep Version "$(FW_STAGING_DIR)/DEBIAN/control" | cut -d' ' -f2)
 endif
 
@@ -76,26 +77,6 @@ endif
 package-build-deb:: package-build-deb-buildno
 	$(ECHO_NOTHING)$(FAKEROOT) -r dpkg-deb -b "$(FW_STAGING_DIR)" "$(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb" 2>/dev/null$(ECHO_END)
 
-ifeq ($(INSTALL_LOCAL),1)
-install:: internal-install after-install
-internal-install::
-	dpkg -i "$(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb"
-
-after-install::
-else # INSTALL_LOCAL
-ifeq ($(FW_DEVICE_IP),)
-install::
-	@echo "Error: $(MAKE) install requires that you set FW_DEVICE_IP in your environment.\nIt is also recommended that you have public-key authentication set up for root over SSH, or you'll be entering your password a lot."; exit 1
-else # FW_DEVICE_IP
-install:: internal-install after-install
-internal-install::
-	scp -P $(FW_DEVICE_PORT) "$(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb" $(FW_DEVICE_USER)@$(FW_DEVICE_IP):
-	ssh $(FW_DEVICE_USER)@$(FW_DEVICE_IP) -p $(FW_DEVICE_PORT) "dpkg -i $(FW_PACKAGE_FILENAME).deb"
-
-after-install:: internal-after-install
-endif
-endif
-
 else # FW_CAN_PACKAGE == 0
 package-build-deb::
 	@echo "$(MAKE) package requires you to have a layout/ directory in the project root, containing the basic package structure, or a control file in the project root describing the package."; exit 1
@@ -109,6 +90,7 @@ internal-package after-package::
 internal-stage:: internal-package
 after-stage:: after-package
 
+after-install:: internal-after-install
 internal-after-install::
 
 endif # FW_PACKAGING_RULES_LOADED

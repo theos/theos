@@ -1,6 +1,6 @@
 ifeq ($(FW_TARGET_LOADED),)
 FW_TARGET_LOADED := 1
-FW_TARGET_NAME := iphonesimulator
+FW_TARGET_NAME := iphone_simulator
 
 SDKBINPATH ?= /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin
 SDKVERSION ?= 3.0
@@ -15,6 +15,15 @@ TARGET_CODESIGN ?=
 TARGET_CODESIGN_FLAGS ?=
 
 include $(FW_MAKEDIR)/targets/_common/darwin.mk
+
+ifeq ($(IPHONE_SIMULATOR_ROOT),)
+internal-install::
+	$(info $(MAKE) install for the simulator requires that you set IPHONE_SIMULATOR_ROOT to the root directory of the simulated OS.)
+	@exit 1
+else
+internal-install:: stage
+	install.mergeDir "$(FW_STAGING_DIR)" "$(IPHONE_SIMULATOR_ROOT)"
+endif
 
 ARCHS ?= i386
 SDKFLAGS := -isysroot $(SYSROOT) $(foreach ARCH,$(ARCHS),-arch $(ARCH)) -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(SDKVERSION))
