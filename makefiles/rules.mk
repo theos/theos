@@ -44,21 +44,21 @@ $(FW_OBJ_DIR)/%.cpp.o: %.cpp
 	$(ECHO_COMPILING)$(TARGET_CXX) -c $(ALL_CFLAGS) $(ALL_CFLAGS) $(ALL_CCFLAGS) $< -o $@$(ECHO_END)
 
 $(FW_OBJ_DIR)/%.xm.o: %.xm
-	$(ECHO_LOGOS)$(FW_SCRIPTDIR)/logos.pl $< > $(FW_OBJ_DIR)/$<.mm$(ECHO_END)
+	$(ECHO_LOGOS)$(FW_BINDIR)/logos.pl $< > $(FW_OBJ_DIR)/$<.mm$(ECHO_END)
 	$(ECHO_COMPILING)$(TARGET_CXX) -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_OBJCCFLAGS) $(FW_OBJ_DIR)/$<.mm -o $@$(ECHO_END)
 	$(ECHO_NOTHING)rm $(FW_OBJ_DIR)/$<.mm$(ECHO_END)
 
 %.mm: %.l.mm
-	$(FW_SCRIPTDIR)/logos.pl $< > $@
+	$(FW_BINDIR)/logos.pl $< > $@
 
 %.mm: %.xmm
-	$(FW_SCRIPTDIR)/logos.pl $< > $@
+	$(FW_BINDIR)/logos.pl $< > $@
 
 %.mm: %.xm
-	$(FW_SCRIPTDIR)/logos.pl $< > $@
+	$(FW_BINDIR)/logos.pl $< > $@
 
 %.m: %.xm
-	$(FW_SCRIPTDIR)/logos.pl $< > $@
+	$(FW_BINDIR)/logos.pl $< > $@
 
 ifneq ($(FW_BUILD_DIR),.)
 $(FW_BUILD_DIR):

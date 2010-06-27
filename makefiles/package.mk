@@ -14,7 +14,7 @@ stage:: internal-stage
 package::
 endif
 
-FAKEROOT := $(FW_SCRIPTDIR)/fakeroot.sh -p "$(FW_PROJECT_DIR)/.debmake/fakeroot"
+FAKEROOT := $(FW_BINDIR)/fakeroot.sh -p "$(FW_PROJECT_DIR)/.debmake/fakeroot"
 export FAKEROOT
 
 # Only do the master packaging rules if we're the toplevel make invocation.
@@ -43,7 +43,7 @@ FW_PACKAGE_NAME := $(shell grep Package "$(FW_PACKAGE_CONTROL_PATH)" | cut -d' '
 FW_PACKAGE_ARCH := $(shell grep Architecture "$(FW_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2)
 FW_PACKAGE_VERSION := $(shell grep Version "$(FW_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2)
 
-FW_PACKAGE_BUILDNUM = $(shell TOP_DIR="$(TOP_DIR)" $(FW_SCRIPTDIR)/deb_build_num.sh $(FW_PACKAGE_NAME) $(FW_PACKAGE_VERSION))
+FW_PACKAGE_BUILDNUM = $(shell TOP_DIR="$(TOP_DIR)" $(FW_BINDIR)/deb_build_num.sh $(FW_PACKAGE_NAME) $(FW_PACKAGE_VERSION))
 FW_PACKAGE_DEBVERSION = $(shell grep Version "$(FW_STAGING_DIR)/DEBIAN/control" | cut -d' ' -f2)
 
 FW_PACKAGE_FILENAME = $(FW_PACKAGE_NAME)_$(FW_PACKAGE_DEBVERSION)_$(FW_PACKAGE_ARCH)
