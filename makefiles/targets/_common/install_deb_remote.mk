@@ -8,7 +8,7 @@ else # FW_DEVICE_IP
 ifeq ($(FW_CAN_PACKAGE),1)
 internal-install::
 	install.copyFile "$(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb" "$(FW_PACKAGE_FILENAME).deb"
-	install.exec dpkg -i $(FW_PACKAGE_FILENAME).deb
+	install.exec "dpkg -i $(FW_PACKAGE_FILENAME).deb"
 else # FW_CAN_PACKAGE == 0
 internal-install:: stage
 	install.mergeDir "$(FW_STAGING_DIR)" "/"
