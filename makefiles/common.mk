@@ -37,20 +37,20 @@ FW_PLATFORM = $(uname_s)
 -include $(FW_MAKEDIR)/platform/$(uname_s)-$(uname_p).mk
 -include $(FW_MAKEDIR)/platform/$(uname_s).mk
 
-TARGET ?= $(target)
-ifeq ($(TARGET),)
-TARGET := $(FW_PLATFORM_DEFAULT_TARGET)
+_FW_TARGET := $(or $(target), $(TARGET), $(FW_PLATFORM_DEFAULT_TARGET))
+ifeq ($(_FW_TARGET),)
+$(error You did not specify a target, and the "$(FW_PLATFORM_NAME)" platform does not define a default target)
 endif
 
--include $(FW_MAKEDIR)/targets/$(FW_PLATFORM_ARCH)/$(TARGET).mk
--include $(FW_MAKEDIR)/targets/$(FW_PLATFORM)/$(TARGET).mk
--include $(FW_MAKEDIR)/targets/$(TARGET).mk
--include $(foreach mod,$(_FW_MODULES),$(FW_MODDIR)/$(mod)/targets/$(FW_PLATFORM_ARCH)/$(TARGET).mk)
--include $(foreach mod,$(_FW_MODULES),$(FW_MODDIR)/$(mod)/targets/$(FW_PLATFORM)/$(TARGET).mk)
--include $(foreach mod,$(_FW_MODULES),$(FW_MODDIR)/$(mod)/targets/$(TARGET).mk)
+-include $(FW_MAKEDIR)/targets/$(FW_PLATFORM_ARCH)/$(_FW_TARGET).mk
+-include $(FW_MAKEDIR)/targets/$(FW_PLATFORM)/$(_FW_TARGET).mk
+-include $(FW_MAKEDIR)/targets/$(_FW_TARGET).mk
+-include $(foreach mod,$(_FW_MODULES),$(FW_MODDIR)/$(mod)/targets/$(FW_PLATFORM_ARCH)/$(_FW_TARGET).mk)
+-include $(foreach mod,$(_FW_MODULES),$(FW_MODDIR)/$(mod)/targets/$(FW_PLATFORM)/$(_FW_TARGET).mk)
+-include $(foreach mod,$(_FW_MODULES),$(FW_MODDIR)/$(mod)/targets/$(_FW_TARGET).mk)
 
 ifneq ($(FW_TARGET_LOADED),1)
-$(error The "$(TARGET)" target is not supported on this platform)
+$(error The "$(_FW_TARGET)" target is not supported on the "$(FW_PLATFORM_NAME)" platform)
 endif
 
 _FW_TARGET_NAME_DEFINE := $(shell echo "$(FW_TARGET_NAME)" | tr 'a-z' 'A-Z')
