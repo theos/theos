@@ -37,7 +37,7 @@ FW_PLATFORM = $(uname_s)
 -include $(FW_MAKEDIR)/platform/$(uname_s)-$(uname_p).mk
 -include $(FW_MAKEDIR)/platform/$(uname_s).mk
 
-_FW_TARGET := $(or $(target), $(TARGET), $(FW_PLATFORM_DEFAULT_TARGET))
+_FW_TARGET := $(or $(target),$(TARGET),$(FW_PLATFORM_DEFAULT_TARGET))
 ifeq ($(_FW_TARGET),)
 $(error You did not specify a target, and the "$(FW_PLATFORM_NAME)" platform does not define a default target)
 endif
