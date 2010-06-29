@@ -19,6 +19,7 @@ TARGET_CODESIGN_FLAGS ?= -S
 include $(FW_MAKEDIR)/targets/_common/install_deb_remote.mk
 include $(FW_MAKEDIR)/targets/_common/darwin.mk
 
-SDKFLAGS :=
-TARGET_LDFLAGS = -multiply_defined suppress
+SDKFLAGS := -isysroot $(SYSROOT)
+TARGET_CFLAGS := $(SDKFLAGS)
+TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress
 endif
