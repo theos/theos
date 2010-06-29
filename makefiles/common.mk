@@ -41,6 +41,9 @@ _FW_TARGET := $(or $(target),$(TARGET),$(FW_PLATFORM_DEFAULT_TARGET))
 ifeq ($(_FW_TARGET),)
 $(error You did not specify a target, and the "$(FW_PLATFORM_NAME)" platform does not define a default target)
 endif
+_FW_TARGET := $(subst :, ,$(_FW_TARGET))
+_FW_TARGET_ARGS := $(wordlist 2,$(words $(_FW_TARGET)),$(_FW_TARGET))
+_FW_TARGET := $(firstword $(_FW_TARGET))
 
 -include $(FW_MAKEDIR)/targets/$(FW_PLATFORM_ARCH)/$(_FW_TARGET).mk
 -include $(FW_MAKEDIR)/targets/$(FW_PLATFORM)/$(_FW_TARGET).mk
