@@ -3,7 +3,12 @@ FW_TARGET_LOADED := 1
 FW_TARGET_NAME := iphone
 
 SDKBINPATH ?= /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin
+ifneq ($(words $(_FW_TARGET_ARGS)),0)
+# A version specified as a target argument overrides all previous definitions.
+override SDKVERSION := $(firstword $(_FW_TARGET_ARGS))
+else
 SDKVERSION ?= 3.0
+endif
 SYSROOT ?= /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDKVERSION).sdk
 
 TARGET_CC ?= $(SDKBINPATH)/gcc-4.2
