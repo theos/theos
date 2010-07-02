@@ -214,6 +214,28 @@ foreach $line (@inputlines) {
 				redo SCANLOOP;
 			}
 			
+			while($line =~ /%c\(\s*([+-])?([\$_\w]+)\s*\)/g) {
+				next if fallsBetween($-[0], @quotes);
+
+				# TODO: Same caveats as %class.
+				$firsthookline = $lineno if $firsthookline == -1;
+
+				my $scope = $1;
+				$scope = "-" if !$scope;
+				my $classname = $2;
+				my $prefix = "\$";
+				if($scope eq "+") {
+					$staticClassGroup->addUsedMetaClass($classname);
+					$prefix = "\$meta\$";
+				} else {
+					$staticClassGroup->addUsedClass($classname);
+				}
+				$classes{$classname}++;
+				$line = $`.$prefix.$classname.$';
+
+				redo SCANLOOP;
+			}
+			
 			# %new(type) at the beginning of a line after any amount of space
 			while($line =~ /^\s*%new(\((.*?)\))?(%?)(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
