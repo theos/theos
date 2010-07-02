@@ -424,7 +424,11 @@ foreach $line (@inputlines) {
 					fileError($lineno, "%init for an undefined %group $groupname");
 				}
 
-				$line = $before.generateInitLines($group).$after;
+				my $initLines = generateInitLines($group);
+				if($groupname eq "_ungrouped") {
+					$initLines = "{".$initLines.generateInitLines($staticClassGroup)."}";
+				}
+				$line = $before.$initLines.$after;
 				$ctorline = -2; # "Do not generate a constructor."
 				$lastInitLine = $lineno;
 
@@ -462,7 +466,8 @@ while(scalar(@nestingstack) > 0) {
 	fileWarning(-1, "missing %end (%".$parts[0]." opened on line ".$parts[1]." extends to EOF)");
 }
 
-push(@groups, $staticClassGroup);
+# Always insert $staticClassGroup after _ungrouped.
+splice(@groups, 1, 0, $staticClassGroup);
 
 if($firsthookline != -1) {
 	my $offset = 0;
