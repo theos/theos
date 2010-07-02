@@ -38,7 +38,7 @@ sub metaexpression {
 	my $self = shift;
 	if(@_) { $self->{METAEXPR} = shift; }
 	return $self->{METAEXPR} if $self->{METAEXPR};
-	return "objc_getMetaClass(\"".$self->{NAME}."\")";
+	return "object_getClass(\$\$".$self->{NAME}.")";
 }
 
 sub type {
@@ -80,8 +80,8 @@ sub addMethod {
 sub initializers {
 	my $self = shift;
 	my $return = "";
-	$return .= "Class \$\$meta\$".$self->{NAME}." = ".$self->metaexpression."; " if $self->{META};
 	$return .= "Class \$\$".$self->{NAME}." = ".$self->expression."; " if $self->{INST};
+	$return .= "Class \$\$meta\$".$self->{NAME}." = ".$self->metaexpression."; " if $self->{META};
 	foreach(@{$self->{METHODS}}) {
 		$return .= $_->buildHookCall;
 	}
