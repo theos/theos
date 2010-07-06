@@ -18,6 +18,9 @@ done
 shift $((OPTIND-1))
 cmd=$*
 
+mkdir -p $(dirname $persistence)
+touch $persistence
+
 if [[ $delpersistence -eq 1 ]]; then
 	rm -f $persistence
 	exit 0
@@ -28,7 +31,7 @@ if [[ "$USER" == "root" ]]; then
 elif type fakeroot-ng &> /dev/null; then
 	fakeroot="fakeroot-ng -p $persistence -- "
 elif type fakeroot &> /dev/null; then
-	fakeroot="fakeroot -s $persistence -- "
+	fakeroot="fakeroot -i $persistence -s $persistence -- "
 else
 	if [[ $required -eq 1 ]]; then
 		fakeroot=""
