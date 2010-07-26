@@ -214,6 +214,28 @@ foreach $line (@inputlines) {
 				redo SCANLOOP;
 			}
 			
+			while($line =~ /%c\(\s*([+-])?([\$_\w]+)\s*\)/g) {
+				next if fallsBetween($-[0], @quotes);
+
+				# TODO: Same caveats as %class.
+				$firsthookline = $lineno if $firsthookline == -1;
+
+				my $scope = $1;
+				$scope = "-" if !$scope;
+				my $classname = $2;
+				my $prefix = "\$";
+				if($scope eq "+") {
+					$staticClassGroup->addUsedMetaClass($classname);
+					$prefix = "\$meta\$";
+				} else {
+					$staticClassGroup->addUsedClass($classname);
+				}
+				$classes{$classname}++;
+				$line = $`.$prefix.$classname.$';
+
+				redo SCANLOOP;
+			}
+			
 			# %new(type) at the beginning of a line after any amount of space
 			while($line =~ /^\s*%new(\((.*?)\))?(%?)(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
@@ -402,7 +424,11 @@ foreach $line (@inputlines) {
 					fileError($lineno, "%init for an undefined %group $groupname");
 				}
 
-				$line = $before.generateInitLines($group).$after;
+				my $initLines = generateInitLines($group);
+				if($groupname eq "_ungrouped") {
+					$initLines = "{".$initLines.generateInitLines($staticClassGroup)."}";
+				}
+				$line = $before.$initLines.$after;
 				$ctorline = -2; # "Do not generate a constructor."
 				$lastInitLine = $lineno;
 
@@ -440,7 +466,8 @@ while(scalar(@nestingstack) > 0) {
 	fileWarning(-1, "missing %end (%".$parts[0]." opened on line ".$parts[1]." extends to EOF)");
 }
 
-push(@groups, $staticClassGroup);
+# Always insert $staticClassGroup after _ungrouped.
+splice(@groups, 1, 0, $staticClassGroup);
 
 if($firsthookline != -1) {
 	my $offset = 0;

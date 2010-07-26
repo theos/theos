@@ -1,6 +1,6 @@
 #!/bin/bash
 if [[ TARGET_REMOTE -eq 1 ]]; then
-	ssh root@$FW_DEVICE_IP "$*"
+	ssh -p $FW_DEVICE_PORT root@$FW_DEVICE_IP "$*"
 else
 	$*
 fi
