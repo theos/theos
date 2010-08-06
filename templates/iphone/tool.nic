@@ -1,0 +1,27 @@
+file 5 main.mm
+int main(int argc, char **argv, char **envp) {
+	return 0;
+}
+
+// vim:ft=objc
+
+file 6 Makefile
+include theos/makefiles/common.mk
+
+TOOL_NAME = @@PROJECTNAME@@
+@@PROJECTNAME@@_FILES = main.mm
+
+include $(FW_MAKEDIR)/tool.mk
+
+file 10 control
+Package: @@PACKAGENAME@@
+Name: @@FULLPROJECTNAME@@
+Depends: 
+Version: 0.0.1
+Architecture: iphoneos-arm
+Description: An awesome tool of some sort!!
+Maintainer: @@USER@@
+Author: @@USER@@
+Section: System
+Tag: role::hacker
+
