@@ -1,0 +1,43 @@
+dir Resources
+dir layout
+dir layout/DEBIAN
+dir layout/Library
+dir layout/Library/PreferenceLoader
+dir layout/Library/PreferenceLoader/Preferences
+file 2 @@PROJECTNAME@@.mm
+/*
+*/
+
+file 9 layout/Library/PreferenceLoader/Preferences/@@PROJECTNAME@@.plist
+{
+    entry = {
+	bundle = @@PROJECTNAME@@;
+	cell = PSLinkCell;
+	icon = @@PROJECTNAME@@.png;
+	isController = 1;
+	label = @@PROJECTNAME@@;
+    };
+}
+
+file 9 Makefile
+include theos/makefiles/common.mk
+
+BUNDLE_NAME = @@PROJECTNAME@@
+@@PROJECTNAME@@_FILES = @@PROJECTNAME@@.mm
+@@PROJECTNAME@@_INSTALL_PATH = /Library/PreferenceBundles
+@@PROJECTNAME@@_FRAMEWORKS = UIKit
+@@PROJECTNAME@@_PRIVATE_FRAMEWORKS = Preferences
+
+include $(FW_MAKEDIR)/bundle.mk
+
+file 9 layout/DEBIAN/control
+Package: @@PACKAGENAME@@
+Name: @@FULLPROJECTNAME@@
+Depends: preferenceloader
+Version: 0.0.1
+Architecture: iphoneos-arm
+Description: An awesome PreferenceBundle!
+Maintainer: @@USER@@
+Author: @@USER@@
+Section: System
+

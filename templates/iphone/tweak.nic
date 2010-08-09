@@ -1,33 +1,7 @@
-#!/bin/bash
-EXTENSION=$1
-LEXTENSION=$(echo $1 | tr 'A-Z' 'a-z')
-mkdir $LEXTENSION
-cd $LEXTENSION
-mkdir -p layout/DEBIAN
+file 1 @@PROJECTNAME@@.plist
+{ Filter = { Bundles = ( "com.apple.springboard" ); }; }
 
-cat > layout/DEBIAN/control << __END
-Package: com.yourcompany.$LEXTENSION
-Name: $EXTENSION
-Depends: mobilesubstrate
-Version: 0.0.1
-Architecture: iphoneos-arm
-Description: 
-Maintainer: $USER
-Author: $USER
-Section: Tweaks
-__END
-
-svn co http://svn.howett.net/svn/theos/trunk framework
-
-cat > Makefile << __END
-TWEAK_NAME = $EXTENSION
-${EXTENSION}_OBJCC_FILES = Tweak.mm
-
-include framework/makefiles/common.mk
-include framework/makefiles/tweak.mk
-__END
-
-cat > Tweak.xm << __END
+file 34 Tweak.xm
 /* How to Hook with Logos
 Hooks are written with syntax similar to that of an Objective-C @implementation.
 You don't need to #include <substrate.h>, it will be done automatically, as will
@@ -63,4 +37,23 @@ the generation of a class list and an automatic constructor.
 %end
 */
 
-__END
+
+file 6 Makefile
+include theos/makefiles/common.mk
+
+TWEAK_NAME = @@PROJECTNAME@@
+@@PROJECTNAME@@_FILES = Tweak.xm
+
+include $(FW_MAKEDIR)/tweak.mk
+
+file 9 control
+Package: @@PACKAGENAME@@
+Name: @@FULLPROJECTNAME@@
+Depends: mobilesubstrate
+Version: 0.0.1
+Architecture: iphoneos-arm
+Description: An awesome MobileSubstrate tweak!
+Maintainer: @@USER@@
+Author: @@USER@@
+Section: Tweaks
+

@@ -1,6 +1,8 @@
 #ifdef __OBJC__
 	#import <Foundation/Foundation.h>
-	#import <UIKit/UIKit.h>
+	#if TARGET_IPHONE || TARGET_IPHONE_SIMULATOR
+		#import <UIKit/UIKit.h>
+	#endif
 
 	#define CLASS(cls) objc_getClass(#cls)
 
