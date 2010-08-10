@@ -5,6 +5,7 @@ sub new {
 	my $fh = shift;
 	$class = ref($proto) || $proto;
 	my $self = {};
+	$self->{NAME} = undef;
 	$self->{DIRECTORIES} = ();
 	$self->{FILES} = {};
 	$self->{VARIABLES} = {};
@@ -18,7 +19,9 @@ sub _processLine {
 	my $self = shift;
 	my $fh = shift;
 	my $_ = shift;
-	if(/^dir (.+)$/) {
+	if(/^name \"(.*)\"$/) {
+		$self->{NAME} = $1;
+	} elsif(/^dir (.+)$/) {
 		push(@{$self->{DIRECTORIES}}, $1);
 	} elsif(/^file (\d+) (.+)$/) {
 		my $lines = $1;
@@ -56,6 +59,11 @@ sub get {
 	my $self = shift;
 	my $key = shift;
 	return $self->{VARIABLES}->{$key};
+}
+
+sub name {
+	my $self = shift;
+	return $self->{NAME};
 }
 
 sub prompts {

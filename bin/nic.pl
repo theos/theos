@@ -95,7 +95,11 @@ $NIC->set("PACKAGENAME", $package_name);
 $NIC->set("USER", $username);
 
 foreach $prompt ($NIC->prompts) {
-	my $response = undef;
+	# Do we want to import these variables into the NIC automatically? In the format name.VARIABLE?
+	# If so, this could become awesome. We could $NIC->get($prompt->{name})
+	# and have loaded the variables in a loop beforehand.
+	# This would also allow the user to set certain variables (package prefix, username) for different templates.
+	my $response = $CONFIG{$NIC->name().".".$prompt->{name}} || undef;
 	promptIfMissing(\$response, $prompt->{default}, $prompt->{prompt});
 	$NIC->set($prompt->{name}, $response);
 }
@@ -203,7 +207,7 @@ sub getHomeDir {
 sub loadConfig {
 	open(my $cfh, "<", getHomeDir()."/.nicrc") or return;
 	while(<$cfh>) {
-		if(/^(\w+)\s*=\s*\"(.*)\"$/) {
+		if(/^(.+?)\s*=\s*\"(.*)\"$/) {
 			my $key = $1;
 			my $value = $2;
 			$CONFIG{$key} = $value;
