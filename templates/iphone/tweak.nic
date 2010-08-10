@@ -1,5 +1,8 @@
+nic 1
+name "iphone/tweak"
+prompt FILTER "MobileSubstrate Bundle filter" "com.apple.SpringBoard"
 file 1 @@PROJECTNAME@@.plist
-{ Filter = { Bundles = ( "com.apple.springboard" ); }; }
+{ Filter = { Bundles = ( "@@FILTER@@" ); }; }
 
 file 34 Tweak.xm
 /* How to Hook with Logos
