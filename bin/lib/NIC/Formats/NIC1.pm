@@ -8,6 +8,7 @@ sub new {
 	$self->{DIRECTORIES} = ();
 	$self->{FILES} = {};
 	$self->{VARIABLES} = {};
+	$self->{PROMPTS} = ();
 	bless($self, $class);
 	$self->_load($fh);
 	return $self;
@@ -28,6 +29,11 @@ sub _processLine {
 			$lines--;
 		}
 		$self->{FILES}->{$filename} = $filedata;
+	} elsif(/^prompt (\w+) \"(.*?)\"( \"(.*?)\")?$/) {
+		my $key = $1;
+		my $prompt = $2;
+		my $default = $4 || undef;
+		$self->_addPrompt($key, $prompt, $default);
 	}
 }
 
@@ -50,6 +56,20 @@ sub get {
 	my $self = shift;
 	my $key = shift;
 	return $self->{VARIABLES}->{$key};
+}
+
+sub prompts {
+	my $self = shift;
+	return @{$self->{PROMPTS}};
+}
+
+sub _addPrompt {
+	my($self, $key, $prompt, $default) = @_;
+	push(@{$self->{PROMPTS}}, {
+			name => $key,
+			prompt => $prompt,
+			default => $default
+		});
 }
 
 sub _substituteVariables {

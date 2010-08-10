@@ -94,6 +94,12 @@ $NIC->set("PROJECTNAME", $clean_project_name);
 $NIC->set("PACKAGENAME", $package_name);
 $NIC->set("USER", $username);
 
+foreach $prompt ($NIC->prompts) {
+	my $response = undef;
+	promptIfMissing(\$response, $prompt->{default}, $prompt->{prompt});
+	$NIC->set($prompt->{name}, $response);
+}
+
 print "Instantiating $template in ".lc($clean_project_name)."/...",$/;
 my $dirname = lc($clean_project_name);
 $NIC->build($dirname);
