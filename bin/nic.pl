@@ -62,14 +62,15 @@ exitWithError("Couldn't open template at path $nicfile") if(! -f $nicfile);
 open(my $nichandle, "<", $nicfile);
 my $line = <$nichandle>;
 my $nicversion = 1;
-if($line =~ /^nic (\d+)$/) {
+if($line =~ /^nic (\w+)$/) {
 	$nicversion = $1;
 }
 seek($nichandle, 0, 0);
 
 my $NICPackage = "NIC$nicversion";
 exitWithError("I don't understand NIC version $nicversion!") if(!can_load(modules => {"NIC::Formats::$NICPackage" => undef}));
-my $NIC = $NICPackage->new($nichandle);
+my $NIC = $NICPackage->new();
+$NIC->load($nichandle);
 close($nichandle);
 ### YAY! ###
 

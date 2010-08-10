@@ -12,7 +12,6 @@ sub new {
 	$self->{VARIABLES} = {};
 	$self->{PROMPTS} = ();
 	bless($self, $class);
-	$self->_load($fh);
 	return $self;
 }
 
@@ -45,7 +44,7 @@ sub _processLine {
 	}
 }
 
-sub _load {
+sub load {
 	my $self = shift;
 	my $fh = shift;
 	while(<$fh>) {
