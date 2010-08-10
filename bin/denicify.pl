@@ -28,6 +28,7 @@ close($nichandle);
 ### YAY! ###
 
 $NIC->build($outputdir);
+$NIC->dumpPreamble("pre.NIC");
 
 sub exitWithError {
 	my $error = shift;

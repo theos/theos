@@ -115,5 +115,17 @@ sub build {
 	}
 }
 
+sub dumpPreamble {
+	my $self = shift;
+	my $preamblefn = shift;
+	open(my $pfh, ">", $preamblefn);
+	print $pfh "name \"".$self->{NAME}."\"",$/;
+	foreach my $prompt (@{$self->{PROMPTS}}) {
+		print $pfh "prompt ".$prompt->{name}." \"".$prompt->{prompt}."\"";
+		print $pfh " \"".$prompt->{default}."\"" if defined $prompt->{default};
+		print $pfh $/;
+	}
+	close($pfh);
+}
 
 1;
