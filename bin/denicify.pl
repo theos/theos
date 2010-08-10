@@ -1,31 +1,36 @@
 #!/usr/bin/perl
 
 use warnings;
+use FindBin;
+use lib "$FindBin::Bin/lib";
+
+use Module::Load::Conditional 'can_load';
 
 $nicfile = $ARGV[0] if($ARGV[0]);
 $outputdir = $ARGV[1];
-die if !$nicfile || !$outputdir;
+if(!$nicfile || !$outputdir) {
+	exitWithError("Syntax: $0 nicfile outputdir");
+}
 
-buildNic($nicfile, $outputdir);
-sub buildNic {
-	my $template = shift;
-	my $dir = shift;
-	mkdir($dir);
-	open(my($fh), "<", "$nicfile") or die $!;
-	chdir($dir) or die $!;
-	while(<$fh>) {
-		if(/^dir (.+)$/) {
-			mkdir($1);
-		} elsif(/^file (\d+) (.+)$/) {
-			my $lines = $1;
-			my $filename = $2;
-			open(my($nicfile), ">", "./$filename");
-			while($lines > 0) {
-				my $line = <$fh>;
-				print $nicfile ($line);
-				$lines--;
-			}
-			close($nicfile);
-		}
-	}
+### LOAD THE NICFILE! ###
+open(my $nichandle, "<", $nicfile);
+my $line = <$nichandle>;
+my $nicversion = 1;
+if($line =~ /^nic (\d+)$/) {
+	$nicversion = $1;
+}
+seek($nichandle, 0, 0);
+
+my $NICPackage = "NIC$nicversion";
+exitWithError("I don't understand NIC version $nicversion!") if(!can_load(modules => {"NIC::Formats::$NICPackage" => undef}));
+my $NIC = $NICPackage->new($nichandle);
+close($nichandle);
+### YAY! ###
+
+$NIC->build($outputdir);
+
+sub exitWithError {
+	my $error = shift;
+	print STDERR "[error] ", $error, $/;
+	exit 1;
 }
