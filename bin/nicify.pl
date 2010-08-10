@@ -12,6 +12,8 @@ find({wanted => \&processDirectories, follow => 0, no_chdir => 1}, ".");
 find({wanted => \&processFiles, follow => 0, no_chdir => 1}, ".");
 find({wanted => \&processSymlinks, follow => 0, no_chdir => 1}, ".");
 
+print "nic 1",$/;
+
 if(-f "pre.NIC") {
 	open(my $pfh, "<", "pre.NIC");
 	while(<$pfh>) {
