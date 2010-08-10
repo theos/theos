@@ -8,6 +8,7 @@ sub new {
 	$self->{NAME} = undef;
 	$self->{DIRECTORIES} = ();
 	$self->{FILES} = {};
+	$self->{SYMLINKS} = {};
 	$self->{VARIABLES} = {};
 	$self->{PROMPTS} = ();
 	bless($self, $class);
@@ -18,7 +19,7 @@ sub new {
 sub _processLine {
 	my $self = shift;
 	my $fh = shift;
-	my $_ = shift;
+	local $_ = shift;
 	if(/^name \"(.*)\"$/) {
 		$self->{NAME} = $1;
 	} elsif(/^dir (.+)$/) {
@@ -37,6 +38,10 @@ sub _processLine {
 		my $prompt = $2;
 		my $default = $4 || undef;
 		$self->_addPrompt($key, $prompt, $default);
+	} elsif(/^symlink \"(.+)\" \"(.+)\"$/) {
+		my $name = $1;
+		my $dest = $2;
+		$self->{SYMLINKS}->{$name} = $dest;
 	}
 }
 
@@ -102,6 +107,11 @@ sub build {
 		open(my $nicfile, ">", $self->_substituteVariables($filename));
 		print $nicfile $self->_substituteVariables($self->{FILES}->{$filename});
 		close($nicfile);
+	}
+	foreach $symlink (keys %{$self->{SYMLINKS}}) {
+		my $name = $self->_substituteVariables($symlink);
+		my $dest = $self->_substituteVariables($self->{SYMLINKS}->{$symlink});
+		symlink($dest, $name);
 	}
 }
 
