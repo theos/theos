@@ -1,7 +1,11 @@
 #!/usr/bin/perl
 
+my $VER = "1.0";
+
 use warnings;
 use FindBin;
+use lib "$FindBin::Bin/lib";
+
 use Getopt::Long;
 use Cwd 'abs_path';
 use File::Spec;
@@ -9,6 +13,7 @@ use File::Find;
 use File::Copy;
 use User::pwent;
 use POSIX qw(getuid);
+use Module::Load::Conditional 'can_load';
 
 my @_dirs = File::Spec->splitdir(abs_path($FindBin::Bin));
 $_dirs[$#_dirs]="templates";
@@ -42,15 +47,31 @@ GetOptions(	"packagename|p=s" => \$package_name,
 
 $project_name = $ARGV[0] if($ARGV[0]);
 
-print "NIC 0.0.1 - New Instance Creator",$/;
-print "--------------------------------",$/;
+my $_versionstring = "NIC $VER - New Instance Creator";
+print $_versionstring,$/;
+print "-" x length($_versionstring),$/;
 
 $template = $nicfile if $nicfile ne "";
 if(!$template) {
 	$template = promptList(undef, "Choose a Template (required)", @templates);
 }
 $nicfile = "$_templatepath/$template.nic" if $nicfile eq "";
-die "Couldn't open template at path $nicfile" if(! -f $nicfile);
+exitWithError("Couldn't open template at path $nicfile") if(! -f $nicfile);
+
+### LOAD THE NICFILE! ###
+open(my $nichandle, "<", $nicfile);
+my $line = <$nichandle>;
+my $nicversion = 1;
+if($line =~ /^nic (\d+)$/) {
+	$nicversion = $1;
+}
+seek($nichandle, 0, 0);
+
+my $NICPackage = "NIC$nicversion";
+exitWithError("I don't understand NIC version $nicversion!") if(!can_load(modules => {"NIC::Formats::$NICPackage" => undef}));
+my $NIC = $NICPackage->new($nichandle);
+close($nichandle);
+### YAY! ###
 
 promptIfMissing(\$project_name, undef, "Project Name (required)");
 exitWithError("I can't live without a project name! Aieeee!") if !$project_name;
@@ -68,8 +89,25 @@ if(-d $directory) {
 	exit 1 if(uc($response) eq "N");
 }
 
+$NIC->set("FULLPROJECTNAME", $project_name);
+$NIC->set("PROJECTNAME", $clean_project_name);
+$NIC->set("PACKAGENAME", $package_name);
+$NIC->set("USER", $username);
+
+foreach $prompt ($NIC->prompts) {
+	# Do we want to import these variables into the NIC automatically? In the format name.VARIABLE?
+	# If so, this could become awesome. We could $NIC->get($prompt->{name})
+	# and have loaded the variables in a loop beforehand.
+	# This would also allow the user to set certain variables (package prefix, username) for different templates.
+	my $response = $CONFIG{$NIC->name().".".$prompt->{name}} || undef;
+	promptIfMissing(\$response, $prompt->{default}, $prompt->{prompt});
+	$NIC->set($prompt->{name}, $response);
+}
+
 print "Instantiating $template in ".lc($clean_project_name)."/...",$/;
-buildNic($template);
+my $dirname = lc($clean_project_name);
+$NIC->build($dirname);
+symlink($_theospath, "theos");
 print "Done.",$/;
 
 sub promptIfMissing {
@@ -166,45 +204,10 @@ sub getHomeDir {
 	return $pw->dir;
 }
 
-sub buildNic {
-	my $template = shift;
-	my $dir = lc($clean_project_name);
-	open(my($fh), "<", $nicfile) or die $!;
-	mkdir($dir);
-	chdir($dir) or die $!;
-	while(<$fh>) {
-		if(/^dir (.+)$/) {
-			mkdir($1);
-		} elsif(/^file (\d+) (.+)$/) {
-			my $lines = $1;
-			my $filename = $2;
-			$filename = substitute($filename);
-			open(my($nicfile), ">", "./$filename");
-			while($lines > 0) {
-				my $line = <$fh>;
-				print $nicfile (substitute($line));
-				$lines--;
-			}
-			close($nicfile);
-		}
-	}
-	close($fh);
-	symlink($_theospath, "theos");
-}
-
-sub substitute {
-	my $in = shift;
-	$in =~ s/\@\@FULLPROJECTNAME\@\@/$project_name/g;
-	$in =~ s/\@\@PROJECTNAME\@\@/$clean_project_name/g;
-	$in =~ s/\@\@PACKAGENAME\@\@/$package_name/g;
-	$in =~ s/\@\@USER\@\@/$username/g;
-	return $in;
-}
-
 sub loadConfig {
 	open(my $cfh, "<", getHomeDir()."/.nicrc") or return;
 	while(<$cfh>) {
-		if(/^(\w+)\s*=\s*\"(.*)\"$/) {
+		if(/^(.+?)\s*=\s*\"(.*)\"$/) {
 			my $key = $1;
 			my $value = $2;
 			$CONFIG{$key} = $value;

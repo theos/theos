@@ -5,10 +5,22 @@ use File::Find;
 
 @directories = ();
 %files = ();
+%symlinks = ();
 
 chdir $ARGV[0];
 find({wanted => \&processDirectories, follow => 0, no_chdir => 1}, ".");
 find({wanted => \&processFiles, follow => 0, no_chdir => 1}, ".");
+find({wanted => \&processSymlinks, follow => 0, no_chdir => 1}, ".");
+
+print "nic 1",$/;
+
+if(-f "pre.NIC") {
+	open(my $pfh, "<", "pre.NIC");
+	while(<$pfh>) {
+		print $_;
+	}
+	close($pfh);
+}
 
 foreach $dir (@directories) {
 	print "dir $dir",$/;
@@ -21,6 +33,10 @@ foreach $filename (keys %files) {
 	print $files{$filename},$/;
 }
 
+foreach $symlink (keys %symlinks) {
+	print "symlink \"$symlink\" \"".$symlinks{$symlink}."\"",$/;
+}
+
 sub processDirectories {
 	return if(! -d $_);
 	return if(/\.svn/);
@@ -30,11 +46,19 @@ sub processDirectories {
 }
 
 sub processFiles {
-	return if(! -f $_);
+	return if(! -f $_ || -l $_);
+	return if(/\.svn/);
+	return if(/\.[Nn][Ii][Cc]$/);
+	s/^\.\///;
+	$files{$_} = slurp($_);
+}
+
+sub processSymlinks {
+	return if(! -l $_);
 	return if(/\.svn/);
 	return if(/\.nic$/);
 	s/^\.\///;
-	$files{$_} = slurp($_);
+	$symlinks{$_} = readlink($_);
 }
 
 sub slurp {
