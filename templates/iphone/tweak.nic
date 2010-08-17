@@ -1,6 +1,6 @@
 nic 1
 name "iphone/tweak"
-prompt FILTER "MobileSubstrate Bundle filter" "com.apple.SpringBoard"
+prompt FILTER "MobileSubstrate Bundle filter" "com.apple.springboard"
 file 1 @@PROJECTNAME@@.plist
 { Filter = { Bundles = ( "@@FILTER@@" ); }; }
 
