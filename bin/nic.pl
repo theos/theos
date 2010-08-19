@@ -95,6 +95,8 @@ $NIC->set("PROJECTNAME", $clean_project_name);
 $NIC->set("PACKAGENAME", $package_name);
 $NIC->set("USER", $username);
 
+$NIC->addConstraint("package");
+
 foreach $prompt ($NIC->prompts) {
 	# Do we want to import these variables into the NIC automatically? In the format name.VARIABLE?
 	# If so, this could become awesome. We could $NIC->get($prompt->{name})
