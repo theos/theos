@@ -172,6 +172,15 @@ sub dumpPreamble {
 		print $pfh " \"".$prompt->{default}."\"" if defined $prompt->{default};
 		print $pfh $/;
 	}
+	foreach $filename (keys %{$self->{FILES}}) {
+		my $file = $self->{FILES}->{$filename};
+		if(!defined $file->{constraints}) {
+			next;
+		}
+		foreach (@{$file->{constraints}}) {
+			print $pfh "constrain file \"".$filename."\" to ".$_,$/
+		}
+	}
 	close($pfh);
 }
 
