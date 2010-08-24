@@ -1,3 +1,5 @@
+This is a fork of DHowett's theos. For the original see http://github.com/DHowett/theos
+
 #Theos
 A user-friendly framework for creating open iPhone projects
 ## Initial Setup
