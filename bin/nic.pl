@@ -81,7 +81,7 @@ $clean_project_name = cleanProjectName($project_name);
 $package_name = $package_prefix.".".packageNameIze($project_name) if $CONFIG{'skip_package_name'};
 promptIfMissing(\$package_name, $package_prefix.".".packageNameIze($project_name), "Package Name");
 
-promptIfMissing(\$username, getUserName(), "Authour/Maintainer Name");
+promptIfMissing(\$username, getUserName(), "Author/Maintainer Name");
 
 my $directory = lc($clean_project_name);
 if(-d $directory) {
