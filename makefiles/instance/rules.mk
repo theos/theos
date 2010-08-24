@@ -23,25 +23,25 @@ ADDITIONAL_LDFLAGS += $($(FW_INSTANCE)_LDFLAGS)
 # If we have any Objective-C objects, link Foundation and libobjc.
 ifneq ($(_OBJC_FILE_COUNT),0)
 	AUXILIARY_LDFLAGS += -lobjc -framework Foundation -framework CoreFoundation
-
-	# Add all frameworks from the type and instance.
-	AUXILIARY_LDFLAGS += $(foreach framework,$($(FW_TYPE)_FRAMEWORKS),-framework $(framework))
-	AUXILIARY_LDFLAGS += $(foreach framework,$($(FW_INSTANCE)_FRAMEWORKS),-framework $(framework))
-
-	# Add all private frameworks from the type and instance, as well as -F for the private framework dir.
-	ifneq ($(words $($(FW_TYPE)_PRIVATE_FRAMEWORKS)$($(FW_INSTANCE)_PRIVATE_FRAMEWORKS)),0)
-		AUXILIARY_OBJCFLAGS += -F/System/Library/PrivateFrameworks
-		AUXILIARY_LDFLAGS += -F/System/Library/PrivateFrameworks
-	endif
-
-	AUXILIARY_LDFLAGS += $(foreach framework,$($(FW_TYPE)_PRIVATE_FRAMEWORKS),-framework $(framework))
-	AUXILIARY_LDFLAGS += $(foreach framework,$($(FW_INSTANCE)_PRIVATE_FRAMEWORKS),-framework $(framework))
 endif
 
 # In addition, if we have any Objective-C++, add the ObjC++ linker flags.
 ifneq ($(_OBJCC_FILE_COUNT),0)
 	AUXILIARY_LDFLAGS += -ObjC++ -fobjc-exceptions -fobjc-call-cxx-cdtors
 endif
+
+# Add all frameworks from the type and instance.
+AUXILIARY_LDFLAGS += $(foreach framework,$($(FW_TYPE)_FRAMEWORKS),-framework $(framework))
+AUXILIARY_LDFLAGS += $(foreach framework,$($(FW_INSTANCE)_FRAMEWORKS),-framework $(framework))
+
+# Add all private frameworks from the type and instance, as well as -F for the private framework dir.
+ifneq ($(words $($(FW_TYPE)_PRIVATE_FRAMEWORKS)$($(FW_INSTANCE)_PRIVATE_FRAMEWORKS)),0)
+	AUXILIARY_OBJCFLAGS += -F/System/Library/PrivateFrameworks
+	AUXILIARY_LDFLAGS += -F/System/Library/PrivateFrameworks
+endif
+
+AUXILIARY_LDFLAGS += $(foreach framework,$($(FW_TYPE)_PRIVATE_FRAMEWORKS),-framework $(framework))
+AUXILIARY_LDFLAGS += $(foreach framework,$($(FW_INSTANCE)_PRIVATE_FRAMEWORKS),-framework $(framework))
 
 before-$(FW_INSTANCE)-all::
 
