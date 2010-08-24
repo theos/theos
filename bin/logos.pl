@@ -1,6 +1,7 @@
 #!/usr/bin/env perl
 
 use warnings;
+use strict;
 use FindBin;
 use lib "$FindBin::Bin/lib";
 use Logos::Method;
@@ -8,7 +9,7 @@ use Logos::Group;
 use Logos::StaticClassGroup;
 use Logos::Subclass;
 
-$filename = $ARGV[0];
+my $filename = $ARGV[0];
 die "Syntax: $FindBin::Script filename\n" if !$filename;
 open(FILE, $filename) or die "Could not open $filename.\n";
 
@@ -16,7 +17,7 @@ my @inputlines = ();
 my $readignore = 0;
 my $built = "";
 my $building = 0;
-READLOOP: while($line = <FILE>) {
+READLOOP: while(my $line = <FILE>) {
 	chomp($line);
 
 	# End of a multi-line comment while ignoring input.
@@ -75,25 +76,27 @@ READLOOP: while($line = <FILE>) {
 
 close(FILE);
 
-@outputlines = ();
-$lineno = 1;
+my @outputlines = ();
+my $lineno = 1;
 
-$firsthookline = -1;
-$ctorline = -1;
+my $firsthookline = -1;
+my $ctorline = -1;
 
 my $defaultGroup = Group->new();
 $defaultGroup->name("_ungrouped");
 $defaultGroup->explicit(0);
-@groups = ($defaultGroup);
+my @groups = ($defaultGroup);
 
 my $staticClassGroup = StaticClassGroup->new();
-%classes = ();
+my %classes = ();
 
-$hassubstrateh = 0;
-$ignore = 0;
+my $hassubstrateh = 0;
+my $ignore = 0;
 
 my @nestingstack = ();
 my $inclass = 0;
+my $class;
+
 my $last_blockopen = -1;
 my $lastInitLine = -1;
 my $curGroup = $defaultGroup;
@@ -101,7 +104,7 @@ my $lastMethod;
 
 my $isNewMethod = undef;
 
-foreach $line (@inputlines) {
+foreach my $line (@inputlines) {
 	# Search for a discrete %x% or an open-ended %x (or %x with a { or ; after it)
 	if($line =~ /\s*#\s*include\s*[<"]substrate\.h[">]/) {
 		$hassubstrateh = 1;
@@ -123,7 +126,7 @@ foreach $line (@inputlines) {
 		# we re-start the scan loop every time we find a match so that the commands don't need to
 		# be in the processed order on every line. That would be pointless.
 		SCANLOOP: while(1) {
-			@quotes = quotes($line);
+			my @quotes = quotes($line);
 
 			# %hook at the beginning of a line after any amount of space
 			while($line =~ /^\s*%(hook)\s+([\$_\w]+)/g) {
@@ -288,7 +291,7 @@ foreach $line (@inputlines) {
 				while($selnametext =~ /^\s*([\$\w]*)(:\s*\((.+?)\)\s*([\$\w]+?)\b)?/) {
 					last if !$1 && !$2; # Exit the loop if both Keywords and Args are missing: e.g. false positive.
 
-					$keyword = $1; # Add any keyword.
+					my $keyword = $1; # Add any keyword.
 					push(@selparts, $keyword);
 
 					$selnametext = $';
@@ -302,7 +305,7 @@ foreach $line (@inputlines) {
 				$class->addMethod($currentMethod);
 				$lastMethod = $currentMethod;
 
-				$replacement = $currentMethod->buildMethodSignature;
+				my $replacement = $currentMethod->buildMethodSignature;
 				$replacement .= $selnametext if $selnametext ne "";
 				$line = $replacement;
 
@@ -317,7 +320,7 @@ foreach $line (@inputlines) {
 
 				my $hasparens = 0;
 				my $remaining = $';
-				$replacement = "";
+				my $replacement = "";
 				if($remaining) {
 					# If we encounter a ) that puts us back at zero, we found a (
 					# and have reached its closing ).
@@ -337,8 +340,9 @@ foreach $line (@inputlines) {
 						}
 					}
 				}
+
 				if($hasparens > 0) {
-					$parenstring = substr($remaining, 1, $hasparens-2);
+					my $parenstring = substr($remaining, 1, $hasparens-2);
 					$remaining = substr($remaining, $hasparens);
 					$replacement .= $lastMethod->buildOriginalCall($parenstring);
 				} else {
@@ -354,8 +358,7 @@ foreach $line (@inputlines) {
 				next if fallsBetween($-[0], @quotes);
 
 				nestingMustContain($lineno, $&, \@nestingstack, "hook", "subclass");
-				$replacement = $lastMethod->buildLogCall;
-				$line = $`.$replacement.$';
+				$line = $`.$lastMethod->buildLogCall.$';
 
 				redo SCANLOOP;
 			}
@@ -373,8 +376,8 @@ foreach $line (@inputlines) {
 			while($line =~ /%init(\((.*?)\))?(%?);?(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
-				$before = $`;
-				$after = $';
+				my $before = $`;
+				my $after = $';
 
 				my $groupname = "_ungrouped";
 				my @args;
@@ -389,7 +392,7 @@ foreach $line (@inputlines) {
 
 				my $group = getGroup($groupname);
 
-				foreach $arg (@args) {
+				foreach my $arg (@args) {
 					$arg =~ s/\s+//;
 					if($arg !~ /=/) {
 						fileWarning($lineno, "unknown argument to %init: $arg");
@@ -505,7 +508,7 @@ my $numUnGroups = @unInitGroups;
 fileError(-1, "non-initialized hook group".($numUnGroups == 1 ? "" : "s").": ".join(", ", @unInitGroups)) if $numUnGroups > 0;
 
 splice(@outputlines, 0, 0, "#line 1 \"$filename\"");
-foreach $oline (@outputlines) {
+foreach my $oline (@outputlines) {
 	print $oline."\n" if defined($oline);
 }
 
@@ -605,9 +608,9 @@ sub nestingContains {
 	my @stack = @$stackref;
 	my @search = @_;
 	my @parts = ();
-	foreach $nest (@stack) {
+	foreach my $nest (@stack) {
 		@parts = split(/:/, $nest);
-		foreach $find (@search) {
+		foreach my $find (@search) {
 			if($find eq $parts[0]) {
 				$_ = $nest;
 				return $_;

@@ -62,14 +62,15 @@ exitWithError("Couldn't open template at path $nicfile") if(! -f $nicfile);
 open(my $nichandle, "<", $nicfile);
 my $line = <$nichandle>;
 my $nicversion = 1;
-if($line =~ /^nic (\d+)$/) {
+if($line =~ /^nic (\w+)$/) {
 	$nicversion = $1;
 }
 seek($nichandle, 0, 0);
 
 my $NICPackage = "NIC$nicversion";
 exitWithError("I don't understand NIC version $nicversion!") if(!can_load(modules => {"NIC::Formats::$NICPackage" => undef}));
-my $NIC = $NICPackage->new($nichandle);
+my $NIC = $NICPackage->new();
+$NIC->load($nichandle);
 close($nichandle);
 ### YAY! ###
 
@@ -80,7 +81,7 @@ $clean_project_name = cleanProjectName($project_name);
 $package_name = $package_prefix.".".packageNameIze($project_name) if $CONFIG{'skip_package_name'};
 promptIfMissing(\$package_name, $package_prefix.".".packageNameIze($project_name), "Package Name");
 
-promptIfMissing(\$username, getUserName(), "Authour/Maintainer Name");
+promptIfMissing(\$username, getUserName(), "Author/Maintainer Name");
 
 my $directory = lc($clean_project_name);
 if(-d $directory) {
@@ -93,6 +94,8 @@ $NIC->set("FULLPROJECTNAME", $project_name);
 $NIC->set("PROJECTNAME", $clean_project_name);
 $NIC->set("PACKAGENAME", $package_name);
 $NIC->set("USER", $username);
+
+$NIC->addConstraint("package");
 
 foreach $prompt ($NIC->prompts) {
 	# Do we want to import these variables into the NIC automatically? In the format name.VARIABLE?

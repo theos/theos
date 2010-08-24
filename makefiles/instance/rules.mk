@@ -7,8 +7,10 @@ _OBJC_FILE_COUNT = $(words $(filter %.m.o %.mm.o %.xm.o,$(OBJ_FILES)))
 _OBJCC_FILE_COUNT = $(words $(filter %.mm.o %.xm.o,$(OBJ_FILES)))
 
 ifneq ($($(FW_INSTANCE)_SUBPROJECTS),)
-#SUBPROJECT_OBJ_FILES = $(foreach d, $($(FW_INSTANCE)_SUBPROJECTS), \ $(addprefix $(FW_BUILD_DIR)/$(d)/, $(FW_OBJ_DIR_NAME)/$(FW_SUBPROJECT_PRODUCT)))
-SUBPROJECT_OBJ_FILES = $(addsuffix /$(FW_OBJ_DIR_NAME)/$(FW_SUBPROJECT_PRODUCT), $(addprefix $(FW_BUILD_DIR)/,$($(FW_INSTANCE)_SUBPROJECTS)))
+SUBPROJECT_OBJ_FILES = $(foreach d, $($(FW_INSTANCE)_SUBPROJECTS), $(FW_BUILD_DIR)/$(d)/$(FW_OBJ_DIR_NAME)/$(FW_SUBPROJECT_PRODUCT))
+#SUBPROJECT_OBJ_FILES = $(addsuffix /$(FW_OBJ_DIR_NAME)/$(FW_SUBPROJECT_PRODUCT), $(addprefix $(FW_BUILD_DIR)/,$($(FW_INSTANCE)_SUBPROJECTS)))
+SUBPROJECT_LDFLAGS = $(shell sort $(foreach d, $($(FW_INSTANCE)_SUBPROJECTS), $(FW_BUILD_DIR)/$(d)/$(FW_OBJ_DIR_NAME)/ldflags) | uniq)
+AUXILIARY_LDFLAGS += $(SUBPROJECT_LDFLAGS)
 endif
 
 OBJ_FILES_TO_LINK = $(strip $(addprefix $(FW_OBJ_DIR)/,$(OBJ_FILES)) $($(FW_INSTANCE)_OBJ_FILES) $(SUBPROJECT_OBJ_FILES))
@@ -23,25 +25,25 @@ ADDITIONAL_LDFLAGS += $($(FW_INSTANCE)_LDFLAGS)
 # If we have any Objective-C objects, link Foundation and libobjc.
 ifneq ($(_OBJC_FILE_COUNT),0)
 	AUXILIARY_LDFLAGS += -lobjc -framework Foundation -framework CoreFoundation
-
-	# Add all frameworks from the type and instance.
-	AUXILIARY_LDFLAGS += $(foreach framework,$($(FW_TYPE)_FRAMEWORKS),-framework $(framework))
-	AUXILIARY_LDFLAGS += $(foreach framework,$($(FW_INSTANCE)_FRAMEWORKS),-framework $(framework))
-
-	# Add all private frameworks from the type and instance, as well as -F for the private framework dir.
-	ifneq ($(words $($(FW_TYPE)_PRIVATE_FRAMEWORKS)$($(FW_INSTANCE)_PRIVATE_FRAMEWORKS)),0)
-		AUXILIARY_OBJCFLAGS += -F/System/Library/PrivateFrameworks
-		AUXILIARY_LDFLAGS += -F/System/Library/PrivateFrameworks
-	endif
-
-	AUXILIARY_LDFLAGS += $(foreach framework,$($(FW_TYPE)_PRIVATE_FRAMEWORKS),-framework $(framework))
-	AUXILIARY_LDFLAGS += $(foreach framework,$($(FW_INSTANCE)_PRIVATE_FRAMEWORKS),-framework $(framework))
 endif
 
 # In addition, if we have any Objective-C++, add the ObjC++ linker flags.
 ifneq ($(_OBJCC_FILE_COUNT),0)
 	AUXILIARY_LDFLAGS += -ObjC++ -fobjc-exceptions -fobjc-call-cxx-cdtors
 endif
+
+# Add all frameworks from the type and instance.
+AUXILIARY_LDFLAGS += $(foreach framework,$($(FW_TYPE)_FRAMEWORKS),-framework $(framework))
+AUXILIARY_LDFLAGS += $(foreach framework,$($(FW_INSTANCE)_FRAMEWORKS),-framework $(framework))
+
+# Add all private frameworks from the type and instance, as well as -F for the private framework dir.
+ifneq ($(words $($(FW_TYPE)_PRIVATE_FRAMEWORKS)$($(FW_INSTANCE)_PRIVATE_FRAMEWORKS)),0)
+	AUXILIARY_OBJCFLAGS += -F/System/Library/PrivateFrameworks
+	AUXILIARY_LDFLAGS += -F/System/Library/PrivateFrameworks
+endif
+
+AUXILIARY_LDFLAGS += $(foreach framework,$($(FW_TYPE)_PRIVATE_FRAMEWORKS),-framework $(framework))
+AUXILIARY_LDFLAGS += $(foreach framework,$($(FW_INSTANCE)_PRIVATE_FRAMEWORKS),-framework $(framework))
 
 before-$(FW_INSTANCE)-all::
 

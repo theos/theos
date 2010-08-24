@@ -10,9 +10,9 @@ sub new {
 	$self->{FILES} = {};
 	$self->{SYMLINKS} = {};
 	$self->{VARIABLES} = {};
+	$self->{CONSTRAINTS} = {};
 	$self->{PROMPTS} = ();
 	bless($self, $class);
-	$self->_load($fh);
 	return $self;
 }
 
@@ -32,7 +32,8 @@ sub _processLine {
 			$filedata .= <$fh>;
 			$lines--;
 		}
-		$self->{FILES}->{$filename} = $filedata;
+		$self->{FILES}->{$filename} = {} if !defined $self->{FILES}->{$filename};
+		$self->{FILES}->{$filename}->{data} = $filedata;
 	} elsif(/^prompt (\w+) \"(.*?)\"( \"(.*?)\")?$/) {
 		my $key = $1;
 		my $prompt = $2;
@@ -42,10 +43,16 @@ sub _processLine {
 		my $name = $1;
 		my $dest = $2;
 		$self->{SYMLINKS}->{$name} = $dest;
+	} elsif(/^constrain file \"(.+)\" to (.+)$/) {
+		my $constraint = $2;
+		my $filename = $1;
+		$self->{FILES}->{$filename} = {} if !defined $self->{FILES}->{$filename};
+		$self->{FILES}->{$filename}->{constraints} = () if !defined $self->{FILES}->{$filename}->{constraints};
+		push(@{$self->{FILES}->{$filename}->{constraints}}, $constraint);
 	}
 }
 
-sub _load {
+sub load {
 	my $self = shift;
 	my $fh = shift;
 	while(<$fh>) {
@@ -76,6 +83,18 @@ sub prompts {
 	return @{$self->{PROMPTS}};
 }
 
+sub addConstraint {
+	my $self = shift;
+	my $constraint = shift;
+	$self->{CONSTRAINTS}->{$constraint} = 1;
+}
+
+sub removeConstraint {
+	my $self = shift;
+	my $constraint = shift;
+	delete $self->{CONSTRAINTS}->{$constraint};
+}
+
 sub _addPrompt {
 	my($self, $key, $prompt, $default) = @_;
 	push(@{$self->{PROMPTS}}, {
@@ -83,6 +102,28 @@ sub _addPrompt {
 			prompt => $prompt,
 			default => $default
 		});
+}
+
+sub _constraintMatch {
+	my $self = shift;
+	my $constraint = shift;
+	my $negated = 0;
+	if(substr($constraint, 0, 1) eq "!") {
+		$negated = 1;
+		substr($constraint, 0, 1, "");
+	}
+	return 0 if(!$negated && (!defined $self->{CONSTRAINTS}->{$constraint} || $self->{CONSTRAINTS}->{$constraint} != 1));
+	return 0 if($negated && (defined $self->{CONSTRAINTS}->{$constraint} || $self->{CONSTRAINTS}->{$constraint} != 0));
+	return 1;
+}
+
+sub _fileMeetsConstraints {
+	my $self = shift;
+	my $file = shift;
+	foreach (@{$file->{constraints}}) {
+		return 0 if !$self->_constraintMatch($_);
+	}
+	return 1;
 }
 
 sub _substituteVariables {
@@ -104,8 +145,14 @@ sub build {
 		mkdir $self->_substituteVariables($subdir);
 	}
 	foreach $filename (keys %{$self->{FILES}}) {
+		my $file = $self->{FILES}->{$filename};
+		if(defined $file->{constraints}) {
+			if(!$self->_fileMeetsConstraints($file)) {
+				next;
+			}
+		}
 		open(my $nicfile, ">", $self->_substituteVariables($filename));
-		print $nicfile $self->_substituteVariables($self->{FILES}->{$filename});
+		print $nicfile $self->_substituteVariables($file->{data});
 		close($nicfile);
 	}
 	foreach $symlink (keys %{$self->{SYMLINKS}}) {
@@ -124,6 +171,15 @@ sub dumpPreamble {
 		print $pfh "prompt ".$prompt->{name}." \"".$prompt->{prompt}."\"";
 		print $pfh " \"".$prompt->{default}."\"" if defined $prompt->{default};
 		print $pfh $/;
+	}
+	foreach $filename (keys %{$self->{FILES}}) {
+		my $file = $self->{FILES}->{$filename};
+		if(!defined $file->{constraints}) {
+			next;
+		}
+		foreach (@{$file->{constraints}}) {
+			print $pfh "constrain file \"".$filename."\" to ".$_,$/
+		}
 	}
 	close($pfh);
 }
