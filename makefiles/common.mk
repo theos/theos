@@ -6,6 +6,10 @@ FW_PROJECT_DIR ?= $(TOP_DIR)
 ifeq ($(FRAMEWORKDIR),)
 _FW_RELATIVE_MAKE_DIR = $(dir $(lastword $(MAKEFILE_LIST)))
 FRAMEWORKDIR := $(shell cd $(_FW_RELATIVE_MAKE_DIR); cd ..; pwd)
+ifneq ($(words $(FRAMEWORKDIR)),1) # It's a hack, but it works.
+$(shell ln -Ffs "$(FRAMEWORKDIR)" /tmp/theos)
+FRAMEWORKDIR := /tmp/theos
+endif
 endif
 FW_MAKEDIR := $(FRAMEWORKDIR)/makefiles
 FW_BINDIR := $(FRAMEWORKDIR)/bin
