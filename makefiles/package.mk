@@ -8,9 +8,17 @@ FW_PACKAGING_RULES_LOADED := 1
 # We do not do this for anything else, because otherwise, all the packaging rules would run for every subproject.
 ifeq ($(_FW_TOP_INVOCATION_DONE),)
 stage:: all before-stage internal-stage after-stage
+
+_FW_HAS_DPKG_DEB := $(shell type dpkg-deb &> /dev/null && echo 1 || echo 0)
+ifeq ($(_FW_HAS_DPKG_DEB),1)
 package:: stage package-build-deb
+else # _FW_HAS_DPKG_DEB == 0
+package::
+	@echo "$(MAKE) package requires dpkg-deb."; exit 1
+endif
+
 install:: internal-install after-install
-else
+else # _FW_TOP_INVOCATION_DONE
 stage:: internal-stage
 package::
 install::
