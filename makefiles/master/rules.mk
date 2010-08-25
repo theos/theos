@@ -9,6 +9,9 @@ endif
 clean:: before-clean internal-clean after-clean
 
 before-all::
+ifneq ($(SYSROOT),)
+	@[ -d "$(SYSROOT)" ] || { echo "Your current SYSROOT, \"$(SYSROOT)\", appears to be missing."; exit 1; }
+endif
 
 internal-all::
 
