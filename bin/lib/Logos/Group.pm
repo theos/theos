@@ -1,5 +1,4 @@
 package Group;
-use Logos::Class;
 use strict;
 
 sub new {

@@ -4,8 +4,7 @@ use warnings;
 use strict;
 use FindBin;
 use lib "$FindBin::Bin/lib";
-use Logos::Group;
-use Logos::StaticClassGroup;
+use Module::Load;
 use Module::Load::Conditional 'can_load';
 
 %main::CONFIG = ( generator => "MobileSubstrate"
@@ -98,10 +97,13 @@ $Module::Load::Conditional::VERBOSE = 1;
 my $GeneratorPackage = "Logos::Generator::$generator";
 fileError(-1, "I can't find the \"$generator\" Generator!") if(!can_load(modules => {
 			$GeneratorPackage."::Base" => undef,
-			$GeneratorPackage."::Method" => undef,
-			$GeneratorPackage."::Class" => undef,
-			$GeneratorPackage."::Subclass" => undef,
 		}));
+
+load $GeneratorPackage."::Method";
+load $GeneratorPackage."::Class";
+load $GeneratorPackage."::Subclass";
+load 'Logos::Group';
+load $GeneratorPackage."::StaticClassGroup";
 
 my $lineno = 1;
 

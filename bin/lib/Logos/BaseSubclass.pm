@@ -1,6 +1,6 @@
-package Subclass;
-use Logos::Class;
-@ISA = "Class";
+package BaseSubclass;
+use Logos::BaseClass;
+@ISA = "BaseClass";
 
 sub new {
 	my $proto = shift;

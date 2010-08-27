@@ -1,7 +1,7 @@
 package Class;
 use strict;
-use Logos::Class;
-@::ISA = ('Logos::Class');
+use Logos::BaseClass;
+@Class::ISA = ('BaseClass');
 
 sub initializers {
 	my $self = shift;

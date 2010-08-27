@@ -1,4 +1,4 @@
-package Method;
+package BaseMethod;
 use strict;
 
 sub new {

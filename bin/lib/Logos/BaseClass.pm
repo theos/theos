@@ -1,4 +1,4 @@
-package Class;
+package BaseClass;
 use strict;
 
 sub new {

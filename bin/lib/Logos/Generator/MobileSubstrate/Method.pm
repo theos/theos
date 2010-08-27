@@ -1,7 +1,7 @@
 package Method;
 use strict;
-use Logos::Method;
-@::ISA = ('Logos::Method');
+use Logos::BaseMethod;
+@Method::ISA = ('BaseMethod');
 
 sub classname {
 	my $self = shift;

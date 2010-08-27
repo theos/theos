@@ -1,7 +1,7 @@
 package Subclass;
 use Logos::Generator::MobileSubstrate::Class;
-use Logos::Subclass;
-@::ISA = ('Logos::Generator::MobileSubstrate::Class', 'Logos::Subclass');
+use Logos::BaseSubclass;
+@Subclass::ISA = ('Class', 'BaseSubclass');
 
 sub initializers {
 	my $self = shift;
