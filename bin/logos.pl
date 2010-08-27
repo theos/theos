@@ -255,15 +255,13 @@ foreach my $line (@lines) {
 				my $scope = $1;
 				$scope = "-" if !$scope;
 				my $classname = $2;
-				my $prefix = "\$";
 				if($scope eq "+") {
 					$staticClassGroup->addUsedMetaClass($classname);
-					$prefix = "\$meta\$";
 				} else {
 					$staticClassGroup->addUsedClass($classname);
 				}
 				$classes{$classname}++;
-				$line = $`.$prefix.$classname.$';
+				$line = $`.Generator->classReferenceWithScope($classname, $scope).$';
 
 				redo SCANLOOP;
 			}
