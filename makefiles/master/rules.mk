@@ -13,6 +13,9 @@ do:: package install
 	respring
 
 before-all::
+ifneq ($(SYSROOT),)
+	@[ -d "$(SYSROOT)" ] || { echo "Your current SYSROOT, \"$(SYSROOT)\", appears to be missing."; exit 1; }
+endif
 
 internal-all::
 
@@ -44,7 +47,7 @@ ifeq ($(_FW_TOP_INVOCATION_DONE),)
 export _FW_TOP_INVOCATION_DONE = 1
 endif
 
-.PRECIOUS: %.variables
+.PRECIOUS: %.variables %.subprojects
 
 %.variables:
 	@ \

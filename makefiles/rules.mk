@@ -26,7 +26,7 @@ endif
 
 .SUFFIXES:
 
-.SUFFIXES: .m .mm .c .cc
+.SUFFIXES: .m .mm .c .cc .cpp .xm
 
 $(FW_OBJ_DIR)/%.m.o: %.m
 	$(ECHO_COMPILING)$(TARGET_CXX) -x objective-c -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $< -o $@$(ECHO_END)

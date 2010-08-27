@@ -8,9 +8,17 @@ FW_PACKAGING_RULES_LOADED := 1
 # We do not do this for anything else, because otherwise, all the packaging rules would run for every subproject.
 ifeq ($(_FW_TOP_INVOCATION_DONE),)
 stage:: all before-stage internal-stage after-stage
+
+_FW_HAS_DPKG_DEB := $(shell type dpkg-deb &> /dev/null && echo 1 || echo 0)
+ifeq ($(_FW_HAS_DPKG_DEB),1)
 package:: stage package-build-deb
+else # _FW_HAS_DPKG_DEB == 0
+package::
+	@echo "$(MAKE) package requires dpkg-deb."; exit 1
+endif
+
 install:: internal-install after-install
-else
+else # _FW_TOP_INVOCATION_DONE
 stage:: internal-stage
 package::
 install::
@@ -32,15 +40,15 @@ endif # FW_HAS_LAYOUT
 
 ifeq ($(FW_CAN_PACKAGE),1) # Control file found (or layout/ found.)
 
-FW_PACKAGE_NAME := $(shell grep Package "$(FW_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2)
-FW_PACKAGE_ARCH := $(shell grep Architecture "$(FW_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2)
-FW_PACKAGE_VERSION := $(shell grep Version "$(FW_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2)
+FW_PACKAGE_NAME := $(shell grep "^Package:" "$(FW_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2)
+FW_PACKAGE_ARCH := $(shell grep "^Architecture:" "$(FW_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2)
+FW_PACKAGE_VERSION := $(shell grep "^Version:" "$(FW_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2)
 
 ifdef FINALPACKAGE
 FW_PACKAGE_DEBVERSION = $(FW_PACKAGE_VERSION)
 else
 FW_PACKAGE_BUILDNUM = $(shell TOP_DIR="$(TOP_DIR)" $(FW_BINDIR)/deb_build_num.sh $(FW_PACKAGE_NAME) $(FW_PACKAGE_VERSION))
-FW_PACKAGE_DEBVERSION = $(shell grep Version "$(FW_STAGING_DIR)/DEBIAN/control" | cut -d' ' -f2)
+FW_PACKAGE_DEBVERSION = $(shell grep "^Version:" "$(FW_STAGING_DIR)/DEBIAN/control" | cut -d' ' -f2)
 endif
 
 FW_PACKAGE_FILENAME = $(FW_PACKAGE_NAME)_$(FW_PACKAGE_DEBVERSION)_$(FW_PACKAGE_ARCH)
@@ -67,7 +75,7 @@ endif
 	$(ECHO_NOTHING)echo "Installed-Size: $(shell du $(DU_EXCLUDE) DEBIAN -ks "$(FW_STAGING_DIR)" | cut -f 1)" >> "$(FW_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
 
 package-build-deb:: package-build-deb-buildno
-	$(ECHO_NOTHING)$(FAKEROOT) -r dpkg-deb -b "$(FW_STAGING_DIR)" "$(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb" 2>/dev/null$(ECHO_END)
+	$(ECHO_NOTHING)$(FAKEROOT) -r dpkg-deb -b "$(FW_STAGING_DIR)" "$(FW_PROJECT_DIR)/$(FW_PACKAGE_FILENAME).deb" $(STDERR_NULL_REDIRECT)$(ECHO_END)
 
 else # FW_CAN_PACKAGE == 0
 package-build-deb::
