@@ -99,11 +99,9 @@ my $GeneratorPackage = "Logos::Generator::$generator";
 fileError(-1, "I can't find the \"$generator\" Generator!") if(!can_load(modules => {
 			$GeneratorPackage."::Base" => undef,
 			$GeneratorPackage."::Method" => undef,
+			$GeneratorPackage."::Class" => undef,
 			$GeneratorPackage."::Subclass" => undef,
 		}));
-
-my $MethodClass = "Method";
-my $SubclassClass = "Subclass";
 
 my $lineno = 1;
 
@@ -185,7 +183,7 @@ foreach my $line (@lines) {
 				nestPush($1, $lineno, \@nestingstack);
 
 				my $classname = $2;
-				$class = $SubclassClass->new();
+				$class = Subclass->new();
 				$class->name($classname);
 				$class->superclass($3);
 				if(defined($4) && defined($5)) {
@@ -296,7 +294,7 @@ foreach my $line (@lines) {
 				my $return = $2;
 				my $selnametext = $';
 
-				my $currentMethod = $MethodClass->new();
+				my $currentMethod = Method->new();
 
 				$currentMethod->class($class);
 				if($scope eq "+") {
