@@ -8,6 +8,8 @@ ifneq ($(messages),yes)
 	ECHO_COPYING_RESOURCE_DIRS = @(echo " Copying resource directories into the $(FW_TYPE) wrapper...";
 	ECHO_NOTHING = @(
 
+	STDERR_NULL_REDIRECT = 2> /dev/null
+
 	ECHO_END = )
 else
 	ECHO_COMPILING =
@@ -18,6 +20,7 @@ else
 	ECHO_COPYING_RESOURCE_FILES =
 	ECHO_COPYING_RESOURCE_DIRS =
 	ECHO_NOTHING = 
+	STDERR_NULL_REDIRECT = 
 	ECHO_END = 
 endif
 
