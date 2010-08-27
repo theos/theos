@@ -43,7 +43,7 @@ ifeq ($(_FW_TOP_INVOCATION_DONE),)
 export _FW_TOP_INVOCATION_DONE = 1
 endif
 
-.PRECIOUS: %.variables
+.PRECIOUS: %.variables %.subprojects
 
 %.variables:
 	@ \
