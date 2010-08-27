@@ -1,15 +1,14 @@
-#!/usr/bin/env perl
+#!/usr/bin/perl
 
 use warnings;
 use strict;
 use FindBin;
 use lib "$FindBin::Bin/lib";
-use Logos::Method;
 use Logos::Group;
 use Logos::StaticClassGroup;
-use Logos::Subclass;
+use Module::Load::Conditional 'can_load';
 
-%main::CONFIG = (
+%main::CONFIG = ( generator => "MobileSubstrate"
 		);
 
 my $filename = $ARGV[0];
@@ -94,6 +93,18 @@ foreach my $line (@lines) {
 	}
 }
 
+my $generator = $main::CONFIG{generator};
+$Module::Load::Conditional::VERBOSE = 1;
+my $GeneratorPackage = "Logos::Generator::$generator";
+fileError(-1, "I can't find the \"$generator\" Generator!") if(!can_load(modules => {
+			$GeneratorPackage."::Base" => undef,
+			$GeneratorPackage."::Method" => undef,
+			$GeneratorPackage."::Subclass" => undef,
+		}));
+
+my $MethodClass = "Method";
+my $SubclassClass = "Subclass";
+
 my $lineno = 1;
 
 my $firsthookline = -1;
@@ -174,7 +185,7 @@ foreach my $line (@lines) {
 				nestPush($1, $lineno, \@nestingstack);
 
 				my $classname = $2;
-				$class = Subclass->new();
+				$class = $SubclassClass->new();
 				$class->name($classname);
 				$class->superclass($3);
 				if(defined($4) && defined($5)) {
@@ -285,7 +296,7 @@ foreach my $line (@lines) {
 				my $return = $2;
 				my $selnametext = $';
 
-				my $currentMethod = Method->new();
+				my $currentMethod = $MethodClass->new();
 
 				$currentMethod->class($class);
 				if($scope eq "+") {
