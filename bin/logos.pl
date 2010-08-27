@@ -185,9 +185,10 @@ foreach my $line (@lines) {
 				nestPush($1, $lineno, \@nestingstack);
 
 				my $classname = $2;
+				my $superclassname = $3;
 				$class = Subclass->new();
 				$class->name($classname);
-				$class->superclass($3);
+				$class->superclass($superclassname);
 				if(defined($4) && defined($5)) {
 					my @protocols = split(/\s*,\s*/, $5);
 					foreach(@protocols) {
@@ -197,6 +198,7 @@ foreach my $line (@lines) {
 				$curGroup->addClass($class);
 
 				$staticClassGroup->addDeclaredOnlyClass($classname);
+				$classes{$superclassname}++;
 				$classes{$classname}++;
 
 				$inclass = 1;
