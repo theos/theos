@@ -9,6 +9,9 @@ use Logos::Group;
 use Logos::StaticClassGroup;
 use Logos::Subclass;
 
+%main::CONFIG = (
+		);
+
 my $filename = $ARGV[0];
 die "Syntax: $FindBin::Script filename\n" if !$filename;
 open(FILE, $filename) or die "Could not open $filename.\n";
@@ -76,6 +79,21 @@ READLOOP: while(my $line = <FILE>) {
 
 close(FILE);
 
+# Process the input lines for directives which must be parsed before main processing, such as %config
+# Mk. I processing loop - preprocessing.
+foreach my $line (@inputlines) {
+	SCANLOOP: while(1) {
+		my @quotes = quotes($line);
+		while($line =~ /^\s*%config\s*\(\s*(\w+)\s*=\s*(.*?)\s*\)\s*;/g) {
+			next if fallsBetween($-[0], @quotes);
+			$line = $';
+			$main::CONFIG{$1} = $2;
+			redo SCANLOOP;
+		}
+		last;
+	}
+}
+
 my @outputlines = ();
 my $lineno = 1;
 
@@ -104,6 +122,7 @@ my $lastMethod;
 
 my $isNewMethod = undef;
 
+# Mk. II processing loop - directive processing.
 foreach my $line (@inputlines) {
 	# Search for a discrete %x% or an open-ended %x (or %x with a { or ; after it)
 	if($line =~ /\s*#\s*include\s*[<"]substrate\.h[">]/) {
