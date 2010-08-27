@@ -32,11 +32,7 @@ ifeq ($(_FW_TOP_INVOCATION_DONE),)
 before-stage::
 	$(ECHO_NOTHING)rm -rf "$(FW_STAGING_DIR)"$(ECHO_END)
 	$(ECHO_NOTHING)$(FAKEROOT) -c$(ECHO_END)
-ifeq ($(FW_HAS_LAYOUT),1)
-	$(ECHO_NOTHING)rsync -a "$(FW_PROJECT_DIR)/layout/" "$(FW_STAGING_DIR)" --exclude "DEBIAN" $(FW_RSYNC_EXCLUDES)$(ECHO_END)
-else # FW_HAS_LAYOUT == 0
 	$(ECHO_NOTHING)mkdir -p "$(FW_STAGING_DIR)"$(ECHO_END)
-endif # FW_HAS_LAYOUT
 
 ifeq ($(FW_CAN_PACKAGE),1) # Control file found (or layout/ found.)
 
@@ -88,6 +84,8 @@ endif # _FW_TOP_INVOCATION_DONE
 # *-stage calls *-package for backwards-compatibility.
 internal-package after-package::
 internal-stage:: internal-package
+	$(ECHO_NOTHING)[ -d layout ] && rsync -a "layout/" "$(FW_STAGING_DIR)" --exclude "DEBIAN" $(FW_RSYNC_EXCLUDES) || true$(ECHO_END)
+
 after-stage:: after-package
 
 after-install:: internal-after-install
