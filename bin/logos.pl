@@ -92,10 +92,10 @@ foreach my $line (@lines) {
 	}
 }
 
-my $generator = $main::CONFIG{generator};
+my $generatorname = $main::CONFIG{generator};
 $Module::Load::Conditional::VERBOSE = 1;
-my $GeneratorPackage = "Logos::Generator::$generator";
-fileError(-1, "I can't find the \"$generator\" Generator!") if(!can_load(modules => {
+my $GeneratorPackage = "Logos::Generator::$generatorname";
+fileError(-1, "I can't find the \"$generatorname\" Generator!") if(!can_load(modules => {
 			$GeneratorPackage."::Base" => undef,
 		}));
 
@@ -506,7 +506,7 @@ if($firsthookline != -1) {
 		splice(@lines, $firsthookline - 1, 0, "#include <substrate.h>");
 		$offset++;
 	}
-	splice(@lines, $firsthookline - 1 + $offset, 0, generateClassList());
+	splice(@lines, $firsthookline - 1 + $offset, 0, Generator->generateClassList(keys %classes));
 	$offset++;
 	splice(@lines, $firsthookline - 1 + $offset, 0, $staticClassGroup->declarations);
 	$offset++;
@@ -568,12 +568,6 @@ sub generateInitLines {
 	}
 
 	my $return = $group->initializers;
-	return $return;
-}
-
-sub generateClassList {
-	my $return = "";
-	map $return .= "\@class $_; ", sort keys %classes;
 	return $return;
 }
 
