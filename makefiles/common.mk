@@ -33,7 +33,7 @@ endif # FW_HAS_LAYOUT
 FW_CAN_PACKAGE := $(shell [ -f "$(FW_PACKAGE_CONTROL_PATH)" ] && echo 1 || echo 0)
 endif # FW_TOP_INVOCATION_DONE
 
-_FW_MODULES := $(MODULES)
+_FW_MODULES := $(sort $(MODULES) $(THEOS_AUTOLOAD_MODULES))
 
 uname_s := $(shell uname -s)
 uname_p := $(shell uname -p)

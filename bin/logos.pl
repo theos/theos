@@ -1,19 +1,20 @@
-#!/usr/bin/env perl
+#!/usr/bin/perl
 
 use warnings;
 use strict;
 use FindBin;
 use lib "$FindBin::Bin/lib";
-use Logos::Method;
-use Logos::Group;
-use Logos::StaticClassGroup;
-use Logos::Subclass;
+use Module::Load;
+use Module::Load::Conditional 'can_load';
+
+%main::CONFIG = ( generator => "MobileSubstrate"
+		);
 
 my $filename = $ARGV[0];
 die "Syntax: $FindBin::Script filename\n" if !$filename;
 open(FILE, $filename) or die "Could not open $filename.\n";
 
-my @inputlines = ();
+my @lines = ();
 my $readignore = 0;
 my $built = "";
 my $building = 0;
@@ -25,7 +26,7 @@ READLOOP: while(my $line = <FILE>) {
 		$readignore = 0;
 		$line = $';
 	}
-	if($readignore) { push(@inputlines, ""); next; }
+	if($readignore) { push(@lines, ""); next; }
 
 	my @quotes = quotes($line);
 
@@ -47,7 +48,7 @@ READLOOP: while(my $line = <FILE>) {
 	while($line =~ /\/\*.*$/g) {
 		next if fallsBetween($-[0], @quotes);
 		$line = $`;
-		push(@inputlines, $line);
+		push(@lines, $line);
 		$readignore = 1;
 		next READLOOP;
 	}
@@ -57,26 +58,53 @@ READLOOP: while(my $line = <FILE>) {
 		if(!$building && $line =~ /^\s*(%new.*?)?\s*([+-])\s*\(\s*(.*?)\s*\)/ && index($line, "{") == -1 && index($line, ";") == -1) {
 			$building = 1;
 			$built = $line;
-			push(@inputlines, "");
+			push(@lines, "");
 			next;
 		} elsif($building) {
 			$built .= " ".$line;
 			if(index($line,"{") != -1 || index($line,";") != -1) {
-				push(@inputlines, $built);
+				push(@lines, $built);
 				$building = 0;
 				$built = "";
 				next;
 			}
-			push(@inputlines, "");
+			push(@lines, "");
 			next;
 		}
-		push(@inputlines, $line) if !$readignore;
+		push(@lines, $line) if !$readignore;
 	}
 }
 
 close(FILE);
 
-my @outputlines = ();
+# Process the input lines for directives which must be parsed before main processing, such as %config
+# Mk. I processing loop - preprocessing.
+foreach my $line (@lines) {
+	SCANLOOP: while(1) {
+		my @quotes = quotes($line);
+		while($line =~ /^\s*%config\s*\(\s*(\w+)\s*=\s*(.*?)\s*\)\s*;/g) {
+			next if fallsBetween($-[0], @quotes);
+			$line = $';
+			$main::CONFIG{$1} = $2;
+			redo SCANLOOP;
+		}
+		last;
+	}
+}
+
+my $generatorname = $main::CONFIG{generator};
+$Module::Load::Conditional::VERBOSE = 1;
+my $GeneratorPackage = "Logos::Generator::$generatorname";
+fileError(-1, "I can't find the \"$generatorname\" Generator!") if(!can_load(modules => {
+			$GeneratorPackage."::Base" => undef,
+		}));
+
+load $GeneratorPackage."::Method";
+load $GeneratorPackage."::Class";
+load $GeneratorPackage."::Subclass";
+load 'Logos::Group';
+load $GeneratorPackage."::StaticClassGroup";
+
 my $lineno = 1;
 
 my $firsthookline = -1;
@@ -104,7 +132,8 @@ my $lastMethod;
 
 my $isNewMethod = undef;
 
-foreach my $line (@inputlines) {
+# Mk. II processing loop - directive processing.
+foreach my $line (@lines) {
 	# Search for a discrete %x% or an open-ended %x (or %x with a { or ; after it)
 	if($line =~ /\s*#\s*include\s*[<"]substrate\.h[">]/) {
 		$hassubstrateh = 1;
@@ -156,9 +185,10 @@ foreach my $line (@inputlines) {
 				nestPush($1, $lineno, \@nestingstack);
 
 				my $classname = $2;
+				my $superclassname = $3;
 				$class = Subclass->new();
 				$class->name($classname);
-				$class->superclass($3);
+				$class->superclass($superclassname);
 				if(defined($4) && defined($5)) {
 					my @protocols = split(/\s*,\s*/, $5);
 					foreach(@protocols) {
@@ -168,6 +198,7 @@ foreach my $line (@inputlines) {
 				$curGroup->addClass($class);
 
 				$staticClassGroup->addDeclaredOnlyClass($classname);
+				$classes{$superclassname}++;
 				$classes{$classname}++;
 
 				$inclass = 1;
@@ -226,15 +257,13 @@ foreach my $line (@inputlines) {
 				my $scope = $1;
 				$scope = "-" if !$scope;
 				my $classname = $2;
-				my $prefix = "\$";
 				if($scope eq "+") {
 					$staticClassGroup->addUsedMetaClass($classname);
-					$prefix = "\$meta\$";
 				} else {
 					$staticClassGroup->addUsedClass($classname);
 				}
 				$classes{$classname}++;
-				$line = $`.$prefix.$classname.$';
+				$line = $`.Generator->classReferenceWithScope($classname, $scope).$';
 
 				redo SCANLOOP;
 			}
@@ -460,7 +489,6 @@ foreach my $line (@inputlines) {
 		}
 	}
 	$lineno++;
-	push(@outputlines, $line);
 }
 
 while(scalar(@nestingstack) > 0) {
@@ -475,27 +503,27 @@ splice(@groups, 1, 0, $staticClassGroup);
 if($firsthookline != -1) {
 	my $offset = 0;
 	if(!$hassubstrateh) {
-		splice(@outputlines, $firsthookline - 1, 0, "#include <substrate.h>");
+		splice(@lines, $firsthookline - 1, 0, "#include <substrate.h>");
 		$offset++;
 	}
-	splice(@outputlines, $firsthookline - 1 + $offset, 0, generateClassList());
+	splice(@lines, $firsthookline - 1 + $offset, 0, Generator->generateClassList(keys %classes));
 	$offset++;
-	splice(@outputlines, $firsthookline - 1 + $offset, 0, $staticClassGroup->declarations);
+	splice(@lines, $firsthookline - 1 + $offset, 0, $staticClassGroup->declarations);
 	$offset++;
-	splice(@outputlines, $firsthookline - 1 + $offset, 0, "#line $firsthookline \"$filename\"");
+	splice(@lines, $firsthookline - 1 + $offset, 0, "#line $firsthookline \"$filename\"");
 	$offset++;
 	if($ctorline == -2) {
 		# If the static class list hasn't been initialized, glue it under the last %init line.
 		if(!$staticClassGroup->initialized) {
-			splice(@outputlines, $lastInitLine + $offset, 0, $staticClassGroup->initializers);
+			splice(@lines, $lastInitLine + $offset, 0, $staticClassGroup->initializers);
 			$offset++;
-			splice(@outputlines, $lastInitLine + $offset, 0, "#line ".($lastInitLine+1)." \"$filename\"");
+			splice(@lines, $lastInitLine + $offset, 0, "#line ".($lastInitLine+1)." \"$filename\"");
 			$offset++;
 		}
 	} elsif($ctorline != -1) {
-		$outputlines[$ctorline + $offset - 1] = generateConstructor();
+		$lines[$ctorline + $offset - 1] = generateConstructor();
 	} else {
-		push(@outputlines, generateConstructor());
+		push(@lines, generateConstructor());
 	}
 
 }
@@ -507,8 +535,8 @@ foreach(@groups) {
 my $numUnGroups = @unInitGroups;
 fileError(-1, "non-initialized hook group".($numUnGroups == 1 ? "" : "s").": ".join(", ", @unInitGroups)) if $numUnGroups > 0;
 
-splice(@outputlines, 0, 0, "#line 1 \"$filename\"");
-foreach my $oline (@outputlines) {
+splice(@lines, 0, 0, "#line 1 \"$filename\"");
+foreach my $oline (@lines) {
 	print $oline."\n" if defined($oline);
 }
 
@@ -540,12 +568,6 @@ sub generateInitLines {
 	}
 
 	my $return = $group->initializers;
-	return $return;
-}
-
-sub generateClassList {
-	my $return = "";
-	map $return .= "\@class $_; ", sort keys %classes;
 	return $return;
 }
 
