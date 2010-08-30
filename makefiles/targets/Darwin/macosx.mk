@@ -12,6 +12,7 @@ TARGET_CODESIGN_ALLOCATE ?= $(SDKBINPATH)/codesign_allocate
 TARGET_CODESIGN ?=
 TARGET_CODESIGN_FLAGS ?=
 
+include $(FW_MAKEDIR)/targets/_common/install_deb_local.mk
 include $(FW_MAKEDIR)/targets/_common/darwin.mk
 
 ARCHS ?= i386 x86_64
