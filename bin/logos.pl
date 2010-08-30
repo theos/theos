@@ -334,7 +334,7 @@ foreach my $line (@lines) {
 				$class->addMethod($currentMethod);
 				$lastMethod = $currentMethod;
 
-				my $replacement = $currentMethod->buildMethodSignature;
+				my $replacement = $currentMethod->methodSignature;
 				$replacement .= $selnametext if $selnametext ne "";
 				$line = $replacement;
 
@@ -373,9 +373,9 @@ foreach my $line (@lines) {
 				if($hasparens > 0) {
 					my $parenstring = substr($remaining, 1, $hasparens-2);
 					$remaining = substr($remaining, $hasparens);
-					$replacement .= $lastMethod->buildOriginalCall($parenstring);
+					$replacement .= $lastMethod->originalCall($parenstring);
 				} else {
-					$replacement .= $lastMethod->buildOriginalCall;
+					$replacement .= $lastMethod->originalCall;
 				}
 				$replacement .= $remaining;
 				$line = $`.$replacement;

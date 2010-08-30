@@ -9,7 +9,7 @@ sub initializers {
 	$return .= "Class \$\$".$self->{NAME}." = ".$self->expression."; " if $self->{INST} or $self->{META};
 	$return .= "Class \$\$meta\$".$self->{NAME}." = ".$self->metaexpression."; " if $self->{META};
 	foreach(@{$self->{METHODS}}) {
-		$return .= $_->buildHookCall;
+		$return .= $_->initializers;
 	}
 	return $return;
 }

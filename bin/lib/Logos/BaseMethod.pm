@@ -97,18 +97,18 @@ sub selector {
 	}
 }
 
-sub buildMethodSignature {
+sub methodSignature {
 	::fileError(-1, "Generator hasn't implemented Method::buildMethodSignature :(");
 	return "";
 }
 
-sub buildOriginalCall {
-	::fileError(-1, "Generator hasn't implemented Method::buildOriginalCall :(");
+sub originalCall {
+	::fileError(-1, "Generator hasn't implemented Method::originalCall :(");
 	return "";
 }
 
-sub buildHookCall {
-	::fileError(-1, "Generator hasn't implemented Method::buildHookCall :(");
+sub initializers {
+	::fileError(-1, "Generator hasn't implemented Method::initializers :(");
 	return "";
 }
 

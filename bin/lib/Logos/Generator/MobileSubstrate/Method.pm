@@ -27,7 +27,7 @@ sub newFunctionName {
 	return "\$".$self->groupIdentifier."\$".$self->classname."\$".$self->new_selector;
 }
 
-sub buildMethodSignature {
+sub methodSignature {
 	my $self = shift;
 	my $build = "";
 	my $classargtype = "";
@@ -50,7 +50,7 @@ sub buildMethodSignature {
 	return $build;
 }
 
-sub buildOriginalCall {
+sub originalCall {
 	my $self = shift;
 	my ($customargs) = @_;
 	return "" if $self->{NEW};
@@ -65,7 +65,7 @@ sub buildOriginalCall {
 	return $build;
 }
 
-sub buildHookCall {
+sub initializers {
 	my $self = shift;
 	if(!$self->{NEW}) {
 		return "MSHookMessageEx(\$\$".$self->classname.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", (IMP*)&".$self->originalFunctionName.");";
