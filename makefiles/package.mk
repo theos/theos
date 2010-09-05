@@ -9,7 +9,7 @@ FW_PACKAGING_RULES_LOADED := 1
 ifeq ($(_FW_TOP_INVOCATION_DONE),)
 stage:: all before-stage internal-stage after-stage
 
-_FW_HAS_DPKG_DEB := $(shell type dpkg-deb > /dev/null && echo 1 || echo 0)
+_FW_HAS_DPKG_DEB := $(shell type dpkg-deb > /dev/null 2>&1 && echo 1 || echo 0)
 ifeq ($(_FW_HAS_DPKG_DEB),1)
 package:: stage package-build-deb
 else # _FW_HAS_DPKG_DEB == 0
