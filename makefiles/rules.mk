@@ -68,6 +68,12 @@ endif
 $(FW_OBJ_DIR):
 	@cd $(FW_BUILD_DIR); mkdir -p $(FW_OBJ_DIR_NAME)
 
+$(FW_OBJ_DIR)/.stamp: $(FW_OBJ_DIR)
+	@touch $@
+
+$(FW_OBJ_DIR)/%/.stamp: $(FW_OBJ_DIR)
+	@mkdir -p $(dir $@); touch $@
+
 Makefile: ;
 framework/makefiles/*.mk: ;
 $(FW_MAKEDIR)/*.mk: ;

@@ -13,9 +13,9 @@ endif
 AUXILIARY_LDFLAGS += -dynamiclib -install_name $($(FW_INSTANCE)_INSTALL_PATH)/$(LOCAL_FRAMEWORK_NAME).framework/$(FW_INSTANCE)
 
 ifeq ($(FW_MAKE_PARALLEL_BUILDING), no)
-internal-framework-all_:: $(FW_OBJ_DIR) $(FW_OBJ_DIR)/$(FW_INSTANCE)
+internal-framework-all_:: $(_OBJ_DIR_STAMPS) $(FW_OBJ_DIR)/$(FW_INSTANCE)
 else
-internal-framework-all_:: $(FW_OBJ_DIR)
+internal-framework-all_:: $(_OBJ_DIR_STAMPS)
 	$(ECHO_NOTHING)$(MAKE) --no-print-directory --no-keep-going \
 		internal-framework-compile \
 		FW_TYPE=$(FW_TYPE) FW_INSTANCE=$(FW_INSTANCE) FW_OPERATION=compile \

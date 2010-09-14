@@ -7,9 +7,9 @@ endif
 AUXILIARY_LDFLAGS += -framework UIKit
 
 ifeq ($(FW_MAKE_PARALLEL_BUILDING), no)
-internal-application-all_:: $(FW_OBJ_DIR) $(FW_OBJ_DIR)/$(FW_INSTANCE)$(TARGET_EXE_EXT)
+internal-application-all_:: $(_OBJ_DIR_STAMPS) $(FW_OBJ_DIR)/$(FW_INSTANCE)$(TARGET_EXE_EXT)
 else
-internal-application-all_:: $(FW_OBJ_DIR)
+internal-application-all_:: $(_OBJ_DIR_STAMPS)
 	$(ECHO_NOTHING)$(MAKE) --no-print-directory --no-keep-going \
 		internal-application-compile \
 		FW_TYPE=$(FW_TYPE) FW_INSTANCE=$(FW_INSTANCE) FW_OPERATION=compile \
