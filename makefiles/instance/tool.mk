@@ -5,9 +5,9 @@ endif
 .PHONY: internal-tool-all_ internal-tool-stage_ internal-tool-compile
 
 ifeq ($(FW_MAKE_PARALLEL_BUILDING), no)
-internal-tool-all_:: $(FW_OBJ_DIR) $(FW_OBJ_DIR)/$(FW_INSTANCE)$(TARGET_EXE_EXT)
+internal-tool-all_:: $(_OBJ_DIR_STAMPS) $(FW_OBJ_DIR)/$(FW_INSTANCE)$(TARGET_EXE_EXT)
 else
-internal-tool-all_:: $(FW_OBJ_DIR)
+internal-tool-all_:: $(_OBJ_DIR_STAMPS)
 	$(ECHO_NOTHING)$(MAKE) --no-print-directory --no-keep-going \
 		internal-tool-compile \
 		FW_TYPE=$(FW_TYPE) FW_INSTANCE=$(FW_INSTANCE) FW_OPERATION=compile \
