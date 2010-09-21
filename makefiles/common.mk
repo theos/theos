@@ -5,7 +5,7 @@ FW_PROJECT_DIR ?= $(TOP_DIR)
 
 ifeq ($(FRAMEWORKDIR),)
 _FW_RELATIVE_MAKE_DIR = $(dir $(lastword $(MAKEFILE_LIST)))
-FRAMEWORKDIR := $(shell cd $(_FW_RELATIVE_MAKE_DIR); cd ..; pwd)
+FRAMEWORKDIR := $(shell (unset CDPATH; cd $(_FW_RELATIVE_MAKE_DIR); cd ..; pwd))
 ifneq ($(words $(FRAMEWORKDIR)),1) # It's a hack, but it works.
 $(shell ln -Ffs "$(FRAMEWORKDIR)" /tmp/theos)
 FRAMEWORKDIR := /tmp/theos
@@ -94,7 +94,7 @@ endif
 FW_OBJ_DIR = $(FW_BUILD_DIR)/$(FW_OBJ_DIR_NAME)
 
 FW_STAGING_DIR_NAME ?= _
-FW_STAGING_DIR = $(FW_PROJECT_DIR)/$(FW_STAGING_DIR_NAME)
+FW_STAGING_DIR = $(FW_BUILD_DIR)/$(FW_STAGING_DIR_NAME)
 
 # $(warning ...) expands to the empty string, so the contents of FW_STAGING_DIR are not damaged in this copy.
 FW_PACKAGE_STAGING_DIR = $(FW_STAGING_DIR)$(warning FW_PACKAGE_STAGING_DIR is deprecated; please use FW_STAGING_DIR)

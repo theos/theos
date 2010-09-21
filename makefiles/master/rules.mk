@@ -31,7 +31,7 @@ include $(FW_MAKEDIR)/package.mk
 
 ifeq ($(MAKELEVEL),0)
 ifneq ($(FW_BUILD_DIR),.)
-ABS_FW_BUILD_DIR = $(shell (cd "$(FW_BUILD_DIR)"; pwd))
+ABS_FW_BUILD_DIR = $(shell (unset CDPATH; cd "$(FW_BUILD_DIR)"; pwd))
 else
 ABS_FW_BUILD_DIR = .
 endif
