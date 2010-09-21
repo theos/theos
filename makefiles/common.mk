@@ -94,7 +94,7 @@ endif
 FW_OBJ_DIR = $(FW_BUILD_DIR)/$(FW_OBJ_DIR_NAME)
 
 FW_STAGING_DIR_NAME ?= _
-FW_STAGING_DIR = $(FW_BUILD_DIR)/$(FW_STAGING_DIR_NAME)
+FW_STAGING_DIR = $(FW_PROJECT_DIR)/$(FW_STAGING_DIR_NAME)
 
 # $(warning ...) expands to the empty string, so the contents of FW_STAGING_DIR are not damaged in this copy.
 FW_PACKAGE_STAGING_DIR = $(FW_STAGING_DIR)$(warning FW_PACKAGE_STAGING_DIR is deprecated; please use FW_STAGING_DIR)
