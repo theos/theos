@@ -6,6 +6,11 @@ endif
 
 AUXILIARY_LDFLAGS += -framework UIKit
 
+LOCAL_INSTALL_PATH ?= $(strip $($(FW_INSTANCE)_INSTALL_PATH))
+ifeq ($(LOCAL_INSTALL_PATH),)
+	LOCAL_INSTALL_PATH = /Applications
+endif
+
 ifeq ($(FW_MAKE_PARALLEL_BUILDING), no)
 internal-application-all_:: $(_OBJ_DIR_STAMPS) $(FW_OBJ_DIR)/$(FW_INSTANCE)$(TARGET_EXE_EXT)
 else
@@ -26,7 +31,7 @@ else
 LOCAL_BUNDLE_NAME = $($(FW_INSTANCE)_BUNDLE_NAME)
 endif
 
-FW_SHARED_BUNDLE_RESOURCE_PATH = $(FW_STAGING_DIR)/Applications/$(LOCAL_BUNDLE_NAME).app
+FW_SHARED_BUNDLE_RESOURCE_PATH = $(FW_STAGING_DIR)$(LOCAL_INSTALL_PATH)/$(LOCAL_BUNDLE_NAME).app
 include $(FW_MAKEDIR)/instance/shared/bundle.mk
 
 internal-application-stage_:: shared-instance-bundle-stage
