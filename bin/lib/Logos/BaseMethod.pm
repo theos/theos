@@ -189,7 +189,7 @@ sub formatCharForArgType {
 	return "{%g, %g}" if $argtype =~ /\b(CG|NS)Size\b/;
 
 	# Opaque Types (pointer)
-	#return "%p" if $argtype =~ /\bNSZone\b/;
+	return "%p" if $argtype =~ /\bNSZone\b/;
 
 	# Discarded Types
 	return "--" if $argtype =~ /\b(CG\w*|CF\w*|void)\b/;
