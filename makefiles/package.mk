@@ -17,7 +17,7 @@ package::
 	@echo "$(MAKE) package requires dpkg-deb."; exit 1
 endif
 
-install:: internal-install after-install
+install:: before-install internal-install after-install
 else # _FW_TOP_INVOCATION_DONE
 stage:: internal-stage
 package::
@@ -40,7 +40,6 @@ FW_PACKAGE_NAME := $(shell grep "^Package:" "$(FW_PACKAGE_CONTROL_PATH)" | cut -
 FW_PACKAGE_ARCH := $(shell grep "^Architecture:" "$(FW_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2)
 FW_PACKAGE_VERSION := $(shell grep "^Version:" "$(FW_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2)
 
-FW_PACKAGE_BUILDNUM = $(shell TOP_DIR="$(TOP_DIR)" $(FW_BINDIR)/deb_build_num.sh $(FW_PACKAGE_NAME) $(FW_PACKAGE_VERSION))
 FW_PACKAGE_DEBVERSION = $(shell grep "^Version:" "$(FW_STAGING_DIR)/DEBIAN/control" | cut -d' ' -f2)
 
 FW_PACKAGE_FILENAME = $(FW_PACKAGE_NAME)_$(FW_PACKAGE_DEBVERSION)_$(FW_PACKAGE_ARCH)
@@ -50,7 +49,7 @@ package-build-deb-buildno::
 ifeq ($(FW_HAS_LAYOUT),1) # If we have a layout/ directory, copy layout/DEBIAN to the staging directory.
 	$(ECHO_NOTHING)rsync -a "$(FW_PROJECT_DIR)/layout/DEBIAN/" "$(FW_STAGING_DIR)/DEBIAN" $(FW_RSYNC_EXCLUDES)$(ECHO_END)
 endif # FW_HAS_LAYOUT
-	$(ECHO_NOTHING)sed -e 's/Version: \(.*\)/Version: \1-$(FW_PACKAGE_BUILDNUM)$(if $(PACKAGE_BUILDNAME),+$(PACKAGE_BUILDNAME),)/g' "$(FW_PACKAGE_CONTROL_PATH)" > "$(FW_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
+	$(ECHO_NOTHING)$(FW_BINDIR)/package_version.sh -c "$(FW_PACKAGE_CONTROL_PATH)" $(if $(PACKAGE_BUILDNAME),-e $(PACKAGE_BUILDNAME),) > "$(FW_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
 	$(ECHO_NOTHING)echo "Installed-Size: $(shell du $(DU_EXCLUDE) DEBIAN -ks "$(FW_STAGING_DIR)" | cut -f 1)" >> "$(FW_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
 
 package-build-deb:: package-build-deb-buildno
@@ -71,6 +70,7 @@ internal-stage:: internal-package
 
 after-stage:: after-package
 
+before-install::
 after-install:: internal-after-install
 internal-after-install::
 
