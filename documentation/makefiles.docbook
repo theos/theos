@@ -19,11 +19,18 @@
 
     <para>Here is an example makefile for a project using &project;</para>
 
-    <programlisting>TWEAK_NAME = Simple
-Simple_OBJCC_FILES = Tweak.mm
+    <programlisting># System variables such as MODULES and TARGET.
 
 include theos/makefiles/common.mk
-include theos/makefiles/tweak.mk</programlisting>
+
+# Instance-related variables such as xxx_FILES.
+
+TOOL_NAME = Simple
+Simple_FILES = simple.mm
+
+include $(FW_MAKEDIR)/tool.mk
+
+# Custom rules</programlisting>
   </section>
 
   <section id="project-types">
@@ -38,25 +45,27 @@ include theos/makefiles/tweak.mk</programlisting>
     <para>From one Makefile, you can build multiple types of project (just
     include both project type makefiles). An example:</para>
 
-    <programlisting>TWEAK_NAME = Simple
-Simple_OBJCC_FILES = Tweak.mm
+    <programlisting>include theos/makefiles/common.mk
+
+TWEAK_NAME = Simple
+Simple_FILES = Tweak.mm
 
 TOOL_NAME = simpleutility
-simpleutility_C_FILES = su.c
+simpleutility_FILES = su.c
 
-include theos/makefiles/common.mk
-include theos/makefiles/tweak.mk
-include theos/makefiles/tool.mk</programlisting>
+include $(FW_MAKEDIR)/tweak.mk
+include $(FW_MAKEDIR)/tool.mk</programlisting>
 
     <para>You can also build multiple instances of a single project type from
     one Makefile.</para>
 
-    <programlisting>TWEAK_NAME = Simple Complex
-Simple_OBJCC_FILES = Tweak.mm
-Complex_OBJCC_FILES = 1.mm 2.mm 3.mm 4.mm
+    <programlisting>include theos/makefiles/common.mk
 
-include theos/makefiles/common.mk
-include theos/makefiles/tweak.mk</programlisting>
+TWEAK_NAME = Simple Complex
+Simple_FILES = Tweak.mm
+Complex_FILES = 1.mm 2.mm 3.mm 4.mm
+
+include $(FW_MAKEDIR)/tweak.mk</programlisting>
 
     <section>
       <title>Aggregate (<filename>aggregate.mk</filename>)</title>
@@ -82,7 +91,7 @@ include theos/makefiles/tweak.mk</programlisting>
       <title><systemitem class="library">UIKit</systemitem> Applications
       (<filename>application.mk</filename>)</title>
 
-      <para>An application is an Objective-C program that includes a GUI
+      <para>An <literal>application</literal> is an Objective-C program that includes a GUI
       component, and by default links against <systemitem
       class="library">UIKit</systemitem>.</para>
     </section>
@@ -90,7 +99,7 @@ include theos/makefiles/tweak.mk</programlisting>
     <section>
       <title>Command Line Tools (<filename>tool.mk</filename>)</title>
 
-      <para>A tool is a program that does not have a GUI component, and does
+      <para>A <literal>tool</literal> is a program that does not have a GUI component, and differs from an <literal>application</literal> wherein it does
       not link against <systemitem class="library">UIKit</systemitem>. This
       project type is intended for command-line tools, daemons, etc.</para>
     </section>
@@ -98,7 +107,7 @@ include theos/makefiles/tweak.mk</programlisting>
     <section>
       <title>MobileSubstrate Tweaks (<filename>tweak.mk</filename>)</title>
 
-      <para>A tweak is a dynamic library that links against <systemitem
+      <para>A <literal>tweak</literal> is a dynamic library that links against <systemitem
       class="library">MobileSubstrate</systemitem> for the purposes of adding
       and replacing functions and methods at runtime.</para>
 
@@ -106,7 +115,7 @@ include theos/makefiles/tweak.mk</programlisting>
       preprocessor.</para>
 
       <note>
-        <para>A tweak does not, by default, link against <systemitem
+        <para>A <literal>tweak</literal> does not, by default, link against <systemitem
         class="library">UIKit</systemitem>. If you want to link against
         <systemitem class="library">UIKit</systemitem>, add it to
         <varname>xxx_FRAMEWORKS</varname>.</para>
@@ -116,13 +125,54 @@ include theos/makefiles/tweak.mk</programlisting>
     <section>
       <title>Bundles (<filename>bundle.mk</filename>)</title>
 
-      <para>A bundle is a dynamic library meant to be loaded into another
-      application, using the <classname>NSBundle</classname> class.</para>
+      <para>A <literal>bundle</literal> is a dynamic library meant to be loaded into another
+      application at runtime, using the <classname>NSBundle</classname> class.</para>
+    </section>
+
+    <section>
+      <title>Frameworks (<filename>framework.mk</filename>)</title>
+
+      <!--para>A framework is a dynamic library bundle, containing resources, meant to be linked by another
+      application or dynamic library.</para-->
+    </section>
+
+    <section>
+      <title>Dynamic Libraries (<filename>library.mk</filename>)</title>
     </section>
   </section>
 
   <section>
     <title>Variables</title>
+
+    <section>
+      <title>Immutable System Variables</title>
+
+      <para>These variables are listed for use in toplevel Makefiles. Please do not change them.</para>
+
+      <variablelist>
+        <varlistentry>
+          <term><varname>FRAMEWORKDIR</varname></term>
+          <term><varname>FW_MAKEDIR</varname></term>
+          <term><varname>FW_BINDIR</varname></term>
+          <term><varname>FW_LIBDIR</varname></term>
+          <term><varname>FW_INCDIR</varname></term>
+          <term><varname>FW_MODDIR</varname></term>
+
+          <listitem>
+            <para>Used for locating other &project; resources, such as binaries, scripts, modules and other makefiles.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><varname>FW_PLATFORM_NAME</varname></term>
+          <term><varname>FW_TARGET_NAME</varname></term>
+
+          <listitem>
+            <para>The build platform and the platform being targeted, normalized.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </section>
 
     <section>
       <title>System Variables</title>
@@ -283,20 +333,14 @@ include theos/makefiles/tweak.mk</programlisting>
 
       <variablelist>
         <varlistentry>
-          <term><varname>xxx_C_FILES</varname></term>
-
-          <term><varname>xxx_CC_FILES</varname></term>
-
-          <term><varname>xxx_OBJC_FILES</varname></term>
-
-          <term><varname>xxx_OBJCC_FILES</varname></term>
+          <term><varname>xxx_FILES</varname></term>
 
           <listitem>
             <para>The <varname>FILES</varname> variables contain
             space-delimited lists of the source files comprising the project.
-            Including <varname>OBJC_FILES</varname> or
-            <varname>OBJCC_FILES</varname> causes the Objective-C runtime and
+	    Including files with the <filename>.m</filename> or <filename>.mm</filename> extensions causes the Objective-C runtime and
             Foundation framework to be linked with your project.</para>
+            <para>The older type-specific <varname>FILES</varname> variables are deprecated in favour of <varname>xxx_FILES</varname>.</para>
           </listitem>
         </varlistentry>
 
@@ -306,13 +350,14 @@ include theos/makefiles/tweak.mk</programlisting>
           <listitem>
             <para>The <varname>OBJ_FILES</varname> variable contains a
             space-delimited list of precompiled object files
-            (<filename>.o</filename>) to be linked with the project.</para>
+	    (<filename>.o</filename> or library/framework binaries) to be linked with the project.</para>
           </listitem>
         </varlistentry>
 
         <varlistentry>
-          <term><varname>xxx_FRAMEWORKS</varname>,
-          <varname>xxx_PRIVATE_FRAMEWORKS</varname></term>
+          <term><varname>xxx_FRAMEWORKS</varname></term>
+
+          <term><varname>xxx_PRIVATE_FRAMEWORKS</varname></term>
 
           <listitem>
             <para>The <varname>FRAMEWORKS</varname> variables contain
