@@ -145,9 +145,9 @@ include $(FW_MAKEDIR)/tweak.mk</programlisting>
     <title>Variables</title>
 
     <section>
-      <title>Immutable System Variables</title>
+      <title>System Constants</title>
 
-      <para>These variables are listed for use in toplevel Makefiles. Please do not change them.</para>
+      <para>These constants are listed for use in toplevel Makefiles.</para>
 
       <variablelist>
         <varlistentry>
