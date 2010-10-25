@@ -4,6 +4,9 @@ ifeq ($(FW_RULES_LOADED),)
 include $(FW_MAKEDIR)/rules.mk
 endif
 
+before-all::
+	@[ -f "$(FW_LIBDIR)/libsubstrate.dylib" ] || bootstrap.sh substrate
+
 internal-all:: $(TWEAK_NAME:=.all.tweak.variables);
 
 internal-stage:: $(TWEAK_NAME:=.stage.tweak.variables);
