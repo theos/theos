@@ -56,7 +56,7 @@ __EOF
 		echo -n " failed, what?"
 	echo
 
-	if [[ "$(uname -s)" == "Darwin" ]]; then
+	if [[ "$(uname -s)" == "Darwin" && "$(uname -p)" != "arm" ]]; then
 		echo " Compiling native CydiaSubstrate stub..."
 		make CydiaSubstrate target=native > /dev/null
 		if [[ -f obj/libsubstrate.dylib ]]; then
