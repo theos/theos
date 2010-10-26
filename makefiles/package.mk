@@ -24,7 +24,7 @@ package::
 install::
 endif
 
-FAKEROOT := $(FW_BINDIR)/fakeroot.sh -p "$(FW_PROJECT_DIR)/.debmake/fakeroot"
+FAKEROOT := $(FW_BINDIR)/fakeroot.sh -p "$(FW_PROJECT_DIR)/.theos/fakeroot"
 export FAKEROOT
 
 # Only do the master packaging rules if we're the toplevel make invocation.
