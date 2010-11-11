@@ -350,7 +350,7 @@ foreach my $line (@lines) {
 				my $hasparens = 0;
 				my $remaining = $';
 				my $replacement = "";
-				if($remaining) {
+				if($remaining ne "") {
 					# If we encounter a ) that puts us back at zero, we found a (
 					# and have reached its closing ).
 					my $parenmatch = $remaining;
