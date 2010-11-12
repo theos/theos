@@ -7,7 +7,7 @@ ifeq ($(FRAMEWORKDIR),)
 _FW_RELATIVE_MAKE_DIR = $(dir $(lastword $(MAKEFILE_LIST)))
 FRAMEWORKDIR := $(shell (unset CDPATH; cd $(_FW_RELATIVE_MAKE_DIR); cd ..; pwd))
 ifneq ($(words $(FRAMEWORKDIR)),1) # It's a hack, but it works.
-$(shell ln -Ffs "$(FRAMEWORKDIR)" /tmp/theos)
+$(shell unlink /tmp/theos &> /dev/null; ln -Ffs "$(FRAMEWORKDIR)" /tmp/theos)
 FRAMEWORKDIR := /tmp/theos
 endif
 endif
