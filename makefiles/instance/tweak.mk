@@ -1,19 +1,19 @@
-ifeq ($(FW_RULES_LOADED),)
-include $(FW_MAKEDIR)/rules.mk
+ifeq ($(_THEOS_RULES_LOADED),)
+include $(THEOS_MAKE_PATH)/rules.mk
 endif
 
 .PHONY: internal-tweak-all_ internal-tweak-stage_
 
-LOCAL_INSTALL_PATH ?= $(strip $($(FW_INSTANCE)_INSTALL_PATH))
+LOCAL_INSTALL_PATH ?= $(strip $($(THEOS_CURRENT_INSTANCE)_INSTALL_PATH))
 ifeq ($(LOCAL_INSTALL_PATH),)
 	LOCAL_INSTALL_PATH = /Library/MobileSubstrate/DynamicLibraries
 endif
 
 AUXILIARY_LDFLAGS += -lsubstrate
 
-include $(FW_MAKEDIR)/instance/library.mk
+include $(THEOS_MAKE_PATH)/instance/library.mk
 
 internal-tweak-all_:: internal-library-all_
 
 internal-tweak-stage_:: internal-library-stage_
-	$(ECHO_NOTHING)if [ -f $(FW_INSTANCE).plist ]; then cp $(FW_INSTANCE).plist "$(FW_STAGING_DIR)$(LOCAL_INSTALL_PATH)/"; fi$(ECHO_END)
+	$(ECHO_NOTHING)if [ -f $(THEOS_CURRENT_INSTANCE).plist ]; then cp $(THEOS_CURRENT_INSTANCE).plist "$(THEOS_STAGING_DIR)$(LOCAL_INSTALL_PATH)/"; fi$(ECHO_END)

@@ -1,7 +1,7 @@
 #!/bin/bash
 ARGV0=$0
-[[ -z "$FRAMEWORKDIR" ]] && FRAMEWORKDIR=$(cd $(dirname $0); cd ..; pwd)
-THEOSDIR="$FRAMEWORKDIR"
+[[ -z "$THEOS" ]] && THEOS=$(cd $(dirname $0); cd ..; pwd)
+THEOSDIR="$THEOS"
 
 function makeSubstrateStub() {
 	PROJECTDIR=$(mktemp -d /tmp/theos.XXXXXX)
@@ -16,14 +16,14 @@ CydiaSubstrate_INSTALL_PATH = /Library/Frameworks
 LIBRARY_NAME = libsubstrate
 libsubstrate_FILES = Hooker.cc
 libsubstrate_INSTALL_PATH = /usr/lib
-include \$(FW_MAKEDIR)/framework.mk
-include \$(FW_MAKEDIR)/library.mk
+include \$(THEOS_MAKE_PATH)/framework.mk
+include \$(THEOS_MAKE_PATH)/library.mk
 
 after-libsubstrate-all::
-	@\$(TARGET_STRIP) -x -c \$(FW_OBJ_DIR)/libsubstrate.dylib
+	@\$(TARGET_STRIP) -x -c \$(THEOS_OBJ_DIR)/libsubstrate.dylib
 
 after-CydiaSubstrate-all::
-	@\$(TARGET_STRIP) -x -c \$(FW_OBJ_DIR)/CydiaSubstrate
+	@\$(TARGET_STRIP) -x -c \$(THEOS_OBJ_DIR)/CydiaSubstrate
 __EOF
 
 	cat > Hooker.cc << __EOF
@@ -47,7 +47,7 @@ __EOF
 
 	unset MAKE MAKELEVEL
 	unset TARGET_CC TARGET_CXX TARGET_STRIP TARGET_CODESIGN_ALLOCATE TARGET_CODESIGN TARGET_CODESIGN_FLAGS
-	unset FW_PROJECT_DIR
+	unset THEOS_PROJECT_DIR
 	echo -n " Compiling iPhoneOS CydiaSubstrate stub..."
 	( echo -n " default target?"; make libsubstrate target=iphone &> /dev/null; ) ||
 		( echo -n " failed, forcing 2.0?"; make libsubstrate target=iphone:2.0 &> /dev/null; ) ||

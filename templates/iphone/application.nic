@@ -74,7 +74,7 @@ include theos/makefiles/common.mk
 APPLICATION_NAME = @@PROJECTNAME@@
 @@PROJECTNAME@@_FILES = main.m @@PROJECTNAME@@Application.mm RootViewController.mm
 
-include $(FW_MAKEDIR)/application.mk
+include $(THEOS_MAKE_PATH)/application.mk
 
 file 9 control
 Package: @@PACKAGENAME@@

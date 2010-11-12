@@ -28,7 +28,7 @@ include theos/makefiles/common.mk
 TOOL_NAME = Simple
 Simple_FILES = simple.mm
 
-include $(FW_MAKEDIR)/tool.mk
+include $(THEOS_MAKE_PATH)/tool.mk
 
 # Custom rules</programlisting>
   </section>
@@ -53,8 +53,8 @@ Simple_FILES = Tweak.mm
 TOOL_NAME = simpleutility
 simpleutility_FILES = su.c
 
-include $(FW_MAKEDIR)/tweak.mk
-include $(FW_MAKEDIR)/tool.mk</programlisting>
+include $(THEOS_MAKE_PATH)/tweak.mk
+include $(THEOS_MAKE_PATH)/tool.mk</programlisting>
 
     <para>You can also build multiple instances of a single project type from
     one Makefile.</para>
@@ -65,7 +65,7 @@ TWEAK_NAME = Simple Complex
 Simple_FILES = Tweak.mm
 Complex_FILES = 1.mm 2.mm 3.mm 4.mm
 
-include $(FW_MAKEDIR)/tweak.mk</programlisting>
+include $(THEOS_MAKE_PATH)/tweak.mk</programlisting>
 
     <section>
       <title>Aggregate (<filename>aggregate.mk</filename>)</title>
@@ -151,12 +151,12 @@ include $(FW_MAKEDIR)/tweak.mk</programlisting>
 
       <variablelist>
         <varlistentry>
-          <term><varname>FRAMEWORKDIR</varname></term>
-          <term><varname>FW_MAKEDIR</varname></term>
-          <term><varname>FW_BINDIR</varname></term>
-          <term><varname>FW_LIBDIR</varname></term>
-          <term><varname>FW_INCDIR</varname></term>
-          <term><varname>FW_MODDIR</varname></term>
+          <term><varname>THEOS</varname></term>
+          <term><varname>THEOS_MAKE_PATH</varname></term>
+          <term><varname>THEOS_BIN_PATH</varname></term>
+          <term><varname>THEOS_LIBRARY_PATH</varname></term>
+          <term><varname>THEOS_INCLUDE_PATH</varname></term>
+          <term><varname>THEOS_MODULE_PATH</varname></term>
 
           <listitem>
             <para>Used for locating other &project; resources, such as binaries, scripts, modules and other makefiles.</para>
@@ -164,8 +164,8 @@ include $(FW_MAKEDIR)/tweak.mk</programlisting>
         </varlistentry>
 
         <varlistentry>
-          <term><varname>FW_PLATFORM_NAME</varname></term>
-          <term><varname>FW_TARGET_NAME</varname></term>
+          <term><varname>THEOS_PLATFORM_NAME</varname></term>
+          <term><varname>THEOS_TARGET_NAME</varname></term>
 
           <listitem>
             <para>The build platform and the platform being targeted, normalized.</para>
@@ -182,17 +182,17 @@ include $(FW_MAKEDIR)/tweak.mk</programlisting>
 
       <variablelist>
         <varlistentry>
-          <term><varname>FW_BUILD_DIR</varname></term>
+          <term><varname>THEOS_BUILD_DIR</varname></term>
 
           <listitem>
             <para>Build directory (objects are placed in
-            <filename><varname>FW_BUILD_DIR</varname>/<varname>FW_OBJ_DIR_NAME</varname></filename>).
+            <filename><varname>THEOS_BUILD_DIR</varname>/<varname>THEOS_OBJ_DIR_NAME</varname></filename>).
             Defaults to the current directory.</para>
           </listitem>
         </varlistentry>
 
         <varlistentry>
-          <term><varname>FW_OBJ_DIR_NAME</varname></term>
+          <term><varname>THEOS_OBJ_DIR_NAME</varname></term>
 
           <listitem>
             <para>Output file directory name. Defaults to
@@ -201,11 +201,11 @@ include $(FW_MAKEDIR)/tweak.mk</programlisting>
         </varlistentry>
 
         <varlistentry>
-          <term><varname>FW_PACKAGE_STAGING_DIR</varname></term>
+          <term><varname>THEOS_STAGING_DIR</varname></term>
 
           <listitem>
             <para>Package staging directory. Defaults to
-            <filename><varname>FW_PROJECT_DIR</varname>/_</filename>.</para>
+            <filename><varname>THEOS_PROJECT_DIR</varname>/_</filename>.</para>
           </listitem>
         </varlistentry>
 

@@ -5,8 +5,8 @@ $(warning Only a single subproject can be built in any directory!)
 $(warning Ignoring all subprojects and building only $(SUBPROJECT_NAME))
 endif
 
-ifeq ($(FW_RULES_LOADED),)
-include $(FW_MAKEDIR)/rules.mk
+ifeq ($(_THEOS_RULES_LOADED),)
+include $(THEOS_MAKE_PATH)/rules.mk
 endif
 
 internal-all:: $(SUBPROJECT_NAME:=.all.subproject.variables);

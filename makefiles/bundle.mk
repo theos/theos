@@ -1,7 +1,7 @@
-ifeq ($(FW_INSTANCE),)
-	include $(FW_MAKEDIR)/master/bundle.mk
+ifeq ($(THEOS_CURRENT_INSTANCE),)
+	include $(THEOS_MAKE_PATH)/master/bundle.mk
 else
-	ifeq ($(FW_TYPE),bundle)
-		include $(FW_MAKEDIR)/instance/bundle.mk
+	ifeq ($(_THEOS_CURRENT_TYPE),bundle)
+		include $(THEOS_MAKE_PATH)/instance/bundle.mk
 	endif
 endif

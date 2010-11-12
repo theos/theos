@@ -1,7 +1,7 @@
-ifeq ($(FW_INSTANCE),)
-	include $(FW_MAKEDIR)/master/library.mk
+ifeq ($(THEOS_CURRENT_INSTANCE),)
+	include $(THEOS_MAKE_PATH)/master/library.mk
 else
-	ifeq ($(FW_TYPE),library)
-		include $(FW_MAKEDIR)/instance/library.mk
+	ifeq ($(_THEOS_CURRENT_TYPE),library)
+		include $(THEOS_MAKE_PATH)/instance/library.mk
 	endif
 endif

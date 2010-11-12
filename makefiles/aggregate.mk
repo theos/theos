@@ -1,7 +1,7 @@
-ifeq ($(FW_AGGREGATE_MK_LOADED),)
-	FW_AGGREGATE_MK_LOADED := 1
+ifeq ($(_THEOS_AGGREGATE_MK_LOADED),)
+	_THEOS_AGGREGATE_MK_LOADED := 1
 
-	ifeq ($(FW_INSTANCE),)
-		include $(FW_MAKEDIR)/master/aggregate.mk
+	ifeq ($(THEOS_CURRENT_INSTANCE),)
+		include $(THEOS_MAKE_PATH)/master/aggregate.mk
 	endif
 endif

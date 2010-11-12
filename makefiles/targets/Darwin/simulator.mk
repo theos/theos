@@ -1,11 +1,11 @@
-ifeq ($(FW_TARGET_LOADED),)
-FW_TARGET_LOADED := 1
-FW_TARGET_NAME := iphone_simulator
+ifeq ($(_THEOS_TARGET_LOADED),)
+_THEOS_TARGET_LOADED := 1
+THEOS_TARGET_NAME := iphone_simulator
 
 SDKBINPATH ?= /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin
-ifneq ($(words $(_FW_TARGET_ARGS)),0)
+ifneq ($(words $(_THEOS_TARGET_ARGS)),0)
 # A version specified as a target argument overrides all previous definitions.
-override SDKVERSION := $(firstword $(_FW_TARGET_ARGS))
+override SDKVERSION := $(firstword $(_THEOS_TARGET_ARGS))
 else
 SDKVERSION ?= 3.0
 endif
@@ -19,7 +19,7 @@ TARGET_CODESIGN_ALLOCATE ?= $(SDKBINPATH)/codesign_allocate
 TARGET_CODESIGN ?=
 TARGET_CODESIGN_FLAGS ?=
 
-include $(FW_MAKEDIR)/targets/_common/darwin.mk
+include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
 
 ifeq ($(IPHONE_SIMULATOR_ROOT),)
 internal-install::
@@ -27,7 +27,7 @@ internal-install::
 	@exit 1
 else
 internal-install:: stage
-	install.mergeDir "$(FW_STAGING_DIR)" "$(IPHONE_SIMULATOR_ROOT)"
+	install.mergeDir "$(THEOS_STAGING_DIR)" "$(IPHONE_SIMULATOR_ROOT)"
 endif
 
 ARCHS ?= i386

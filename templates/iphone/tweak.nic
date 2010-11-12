@@ -47,7 +47,7 @@ include theos/makefiles/common.mk
 TWEAK_NAME = @@PROJECTNAME@@
 @@PROJECTNAME@@_FILES = Tweak.xm
 
-include $(FW_MAKEDIR)/tweak.mk
+include $(THEOS_MAKE_PATH)/tweak.mk
 
 file 9 control
 Package: @@PACKAGENAME@@

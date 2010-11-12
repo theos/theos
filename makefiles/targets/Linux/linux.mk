@@ -1,9 +1,9 @@
-ifeq ($(FW_TARGET_LOADED),)
-FW_TARGET_LOADED := 1
-FW_TARGET_NAME := linux
+ifeq ($(_THEOS_TARGET_LOADED),)
+_THEOS_TARGET_LOADED := 1
+THEOS_TARGET_NAME := linux
 
-ifneq ($(words $(_FW_TARGET_ARGS)),0)
-CROSS_COMPILE := $(firstword $(_FW_TARGET_ARGS))-
+ifneq ($(words $(_THEOS_TARGET_ARGS)),0)
+CROSS_COMPILE := $(firstword $(_THEOS_TARGET_ARGS))-
 endif 
 
 TARGET_CC ?= $(CROSS_COMPILE)gcc
@@ -14,7 +14,7 @@ TARGET_CODESIGN_ALLOCATE ?=
 TARGET_CODESIGN ?=
 TARGET_CODESIGN_FLAGS ?=
 
-include $(FW_MAKEDIR)/targets/_common/linux.mk
+include $(THEOS_MAKE_PATH)/targets/_common/linux.mk
 
 SDKFLAGS :=
 endif

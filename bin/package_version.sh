@@ -19,18 +19,18 @@ if [[ -z "$CONTROL" || ! -f "$CONTROL" ]]; then
 	exit 1;
 fi
 
-if [[ ! -d "${FW_PROJECT_DIR}/.theos/packages" ]]; then
-	if [[ -d "${FW_PROJECT_DIR}/.debmake" ]]; then
-		mkdir -p "${FW_PROJECT_DIR}/.theos"
-		mv "${FW_PROJECT_DIR}/.debmake" "${FW_PROJECT_DIR}/.theos/packages"
+if [[ ! -d "${THEOS_PROJECT_DIR}/.theos/packages" ]]; then
+	if [[ -d "${THEOS_PROJECT_DIR}/.debmake" ]]; then
+		mkdir -p "${THEOS_PROJECT_DIR}/.theos"
+		mv "${THEOS_PROJECT_DIR}/.debmake" "${THEOS_PROJECT_DIR}/.theos/packages"
 	else
-		mkdir -p "${FW_PROJECT_DIR}/.theos/packages"
+		mkdir -p "${THEOS_PROJECT_DIR}/.theos/packages"
 	fi
 fi
 
 package=$(grep "^Package:" "$CONTROL" | cut -d' ' -f2)
 version=$(grep "^Version:" "$CONTROL" | cut -d' ' -f2)
-versionfile="${FW_PROJECT_DIR}/.theos/packages/$package-$version"
+versionfile="${THEOS_PROJECT_DIR}/.theos/packages/$package-$version"
 build_number=0
 
 if [[ ! -e "$versionfile" ]]; then
