@@ -270,7 +270,7 @@ foreach my $line (@lines) {
 			}
 			
 			# %new(type) at the beginning of a line after any amount of space
-			while($line =~ /^\s*%new(\((.*?)\))?(%?)(?=\W?)/g) {
+			while($line =~ /^\s*%new(\((.*?)\))?(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
 				nestingMustContain($lineno, "%new", \@nestingstack, "hook", "subclass");
@@ -342,7 +342,7 @@ foreach my $line (@lines) {
 				redo SCANLOOP;
 			}
 
-			while($line =~ /%orig(inal)?(%?)(?=\W?)/g) {
+			while($line =~ /%orig(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
 				nestingMustContain($lineno, $&, \@nestingstack, "hook", "subclass");
@@ -384,7 +384,7 @@ foreach my $line (@lines) {
 				redo SCANLOOP;
 			}
 			
-			while($line =~ /%log(%?)(?=\W?)/g) {
+			while($line =~ /%log(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
 				nestingMustContain($lineno, $&, \@nestingstack, "hook", "subclass");
@@ -393,7 +393,7 @@ foreach my $line (@lines) {
 				redo SCANLOOP;
 			}
 			
-			while($line =~ /%c(onstruc)?tor(%?)(?=\W?)/g) {
+			while($line =~ /%ctor(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
 				nestingMustNotContain($lineno, $&, \@nestingstack, "hook", "subclass");
@@ -403,7 +403,7 @@ foreach my $line (@lines) {
 				redo SCANLOOP;
 			}
 
-			while($line =~ /%init(\((.*?)\))?(%?);?(?=\W?)/g) {
+			while($line =~ /%init(\((.*?)\))?;?(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
 				my $before = $`;
@@ -469,7 +469,7 @@ foreach my $line (@lines) {
 			}
 			
 			# %end (Make it the last thing we check for so we don't terminate something pre-emptively.
-			while($line =~ /%end(%?)/g) {
+			while($line =~ /%end/g) {
 				next if fallsBetween($-[0], @quotes);
 
 				my $closing = nestPop(\@nestingstack);
