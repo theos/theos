@@ -4,6 +4,7 @@ use warnings;
 use strict;
 use FindBin;
 use lib "$FindBin::Bin/lib";
+use Digest::MD5 'md5_hex';
 use Module::Load;
 use Module::Load::Conditional 'can_load';
 
@@ -396,8 +397,8 @@ foreach my $line (@lines) {
 				next if fallsBetween($-[0], @quotes);
 
 				nestingMustNotContain($lineno, $&, \@nestingstack, "hook", "subclass");
-				$ctorline = $lineno if $ctorline == -1;
-				$line = $`.$';
+				my $replacement = "static __attribute__((constructor)) void _logosLocalCtor_".substr(md5_hex($`.$lineno.$'), 0, 8)."()";
+				$line = $`.$replacement.$';
 
 				redo SCANLOOP;
 			}
@@ -520,8 +521,6 @@ if($firsthookline != -1) {
 			splice(@lines, $lastInitLine + $offset, 0, "#line ".($lastInitLine+1)." \"$filename\"");
 			$offset++;
 		}
-	} elsif($ctorline != -1) {
-		$lines[$ctorline + $offset - 1] = generateConstructor();
 	} else {
 		push(@lines, generateConstructor());
 	}
