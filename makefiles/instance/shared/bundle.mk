@@ -11,20 +11,20 @@
 
 .PHONY: shared-instance-bundle-stage
 
-RESOURCE_FILES := $($(THEOS_CURRENT_INSTANCE)_RESOURCE_FILES)
-RESOURCE_DIRS := $($(THEOS_CURRENT_INSTANCE)_RESOURCE_DIRS)
-ifeq ($(RESOURCE_DIRS),)
+_RESOURCE_FILES := $(or $($(THEOS_CURRENT_INSTANCE)_BUNDLE_RESOURCES),$($(THEOS_CURRENT_INSTANCE)_RESOURCE_FILES))
+_RESOURCE_DIRS := $(or $($(THEOS_CURRENT_INSTANCE)_BUNDLE_RESOURCE_DIRS),$($(THEOS_CURRENT_INSTANCE)_RESOURCE_DIRS))
+ifeq ($(_RESOURCE_DIRS),)
 ifeq ($(shell [ -d "Resources" ] && echo 1 || echo 0),1)
-RESOURCE_DIRS := Resources
+_RESOURCE_DIRS := Resources
 else
-RESOURCE_DIRS :=
+_RESOURCE_DIRS :=
 endif
 endif
 
 shared-instance-bundle-stage::
 	$(ECHO_NOTHING)mkdir -p $(THEOS_SHARED_BUNDLE_RESOURCE_PATH)$(ECHO_END)
-ifneq ($(RESOURCE_FILES),)
-	$(ECHO_COPYING_RESOURCE_FILES)for f in $(RESOURCE_FILES); do \
+ifneq ($(_RESOURCE_FILES),)
+	$(ECHO_COPYING_RESOURCE_FILES)for f in $(_RESOURCE_FILES); do \
 		if [ -f "$$f" -o -d "$$f" ]; then \
 			rsync -a "$$f" "$(THEOS_SHARED_BUNDLE_RESOURCE_PATH)/" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE); \
 		else \
@@ -32,8 +32,8 @@ ifneq ($(RESOURCE_FILES),)
 		fi; \
 	done$(ECHO_END)
 endif
-ifneq ($(RESOURCE_DIRS),)
-	$(ECHO_COPYING_RESOURCE_DIRS)for d in $(RESOURCE_DIRS); do \
+ifneq ($(_RESOURCE_DIRS),)
+	$(ECHO_COPYING_RESOURCE_DIRS)for d in $(_RESOURCE_DIRS); do \
 		if [ -d "$$d" ]; then \
 			rsync -a "$$d/" "$(THEOS_SHARED_BUNDLE_RESOURCE_PATH)/" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE); \
 		else \
