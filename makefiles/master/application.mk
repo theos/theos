@@ -1,7 +1,7 @@
 APPLICATION_NAME := $(strip $(APPLICATION_NAME))
 
-ifeq ($(FW_RULES_LOADED),)
-include $(FW_MAKEDIR)/rules.mk
+ifeq ($(_THEOS_RULES_LOADED),)
+include $(THEOS_MAKE_PATH)/rules.mk
 endif
 
 internal-all:: $(APPLICATION_NAME:=.all.application.variables);
@@ -9,7 +9,7 @@ internal-all:: $(APPLICATION_NAME:=.all.application.variables);
 internal-stage:: $(APPLICATION_NAME:=.stage.application.variables);
 
 # Maybe, disabled for further discussion
-# ssh mobile@$(FW_DEVICE_IP) "uicache"
+# install.exec "uicache"
 internal-after-install::
 
 APPLICATIONS_WITH_SUBPROJECTS = $(strip $(foreach application,$(APPLICATION_NAME),$(patsubst %,$(application),$($(application)_SUBPROJECTS))))

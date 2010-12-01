@@ -1,7 +1,7 @@
-ifeq ($(FW_INSTANCE),)
-	include $(FW_MAKEDIR)/master/tweak.mk
+ifeq ($(THEOS_CURRENT_INSTANCE),)
+	include $(THEOS_MAKE_PATH)/master/tweak.mk
 else
-	ifeq ($(FW_TYPE),tweak)
-		include $(FW_MAKEDIR)/instance/tweak.mk
+	ifeq ($(_THEOS_CURRENT_TYPE),tweak)
+		include $(THEOS_MAKE_PATH)/instance/tweak.mk
 	endif
 endif

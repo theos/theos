@@ -1,6 +1,6 @@
-ifeq ($(FW_TARGET_LOADED),)
-FW_TARGET_LOADED := 1
-FW_TARGET_NAME := macosx
+ifeq ($(_THEOS_TARGET_LOADED),)
+_THEOS_TARGET_LOADED := 1
+THEOS_TARGET_NAME := macosx
 
 SDKBINPATH ?= /usr/bin
 
@@ -12,8 +12,8 @@ TARGET_CODESIGN_ALLOCATE ?= $(SDKBINPATH)/codesign_allocate
 TARGET_CODESIGN ?=
 TARGET_CODESIGN_FLAGS ?=
 
-include $(FW_MAKEDIR)/targets/_common/install_deb_local.mk
-include $(FW_MAKEDIR)/targets/_common/darwin.mk
+include $(THEOS_MAKE_PATH)/targets/_common/install_deb_local.mk
+include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
 
 ARCHS ?= i386 x86_64
 SDKFLAGS := $(foreach ARCH,$(ARCHS),-arch $(ARCH))

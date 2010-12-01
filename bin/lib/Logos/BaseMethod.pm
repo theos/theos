@@ -152,10 +152,23 @@ sub formatCharForArgType {
 	my $argtype = shift;
 
 	# Integral Types
-	return "%d" if $argtype =~ /\b(int|long|bool)\b/i;
+	# Straight characters get %c. Signed/Unsigned characters get %hhu/%hhd.
+	return "'%c'" if $argtype =~ /^char$/;
+	if($argtype =~ /\b(int|long|bool|unsigned|signed|char|short)\b/i) {
+		my $conversion = "d";
+		$conversion = "u" if $argtype =~ /\bunsigned\b/;
+
+		my $length;
+		$length = "" if $argtype =~ /\bint\b/;
+		$length = "l" if $argtype =~ /\blong\b/;
+		$length = "ll" if $argtype =~ /\blong long\b/;
+		$length = "h" if $argtype =~ /\bshort\b/;
+		$length = "hh" if $argtype =~ /\bchar\b/;
+
+		return "%".$length.$conversion;
+	}
 	return "%d" if $argtype =~ /\bNS(U?Integer|SocketNativeHandle|StringEncoding|SortOptions|ComparisonResult|EnumerationOptions|(Hash|Map)TableOptions|SearchPath(Directory|DomainMask))\b/i;
 	return "%d" if $argtype =~ /\bGS(FontTraitMask)\b/i;
-	return "%c" if $argtype =~ /\bchar\b/;
 
 	# Pointer Types
 	return "%s" if $argtype =~ /\bchar\b\s*\*/;
@@ -176,7 +189,7 @@ sub formatCharForArgType {
 	return "{%g, %g}" if $argtype =~ /\b(CG|NS)Size\b/;
 
 	# Opaque Types (pointer)
-	#return "%p" if $argtype =~ /\bNSZone\b/;
+	return "%p" if $argtype =~ /\bNSZone\b/;
 
 	# Discarded Types
 	return "--" if $argtype =~ /\b(CG\w*|CF\w*|void)\b/;

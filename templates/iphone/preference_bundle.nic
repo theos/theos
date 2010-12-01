@@ -100,9 +100,9 @@ BUNDLE_NAME = @@PROJECTNAME@@
 @@PROJECTNAME@@_FRAMEWORKS = UIKit
 @@PROJECTNAME@@_PRIVATE_FRAMEWORKS = Preferences
 
-include $(FW_MAKEDIR)/bundle.mk
+include $(THEOS_MAKE_PATH)/bundle.mk
 
 internal-stage::
-	$(ECHO_NOTHING)mkdir -p $(FW_STAGING_DIR)/Library/PreferenceLoader/Preferences$(ECHO_END)
-	$(ECHO_NOTHING)cp entry.plist $(FW_STAGING_DIR)/Library/PreferenceLoader/Preferences/@@PROJECTNAME@@.plist$(ECHO_END)
+	$(ECHO_NOTHING)mkdir -p $(THEOS_STAGING_DIR)/Library/PreferenceLoader/Preferences$(ECHO_END)
+	$(ECHO_NOTHING)cp entry.plist $(THEOS_STAGING_DIR)/Library/PreferenceLoader/Preferences/@@PROJECTNAME@@.plist$(ECHO_END)
 

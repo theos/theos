@@ -1,8 +1,11 @@
 TWEAK_NAME := $(strip $(TWEAK_NAME))
 
-ifeq ($(FW_RULES_LOADED),)
-include $(FW_MAKEDIR)/rules.mk
+ifeq ($(_THEOS_RULES_LOADED),)
+include $(THEOS_MAKE_PATH)/rules.mk
 endif
+
+before-all::
+	@[ -f "$(THEOS_LIBRARY_PATH)/libsubstrate.dylib" ] || bootstrap.sh substrate
 
 internal-all:: $(TWEAK_NAME:=.all.tweak.variables);
 

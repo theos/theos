@@ -1,7 +1,7 @@
-ifeq ($(FW_INSTANCE),)
-	include $(FW_MAKEDIR)/master/subproject.mk
+ifeq ($(THEOS_CURRENT_INSTANCE),)
+	include $(THEOS_MAKE_PATH)/master/subproject.mk
 else
-	ifeq ($(FW_TYPE),subproject)
-		include $(FW_MAKEDIR)/instance/subproject.mk
+	ifeq ($(_THEOS_CURRENT_TYPE),subproject)
+		include $(THEOS_MAKE_PATH)/instance/subproject.mk
 	endif
 endif

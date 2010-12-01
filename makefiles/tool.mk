@@ -1,7 +1,7 @@
-ifeq ($(FW_INSTANCE),)
-	include $(FW_MAKEDIR)/master/tool.mk
+ifeq ($(THEOS_CURRENT_INSTANCE),)
+	include $(THEOS_MAKE_PATH)/master/tool.mk
 else
-	ifeq ($(FW_TYPE),tool)
-		include $(FW_MAKEDIR)/instance/tool.mk
+	ifeq ($(_THEOS_CURRENT_TYPE),tool)
+		include $(THEOS_MAKE_PATH)/instance/tool.mk
 	endif
 endif

@@ -4,6 +4,7 @@ use warnings;
 use strict;
 use FindBin;
 use lib "$FindBin::Bin/lib";
+use Digest::MD5 'md5_hex';
 use Module::Load;
 use Module::Load::Conditional 'can_load';
 
@@ -269,7 +270,7 @@ foreach my $line (@lines) {
 			}
 			
 			# %new(type) at the beginning of a line after any amount of space
-			while($line =~ /^\s*%new(\((.*?)\))?(%?)(?=\W?)/g) {
+			while($line =~ /^\s*%new(\((.*?)\))?(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
 				nestingMustContain($lineno, "%new", \@nestingstack, "hook", "subclass");
@@ -341,7 +342,7 @@ foreach my $line (@lines) {
 				redo SCANLOOP;
 			}
 
-			while($line =~ /%orig(inal)?(%?)(?=\W?)/g) {
+			while($line =~ /%orig(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
 				nestingMustContain($lineno, $&, \@nestingstack, "hook", "subclass");
@@ -350,7 +351,7 @@ foreach my $line (@lines) {
 				my $hasparens = 0;
 				my $remaining = $';
 				my $replacement = "";
-				if($remaining) {
+				if($remaining ne "") {
 					# If we encounter a ) that puts us back at zero, we found a (
 					# and have reached its closing ).
 					my $parenmatch = $remaining;
@@ -383,7 +384,7 @@ foreach my $line (@lines) {
 				redo SCANLOOP;
 			}
 			
-			while($line =~ /%log(%?)(?=\W?)/g) {
+			while($line =~ /%log(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
 				nestingMustContain($lineno, $&, \@nestingstack, "hook", "subclass");
@@ -392,17 +393,17 @@ foreach my $line (@lines) {
 				redo SCANLOOP;
 			}
 			
-			while($line =~ /%c(onstruc)?tor(%?)(?=\W?)/g) {
+			while($line =~ /%ctor(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
 				nestingMustNotContain($lineno, $&, \@nestingstack, "hook", "subclass");
-				$ctorline = $lineno if $ctorline == -1;
-				$line = $`.$';
+				my $replacement = "static __attribute__((constructor)) void _logosLocalCtor_".substr(md5_hex($`.$lineno.$'), 0, 8)."()";
+				$line = $`.$replacement.$';
 
 				redo SCANLOOP;
 			}
 
-			while($line =~ /%init(\((.*?)\))?(%?);?(?=\W?)/g) {
+			while($line =~ /%init(\((.*?)\))?;?(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
 				my $before = $`;
@@ -468,7 +469,7 @@ foreach my $line (@lines) {
 			}
 			
 			# %end (Make it the last thing we check for so we don't terminate something pre-emptively.
-			while($line =~ /%end(%?)/g) {
+			while($line =~ /%end/g) {
 				next if fallsBetween($-[0], @quotes);
 
 				my $closing = nestPop(\@nestingstack);
@@ -520,8 +521,6 @@ if($firsthookline != -1) {
 			splice(@lines, $lastInitLine + $offset, 0, "#line ".($lastInitLine+1)." \"$filename\"");
 			$offset++;
 		}
-	} elsif($ctorline != -1) {
-		$lines[$ctorline + $offset - 1] = generateConstructor();
 	} else {
 		push(@lines, generateConstructor());
 	}

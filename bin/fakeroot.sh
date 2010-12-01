@@ -28,6 +28,8 @@ fi
 
 if [[ "$USER" == "root" ]]; then
 	fakeroot=""
+elif type fauxsu &> /dev/null; then
+	fakeroot="fauxsu -p $persistence -- "
 elif type fakeroot-ng &> /dev/null; then
 	fakeroot="fakeroot-ng -p $persistence -- "
 elif type fakeroot &> /dev/null; then

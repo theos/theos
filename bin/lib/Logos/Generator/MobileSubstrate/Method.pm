@@ -52,11 +52,11 @@ sub methodSignature {
 
 sub originalCall {
 	my $self = shift;
-	my ($customargs) = @_;
+	my $customargs = shift;
 	return "" if $self->{NEW};
 
 	my $build = $self->originalFunctionName."(self, _cmd";
-	if($customargs) {
+	if(defined $customargs) {
 		$build .= ", ".$customargs;
 	} elsif($self->{NUM_ARGS} > 0) {
 		$build .= ", ".join(", ",@{$self->{ARGNAMES}});

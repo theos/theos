@@ -11,7 +11,7 @@ include theos/makefiles/common.mk
 TOOL_NAME = @@PROJECTNAME@@
 @@PROJECTNAME@@_FILES = main.mm
 
-include $(FW_MAKEDIR)/tool.mk
+include $(THEOS_MAKE_PATH)/tool.mk
 
 file 10 control
 Package: @@PACKAGENAME@@
