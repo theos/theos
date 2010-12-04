@@ -349,9 +349,10 @@ foreach my $line (@lines) {
 				fileWarning($lineno, "$& in a new method will be non-operative.") if $lastMethod->isNew;
 
 				my $hasparens = 0;
+				my $before = $`;
 				my $remaining = $';
 				my $replacement = "";
-				if($remaining ne "") {
+				if($remaining =~ /^\s*\(/) {
 					# If we encounter a ) that puts us back at zero, we found a (
 					# and have reached its closing ).
 					my $parenmatch = $remaining;
@@ -379,7 +380,7 @@ foreach my $line (@lines) {
 					$replacement .= $lastMethod->originalCall;
 				}
 				$replacement .= $remaining;
-				$line = $`.$replacement;
+				$line = $before.$replacement;
 
 				redo SCANLOOP;
 			}
