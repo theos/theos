@@ -56,12 +56,23 @@ READLOOP: while(my $line = <FILE>) {
 
 	if(!$readignore) {
 		# Line starts with - (return), start gluing lines together until we find a { or ;...
-		if(!$building && $line =~ /^\s*(%new.*?)?\s*([+-])\s*\(\s*(.*?)\s*\)/ && index($line, "{") == -1 && index($line, ";") == -1) {
+		if(!$building
+				&& (
+					$line =~ /^\s*(%new.*?)?\s*([+-])\s*\(\s*(.*?)\s*\)/
+					|| $line =~ /%orig\s*\(/
+					|| $line =~ /%init\s*\(/
+				)
+				&& index($line, "{") < $-[0] && index($line, ";") < $-[0]) {
+			if(fallsBetween($-[0], @quotes)) {
+				push(@lines, $line);
+				next;
+			}
 			$building = 1;
 			$built = $line;
 			push(@lines, "");
 			next;
 		} elsif($building) {
+			$line =~ s/^\s+//g;
 			$built .= " ".$line;
 			if(index($line,"{") != -1 || index($line,";") != -1) {
 				push(@lines, $built);
@@ -348,38 +359,12 @@ foreach my $line (@lines) {
 				nestingMustContain($lineno, $&, \@nestingstack, "hook", "subclass");
 				fileWarning($lineno, "$& in a new method will be non-operative.") if $lastMethod->isNew;
 
-				my $hasparens = 0;
 				my $before = $`;
 				my $remaining = $';
 				my $replacement = "";
-				if($remaining =~ /^\s*\(/) {
-					# If we encounter a ) that puts us back at zero, we found a (
-					# and have reached its closing ).
-					my $parenmatch = $remaining;
-					my $pdepth = 0;
-					my @pquotes = quotes($parenmatch);
-					while($parenmatch =~ /[;()]/g) {
-						next if fallsBetween($-[0], @pquotes);
-
-						# If we hit a ; at depth 0 without having a ( ) pair, bail.
-						last if $& eq ";" && $pdepth == 0;
-
-						if($& eq "(") { $pdepth++; }
-						elsif($& eq ")") {
-							$pdepth--;
-							if($pdepth == 0) { $hasparens = $+[0]; last; }
-						}
-					}
-				}
-
-				if($hasparens > 0) {
-					my $parenstring = substr($remaining, 1, $hasparens-2);
-					$remaining = substr($remaining, $hasparens);
-					$replacement .= $lastMethod->originalCall($parenstring);
-				} else {
-					$replacement .= $lastMethod->originalCall;
-				}
-				$replacement .= $remaining;
+				my @p = nestedParenString($remaining);
+				$replacement .= $lastMethod->originalCall($p[0]);
+				$replacement .= $p[1];
 				$line = $before.$replacement;
 
 				redo SCANLOOP;
@@ -671,4 +656,39 @@ sub getGroup {
 		return $_ if $_->name eq $name;
 	}
 	return undef;
+}
+
+sub nestedParenString {
+	my $in = shift;
+	my $opening = -1;
+	my $closing = -1;
+	if($in =~ /^\s*\(/) {
+		# If we encounter a ) that puts us back at zero, we found a (
+		# and have reached its closing ).
+		my $parenmatch = $in;
+		my $pdepth = 0;
+		my @pquotes = quotes($parenmatch);
+		while($parenmatch =~ /[;()]/g) {
+			next if fallsBetween($-[0], @pquotes);
+
+			# If we hit a ; at depth 0 without having a ( ) pair, bail.
+			last if $& eq ";" && $pdepth == 0;
+
+			if($& eq "(") {
+				if($pdepth == 0) { $opening = $+[0]; }
+				$pdepth++;
+			} elsif($& eq ")") {
+				$pdepth--;
+				if($pdepth == 0) { $closing = $+[0]; last; }
+			}
+		}
+	}
+
+	my @ret;
+	if($opening > 0) {
+		$ret[0] = substr($in, $opening, $closing - $opening - 1);
+		$in = substr($in, $closing);
+	}
+	$ret[1] = $in;
+	return @ret;
 }
