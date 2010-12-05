@@ -19,8 +19,25 @@ my @lines = ();
 my $readignore = 0;
 my $built = "";
 my $building = 0;
+my $preprocessed = 0;
+
+my %lineMapping = ();
+
+{
+my $firstline = <FILE>;
+seek(FILE, 0, Fcntl::SEEK_SET);
+if($firstline =~ /^# \d+ \"(.*?)\"$/) {
+	$preprocessed = 1;
+	$filename = $1;
+}
+}
+
 READLOOP: while(my $line = <FILE>) {
 	chomp($line);
+
+	if($preprocessed && $line =~ /^# (\d+) \"(.*?)\"/) {
+		$lineMapping{$.+1} = [$2, $1];
+	}
 
 	# End of a multi-line comment while ignoring input.
 	if($readignore && $line =~ /^.*?\*\/\s*/) {
@@ -88,6 +105,8 @@ READLOOP: while(my $line = <FILE>) {
 }
 
 close(FILE);
+
+$lineMapping{1} = ["$filename", 0] if scalar keys %lineMapping == 0;
 
 # Process the input lines for directives which must be parsed before main processing, such as %config
 # Mk. I processing loop - preprocessing.
@@ -489,6 +508,8 @@ while(scalar(@nestingstack) > 0) {
 # Always insert $staticClassGroup after _ungrouped.
 splice(@groups, 1, 0, $staticClassGroup);
 
+$hassubstrateh = 1 if($preprocessed);
+
 if($firsthookline != -1) {
 	my $offset = 0;
 	if(!$hassubstrateh) {
@@ -499,14 +520,16 @@ if($firsthookline != -1) {
 	$offset++;
 	splice(@lines, $firsthookline - 1 + $offset, 0, $staticClassGroup->declarations);
 	$offset++;
-	splice(@lines, $firsthookline - 1 + $offset, 0, "#line $firsthookline \"$filename\"");
+
+	splice(@lines, $firsthookline - 1 + $offset, 0, generateLineDirectiveForPhysicalLine($firsthookline));
 	$offset++;
+
 	if($ctorline == -2) {
 		# If the static class list hasn't been initialized, glue it under the last %init line.
 		if(!$staticClassGroup->initialized) {
 			splice(@lines, $lastInitLine + $offset, 0, $staticClassGroup->initializers);
 			$offset++;
-			splice(@lines, $lastInitLine + $offset, 0, "#line ".($lastInitLine+1)." \"$filename\"");
+			splice(@lines, $lastInitLine + $offset, 0, generateLineDirectiveForPhysicalLine($lastInitLine));
 			$offset++;
 		}
 	} else {
@@ -522,7 +545,7 @@ foreach(@groups) {
 my $numUnGroups = @unInitGroups;
 fileError(-1, "non-initialized hook group".($numUnGroups == 1 ? "" : "s").": ".join(", ", @unInitGroups)) if $numUnGroups > 0;
 
-splice(@lines, 0, 0, "#line 1 \"$filename\"");
+splice(@lines, 0, 0, generateLineDirectiveForPhysicalLine(1)) if !$preprocessed;
 foreach my $oline (@lines) {
 	print $oline."\n" if defined($oline);
 }
@@ -580,13 +603,17 @@ sub fallsBetween {
 sub fileWarning {
 	my $curline = shift;
 	my $reason = shift;
-	print STDERR "$filename:".($curline > -1 ? "$curline:" : "")." warning: $reason\n";
+	my @lineMap = lookupLineMapping($curline);
+	my $filename = $lineMap[0];
+	print STDERR "$filename:".($curline > -1 ? $lineMap[1].":" : "")." warning: $reason\n";
 }
 
 sub fileError {
 	my $curline = shift;
 	my $reason = shift;
-	die "$filename:".($curline > -1 ? "$curline:" : "")." error: $reason\n";
+	my @lineMap = lookupLineMapping($curline);
+	my $filename = $lineMap[0];
+	die "$filename:".($curline > -1 ? $lineMap[1].":" : "")." error: $reason\n";
 }
 
 sub nestingError {
@@ -726,4 +753,24 @@ sub smartSplit {
 	$piece = substr($in, $lstart);
 	push(@pieces, $piece);
 	return @pieces;
+}
+
+sub lookupLineMapping {
+	my $fileline = shift;
+	$fileline++;
+	for (sort {$b <=> $a} keys %lineMapping) {
+		if($fileline >= $_) {
+			my @x = @{$lineMapping{$_}};
+			return ($x[0], $x[1] + ($fileline-$_));
+		}
+	}
+	return undef;
+}
+
+sub generateLineDirectiveForPhysicalLine {
+	my $physline = shift;
+	my @lineMap = lookupLineMapping($physline);
+	my $filename = $lineMap[0];
+	my $lineno = $lineMap[1];
+	return ($preprocessed ? "# " : "#line ").$lineno." \"$filename\"";
 }
