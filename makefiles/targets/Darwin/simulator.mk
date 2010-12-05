@@ -19,6 +19,8 @@ TARGET_CODESIGN_ALLOCATE ?= $(SDKBINPATH)/codesign_allocate
 TARGET_CODESIGN ?=
 TARGET_CODESIGN_FLAGS ?=
 
+TARGET_PRIVATE_FRAMEWORK_PATH = $(SYSROOT)/System/Library/PrivateFrameworks
+
 include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
 
 ifeq ($(IPHONE_SIMULATOR_ROOT),)

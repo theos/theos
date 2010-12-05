@@ -56,12 +56,23 @@ READLOOP: while(my $line = <FILE>) {
 
 	if(!$readignore) {
 		# Line starts with - (return), start gluing lines together until we find a { or ;...
-		if(!$building && $line =~ /^\s*(%new.*?)?\s*([+-])\s*\(\s*(.*?)\s*\)/ && index($line, "{") == -1 && index($line, ";") == -1) {
+		if(!$building
+				&& (
+					$line =~ /^\s*(%new.*?)?\s*([+-])\s*\(\s*(.*?)\s*\)/
+					|| $line =~ /%orig\s*\(/
+					|| $line =~ /%init\s*\(/
+				)
+				&& index($line, "{") < $-[0] && index($line, ";") < $-[0]) {
+			if(fallsBetween($-[0], @quotes)) {
+				push(@lines, $line);
+				next;
+			}
 			$building = 1;
 			$built = $line;
 			push(@lines, "");
 			next;
 		} elsif($building) {
+			$line =~ s/^\s+//g;
 			$built .= " ".$line;
 			if(index($line,"{") != -1 || index($line,";") != -1) {
 				push(@lines, $built);
@@ -348,38 +359,13 @@ foreach my $line (@lines) {
 				nestingMustContain($lineno, $&, \@nestingstack, "hook", "subclass");
 				fileWarning($lineno, "$& in a new method will be non-operative.") if $lastMethod->isNew;
 
-				my $hasparens = 0;
+				my $before = $`;
 				my $remaining = $';
 				my $replacement = "";
-				if($remaining ne "") {
-					# If we encounter a ) that puts us back at zero, we found a (
-					# and have reached its closing ).
-					my $parenmatch = $remaining;
-					my $pdepth = 0;
-					my @pquotes = quotes($parenmatch);
-					while($parenmatch =~ /[;()]/g) {
-						next if fallsBetween($-[0], @pquotes);
-
-						# If we hit a ; at depth 0 without having a ( ) pair, bail.
-						last if $& eq ";" && $pdepth == 0;
-
-						if($& eq "(") { $pdepth++; }
-						elsif($& eq ")") {
-							$pdepth--;
-							if($pdepth == 0) { $hasparens = $+[0]; last; }
-						}
-					}
-				}
-
-				if($hasparens > 0) {
-					my $parenstring = substr($remaining, 1, $hasparens-2);
-					$remaining = substr($remaining, $hasparens);
-					$replacement .= $lastMethod->originalCall($parenstring);
-				} else {
-					$replacement .= $lastMethod->originalCall;
-				}
-				$replacement .= $remaining;
-				$line = $`.$replacement;
+				my @p = nestedParenString($remaining);
+				$replacement .= $lastMethod->originalCall($p[0]);
+				$replacement .= $p[1];
+				$line = $before.$replacement;
 
 				redo SCANLOOP;
 			}
@@ -403,15 +389,17 @@ foreach my $line (@lines) {
 				redo SCANLOOP;
 			}
 
-			while($line =~ /%init(\((.*?)\))?;?(?=\W?)/g) {
+			while($line =~ /%init(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
 				my $before = $`;
 				my $after = $';
 
 				my $groupname = "_ungrouped";
+				my @p = nestedParenString($after);
 				my @args;
-				@args = split(/,/, $2) if defined($2);
+				@args = smartSplit(qr/\s*,\s*/, $p[0]) if defined($p[0]);
+				$after = $p[1];
 
 				my $tempgroupname = undef;
 				$tempgroupname = $args[0] if $args[0] && $args[0] !~ /=/;
@@ -423,13 +411,12 @@ foreach my $line (@lines) {
 				my $group = getGroup($groupname);
 
 				foreach my $arg (@args) {
-					$arg =~ s/\s+//;
 					if($arg !~ /=/) {
 						fileWarning($lineno, "unknown argument to %init: $arg");
 						next;
 					}
 
-					my @parts = split(/\s*=\s*/, $arg);
+					my @parts = smartSplit(qr/\s*=\s*/, $arg, 2);
 					if(!defined($parts[0]) || !defined($parts[1])) {
 						fileWarning($lineno, "invalid class=expr in %init");
 						next;
@@ -461,6 +448,7 @@ foreach my $line (@lines) {
 				if($groupname eq "_ungrouped") {
 					$initLines = "{".$initLines.generateInitLines($staticClassGroup)."}";
 				}
+				$after =~ s/^\s*;//g; # Remove the first ; after %init.
 				$line = $before.$initLines.$after;
 				$ctorline = -2; # "Do not generate a constructor."
 				$lastInitLine = $lineno;
@@ -670,4 +658,72 @@ sub getGroup {
 		return $_ if $_->name eq $name;
 	}
 	return undef;
+}
+
+sub matchedParenthesisSet {
+	my $in = shift;
+	my $atstart = shift or 1;
+	my $opening = -1;
+	my $closing = -1;
+	if(!$atstart || $in =~ /^\s*\(/) {
+		# If we encounter a ) that puts us back at zero, we found a (
+		# and have reached its closing ).
+		my $parenmatch = $in;
+		my $pdepth = 0;
+		my @pquotes = quotes($parenmatch);
+		while($parenmatch =~ /[;()]/g) {
+			next if fallsBetween($-[0], @pquotes);
+
+			if($& eq "(") {
+				if($pdepth == 0) { $opening = $+[0]; }
+				$pdepth++;
+			} elsif($& eq ")") {
+				$pdepth--;
+				if($pdepth == 0) { $closing = $+[0]; last; }
+			}
+		}
+	}
+
+	return undef if $opening == -1;
+	fileError($lineno, "missing closing parenthesis") if $closing == -1;
+	return ($opening, $closing);
+}
+
+sub nestedParenString {
+	my $in = shift;
+	my ($opening, $closing) = matchedParenthesisSet($in);
+
+	my @ret;
+	if(defined $opening) {
+		$ret[0] = substr($in, $opening, $closing - $opening - 1);
+		$in = substr($in, $closing);
+	}
+	$ret[1] = $in;
+	return @ret;
+}
+
+sub smartSplit {
+	my $re = shift;
+	my $in = shift;
+	return () if $in eq "";
+
+	my $limit = shift or 0;
+
+	my @quotes = quotes($in);
+	my @parens = matchedParenthesisSet($in, 0);
+
+	my $lstart = 0;
+	my @pieces = ();
+	my $piece = "";
+	while($in =~ /$re/g) {
+		next if (defined $parens[0] && fallsBetween($-[0], @parens)) || fallsBetween($-[0], @quotes);
+		$piece = substr($in, $lstart, $-[0]-$lstart);
+		push(@pieces, $piece);
+		$lstart = $+[0];
+		$limit--;
+		last if($limit == 1); # One item left? Bail out and throw the rest of the string into it!
+	}
+	$piece = substr($in, $lstart);
+	push(@pieces, $piece);
+	return @pieces;
 }
