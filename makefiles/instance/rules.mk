@@ -39,8 +39,8 @@ AUXILIARY_LDFLAGS += $(foreach framework,$($(THEOS_CURRENT_INSTANCE)_FRAMEWORKS)
 
 # Add all private frameworks from the type and instance, as well as -F for the private framework dir.
 ifneq ($(words $($(_THEOS_CURRENT_TYPE)_PRIVATE_FRAMEWORKS)$($(THEOS_CURRENT_INSTANCE)_PRIVATE_FRAMEWORKS)),0)
-	AUXILIARY_OBJCFLAGS += -F/System/Library/PrivateFrameworks
-	AUXILIARY_LDFLAGS += -F/System/Library/PrivateFrameworks
+	AUXILIARY_OBJCFLAGS += -F$(TARGET_PRIVATE_FRAMEWORK_PATH)
+	AUXILIARY_LDFLAGS += -F$(TARGET_PRIVATE_FRAMEWORK_PATH)
 endif
 
 AUXILIARY_LDFLAGS += $(foreach framework,$($(_THEOS_CURRENT_TYPE)_PRIVATE_FRAMEWORKS),-framework $(framework))
