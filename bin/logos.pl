@@ -398,7 +398,7 @@ foreach my $line (@lines) {
 				my $groupname = "_ungrouped";
 				my @p = nestedParenString($after);
 				my @args;
-				@args = split(/,/, $p[0]) if defined($p[0]);
+				@args = smartSplit(qr/\s*,\s*/, $p[0]) if defined($p[0]);
 				$after = $p[1];
 
 				my $tempgroupname = undef;
@@ -411,13 +411,12 @@ foreach my $line (@lines) {
 				my $group = getGroup($groupname);
 
 				foreach my $arg (@args) {
-					$arg =~ s/\s+//;
 					if($arg !~ /=/) {
 						fileWarning($lineno, "unknown argument to %init: $arg");
 						next;
 					}
 
-					my @parts = split(/\s*=\s*/, $arg);
+					my @parts = smartSplit(qr/\s*=\s*/, $arg, 2);
 					if(!defined($parts[0]) || !defined($parts[1])) {
 						fileWarning($lineno, "invalid class=expr in %init");
 						next;
@@ -661,11 +660,12 @@ sub getGroup {
 	return undef;
 }
 
-sub nestedParenString {
+sub matchedParenthesisSet {
 	my $in = shift;
+	my $atstart = shift or 1;
 	my $opening = -1;
 	my $closing = -1;
-	if($in =~ /^\s*\(/) {
+	if(!$atstart || $in =~ /^\s*\(/) {
 		# If we encounter a ) that puts us back at zero, we found a (
 		# and have reached its closing ).
 		my $parenmatch = $in;
@@ -673,9 +673,6 @@ sub nestedParenString {
 		my @pquotes = quotes($parenmatch);
 		while($parenmatch =~ /[;()]/g) {
 			next if fallsBetween($-[0], @pquotes);
-
-			# If we hit a ; at depth 0 without having a ( ) pair, bail.
-			last if $& eq ";" && $pdepth == 0;
 
 			if($& eq "(") {
 				if($pdepth == 0) { $opening = $+[0]; }
@@ -687,11 +684,46 @@ sub nestedParenString {
 		}
 	}
 
+	return undef if $opening == -1;
+	fileError($lineno, "missing closing parenthesis") if $closing == -1;
+	return ($opening, $closing);
+}
+
+sub nestedParenString {
+	my $in = shift;
+	my ($opening, $closing) = matchedParenthesisSet($in);
+
 	my @ret;
-	if($opening > 0) {
+	if(defined $opening) {
 		$ret[0] = substr($in, $opening, $closing - $opening - 1);
 		$in = substr($in, $closing);
 	}
 	$ret[1] = $in;
 	return @ret;
+}
+
+sub smartSplit {
+	my $re = shift;
+	my $in = shift;
+	return () if $in eq "";
+
+	my $limit = shift or 0;
+
+	my @quotes = quotes($in);
+	my @parens = matchedParenthesisSet($in, 0);
+
+	my $lstart = 0;
+	my @pieces = ();
+	my $piece = "";
+	while($in =~ /$re/g) {
+		next if (defined $parens[0] && fallsBetween($-[0], @parens)) || fallsBetween($-[0], @quotes);
+		$piece = substr($in, $lstart, $-[0]-$lstart);
+		push(@pieces, $piece);
+		$lstart = $+[0];
+		$limit--;
+		last if($limit == 1); # One item left? Bail out and throw the rest of the string into it!
+	}
+	$piece = substr($in, $lstart);
+	push(@pieces, $piece);
+	return @pieces;
 }
