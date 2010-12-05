@@ -389,15 +389,17 @@ foreach my $line (@lines) {
 				redo SCANLOOP;
 			}
 
-			while($line =~ /%init(\((.*?)\))?;?(?=\W?)/g) {
+			while($line =~ /%init(?=\W?)/g) {
 				next if fallsBetween($-[0], @quotes);
 
 				my $before = $`;
 				my $after = $';
 
 				my $groupname = "_ungrouped";
+				my @p = nestedParenString($after);
 				my @args;
-				@args = split(/,/, $2) if defined($2);
+				@args = split(/,/, $p[0]) if defined($p[0]);
+				$after = $p[1];
 
 				my $tempgroupname = undef;
 				$tempgroupname = $args[0] if $args[0] && $args[0] !~ /=/;
@@ -447,6 +449,7 @@ foreach my $line (@lines) {
 				if($groupname eq "_ungrouped") {
 					$initLines = "{".$initLines.generateInitLines($staticClassGroup)."}";
 				}
+				$after =~ s/^\s*;//g; # Remove the first ; after %init.
 				$line = $before.$initLines.$after;
 				$ctorline = -2; # "Do not generate a constructor."
 				$lastInitLine = $lineno;
