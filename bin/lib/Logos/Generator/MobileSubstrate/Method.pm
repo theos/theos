@@ -56,7 +56,7 @@ sub originalCall {
 	return "" if $self->{NEW};
 
 	my $build = $self->originalFunctionName."(self, _cmd";
-	if(defined $customargs) {
+	if(defined $customargs && $customargs ne "") {
 		$build .= ", ".$customargs;
 	} elsif($self->{NUM_ARGS} > 0) {
 		$build .= ", ".join(", ",@{$self->{ARGNAMES}});
