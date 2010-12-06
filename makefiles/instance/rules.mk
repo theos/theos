@@ -3,8 +3,8 @@
 
 OBJ_FILES = $(strip $(patsubst %,%.o,$($(THEOS_CURRENT_INSTANCE)_FILES) $($(THEOS_CURRENT_INSTANCE)_OBJCC_FILES) $($(THEOS_CURRENT_INSTANCE)_LOGOS_FILES) $($(THEOS_CURRENT_INSTANCE)_OBJC_FILES) $($(THEOS_CURRENT_INSTANCE)_CC_FILES) $($(THEOS_CURRENT_INSTANCE)_C_FILES)))
 
-_OBJC_FILE_COUNT = $(words $(filter %.m.o %.mm.o %.xm.o %.xi.o,$(OBJ_FILES)))
-_OBJCC_FILE_COUNT = $(words $(filter %.mm.o %.xm.o %.xi.o,$(OBJ_FILES)))
+_OBJC_FILE_COUNT = $(words $(filter %.m.o %.mm.o %.x.o %.xm.o %.xi.o %.xmi.o,$(OBJ_FILES)))
+_OBJCC_FILE_COUNT = $(words $(filter %.mm.o %.xm.o %.xmi.o,$(OBJ_FILES)))
 
 ifneq ($($(THEOS_CURRENT_INSTANCE)_SUBPROJECTS),)
 SUBPROJECT_OBJ_FILES = $(foreach d, $($(THEOS_CURRENT_INSTANCE)_SUBPROJECTS), $(THEOS_BUILD_DIR)/$(d)/$(THEOS_OBJ_DIR_NAME)/$(THEOS_SUBPROJECT_PRODUCT))
