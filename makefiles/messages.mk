@@ -4,7 +4,7 @@ ifneq ($(messages),yes)
 	ECHO_LINKING_WITH_STRIP = @(echo " Linking $(_THEOS_CURRENT_TYPE) $(THEOS_CURRENT_INSTANCE) (with strip)...";
 	ECHO_STRIPPING = @(echo " Stripping $(THEOS_CURRENT_INSTANCE)...";
 	ECHO_SIGNING = @(echo " Signing $(THEOS_CURRENT_INSTANCE)...";
-	ECHO_LOGOS = @(echo " Preprocessing $<...";
+	ECHO_PREPROCESSING = @(echo " Preprocessing $<...";
 	ECHO_COPYING_RESOURCE_FILES = @(echo " Copying resource files into the $(_THEOS_CURRENT_TYPE) wrapper...";
 	ECHO_COPYING_RESOURCE_DIRS = @(echo " Copying resource directories into the $(_THEOS_CURRENT_TYPE) wrapper...";
 	ECHO_NOTHING = @(
@@ -18,7 +18,7 @@ else
 	ECHO_LINKING_WITH_STRIP = 
 	ECHO_STRIPPING = 
 	ECHO_SIGNING = 
-	ECHO_LOGOS = 
+	ECHO_PREPROCESSING = 
 	ECHO_COPYING_RESOURCE_FILES =
 	ECHO_COPYING_RESOURCE_DIRS =
 	ECHO_NOTHING = 

@@ -19,8 +19,26 @@ my @lines = ();
 my $readignore = 0;
 my $built = "";
 my $building = 0;
+my $preprocessed = 0;
+
+my %lineMapping = ();
+
+{
+my $firstline = <FILE>;
+seek(FILE, 0, Fcntl::SEEK_SET);
+if($firstline =~ /^# \d+ \"(.*?)\"$/) {
+	$preprocessed = 1;
+	$filename = $1;
+}
+$.--; # Reset line number.
+}
+
 READLOOP: while(my $line = <FILE>) {
 	chomp($line);
+
+	if($preprocessed && $line =~ /^# (\d+) \"(.*?)\"/) {
+		$lineMapping{$.+1} = [$2, $1];
+	}
 
 	# End of a multi-line comment while ignoring input.
 	if($readignore && $line =~ /^.*?\*\/\s*/) {
@@ -89,25 +107,31 @@ READLOOP: while(my $line = <FILE>) {
 
 close(FILE);
 
+$lineMapping{1} = ["$filename", 1] if scalar keys %lineMapping == 0;
+
 # Process the input lines for directives which must be parsed before main processing, such as %config
 # Mk. I processing loop - preprocessing.
+my $lineno = 1;
+my $generatorLine = 1;
 foreach my $line (@lines) {
 	SCANLOOP: while(1) {
 		my @quotes = quotes($line);
 		while($line =~ /^\s*%config\s*\(\s*(\w+)\s*=\s*(.*?)\s*\)\s*;/g) {
 			next if fallsBetween($-[0], @quotes);
 			$line = $';
+			$generatorLine = $lineno if($1 eq "generator");
 			$main::CONFIG{$1} = $2;
 			redo SCANLOOP;
 		}
 		last;
 	}
+	$lineno++;
 }
 
 my $generatorname = $main::CONFIG{generator};
 $Module::Load::Conditional::VERBOSE = 1;
 my $GeneratorPackage = "Logos::Generator::$generatorname";
-fileError(-1, "I can't find the \"$generatorname\" Generator!") if(!can_load(modules => {
+fileError($generatorLine, "I can't find the \"$generatorname\" Generator!") if(!can_load(modules => {
 			$GeneratorPackage."::Base" => undef,
 		}));
 
@@ -117,7 +141,7 @@ load $GeneratorPackage."::Subclass";
 load 'Logos::Group';
 load $GeneratorPackage."::StaticClassGroup";
 
-my $lineno = 1;
+$lineno = 1;
 
 my $firsthookline = -1;
 my $ctorline = -1;
@@ -483,11 +507,13 @@ foreach my $line (@lines) {
 while(scalar(@nestingstack) > 0) {
 	my $closing = pop(@nestingstack);
 	my @parts = split(/:/, $closing);
-	fileWarning(-1, "missing %end (%".$parts[0]." opened on line ".$parts[1]." extends to EOF)");
+	fileWarning($lineno, "missing %end (%".$parts[0]." opened at ".lineDescriptionForPhysicalLine($parts[1])." extends to EOF)");
 }
 
 # Always insert $staticClassGroup after _ungrouped.
 splice(@groups, 1, 0, $staticClassGroup);
+
+$hassubstrateh = 1 if($preprocessed);
 
 if($firsthookline != -1) {
 	my $offset = 0;
@@ -499,14 +525,16 @@ if($firsthookline != -1) {
 	$offset++;
 	splice(@lines, $firsthookline - 1 + $offset, 0, $staticClassGroup->declarations);
 	$offset++;
-	splice(@lines, $firsthookline - 1 + $offset, 0, "#line $firsthookline \"$filename\"");
+
+	splice(@lines, $firsthookline - 1 + $offset, 0, generateLineDirectiveForPhysicalLine($firsthookline));
 	$offset++;
+
 	if($ctorline == -2) {
 		# If the static class list hasn't been initialized, glue it under the last %init line.
 		if(!$staticClassGroup->initialized) {
 			splice(@lines, $lastInitLine + $offset, 0, $staticClassGroup->initializers);
 			$offset++;
-			splice(@lines, $lastInitLine + $offset, 0, "#line ".($lastInitLine+1)." \"$filename\"");
+			splice(@lines, $lastInitLine + $offset, 0, generateLineDirectiveForPhysicalLine($lastInitLine));
 			$offset++;
 		}
 	} else {
@@ -520,9 +548,9 @@ foreach(@groups) {
 	push(@unInitGroups, $_->name) if !$_->initialized && $_->explicit;
 }
 my $numUnGroups = @unInitGroups;
-fileError(-1, "non-initialized hook group".($numUnGroups == 1 ? "" : "s").": ".join(", ", @unInitGroups)) if $numUnGroups > 0;
+fileError($lineno, "non-initialized hook group".($numUnGroups == 1 ? "" : "s").": ".join(", ", @unInitGroups)) if $numUnGroups > 0;
 
-splice(@lines, 0, 0, "#line 1 \"$filename\"");
+splice(@lines, 0, 0, generateLineDirectiveForPhysicalLine(1)) if !$preprocessed;
 foreach my $oline (@lines) {
 	print $oline."\n" if defined($oline);
 }
@@ -580,13 +608,17 @@ sub fallsBetween {
 sub fileWarning {
 	my $curline = shift;
 	my $reason = shift;
-	print STDERR "$filename:".($curline > -1 ? "$curline:" : "")." warning: $reason\n";
+	my @lineMap = lookupLineMapping($curline);
+	my $filename = $lineMap[0];
+	print STDERR "$filename:".($curline > -1 ? $lineMap[1].":" : "")." warning: $reason\n";
 }
 
 sub fileError {
 	my $curline = shift;
 	my $reason = shift;
-	die "$filename:".($curline > -1 ? "$curline:" : "")." error: $reason\n";
+	my @lineMap = lookupLineMapping($curline);
+	my $filename = $lineMap[0];
+	die "$filename:".($curline > -1 ? $lineMap[1].":" : "")." error: $reason\n";
 }
 
 sub nestingError {
@@ -594,7 +626,7 @@ sub nestingError {
 	my $thisblock = shift;
 	my $reason = shift;
 	my @parts = split(/:/, $reason);
-	fileError $curline, "$thisblock inside a %".$parts[0].", opened on line ".$parts[1];
+	fileError $curline, "$thisblock inside a %".$parts[0].", opened at ".lineDescriptionForPhysicalLine($parts[1]);
 }
 
 sub nestingMustContain {
@@ -726,4 +758,32 @@ sub smartSplit {
 	$piece = substr($in, $lstart);
 	push(@pieces, $piece);
 	return @pieces;
+}
+
+sub lookupLineMapping {
+	my $fileline = shift;
+	$fileline++;
+	for (sort {$b <=> $a} keys %lineMapping) {
+		if($fileline >= $_) {
+			my @x = @{$lineMapping{$_}};
+			return ($x[0], $x[1] + ($fileline-$_-1));
+		}
+	}
+	return undef;
+}
+
+sub generateLineDirectiveForPhysicalLine {
+	my $physline = shift;
+	my @lineMap = lookupLineMapping($physline);
+	my $filename = $lineMap[0];
+	my $lineno = $lineMap[1];
+	return ($preprocessed ? "# " : "#line ").$lineno." \"$filename\"";
+}
+
+sub lineDescriptionForPhysicalLine {
+	my $physline = shift;
+	my @lineMap = lookupLineMapping($physline);
+	my $filename = $lineMap[0];
+	my $lineno = $lineMap[1];
+	return "$filename:$lineno";
 }
