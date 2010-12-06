@@ -33,7 +33,15 @@ internal-install:: stage
 endif
 
 ARCHS ?= i386
-SDKFLAGS := -isysroot $(SYSROOT) $(foreach ARCH,$(ARCHS),-arch $(ARCH)) -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(SDKVERSION))
-TARGET_CFLAGS := $(SDKFLAGS)
-TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress -mmacosx-version-min=10.5
+
+_TARGET_VERSION_GE_3_2 = $(shell $(THEOS_BIN_PATH)/vercmp.pl $(SDKVERSION) ge 3.2)
+_TARGET_VERSION_GE_4_0 = $(shell $(THEOS_BIN_PATH)/vercmp.pl $(SDKVERSION) ge 4.0)
+_TARGET_OSX_VERSION_FLAG = -mmacosx-version-min=$(if $(_TARGET_VERSION_GE_4_0),10.6,10.5)
+_TARGET_OBJC_ABI_CFLAGS = $(if $(_TARGET_VERSION_GE_3_2),-fobjc-abi-version=2 -fobjc-legacy-dispatch)
+_TARGET_OBJC_ABI_LDFLAGS = $(if $(_TARGET_VERSION_GE_3_2),-Xlinker -objc_abi_version -Xlinker 2)
+
+SDKFLAGS := -isysroot $(SYSROOT) $(foreach ARCH,$(ARCHS),-arch $(ARCH)) -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(SDKVERSION)) $(_TARGET_OSX_VERSION_FLAG)
+
+TARGET_CFLAGS := $(SDKFLAGS) $(_TARGET_OBJC_ABI_CFLAGS)
+TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress $(_TARGET_OBJC_ABI_LDFLAGS)
 endif
