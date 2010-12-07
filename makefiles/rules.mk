@@ -90,11 +90,14 @@ $(THEOS_OBJ_DIR)/%/.stamp: $(THEOS_OBJ_DIR)
 	@mkdir -p $(dir $@); touch $@
 
 Makefile: ;
-framework/makefiles/*.mk: ;
-$(THEOS_MAKE_PATH)/*.mk: ;
-$(THEOS_MAKE_PATH)/master/*.mk: ;
-$(THEOS_MAKE_PATH)/instance/*.mk: ;
-$(THEOS_MAKE_PATH)/platform/*.mk: ;
+$(_THEOS_RELATIVE_MAKE_PATH)%.mk: ;
+$(THEOS_MAKE_PATH)/%.mk: ;
+$(THEOS_MAKE_PATH)/master/%.mk: ;
+$(THEOS_MAKE_PATH)/instance/%.mk: ;
+$(THEOS_MAKE_PATH)/instance/shared/%.mk: ;
+$(THEOS_MAKE_PATH)/platform/%.mk: ;
+$(THEOS_MAKE_PATH)/targets/%.mk: ;
+$(THEOS_MAKE_PATH)/targets/%/%.mk: ;
 
 endif
 

@@ -9,6 +9,8 @@ override SDKVERSION := $(firstword $(_THEOS_TARGET_ARGS))
 else
 SDKVERSION ?= 3.0
 endif
+TARGET_IPHONEOS_DEPLOYMENT_VERSION ?= $(or $(word 2,$(_THEOS_TARGET_ARGS)),$(SDKVERSION))
+
 SYSROOT ?= /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDKVERSION).sdk
 
 TARGET_CC ?= $(SDKBINPATH)/gcc-4.2
@@ -25,7 +27,8 @@ include $(THEOS_MAKE_PATH)/targets/_common/install_deb_remote.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
 
 ARCHS ?= armv6
-SDKFLAGS := -isysroot $(SYSROOT) $(foreach ARCH,$(ARCHS),-arch $(ARCH)) -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(SDKVERSION))
+
+SDKFLAGS := -isysroot $(SYSROOT) $(foreach ARCH,$(ARCHS),-arch $(ARCH)) -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(TARGET_IPHONEOS_DEPLOYMENT_VERSION)) -miphoneos-version-min=$(TARGET_IPHONEOS_DEPLOYMENT_VERSION)
 TARGET_CFLAGS := $(SDKFLAGS)
 TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress
 endif

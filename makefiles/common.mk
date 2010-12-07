@@ -2,8 +2,8 @@ all::
 
 THEOS_PROJECT_DIR ?= $(shell pwd)
 
+_THEOS_RELATIVE_MAKE_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
 ifeq ($(THEOS),)
-_THEOS_RELATIVE_MAKE_PATH = $(dir $(lastword $(MAKEFILE_LIST)))
 THEOS := $(shell (unset CDPATH; cd $(_THEOS_RELATIVE_MAKE_PATH); cd ..; pwd))
 ifneq ($(words $(THEOS)),1) # It's a hack, but it works.
 $(shell unlink /tmp/theos &> /dev/null; ln -Ffs "$(THEOS)" /tmp/theos)
