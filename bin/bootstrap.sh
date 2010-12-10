@@ -85,7 +85,6 @@ __EOF
 }
 
 function copySystemSubstrate() {
-return 1;
 	if [[ -f "/Library/Frameworks/CydiaSubstrate.framework/CydiaSubstrate" ]]; then
 		echo " Copying system CydiaSybstrate..."
 		cp "/Library/Frameworks/CydiaSubstrate.framework/CydiaSubstrate" "$THEOSDIR/lib/libsubstrate.dylib"
