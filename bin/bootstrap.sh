@@ -29,19 +29,21 @@ after-CydiaSubstrate-all::
 __EOF
 
 	cat > Hooker.cc << __EOF
-#include <string.h>
-#include <sys/types.h>
-#include <objc/runtime.h>
+typedef void *id;
+typedef void *SEL;
+typedef void *Class;
+typedef id (*IMP)(id, SEL);
+
 bool MSDebug = false;
 extern "C" {
 typedef const void *MSImageRef;
 void MSHookFunction(void *symbol, void *replace, void **result) { };
-void *MSFindSymbol(const void *image, const char *name) { return NULL; }
-MSImageRef MSGetImageByName(const char *file) { return NULL; }
+void *MSFindSymbol(const void *image, const char *name) { return (void*)0; }
+MSImageRef MSGetImageByName(const char *file) { return (MSImageRef)0; }
 
 #ifdef __APPLE__
 #ifdef __arm__
-IMP MSHookMessage(Class _class, SEL sel, IMP imp, const char *prefix = NULL) { return NULL; }
+IMP MSHookMessage(Class _class, SEL sel, IMP imp, const char *prefix = (char *)0) { return (IMP)0; }
 #endif
 void MSHookMessageEx(Class _class, SEL sel, IMP imp, IMP *result) { }
 #endif
@@ -83,6 +85,7 @@ __EOF
 }
 
 function copySystemSubstrate() {
+return 1;
 	if [[ -f "/Library/Frameworks/CydiaSubstrate.framework/CydiaSubstrate" ]]; then
 		echo " Copying system CydiaSybstrate..."
 		cp "/Library/Frameworks/CydiaSubstrate.framework/CydiaSubstrate" "$THEOSDIR/lib/libsubstrate.dylib"
