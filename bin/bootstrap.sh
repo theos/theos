@@ -58,6 +58,10 @@ __EOF
 		( echo -n " failed, forcing 2.0?"; make libsubstrate target=iphone:2.0 &> /dev/null; ) ||
 		( echo -n " failed, forcing 3.0?"; make libsubstrate target=iphone:3.0 &> /dev/null; ) ||
 		( echo -n " failed, forcing 3.2?"; make libsubstrate target=iphone:3.2 &> /dev/null; ) ||
+		( echo -n " failed, forcing 4.0 for 3.0?"; make libsubstrate target=iphone:4.0:3.0 &> /dev/null; ) ||
+		( echo -n " failed, forcing 4.2 for 3.0?"; make libsubstrate target=iphone:4.2:3.0 &> /dev/null; ) ||
+		( echo -n " failed, forcing 4.0?"; make libsubstrate target=iphone:4.0 &> /dev/null; ) ||
+		( echo -n " failed, forcing 4.2?"; make libsubstrate target=iphone:4.2 &> /dev/null; ) ||
 		echo -n " failed, what?"
 	echo
 
