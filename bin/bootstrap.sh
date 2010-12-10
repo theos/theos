@@ -1,4 +1,6 @@
 #!/bin/bash
+bootstrap_version=2
+
 ARGV0=$0
 [[ -z "$THEOS" ]] && THEOS=$(cd $(dirname $0); cd ..; pwd)
 THEOSDIR="$THEOS"
@@ -32,9 +34,10 @@ __EOF
 #include <objc/runtime.h>
 bool MSDebug = false;
 extern "C" {
+typedef const void *MSImageRef;
 void MSHookFunction(void *symbol, void *replace, void **result) { };
-void MSFindSymbols(const void *image, size_t count, const char *names[], void *values[]) { }
 void *MSFindSymbol(const void *image, const char *name) { return NULL; }
+MSImageRef MSGetImageByName(const char *file) { return NULL; }
 
 #ifdef __APPLE__
 #ifdef __arm__
@@ -81,6 +84,7 @@ __EOF
 
 function copySystemSubstrate() {
 	if [[ -f "/Library/Frameworks/CydiaSubstrate.framework/CydiaSubstrate" ]]; then
+		echo " Copying system CydiaSybstrate..."
 		cp "/Library/Frameworks/CydiaSubstrate.framework/CydiaSubstrate" "$THEOSDIR/lib/libsubstrate.dylib"
 		return 0
 	else
@@ -94,10 +98,13 @@ function makeSubstrateHeader() {
 #include <string.h>
 #include <sys/types.h>
 #include <objc/runtime.h>
+#ifdef __cplusplus
 extern "C" {
+#endif
+typedef const void *MSImageRef;
 void MSHookFunction(void *symbol, void *replace, void **result);
-void MSFindSymbols(const void *image, size_t count, const char *names[], void *values[]);
 void *MSFindSymbol(const void *image, const char *name);
+MSImageRef MSGetImageByName(const char *file);
 
 #ifdef __APPLE__
 #ifdef __arm__
@@ -105,12 +112,15 @@ IMP MSHookMessage(Class _class, SEL sel, IMP imp, const char *prefix = NULL);
 #endif
 void MSHookMessageEx(Class _class, SEL sel, IMP imp, IMP *result);
 #endif
+#ifdef __cplusplus
 }
+#endif
 __EOF
 }
 
 function copySystemSubstrateHeader() {
 	if [[ -f "/Library/Frameworks/CydiaSubstrate.framework/Headers/CydiaSubstrate.h" ]]; then
+		echo " Copying system CydiaSubstrate header..."
 		cp "/Library/Frameworks/CydiaSubstrate.framework/Headers/CydiaSubstrate.h" "$THEOSDIR/include/substrate.h"
 		return 0
 	else
@@ -127,13 +137,38 @@ function checkWritability() {
 	return 0
 }
 
+function getCurrentBootstrapVersion {
+	v=1
+	if [[ -f "$THEOSDIR/.bootstrap" ]]; then
+		v=$(< "$THEOSDIR/.bootstrap")
+	fi
+	echo -n "$v"
+}
+
+function bootstrapSubstrate {
+	[ -f "$THEOSDIR/lib/libsubstrate.dylib" ] || copySystemSubstrate || makeSubstrateStub
+	[ -f "$THEOSDIR/include/substrate.h" ] || copySystemSubstrateHeader || makeSubstrateHeader
+	echo -n "$bootstrap_version" > "$THEOSDIR/.bootstrap"
+}
+
 if ! checkWritability; then
 	echo "$THEOSDIR is not writable. Please run $ARGV0 $@ manually, with privileges." 1>&2
 	exit 1
 fi
 
-echo "Bootstrapping theos..."
+# The use of 'p' denotes a query.
+# http://en.wikipedia.org/wiki/P_convention
+
 if [[ "$1" == "substrate" ]]; then
-	[ -f "$THEOSDIR/lib/libsubstrate.dylib" ] || copySystemSubstrate || makeSubstrateStub
-	[ -f "$THEOSDIR/include/substrate.h" ] || copySystemSubstrateHeader || makeSubstrateHeader
+	echo "Bootstrapping CydiaSubstrate..."
+	bootstrapSubstrate
+elif [[ "$1" == "version-p" ]]; then
+	echo -n $(getCurrentBootstrapVersion)
+elif [[ "$1" == "newversion-p" ]]; then
+	echo -n "$bootstrap_version"
+elif [[ "$1" == "update-p" ]]; then
+	test $(getCurrentBootstrapVersion) -lt $bootstrap_version; exit $?
+#elif [[ "$1" == "update" ]]; then
+	#echo "Updating CydiaSubstrate..."
+	#bootstrapSubstrate
 fi
