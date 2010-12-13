@@ -220,6 +220,8 @@ foreach my $line (@lines) {
 
 				nestPush($1, $lineno, \@nestingstack);
 
+				fileError($lineno, "cannot add a subclass to initialized group ".$curGroup->name." (initialized at ".lineDescriptionForPhysicalLine($curGroup->initLine).")") if $curGroup->initialized;
+
 				my $classname = $2;
 				my $superclassname = $3;
 				$class = Subclass->new();
