@@ -8,6 +8,7 @@ sub new {
 	$self->{NAME} = undef;
 	$self->{EXPLICIT} = 1;
 	$self->{INITIALIZED} = 0;
+	$self->{INITLINE} = -1;
 	$self->{CLASSES} = [];
 	bless($self, $class);
 	return $self;
@@ -32,6 +33,12 @@ sub initialized {
 	my $self = shift;
 	if(@_) { $self->{INITIALIZED} = shift; }
 	return $self->{INITIALIZED};
+}
+
+sub initLine {
+	my $self = shift;
+	if(@_) { $self->{INITLINE} = shift; }
+	return $self->{INITLINE};
 }
 ##### #
 # END #

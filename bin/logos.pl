@@ -144,7 +144,7 @@ load $GeneratorPackage."::StaticClassGroup";
 $lineno = 1;
 
 my $firsthookline = -1;
-my $ctorline = -1;
+my $generateAutoConstructor = 1;
 
 my $defaultGroup = Group->new();
 $defaultGroup->name("_ungrouped");
@@ -332,6 +332,7 @@ foreach my $line (@lines) {
 				my $return = $2;
 				my $selnametext = $';
 
+				fileError($lineno, "cannot add hooks to initialized group ".$curGroup->name." (initialized at ".lineDescriptionForPhysicalLine($curGroup->initLine).")") if $curGroup->initialized;
 				my $currentMethod = Method->new();
 
 				$currentMethod->class($class);
@@ -474,7 +475,7 @@ foreach my $line (@lines) {
 				}
 				$after =~ s/^\s*;//g; # Remove the first ; after %init.
 				$line = $before.$initLines.$after;
-				$ctorline = -2; # "Do not generate a constructor."
+				$generateAutoConstructor = 0; # "Do not generate a constructor."
 				$lastInitLine = $lineno;
 
 				redo SCANLOOP;
@@ -529,7 +530,7 @@ if($firsthookline != -1) {
 	splice(@lines, $firsthookline - 1 + $offset, 0, generateLineDirectiveForPhysicalLine($firsthookline));
 	$offset++;
 
-	if($ctorline == -2) {
+	if(!$generateAutoConstructor) {
 		# If the static class list hasn't been initialized, glue it under the last %init line.
 		if(!$staticClassGroup->initialized) {
 			splice(@lines, $lastInitLine + $offset, 0, $staticClassGroup->initializers);
@@ -561,7 +562,7 @@ sub generateConstructor {
 	foreach(@groups) {
 		$explicitGroups++ if $_->explicit;
 	}
-	fileError($ctorline, "Cannot generate an autoconstructor with multiple %groups. Please explicitly create a constructor.") if $explicitGroups > 0;
+	fileError($lineno, "Cannot generate an autoconstructor with multiple %groups. Please explicitly create a constructor.") if $explicitGroups > 0;
 	$return .= "static __attribute__((constructor)) void _logosLocalInit() { ";
 	$return .= "NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init]; ";
 	foreach(@groups) {
@@ -578,11 +579,12 @@ sub generateInitLines {
 	$group = getGroup("_ungrouped") if !$group;
 
 	if($group->initialized) {
-		fileError($lineno, "re-%init of %group ".$group->name);
+		fileError($lineno, "re-%init of %group ".$group->name.", first initialized at ".lineDescriptionForPhysicalLine($group->initLine));
 		return;
 	}
 
 	my $return = $group->initializers;
+	$group->initLine($lineno);
 	return $return;
 }
 
