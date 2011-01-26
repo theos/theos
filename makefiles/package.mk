@@ -7,7 +7,7 @@ _THEOS_PACKAGE_RULES_LOADED := 1
 # For the toplevel invocation of make, mark 'all' and the *-package rules as prerequisites.
 # We do not do this for anything else, because otherwise, all the packaging rules would run for every subproject.
 ifeq ($(_THEOS_TOP_INVOCATION_DONE),)
-stage:: all before-stage internal-stage after-stage
+stage:: all before-stage internal-stage after-stage after-package
 
 _THEOS_HAS_DPKG_DEB := $(shell type dpkg-deb > /dev/null 2>&1 && echo 1 || echo 0)
 ifeq ($(_THEOS_HAS_DPKG_DEB),1)
@@ -52,7 +52,7 @@ endif # _THEOS_HAS_STAGING_LAYOUT
 	$(ECHO_NOTHING)$(THEOS_BIN_PATH)/package_version.sh -c "$(_THEOS_PACKAGE_CONTROL_PATH)" $(if $(PACKAGE_BUILDNAME),-e $(PACKAGE_BUILDNAME),) > "$(THEOS_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
 	$(ECHO_NOTHING)echo "Installed-Size: $(shell du $(_THEOS_PLATFORM_DU_EXCLUDE) DEBIAN -ks "$(THEOS_STAGING_DIR)" | cut -f 1)" >> "$(THEOS_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
 
-package-build-deb:: package-build-deb-buildno
+package-build-deb:: package-build-deb-buildno before-package
 	$(ECHO_NOTHING)$(FAKEROOT) -r dpkg-deb -b "$(THEOS_STAGING_DIR)" "$(THEOS_PROJECT_DIR)/$(THEOS_PACKAGE_FILENAME).deb" $(STDERR_NULL_REDIRECT)$(ECHO_END)
 
 else # _THEOS_CAN_PACKAGE == 0
@@ -64,7 +64,7 @@ endif # _THEOS_CAN_PACKAGE
 endif # _THEOS_TOP_INVOCATION_DONE
 
 # *-stage calls *-package for backwards-compatibility.
-internal-package after-package::
+internal-package before-package after-package::
 internal-stage:: internal-package
 	$(ECHO_NOTHING)[ -d layout ] && rsync -a "layout/" "$(THEOS_STAGING_DIR)" --exclude "DEBIAN" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE) || true$(ECHO_END)
 
