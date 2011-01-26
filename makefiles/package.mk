@@ -7,7 +7,7 @@ _THEOS_PACKAGE_RULES_LOADED := 1
 # For the toplevel invocation of make, mark 'all' and the *-package rules as prerequisites.
 # We do not do this for anything else, because otherwise, all the packaging rules would run for every subproject.
 ifeq ($(_THEOS_TOP_INVOCATION_DONE),)
-stage:: all before-stage internal-stage after-stage after-package
+stage:: all before-stage internal-stage after-stage
 
 _THEOS_HAS_DPKG_DEB := $(shell type dpkg-deb > /dev/null 2>&1 && echo 1 || echo 0)
 ifeq ($(_THEOS_HAS_DPKG_DEB),1)
