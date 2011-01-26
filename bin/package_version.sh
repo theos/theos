@@ -1,6 +1,6 @@
 #!/bin/bash
 
-while getopts ":e:1c:b:" flag; do
+while getopts ":e:1c:b:v" flag; do
 	case "$flag" in
 		:)	echo "$0: Option -$OPTARG requires an argument." 1>&2
 			exit 1
@@ -11,6 +11,7 @@ while getopts ":e:1c:b:" flag; do
 		b)	BUMP="$OPTARG" ;;
 		e)	EXTRAVERS="$OPTARG" ;;
 		c)	CONTROL="$OPTARG" ;;
+		v)	ONLYVERSION=1 ;;
 		1)	SKIPONE=1 ;;
 	esac
 done
@@ -55,4 +56,8 @@ if [[ ! -z "$EXTRAVERS" ]]; then
 	extra_part="+$EXTRAVERS"
 fi
 
-sed -e "s/^Version: \(.*\)/Version: \1$buildno_part$extra_part/g" $CONTROL
+if [[ $ONLYVERSION -eq 1 ]]; then
+	echo "$version$buildno_part$extra_part"
+else
+	sed -e "s/^Version: \(.*\)/Version: \1$buildno_part$extra_part/g" $CONTROL
+fi
