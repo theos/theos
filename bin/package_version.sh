@@ -1,6 +1,6 @@
 #!/bin/bash
 
-while getopts ":e:1c:" flag; do
+while getopts ":e:1c:b:" flag; do
 	case "$flag" in
 		:)	echo "$0: Option -$OPTARG requires an argument." 1>&2
 			exit 1
@@ -8,6 +8,7 @@ while getopts ":e:1c:" flag; do
 		\?)	echo "$0: What're you talking about?" 1>&2
 			exit 1
 			;;
+		b)	BUMP="$OPTARG" ;;
 		e)	EXTRAVERS="$OPTARG" ;;
 		c)	CONTROL="$OPTARG" ;;
 		1)	SKIPONE=1 ;;
@@ -34,12 +35,14 @@ versionfile="${THEOS_PROJECT_DIR}/.theos/packages/$package-$version"
 build_number=0
 
 if [[ ! -e "$versionfile" ]]; then
-	echo -n 1 > "$versionfile"
+	[ "$BUMP" != "no" ] && echo -n 1 > "$versionfile"
 	build_number=1
 else
 	build_number=$(< "$versionfile")
 	let build_number++
-	echo -n "$build_number" > "$versionfile"
+	if [ "$BUMP" != "no" ]; then
+		echo -n "$build_number" > "$versionfile"
+	fi
 fi
 
 buildno_part="-$build_number"
