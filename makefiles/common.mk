@@ -90,13 +90,13 @@ THEOS_BUILD_DIR ?= .
 
 # If we're not using the default target, put the output in a folder named after the target.
 ifneq ($(THEOS_TARGET_NAME),$(_THEOS_PLATFORM_DEFAULT_TARGET))
-	THEOS_OBJ_DIR_NAME ?= obj/$(THEOS_TARGET_NAME)
+	THEOS_OBJ_DIR_NAME ?= .theos/obj/$(THEOS_TARGET_NAME)
 else
-	THEOS_OBJ_DIR_NAME ?= obj
+	THEOS_OBJ_DIR_NAME ?= .theos/obj
 endif
 THEOS_OBJ_DIR = $(THEOS_BUILD_DIR)/$(THEOS_OBJ_DIR_NAME)
 
-THEOS_STAGING_DIR_NAME ?= _
+THEOS_STAGING_DIR_NAME ?= .theos/_
 THEOS_STAGING_DIR = $(THEOS_PROJECT_DIR)/$(THEOS_STAGING_DIR_NAME)
 
 # $(warning ...) expands to the empty string, so the contents of THEOS_STAGING_DIR are not damaged in this copy.

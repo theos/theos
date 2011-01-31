@@ -68,14 +68,14 @@ __EOF
 	if [[ "$(uname -s)" == "Darwin" && "$(uname -p)" != "arm" ]]; then
 		echo " Compiling native CydiaSubstrate stub..."
 		make CydiaSubstrate target=native > /dev/null
-		if [[ -f obj/libsubstrate.dylib ]]; then
-			lipo obj/libsubstrate.dylib obj/macosx/CydiaSubstrate -create -output libsubstrate.dylib
+		if [[ -f .theos/obj/libsubstrate.dylib ]]; then
+			lipo .theos/obj/libsubstrate.dylib .theos/obj/macosx/CydiaSubstrate -create -output libsubstrate.dylib
 		else
-			cp obj/macosx/CydiaSubstrate libsubstrate.dylib
+			cp .theos/obj/macosx/CydiaSubstrate libsubstrate.dylib
 		fi
 	else
-		if [[ -f obj/libsubstrate.dylib ]]; then
-			cp obj/libsubstrate.dylib libsubstrate.dylib
+		if [[ -f .theos/obj/libsubstrate.dylib ]]; then
+			cp .theos/obj/libsubstrate.dylib libsubstrate.dylib
 		else
 			echo "I didn't actually end up with a file here... I should probably bail out."
 			exit 1
