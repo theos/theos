@@ -1,14 +1,11 @@
 ifeq ($(_THEOS_PACKAGE_RULES_LOADED),)
 _THEOS_PACKAGE_RULES_LOADED := 1
 
-.PHONY: package before-package internal-package after-package-buildno after-package \
-	stage before-stage internal-stage after-stage
+.PHONY: package before-package internal-package after-package-buildno after-package
 
 # For the toplevel invocation of make, mark 'all' and the *-package rules as prerequisites.
 # We do not do this for anything else, because otherwise, all the packaging rules would run for every subproject.
 ifeq ($(_THEOS_TOP_INVOCATION_DONE),)
-stage:: all before-stage internal-stage after-stage
-
 _THEOS_HAS_DPKG_DEB := $(shell type dpkg-deb > /dev/null 2>&1 && echo 1 || echo 0)
 ifeq ($(_THEOS_HAS_DPKG_DEB),1)
 package:: stage package-build-deb
@@ -19,7 +16,6 @@ endif
 
 install:: before-install internal-install after-install
 else # _THEOS_TOP_INVOCATION_DONE
-stage:: internal-stage
 package::
 install::
 endif
@@ -29,11 +25,6 @@ export FAKEROOT
 
 # Only do the master packaging rules if we're the toplevel make invocation.
 ifeq ($(_THEOS_TOP_INVOCATION_DONE),)
-before-stage::
-	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)"$(ECHO_END)
-	$(ECHO_NOTHING)$(FAKEROOT) -c$(ECHO_END)
-	$(ECHO_NOTHING)mkdir -p "$(THEOS_STAGING_DIR)"$(ECHO_END)
-
 ifeq ($(_THEOS_CAN_PACKAGE),1) # Control file found (or layout/ found.)
 
 THEOS_PACKAGE_NAME := $(shell grep "^Package:" "$(_THEOS_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2)
@@ -63,12 +54,8 @@ endif # _THEOS_CAN_PACKAGE
 
 endif # _THEOS_TOP_INVOCATION_DONE
 
-# *-stage calls *-package for backwards-compatibility.
-internal-package after-package::
-internal-stage:: internal-package
-	$(ECHO_NOTHING)[ -d layout ] && rsync -a "layout/" "$(THEOS_STAGING_DIR)" --exclude "DEBIAN" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE) || true$(ECHO_END)
-
-after-stage:: after-package
+internal-package::
+after-package::
 
 before-install::
 after-install:: internal-after-install
