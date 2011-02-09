@@ -56,13 +56,13 @@ internal-package::
 
 endif # _THEOS_CAN_PACKAGE
 
+endif # _THEOS_TOP_INVOCATION_DONE
+
 before-package:: internal-before-package
 after-package::
 
 before-install::
 after-install:: internal-after-install
 internal-after-install::
-
-endif # _THEOS_TOP_INVOCATION_DONE
 
 endif # _THEOS_PACKAGE_RULES_LOADED
