@@ -8,12 +8,9 @@ sub new {
 	$self->{CLASS} = undef;
 	$self->{SCOPE} = undef;
 	$self->{RETURN} = undef;
-	$self->{GROUP_IDENTIFIER} = undef;
 	$self->{SELECTOR_PARTS} = [];
 	$self->{ARGNAMES} = [];
 	$self->{ARGTYPES} = [];
-	$self->{NUM_ARGS} = 0;
-	$self->{GROUP} = "_ungrouped";
 	$self->{NEW} = 0;
 	$self->{TYPE} = "";
 	bless($self, $class);
@@ -43,20 +40,13 @@ sub return {
 
 sub groupIdentifier {
 	my $self = shift;
-	if(@_) { $self->{GROUP_IDENTIFIER} = shift; }
-	return $self->{GROUP_IDENTIFIER};
+	return $self->class->group->identifier;
 }
 
 sub selectorParts {
 	my $self = shift;
 	if(@_) { @{$self->{SELECTOR_PARTS}} = @_; }
 	return @{$self->{SELECTOR_PARTS}};
-}
-
-sub group {
-	my $self = shift;
-	if(@_) { $self->{GROUP} = shift; }
-	return $self->{GROUP};
 }
 
 sub setNew {
@@ -80,17 +70,21 @@ sub type {
 # END #
 # #####
 
+sub numArgs {
+	my $self = shift;
+	return scalar @{$self->{ARGTYPES}};
+}
+
 sub addArgument {
 	my $self = shift;
 	my ($type, $name) = @_;
 	push(@{$self->{ARGTYPES}}, $type);	
 	push(@{$self->{ARGNAMES}}, $name);
-	$self->{NUM_ARGS}++;
 }
 
 sub selector {
 	my $self = shift;
-	if($self->{NUM_ARGS} == 0) {
+	if($self->numArgs == 0) {
 		return $self->{SELECTOR_PARTS}[0];
 	} else {
 		return join(":", @{$self->{SELECTOR_PARTS}}).":";
@@ -118,12 +112,12 @@ sub buildLogCall {
 	# Log preamble
 	my $build = "NSLog(\@\"".$self->{SCOPE}."[<".$self->class->name.": %p>";
 	my $argnamelist = "";
-	if($self->{NUM_ARGS} > 0) {
+	if($self->numArgs > 0) {
 		# For each argument, add its keyword and a format char to the log string.
-		map $build .= " ".$self->{SELECTOR_PARTS}[$_].":".formatCharForArgType($self->{ARGTYPES}[$_]), (0..$self->{NUM_ARGS} - 1);
+		map $build .= " ".$self->{SELECTOR_PARTS}[$_].":".formatCharForArgType($self->{ARGTYPES}[$_]), (0..$self->numArgs - 1);
 		# This builds a list of args by making sure the format char isn't -- (or, what we're using for non-operational types)
 		# Map (in list context) "format char == -- ? nothing : arg name" over the indices of the arg list.
-		my @newarglist = map(printArgForArgType($self->{ARGTYPES}[$_], $self->{ARGNAMES}[$_]), (0..$self->{NUM_ARGS} - 1));
+		my @newarglist = map(printArgForArgType($self->{ARGTYPES}[$_], $self->{ARGNAMES}[$_]), (0..$self->numArgs - 1));
 		my @existingargs = grep(defined($_), @newarglist);
 		if(scalar(@existingargs) > 0) {
 			$argnamelist = ", ".join(", ", grep(defined($_), @existingargs));

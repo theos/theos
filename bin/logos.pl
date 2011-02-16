@@ -369,7 +369,6 @@ foreach my $line (@lines) {
 				}
 
 				$currentMethod->selectorParts(@selparts);
-				$currentMethod->groupIdentifier(sanitize($curGroup->name));
 				$class->addMethod($currentMethod);
 				$lastMethod = $currentMethod;
 
