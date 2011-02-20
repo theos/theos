@@ -41,6 +41,8 @@ _THEOS_PLATFORM_ARCH = $(uname_s)-$(uname_p)
 _THEOS_PLATFORM = $(uname_s)
 -include $(THEOS_MAKE_PATH)/platform/$(uname_s)-$(uname_p).mk
 -include $(THEOS_MAKE_PATH)/platform/$(uname_s).mk
+-include $(foreach mod,$(_THEOS_LOAD_MODULES),$(THEOS_MODULE_PATH)/$(mod)/platform/$(uname_s)-$(uname_p).mk)
+-include $(foreach mod,$(_THEOS_LOAD_MODULES),$(THEOS_MODULE_PATH)/$(mod)/platform/$(uname_s).mk)
 
 _THEOS_TARGET := $(or $(target),$(TARGET),$(_THEOS_PLATFORM_DEFAULT_TARGET))
 ifeq ($(_THEOS_TARGET),)
