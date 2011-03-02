@@ -2,7 +2,7 @@ ifeq ($(_THEOS_TARGET_LOADED),)
 _THEOS_TARGET_LOADED := 1
 THEOS_TARGET_NAME := iphone
 
-SDKBINPATH ?= /Developer/Platforms/iPhoneOS.platform/Developer/usr/bin
+SDKBINPATH ?= $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneOS.platform/Developer/usr/bin
 ifneq ($(words $(_THEOS_TARGET_ARGS)),0)
 # A version specified as a target argument overrides all previous definitions.
 override SDKVERSION := $(firstword $(_THEOS_TARGET_ARGS))
@@ -11,7 +11,7 @@ SDKVERSION ?= 3.0
 endif
 TARGET_IPHONEOS_DEPLOYMENT_VERSION ?= $(or $(word 2,$(_THEOS_TARGET_ARGS)),$(SDKVERSION))
 
-SYSROOT ?= /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDKVERSION).sdk
+SYSROOT ?= $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDKVERSION).sdk
 
 TARGET_CC ?= $(SDKBINPATH)/gcc-4.2
 TARGET_CXX ?= $(SDKBINPATH)/g++-4.2
