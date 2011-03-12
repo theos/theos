@@ -42,6 +42,8 @@ _THEOS_PLATFORM_ARCH = $(uname_s)-$(uname_p)
 _THEOS_PLATFORM = $(uname_s)
 -include $(THEOS_MAKE_PATH)/platform/$(uname_s)-$(uname_p).mk
 -include $(THEOS_MAKE_PATH)/platform/$(uname_s).mk
+-include $(foreach mod,$(_THEOS_LOAD_MODULES),$(THEOS_MODULE_PATH)/$(mod)/platform/$(uname_s)-$(uname_p).mk)
+-include $(foreach mod,$(_THEOS_LOAD_MODULES),$(THEOS_MODULE_PATH)/$(mod)/platform/$(uname_s).mk)
 
 _THEOS_TARGET := $(or $(target),$(TARGET),$(_THEOS_PLATFORM_DEFAULT_TARGET))
 ifeq ($(_THEOS_TARGET),)
@@ -98,6 +100,9 @@ THEOS_OBJ_DIR = $(THEOS_BUILD_DIR)/$(THEOS_OBJ_DIR_NAME)
 
 THEOS_STAGING_DIR_NAME ?= .theos/_
 THEOS_STAGING_DIR = $(THEOS_PROJECT_DIR)/$(THEOS_STAGING_DIR_NAME)
+_SPACE :=
+_SPACE += 
+_THEOS_ESCAPED_STAGING_DIR = $(subst $(_SPACE),\ ,$(THEOS_STAGING_DIR))
 
 # $(warning ...) expands to the empty string, so the contents of THEOS_STAGING_DIR are not damaged in this copy.
 FW_PACKAGE_STAGING_DIR = $(THEOS_STAGING_DIR)$(warning FW_PACKAGE_STAGING_DIR is deprecated; please use THEOS_STAGING_DIR)

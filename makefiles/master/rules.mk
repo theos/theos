@@ -30,6 +30,7 @@ endif
 
 after-clean::
 
+include $(THEOS_MAKE_PATH)/stage.mk
 include $(THEOS_MAKE_PATH)/package.mk
 
 ifeq ($(MAKELEVEL),0)

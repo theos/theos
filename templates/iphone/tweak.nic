@@ -36,7 +36,7 @@ the generation of a class list and an automatic constructor.
 	return awesome;
 }
 
-// Always make sure you clean up after yourself; Not doing so could have grave conseqeuences!
+// Always make sure you clean up after yourself; Not doing so could have grave consequences!
 %end
 */
 

@@ -10,7 +10,7 @@ sub classname {
 
 sub new_selector {
 	my $self = shift;
-	if($self->{NUM_ARGS} == 0) {
+	if($self->numArgs == 0) {
 		return $self->{SELECTOR_PARTS}[0];
 	} else {
 		return join("\$", @{$self->{SELECTOR_PARTS}})."\$";
@@ -44,7 +44,7 @@ sub methodSignature {
 		$build .= ");"
 	}
 	my $arglist = "";
-	map $arglist .= ", ".$self->{ARGTYPES}[$_]." ".$self->{ARGNAMES}[$_], (0..$self->{NUM_ARGS} - 1);
+	map $arglist .= ", ".$self->{ARGTYPES}[$_]." ".$self->{ARGNAMES}[$_], (0..$self->numArgs - 1);
 
 	$build .= "static ".$self->{RETURN}." ".$self->newFunctionName."(".$classargtype." self, SEL _cmd".$arglist.")";
 	return $build;
@@ -58,7 +58,7 @@ sub originalCall {
 	my $build = $self->originalFunctionName."(self, _cmd";
 	if(defined $customargs && $customargs ne "") {
 		$build .= ", ".$customargs;
-	} elsif($self->{NUM_ARGS} > 0) {
+	} elsif($self->numArgs > 0) {
 		$build .= ", ".join(", ",@{$self->{ARGNAMES}});
 	}
 	$build .= ")";
