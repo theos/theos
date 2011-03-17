@@ -9,6 +9,13 @@ override SDKVERSION := $(firstword $(_THEOS_TARGET_ARGS))
 else
 SDKVERSION ?= 3.0
 endif
+
+ifeq ($(SDKVERSION),latest)
+_SDK_DIR := $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs
+_IOS_SDKS := $(sort $(patsubst $(_SDK_DIR)/iPhoneOS%.sdk,%,$(wildcard $(_SDK_DIR)/iPhoneOS*.sdk)))
+override SDKVERSION := $(word $(words $(_IOS_SDKS)),$(_IOS_SDKS))
+endif
+
 TARGET_IPHONEOS_DEPLOYMENT_VERSION ?= $(or $(word 2,$(_THEOS_TARGET_ARGS)),$(SDKVERSION))
 
 SYSROOT ?= $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(SDKVERSION).sdk
