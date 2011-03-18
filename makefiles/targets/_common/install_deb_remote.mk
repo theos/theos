@@ -12,7 +12,7 @@ export THEOS_DEVICE_IP THEOS_DEVICE_PORT
 
 ifeq ($(_THEOS_CAN_PACKAGE),1)
 internal-install::
-	install.copyFile "$(THEOS_PROJECT_DIR)/$(THEOS_PACKAGE_FILENAME).deb" "$(THEOS_PACKAGE_FILENAME).deb"
+	install.copyFile "$(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_FILENAME).deb" "$(THEOS_PACKAGE_FILENAME).deb"
 	install.exec "dpkg -i $(THEOS_PACKAGE_FILENAME).deb"
 else # _THEOS_CAN_PACKAGE == 0
 internal-install:: stage

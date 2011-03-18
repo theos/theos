@@ -99,6 +99,11 @@ $(THEOS_MAKE_PATH)/platform/%.mk: ;
 $(THEOS_MAKE_PATH)/targets/%.mk: ;
 $(THEOS_MAKE_PATH)/targets/%/%.mk: ;
 
+ifneq ($(THEOS_PACKAGE_DIR_NAME),)
+$(THEOS_PACKAGE_DIR):
+	@cd $(THEOS_BUILD_DIR); mkdir -p $(THEOS_PACKAGE_DIR_NAME)
+endif
+
 endif
 
 # TODO MAKE A BUNCH OF THINGS PHONY

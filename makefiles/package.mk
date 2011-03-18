@@ -45,8 +45,8 @@ endif # _THEOS_HAS_STAGING_LAYOUT
 
 internal-before-package:: $(_THEOS_ESCAPED_STAGING_DIR)/DEBIAN/control
 
-internal-package::
-	$(ECHO_NOTHING)$(FAKEROOT) -r dpkg-deb -b "$(THEOS_STAGING_DIR)" "$(THEOS_PROJECT_DIR)/$(THEOS_PACKAGE_FILENAME).deb" $(STDERR_NULL_REDIRECT)$(ECHO_END)
+internal-package:: $(THEOS_PACKAGE_DIR)
+	$(ECHO_NOTHING)$(FAKEROOT) -r dpkg-deb -b "$(THEOS_STAGING_DIR)" "$(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_FILENAME).deb" $(STDERR_NULL_REDIRECT)$(ECHO_END)
 
 else # _THEOS_CAN_PACKAGE == 0
 internal-before-package::
