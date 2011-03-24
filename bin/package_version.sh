@@ -68,7 +68,11 @@ fi
 
 full_version="$version$buildno_part$extra_part"
 if [[ $KEEP_LAST -eq 1 ]]; then
-	full_version=$(< "$versionfile")
+	if [[ -e "$versionfile" ]]; then
+		full_version=$(< "$versionfile")
+	else
+		full_version="none"
+	fi
 fi
 
 if [[ $UPDATE -eq 1 && $KEEP_LAST -eq 0 ]]; then
