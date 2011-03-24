@@ -1,6 +1,18 @@
 #!/bin/bash
 
-while getopts ":e:1c:" flag; do
+UPDATE=1
+SKIPONE=0
+JUST_ECHO_VERSION=0
+
+function build_num_from_file {
+	version=$(< "$1")
+	version=${version##*-}
+	version=${version%%+*}
+	version=${version%%~*}
+	echo -n "$version"
+}
+
+while getopts ":e:1c:no" flag; do
 	case "$flag" in
 		:)	echo "$0: Option -$OPTARG requires an argument." 1>&2
 			exit 1
@@ -11,6 +23,8 @@ while getopts ":e:1c:" flag; do
 		e)	EXTRAVERS="$OPTARG" ;;
 		c)	CONTROL="$OPTARG" ;;
 		1)	SKIPONE=1 ;;
+		n)	UPDATE=0 ;;
+		o)	JUST_ECHO_VERSION=1 ;;
 	esac
 done
 
@@ -34,12 +48,10 @@ versionfile="${THEOS_PROJECT_DIR}/.theos/packages/$package-$version"
 build_number=0
 
 if [[ ! -e "$versionfile" ]]; then
-	echo -n 1 > "$versionfile"
 	build_number=1
 else
-	build_number=$(< "$versionfile")
+	build_number=$(build_num_from_file "$versionfile")
 	let build_number++
-	echo -n "$build_number" > "$versionfile"
 fi
 
 buildno_part="-$build_number"
@@ -52,4 +64,12 @@ if [[ ! -z "$EXTRAVERS" ]]; then
 	extra_part="+$EXTRAVERS"
 fi
 
-sed -e "s/^Version: \(.*\)/Version: \1$buildno_part$extra_part/g" $CONTROL
+if [[ $UPDATE -eq 1 ]]; then
+	echo -n "$version$buildno_part$extra_part" > "$versionfile"
+fi
+
+if [[ $JUST_ECHO_VERSION -eq 1 ]]; then
+	echo "$version$buildno_part$extra_part"
+else
+	sed -e "s/^Version: \(.*\)/Version: \1$buildno_part$extra_part/g" $CONTROL
+fi
