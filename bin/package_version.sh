@@ -3,6 +3,7 @@
 UPDATE=1
 SKIPONE=0
 JUST_ECHO_VERSION=0
+KEEP_LAST=0
 
 function build_num_from_file {
 	version=$(< "$1")
@@ -12,7 +13,7 @@ function build_num_from_file {
 	echo -n "$version"
 }
 
-while getopts ":e:1c:no" flag; do
+while getopts ":e:1c:nok" flag; do
 	case "$flag" in
 		:)	echo "$0: Option -$OPTARG requires an argument." 1>&2
 			exit 1
@@ -25,6 +26,7 @@ while getopts ":e:1c:no" flag; do
 		1)	SKIPONE=1 ;;
 		n)	UPDATE=0 ;;
 		o)	JUST_ECHO_VERSION=1 ;;
+		k)	KEEP_LAST=1 ;;
 	esac
 done
 
@@ -64,12 +66,17 @@ if [[ ! -z "$EXTRAVERS" ]]; then
 	extra_part="+$EXTRAVERS"
 fi
 
-if [[ $UPDATE -eq 1 ]]; then
-	echo -n "$version$buildno_part$extra_part" > "$versionfile"
+full_version="$version$buildno_part$extra_part"
+if [[ $KEEP_LAST -eq 1 ]]; then
+	full_version=$(< "$versionfile")
+fi
+
+if [[ $UPDATE -eq 1 && $KEEP_LAST -eq 0 ]]; then
+	echo -n "$full_version" > "$versionfile"
 fi
 
 if [[ $JUST_ECHO_VERSION -eq 1 ]]; then
-	echo "$version$buildno_part$extra_part"
+	echo "$full_version"
 else
-	sed -e "s/^Version: \(.*\)/Version: \1$buildno_part$extra_part/g" $CONTROL
+	sed -e "s/^Version: \(.*\)/Version: $full_version/g" $CONTROL
 fi
