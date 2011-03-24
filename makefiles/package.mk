@@ -23,17 +23,20 @@ endif
 FAKEROOT := $(THEOS_BIN_PATH)/fakeroot.sh -p "$(THEOS_PROJECT_DIR)/.theos/fakeroot"
 export FAKEROOT
 
+ifeq ($(_THEOS_CAN_PACKAGE),1)
+THEOS_PACKAGE_NAME := $(shell grep "^Package:" "$(_THEOS_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2)
+THEOS_PACKAGE_ARCH := $(shell grep "^Architecture:" "$(_THEOS_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2)
+THEOS_PACKAGE_BASE_VERSION := $(shell grep "^Version:" "$(_THEOS_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2)
+
+THEOS_PACKAGE_VERSION = $(shell $(THEOS_BIN_PATH)/package_version.sh -n -o -c "$(_THEOS_PACKAGE_CONTROL_PATH)" $(if $(PACKAGE_BUILDNAME),-e $(PACKAGE_BUILDNAME),))
+export THEOS_PACKAGE_NAME THEOS_PACKAGE_ARCH THEOS_PACKAGE_BASE_VERSION THEOS_PACKAGE_VERSION
+endif # _THEOS_CAN_PACKAGE
+
 # Only do the master packaging rules if we're the toplevel make invocation.
 ifeq ($(_THEOS_TOP_INVOCATION_DONE),)
 ifeq ($(_THEOS_CAN_PACKAGE),1) # Control file found (or layout/ found.)
 
-THEOS_PACKAGE_NAME := $(shell grep "^Package:" "$(_THEOS_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2)
-THEOS_PACKAGE_ARCH := $(shell grep "^Architecture:" "$(_THEOS_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2)
-THEOS_PACKAGE_VERSION := $(shell grep "^Version:" "$(_THEOS_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2)
-
-THEOS_PACKAGE_DEBVERSION = $(shell grep "^Version:" "$(THEOS_STAGING_DIR)/DEBIAN/control" | cut -d' ' -f2)
-
-THEOS_PACKAGE_FILENAME = $(THEOS_PACKAGE_NAME)_$(THEOS_PACKAGE_DEBVERSION)_$(THEOS_PACKAGE_ARCH)
+THEOS_PACKAGE_FILENAME = $(THEOS_PACKAGE_NAME)_$(THEOS_PACKAGE_VERSION)_$(THEOS_PACKAGE_ARCH)
 
 $(_THEOS_ESCAPED_STAGING_DIR)/DEBIAN/control:
 	$(ECHO_NOTHING)mkdir -p "$(THEOS_STAGING_DIR)/DEBIAN"$(ECHO_END)
