@@ -29,6 +29,7 @@ THEOS_PACKAGE_ARCH := $(shell grep "^Architecture:" "$(_THEOS_PACKAGE_CONTROL_PA
 THEOS_PACKAGE_BASE_VERSION := $(shell grep "^Version:" "$(_THEOS_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 
 THEOS_PACKAGE_VERSION = $(shell THEOS_PROJECT_DIR="$(THEOS_PROJECT_DIR)" $(THEOS_BIN_PATH)/package_version.sh -n -o -c "$(_THEOS_PACKAGE_CONTROL_PATH)" $(if $(PACKAGE_BUILDNAME),-e $(PACKAGE_BUILDNAME),))
+_THEOS_PACKAGE_LAST_VERSION = $(shell THEOS_PROJECT_DIR="$(THEOS_PROJECT_DIR)" $(THEOS_BIN_PATH)/package_version.sh -k -n -o -c "$(_THEOS_PACKAGE_CONTROL_PATH)")
 export THEOS_PACKAGE_NAME THEOS_PACKAGE_ARCH THEOS_PACKAGE_BASE_VERSION THEOS_PACKAGE_VERSION
 endif # _THEOS_CAN_PACKAGE
 
@@ -36,7 +37,7 @@ endif # _THEOS_CAN_PACKAGE
 ifeq ($(_THEOS_TOP_INVOCATION_DONE),)
 ifeq ($(_THEOS_CAN_PACKAGE),1) # Control file found (or layout/ found.)
 
-THEOS_PACKAGE_FILENAME = $(THEOS_PACKAGE_NAME)_$(THEOS_PACKAGE_VERSION)_$(THEOS_PACKAGE_ARCH)
+THEOS_PACKAGE_FILENAME = $(THEOS_PACKAGE_NAME)_$(_THEOS_PACKAGE_LAST_VERSION)_$(THEOS_PACKAGE_ARCH)
 
 $(_THEOS_ESCAPED_STAGING_DIR)/DEBIAN/control:
 	$(ECHO_NOTHING)mkdir -p "$(THEOS_STAGING_DIR)/DEBIAN"$(ECHO_END)
@@ -46,22 +47,18 @@ endif # _THEOS_HAS_STAGING_LAYOUT
 	$(ECHO_NOTHING)$(THEOS_BIN_PATH)/package_version.sh -c "$(_THEOS_PACKAGE_CONTROL_PATH)" $(if $(PACKAGE_BUILDNAME),-e $(PACKAGE_BUILDNAME),) > "$@"$(ECHO_END)
 	$(ECHO_NOTHING)echo "Installed-Size: $(shell du $(_THEOS_PLATFORM_DU_EXCLUDE) DEBIAN -ks "$(THEOS_STAGING_DIR)" | cut -f 1)" >> "$@"$(ECHO_END)
 
-internal-before-package:: $(_THEOS_ESCAPED_STAGING_DIR)/DEBIAN/control
-
-internal-package:: $(THEOS_PACKAGE_DIR)
+internal-package:: $(THEOS_PACKAGE_DIR) $(_THEOS_ESCAPED_STAGING_DIR)/DEBIAN/control
 	$(ECHO_NOTHING)$(FAKEROOT) -r dpkg-deb -b "$(THEOS_STAGING_DIR)" "$(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_FILENAME).deb" $(STDERR_NULL_REDIRECT)$(ECHO_END)
 
 else # _THEOS_CAN_PACKAGE == 0
-internal-before-package::
-	@echo "$(MAKE) package requires you to have a layout/ directory in the project root, containing the basic package structure, or a control file in the project root describing the package."; exit 1
-
 internal-package::
+	@echo "$(MAKE) package requires you to have a layout/ directory in the project root, containing the basic package structure, or a control file in the project root describing the package."; exit 1
 
 endif # _THEOS_CAN_PACKAGE
 
 endif # _THEOS_TOP_INVOCATION_DONE
 
-before-package:: internal-before-package
+before-package::
 after-package::
 
 before-install::
