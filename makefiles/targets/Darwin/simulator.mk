@@ -2,14 +2,16 @@ ifeq ($(_THEOS_TARGET_LOADED),)
 _THEOS_TARGET_LOADED := 1
 THEOS_TARGET_NAME := iphone_simulator
 
-SDKBINPATH ?= /Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin
-ifneq ($(words $(_THEOS_TARGET_ARGS)),0)
-# A version specified as a target argument overrides all previous definitions.
-override SDKVERSION := $(firstword $(_THEOS_TARGET_ARGS))
-else
-SDKVERSION ?= 3.0
+SDKBINPATH ?= $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneSimulator.platform/Developer/usr/bin
+SDKVERSION := $(or $(firstword $(_THEOS_TARGET_ARGS)),$(SDKVERSION),3.0)
+
+ifeq ($(SDKVERSION),latest)
+_SDK_DIR := $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneSimulator.platform/Developer/SDKs
+_IOS_SDKS := $(sort $(patsubst $(_SDK_DIR)/iPhoneSimulator%.sdk,%,$(wildcard $(_SDK_DIR)/iPhoneSimulator*.sdk)))
+override SDKVERSION := $(word $(words $(_IOS_SDKS)),$(_IOS_SDKS))
 endif
-SYSROOT ?= /Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator$(SDKVERSION).sdk
+
+SYSROOT ?= $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator$(SDKVERSION).sdk
 
 TARGET_CC ?= $(SDKBINPATH)/gcc-4.2
 TARGET_CXX ?= $(SDKBINPATH)/g++-4.2
