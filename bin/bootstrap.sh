@@ -51,7 +51,7 @@ void MSHookMessageEx(Class _class, SEL sel, IMP imp, IMP *result) { }
 __EOF
 
 	unset MAKE MAKELEVEL
-	unset TARGET_CC TARGET_CXX TARGET_STRIP TARGET_CODESIGN_ALLOCATE TARGET_CODESIGN TARGET_CODESIGN_FLAGS
+	unset TARGET_CC TARGET_CXX TARGET_LD TARGET_STRIP TARGET_CODESIGN_ALLOCATE TARGET_CODESIGN TARGET_CODESIGN_FLAGS
 	unset THEOS_PROJECT_DIR
 	echo -n " Compiling iPhoneOS CydiaSubstrate stub..."
 	( echo -n " default target?"; make libsubstrate target=iphone &> /dev/null; ) ||

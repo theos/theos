@@ -15,6 +15,7 @@ SYSROOT ?= $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneSimulator.platform/Develop
 
 TARGET_CC ?= $(SDKBINPATH)/gcc-4.2
 TARGET_CXX ?= $(SDKBINPATH)/g++-4.2
+TARGET_LD ?= $(SDKBINPATH)/g++-4.2
 TARGET_STRIP ?= $(SDKBINPATH)/strip
 TARGET_STRIP_FLAGS ?= -x
 TARGET_CODESIGN_ALLOCATE ?= $(SDKBINPATH)/codesign_allocate
