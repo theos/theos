@@ -520,7 +520,7 @@ $hassubstrateh = 1 if($preprocessed);
 if($firsthookline != -1) {
 	my $offset = 0;
 	if(!$hassubstrateh) {
-		splice(@lines, $firsthookline - 1, 0, "#include <substrate.h>");
+		splice(@lines, 0, 0, "#include <substrate.h>");
 		$offset++;
 	}
 	splice(@lines, $firsthookline - 1 + $offset, 0, Generator->generateClassList(keys %classes));
