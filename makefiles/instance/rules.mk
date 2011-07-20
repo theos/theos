@@ -82,3 +82,5 @@ ifneq ($$(_THEOS_CODESIGN_COMMANDLINE),)
 	$$(ECHO_SIGNING)$$(_THEOS_CODESIGN_COMMANDLINE) $$@$$(ECHO_END)
 endif
 endef
+
+$(eval $(call __mod,instance/rules.mk))

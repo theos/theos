@@ -33,6 +33,7 @@ endif # _THEOS_TOP_INVOCATION_DONE
 _THEOS_PACKAGE_LAST_VERSION = $(shell THEOS_PROJECT_DIR="$(THEOS_PROJECT_DIR)" $(THEOS_BIN_PATH)/package_version.sh -k -n -o -c "$(_THEOS_PACKAGE_CONTROL_PATH)")
 
 _THEOS_LOAD_MODULES := $(sort $(MODULES) $(THEOS_AUTOLOAD_MODULES))
+__mod = -include $$(foreach mod,$$(_THEOS_LOAD_MODULES),$$(THEOS_MODULE_PATH)/$$(mod)/$(1))
 
 include $(THEOS_MAKE_PATH)/legacy.mk
 
@@ -42,8 +43,8 @@ _THEOS_PLATFORM_ARCH = $(uname_s)-$(uname_p)
 _THEOS_PLATFORM = $(uname_s)
 -include $(THEOS_MAKE_PATH)/platform/$(uname_s)-$(uname_p).mk
 -include $(THEOS_MAKE_PATH)/platform/$(uname_s).mk
--include $(foreach mod,$(_THEOS_LOAD_MODULES),$(THEOS_MODULE_PATH)/$(mod)/platform/$(uname_s)-$(uname_p).mk)
--include $(foreach mod,$(_THEOS_LOAD_MODULES),$(THEOS_MODULE_PATH)/$(mod)/platform/$(uname_s).mk)
+$(eval $(call __mod,platform/$(uname_s)-$(uname_p).mk))
+$(eval $(call __mod,platform/$(uname_s).mk))
 
 _THEOS_TARGET := $(or $(target),$(TARGET),$(_THEOS_PLATFORM_DEFAULT_TARGET))
 ifeq ($(_THEOS_TARGET),)
@@ -56,9 +57,9 @@ _THEOS_TARGET := $(firstword $(_THEOS_TARGET))
 -include $(THEOS_MAKE_PATH)/targets/$(_THEOS_PLATFORM_ARCH)/$(_THEOS_TARGET).mk
 -include $(THEOS_MAKE_PATH)/targets/$(_THEOS_PLATFORM)/$(_THEOS_TARGET).mk
 -include $(THEOS_MAKE_PATH)/targets/$(_THEOS_TARGET).mk
--include $(foreach mod,$(_THEOS_LOAD_MODULES),$(THEOS_MODULE_PATH)/$(mod)/targets/$(_THEOS_PLATFORM_ARCH)/$(_THEOS_TARGET).mk)
--include $(foreach mod,$(_THEOS_LOAD_MODULES),$(THEOS_MODULE_PATH)/$(mod)/targets/$(_THEOS_PLATFORM)/$(_THEOS_TARGET).mk)
--include $(foreach mod,$(_THEOS_LOAD_MODULES),$(THEOS_MODULE_PATH)/$(mod)/targets/$(_THEOS_TARGET).mk)
+$(eval $(call __mod,targets/$(_THEOS_PLATFORM_ARCH)/$(_THEOS_TARGET).mk))
+$(eval $(call __mod,targets/$(_THEOS_PLATFORM)/$(_THEOS_TARGET).mk))
+$(eval $(call __mod,targets/$(_THEOS_TARGET).mk))
 
 ifneq ($(_THEOS_TARGET_LOADED),1)
 $(error The "$(_THEOS_TARGET)" target is not supported on the "$(THEOS_PLATFORM_NAME)" platform)
@@ -139,4 +140,4 @@ _THEOS_RSYNC_EXCLUDE_COMMANDLINE := $(foreach exclude,$(THEOS_RSYNC_EXCLUDES),--
 
 _THEOS_MAKE_PARALLEL_BUILDING ?= yes
 
--include $(foreach mod,$(_THEOS_LOAD_MODULES),$(THEOS)/mod/$(mod)/common.mk)
+$(eval $(call __mod,common.mk))

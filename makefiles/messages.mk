@@ -28,3 +28,5 @@ WARNING_EMPTY_LINKING = @(echo " Warning! No files to link. Please check your Ma
 
 # (bundle)
 NOTICE_EMPTY_LINKING = @(echo " Notice: No files to link - creating a bundle containing only resources")
+
+$(eval $(call __mod,messages.mk))

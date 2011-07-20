@@ -15,3 +15,5 @@ endif
 
 $(BUNDLE_NAME):
 	@$(MAKE) --no-print-directory --no-keep-going $@.all.bundle.variables
+
+$(eval $(call __mod,master/bundle.mk))

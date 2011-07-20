@@ -15,3 +15,5 @@ endif
 
 $(NULL_NAME):
 	@$(MAKE) --no-print-directory --no-keep-going $@.all.null.variables
+
+$(eval $(call __mod,master/null.mk))

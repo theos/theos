@@ -7,3 +7,5 @@ endif
 internal-null-all_::
 
 internal-null-stage_::
+
+$(eval $(call __mod,instance/null.mk))

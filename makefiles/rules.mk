@@ -3,10 +3,8 @@ _THEOS_RULES_LOADED := 1
 
 ifeq ($(THEOS_CURRENT_INSTANCE),)
 	include $(THEOS_MAKE_PATH)/master/rules.mk
-	-include $(foreach mod,$(_THEOS_LOAD_MODULES),$(THEOS_MODULE_PATH)/$(mod)/master/rules.mk)
 else
 	include $(THEOS_MAKE_PATH)/instance/rules.mk
-	-include $(foreach mod,$(_THEOS_LOAD_MODULES),$(THEOS_MODULE_PATH)/$(mod)/instance/rules.mk)
 endif
 
 ALL_CFLAGS = $(INTERNAL_CFLAGS) $(TARGET_CFLAGS) $(ADDITIONAL_CFLAGS) $(AUXILIARY_CFLAGS) $(DEBUG_CFLAGS) $(CFLAGS)
@@ -107,4 +105,4 @@ endif
 endif
 
 # TODO MAKE A BUNCH OF THINGS PHONY
--include $(foreach mod,$(_THEOS_LOAD_MODULES),$(THEOS_MODULE_PATH)/$(mod)/rules.mk)
+$(eval $(call __mod,rules.mk))

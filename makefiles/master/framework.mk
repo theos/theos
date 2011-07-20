@@ -15,3 +15,5 @@ endif
 
 $(FRAMEWORK_NAME):
 	@$(MAKE) --no-print-directory --no-keep-going $@.all.framework.variables
+
+$(eval $(call __mod,master/framework.mk))

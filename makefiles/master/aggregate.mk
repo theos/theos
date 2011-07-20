@@ -40,3 +40,5 @@ internal-after-install::
 	  fi; \
 	done;
 endif
+
+$(eval $(call __mod,master/aggregate.mk))

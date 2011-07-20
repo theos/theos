@@ -19,3 +19,5 @@ endif
 $(THEOS_OBJ_DIR)/$(THEOS_SUBPROJECT_PRODUCT): $(OBJ_FILES_TO_LINK)
 	$(ECHO_LINKING)$(TARGET_LD) -nostdlib -r -d $(ADDITIONAL_LDFLAGS) $(TARGET_LDFLAGS) $(LDFLAGS) -o $@ $^$(ECHO_END)
 	@echo "$(AUXILIARY_LDFLAGS)" > $(THEOS_OBJ_DIR)/ldflags
+
+$(eval $(call __mod,instance/subproject.mk))

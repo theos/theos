@@ -20,3 +20,5 @@ endif
 
 $(SUBPROJECT_NAME):
 	@$(MAKE) --no-print-directory --no-keep-going $@.all.subproject.variables
+
+$(eval $(call __mod,master/subproject.mk))
