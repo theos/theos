@@ -15,3 +15,5 @@ endif
 
 $(LIBRARY_NAME):
 	@$(MAKE) --no-print-directory --no-keep-going $@.all.library.variables
+
+$(eval $(call __mod,master/library.mk))

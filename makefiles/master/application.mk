@@ -19,3 +19,5 @@ endif
 
 $(APPLICATION_NAME):
 	@$(MAKE) --no-print-directory --no-keep-going $@.all.application.variables
+
+$(eval $(call __mod,master/application.mk))

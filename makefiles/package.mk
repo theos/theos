@@ -64,7 +64,9 @@ else
 endif
 	$(ECHO_NOTHING)echo "Installed-Size: $(shell du $(_THEOS_PLATFORM_DU_EXCLUDE) DEBIAN -ks "$(THEOS_STAGING_DIR)" | cut -f 1)" >> "$(THEOS_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
 
-internal-package:: $(THEOS_PACKAGE_DIR) $(_THEOS_ESCAPED_STAGING_DIR)/DEBIAN/control
+before-package:: $(THEOS_PACKAGE_DIR) $(_THEOS_ESCAPED_STAGING_DIR)/DEBIAN/control
+
+internal-package::
 	$(ECHO_NOTHING)$(FAKEROOT) -r dpkg-deb -b "$(THEOS_STAGING_DIR)" "$(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_FILENAME).deb" $(STDERR_NULL_REDIRECT)$(ECHO_END)
 
 else # _THEOS_CAN_PACKAGE == 0

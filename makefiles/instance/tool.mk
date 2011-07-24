@@ -29,3 +29,5 @@ endif
 internal-tool-stage_::
 	$(ECHO_NOTHING)mkdir -p "$(THEOS_STAGING_DIR)$(LOCAL_INSTALL_PATH)"$(ECHO_END)
 	$(ECHO_NOTHING)cp $(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE)$(TARGET_EXE_EXT) "$(THEOS_STAGING_DIR)$(LOCAL_INSTALL_PATH)"$(ECHO_END)
+
+$(eval $(call __mod,instance/tool.mk))

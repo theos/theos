@@ -32,3 +32,5 @@ include $(THEOS_MAKE_PATH)/instance/shared/bundle.mk
 internal-framework-stage_:: shared-instance-bundle-stage
 	$(ECHO_NOTHING)mkdir -p "$(THEOS_SHARED_BUNDLE_RESOURCE_PATH)"$(ECHO_END)
 	$(ECHO_NOTHING)cp $(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE) "$(THEOS_SHARED_BUNDLE_RESOURCE_PATH)"$(ECHO_END)
+
+$(eval $(call __mod,instance/framework.mk))

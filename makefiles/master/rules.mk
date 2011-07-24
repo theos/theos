@@ -43,10 +43,6 @@ else
 _THEOS_ABSOLUTE_BUILD_DIR = $(strip $(THEOS_BUILD_DIR))
 endif
 
-ifeq ($(_THEOS_TOP_INVOCATION_DONE),)
-export _THEOS_TOP_INVOCATION_DONE = 1
-endif
-
 .PRECIOUS: %.variables %.subprojects
 
 %.variables:
@@ -104,3 +100,9 @@ if [ "$($(basename $(basename $*))_SUBPROJECTS)" != "" ]; then \
 
 update-theos::
 	@cd $(THEOS) && git pull origin master && ./git-submodule-recur.sh init
+
+$(eval $(call __mod,master/rules.mk))
+
+ifeq ($(_THEOS_TOP_INVOCATION_DONE),)
+export _THEOS_TOP_INVOCATION_DONE = 1
+endif

@@ -21,3 +21,5 @@ endif
 
 $(TWEAK_NAME):
 	@$(MAKE) --no-print-directory --no-keep-going $@.all.tweak.variables
+
+$(eval $(call __mod,master/tweak.mk))

@@ -15,3 +15,5 @@ endif
 
 $(TOOL_NAME):
 	@$(MAKE) --no-print-directory --no-keep-going $@.all.tool.variables
+
+$(eval $(call __mod,master/tool.mk))
