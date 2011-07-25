@@ -311,9 +311,8 @@ foreach my $line (@lines) {
 				next if fallsBetween($-[0], @quotes);
 
 				nestingMustContain($lineno, "%new", \@nestingstack, "hook", "subclass");
-				my $xtype = "v\@:";
+				my $xtype = "";
 				$xtype = $2 if $2;
-				fileWarning($lineno, "%new without a type specifier, assuming v\@: (void return, id and SEL args)") if !$2;
 				$isNewMethod = $xtype;
 				$line = $`.$';
 
@@ -347,7 +346,7 @@ foreach my $line (@lines) {
 				$currentMethod->scope($scope);
 				$currentMethod->return($return);
 
-				if($isNewMethod) {
+				if(defined $isNewMethod) {
 					$currentMethod->setNew(1);
 					$currentMethod->type($isNewMethod);
 					$isNewMethod = undef;
