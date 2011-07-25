@@ -133,61 +133,70 @@ sub buildLogCall {
 sub printArgForArgType {
 	my $argtype = shift;
 	my $argname = shift;
-	return "NSStringFromSelector($argname)" if $argtype =~ /\bSEL\b/;
-	return "$argname.location, $argname.length" if $argtype =~ /\bNSRange\b/;
-	return "$argname.origin.x, $argname.origin.y, $argname.size.width, $argname.size.height" if $argtype =~ /\b(CG|NS)Rect\b/;
-	return "$argname.x, $argname.y" if $argtype =~ /\b(CG|NS)Point\b/;
-	return "$argname.width, $argname.height" if $argtype =~ /\b(CG|NS)Size\b/;
+
+	$argtype =~ s/^\s+//g;
+	$argtype =~ s/\s+$//g;
+
+	return "NSStringFromSelector($argname)" if $argtype =~ /^SEL$/;
+	return "$argname.location, $argname.length" if $argtype =~ /^NSRange$/;
+	return "$argname.origin.x, $argname.origin.y, $argname.size.width, $argname.size.height" if $argtype =~ /^(CG|NS)Rect$/;
+	return "$argname.x, $argname.y" if $argtype =~ /^(CG|NS)Point$/;
+	return "$argname.width, $argname.height" if $argtype =~ /^(CG|NS)Size$/;
+
 	return undef if formatCharForArgType($argtype) eq "--";
+
 	return $argname;
 }
 
 sub formatCharForArgType {
-	my $argtype = shift;
+	local $_ = shift;
+	s/^\s+//g;
+	s/\s+$//g;
 
 	# Integral Types
 	# Straight characters get %c. Signed/Unsigned characters get %hhu/%hhd.
-	return "'%c'" if $argtype =~ /^char$/;
-	if($argtype =~ /\b(int|long|bool|unsigned|signed|char|short)\b/i) {
+	return "'%c'" if /^char$/;
+	if(/^((signed|unsigned)\s+)?(unsigned|signed|int|long|long\s+long|bool|BOOL|_Bool|char|short)$/) {
 		my $conversion = "d";
-		$conversion = "u" if $argtype =~ /\bunsigned\b/;
+		$conversion = "u" if /\bunsigned\b/;
 
 		my $length;
-		$length = "" if $argtype =~ /\bint\b/;
-		$length = "l" if $argtype =~ /\blong\b/;
-		$length = "ll" if $argtype =~ /\blong long\b/;
-		$length = "h" if $argtype =~ /\bshort\b/;
-		$length = "hh" if $argtype =~ /\bchar\b/;
+		$length = "" if /\bint\b/;
+		$length = "l" if /\blong\b/;
+		$length = "ll" if /\blong long\b/;
+		$length = "h" if /\bshort\b/;
+		$length = "hh" if /\bchar\b/;
 
 		return "%".$length.$conversion;
 	}
-	return "%d" if $argtype =~ /\bNS(U?Integer|SocketNativeHandle|StringEncoding|SortOptions|ComparisonResult|EnumerationOptions|(Hash|Map)TableOptions|SearchPath(Directory|DomainMask))\b/i;
-	return "%d" if $argtype =~ /\bGS(FontTraitMask)\b/i;
+	return "%d" if /^NS(Integer|SocketNativeHandle|StringEncoding|SortOptions|ComparisonResult|EnumerationOptions|(Hash|Map)TableOptions|SearchPath(Directory|DomainMask))$/i;
+	return "%u" if /^NSUInteger$/i;
+	return "%d" if /^GS(FontTraitMask)$/i;
 
 	# Pointer Types
-	return "%s" if $argtype =~ /\bchar\b\s*\*/;
-	return "%p" if $argtype =~ /\bvoid\b\s*\*/;
-	return "%p" if $argtype =~ /\bNS.*?(Pointer|Array)\b/;
+	return "%s" if /^char\s*\*$/;
+	return "%p" if /^void\s*\*$/;
+	return "%p" if /^((unsigned|signed)\s+)?(unsigned|signed|int|long|long\s+long|bool|BOOL|_Bool|char|short|float|double)\s*\*+$/;
+	return "%p" if /^NS.*?(Pointer|Array)$/;
 
 	# Floating-Point Types
-	return "%f" if $argtype =~ /\b(double|float|CGFloat|CGDouble)\b/;
-	return "%f" if $argtype =~ /\bNS(TimeInterval)\b/;
+	return "%f" if /^(double|float|CGFloat|CGDouble|NSTimeInterval)$/;
 	
 	# Special Types (should also have an entry in printArgForArgType
-	return "%@" if $argtype =~ /\bSEL\b/;
+	return "%@" if /^SEL$/;
 
 	# Even-more-special expanded types
-	return "(%d:%d)" if $argtype =~ /\bNSRange\b/;
-	return "{{%g, %g}, {%g, %g}}" if $argtype =~ /\b(CG|NS)Rect\b/;
-	return "{%g, %g}" if $argtype =~ /\b(CG|NS)Point\b/;
-	return "{%g, %g}" if $argtype =~ /\b(CG|NS)Size\b/;
+	return "(%d:%d)" if /^NSRange$/;
+	return "{{%g, %g}, {%g, %g}}" if /^(CG|NS)Rect$/;
+	return "{%g, %g}" if /^(CG|NS)Point$/;
+	return "{%g, %g}" if /^(CG|NS)Size$/;
 
 	# Opaque Types (pointer)
-	return "%p" if $argtype =~ /\bNSZone\b/;
+	return "%p" if /^NSZone$/;
 
 	# Discarded Types
-	return "--" if $argtype =~ /\b(CG\w*|CF\w*|void)\b/;
-	return "--" if $argtype =~ /\bNS(HashTable(Callbacks)?|Map(Table((Key|Value)Callbacks)?|Enumerator))\b/;
+	return "--" if /^(CG\w*|CF\w*|void)$/;
+	return "--" if /^NS(HashTable(Callbacks)?|Map(Table((Key|Value)Callbacks)?|Enumerator))$/;
 
 	# Fallthrough
 	return "%@";
