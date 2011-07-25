@@ -74,7 +74,20 @@ sub initializers {
 		$r .= "{ ";
 		if(!$self->{TYPE}) {
 			$r .= "char _typeEncoding[1024]; unsigned int i = 0; ";
-			map $r .= "memcpy(_typeEncoding + i, \@encode($_), strlen(\@encode($_))); i += strlen(\@encode($_)); ", ($self->{RETURN}, "id", "SEL", @{$self->{ARGTYPES}});
+			for ($self->{RETURN}, "id", "SEL", @{$self->{ARGTYPES}}) {
+				my $typeEncoding = BaseMethod::typeEncodingForArgType($_);
+				if(defined $typeEncoding) {
+					my @typeEncodingBits = split(//, $typeEncoding);
+					my $i = 0;
+					for my $char (@typeEncodingBits) {
+						$r .= "_typeEncoding[i".($i > 0 ? " + $i" : "")."] = '$char'; ";
+						$i++;
+					}
+					$r .= "i += ".(scalar @typeEncodingBits)."; ";
+				} else {
+					$r .= "memcpy(_typeEncoding + i, \@encode($_), strlen(\@encode($_))); i += strlen(\@encode($_)); ";
+				}
+			}
 			$r .= "_typeEncoding[i] = '\\0'; ";
 		} else {
 			$r .= "const char *_typeEncoding = \"".$self->{TYPE}."\"; ";

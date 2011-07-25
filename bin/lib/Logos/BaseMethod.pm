@@ -202,4 +202,42 @@ sub formatCharForArgType {
 	return "%@";
 }
 
+sub typeEncodingForArgType {
+	local $_ = shift;
+	s/^\s+//g;
+	s/\s+$//g;
+
+	return "c" if /^char$/;
+	return "i" if /^int$/;
+	return "s" if /^short$/;
+	return "l" if /^long$/;
+	return "q" if /^long long$/;
+
+	return "C" if /^unsigned\s+char$/;
+	return "I" if /^unsigned\s+int$/;
+	return "S" if /^unsigned\s+short$/;
+	return "L" if /^unsigned\s+long$/;
+	return "Q" if /^unsigned\s+long long$/;
+
+	return "f" if /^float$/;
+	return "d" if /^double$/;
+	return "B" if /^(bool|_Bool)$/;
+
+	return "v" if /^void$/;
+
+	return "*" if /^char\s*\*$/;
+
+	return "@" if /^id$/;
+	return "#" if /^Class$/;
+	return ":" if /^SEL$/;
+
+	if(/^([^*\s]+)\s*\*$/) {
+		my $subEncoding = typeEncodingForArgType($1);
+		return undef if(!defined $subEncoding);
+		return "^".$subEncoding;
+	}
+
+	return undef;
+}
+
 1;
