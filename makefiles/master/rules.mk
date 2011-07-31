@@ -42,21 +42,21 @@ endif
 
 .PRECIOUS: %.variables %.subprojects
 
+%.variables: _INSTANCE = $(basename $(basename $*))
+%.variables: _OPERATION = $(subst .,,$(suffix $(basename $*)))
+%.variables: _TYPE = $(subst -,_,$(subst .,,$(suffix $*)))
 %.variables:
 	@ \
-instance=$(basename $(basename $*)); \
-operation=$(subst .,,$(suffix $(basename $*))); \
-type=$(subst -,_,$(subst .,,$(suffix $*))); \
 abs_build_dir=$(_THEOS_ABSOLUTE_BUILD_DIR); \
-if [ "$($(basename $(basename $*))_SUBPROJECTS)" != "" ]; then \
-  echo Making $$operation in subprojects of $$type $$instance...; \
-  for d in $($(basename $(basename $*))_SUBPROJECTS); do \
+if [ "$($(_INSTANCE)_SUBPROJECTS)" != "" ]; then \
+  echo Making $(_OPERATION) in subprojects of $(_TYPE) $(_INSTANCE)...; \
+  for d in $($(_INSTANCE)_SUBPROJECTS); do \
     if [ "$${abs_build_dir}" = "." ]; then \
       lbuilddir="."; \
     else \
       lbuilddir="$${abs_build_dir}/$$d"; \
     fi; \
-    if $(MAKE) -C $$d $(_THEOS_NO_PRINT_DIRECTORY_FLAG) --no-keep-going $$operation \
+    if $(MAKE) -C $$d $(_THEOS_NO_PRINT_DIRECTORY_FLAG) --no-keep-going $(_OPERATION) \
         THEOS_BUILD_DIR="$$lbuilddir" \
        ; then\
        :; \
@@ -64,29 +64,29 @@ if [ "$($(basename $(basename $*))_SUBPROJECTS)" != "" ]; then \
     fi; \
   done; \
  fi; \
-echo Making $$operation for $$type $$instance...; \
+echo Making $(_OPERATION) for $(_TYPE) $(_INSTANCE)...; \
 $(MAKE) --no-print-directory --no-keep-going \
-	internal-$${type}-$$operation \
-	_THEOS_CURRENT_TYPE=$$type \
-	THEOS_CURRENT_INSTANCE=$$instance \
-	_THEOS_CURRENT_OPERATION=$$operation \
-	THEOS_BUILD_DIR=$$abs_build_dir
+	internal-$(_TYPE)-$(_OPERATION) \
+	_THEOS_CURRENT_TYPE="$(_TYPE)" \
+	THEOS_CURRENT_INSTANCE="$(_INSTANCE)" \
+	_THEOS_CURRENT_OPERATION="$(_OPERATION)" \
+	THEOS_BUILD_DIR="$(_THEOS_ABSOLUTE_BUILD_DIR)"
 
+%.subprojects: _INSTANCE = $(basename $(basename $*))
+%.subprojects: _OPERATION = $(subst .,,$(suffix $(basename $*)))
+%.subprojects: _TYPE = $(subst -,_,$(subst .,,$(suffix $*)))
 %.subprojects:
 	@ \
-instance=$(basename $(basename $*)); \
-operation=$(subst .,,$(suffix $(basename $*))); \
-type=$(subst -,_,$(subst .,,$(suffix $*))); \
 abs_build_dir=$(_THEOS_ABSOLUTE_BUILD_DIR); \
-if [ "$($(basename $(basename $*))_SUBPROJECTS)" != "" ]; then \
-  echo Making $$operation in subprojects of $$type $$instance...; \
-  for d in $($(basename $(basename $*))_SUBPROJECTS); do \
+if [ "$($(_INSTANCE)_SUBPROJECTS)" != "" ]; then \
+  echo Making $(_OPERATION) in subprojects of $(_TYPE) $(_INSTANCE)...; \
+  for d in $($(_INSTANCE)_SUBPROJECTS); do \
     if [ "$${abs_build_dir}" = "." ]; then \
       lbuilddir="."; \
     else \
       lbuilddir="$${abs_build_dir}/$$d"; \
     fi; \
-    if $(MAKE) -C $$d $(_THEOS_NO_PRINT_DIRECTORY_FLAG) --no-keep-going $$operation \
+    if $(MAKE) -C $$d $(_THEOS_NO_PRINT_DIRECTORY_FLAG) --no-keep-going $(_OPERATION) \
         THEOS_BUILD_DIR="$$lbuilddir" \
        ; then\
        :; \
