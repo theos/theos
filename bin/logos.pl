@@ -696,7 +696,7 @@ sub getGroup {
 
 sub matchedParenthesisSet {
 	my $in = shift;
-	my $atstart = shift or 1;
+	my $atstart = shift // 1;
 	my $opening = -1;
 	my $closing = -1;
 	if(!$atstart || $in =~ /^\s*\(/) {
@@ -741,7 +741,7 @@ sub smartSplit {
 	my $in = shift;
 	return () if $in eq "";
 
-	my $limit = shift or 0;
+	my $limit = shift // 0;
 
 	my @quotes = quotes($in);
 	my @parens = matchedParenthesisSet($in, 0);
