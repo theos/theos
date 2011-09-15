@@ -26,7 +26,7 @@ TARGET_CXX ?= xcrun -sdk iphoneos g++
 TARGET_LD ?= xcrun -sdk iphoneos g++
 TARGET_STRIP ?= xcrun -sdk iphoneos strip
 TARGET_STRIP_FLAGS ?= -x
-TARGET_CODESIGN_ALLOCATE ?= $(shell xcrun -sdk iphoneos -find codesign_allocate)
+TARGET_CODESIGN_ALLOCATE ?= "$(shell xcrun -sdk iphoneos -find codesign_allocate)"
 TARGET_CODESIGN ?= ldid
 TARGET_CODESIGN_FLAGS ?= -S
 
@@ -37,7 +37,7 @@ include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
 
 ARCHS ?= armv6
 
-SDKFLAGS := -isysroot $(SYSROOT) $(foreach ARCH,$(ARCHS),-arch $(ARCH)) -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)) -miphoneos-version-min=$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)
+SDKFLAGS := -isysroot "$(SYSROOT)" $(foreach ARCH,$(ARCHS),-arch $(ARCH)) -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)) -miphoneos-version-min=$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)
 TARGET_CFLAGS := $(SDKFLAGS)
 TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress
 endif
