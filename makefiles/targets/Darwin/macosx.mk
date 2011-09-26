@@ -19,7 +19,13 @@ include $(THEOS_MAKE_PATH)/targets/_common/install_deb_local.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
 
 ARCHS ?= i386 x86_64
-SDKFLAGS := $(foreach ARCH,$(ARCHS),-arch $(ARCH))
+ifneq ($($(THEOS_CURRENT_INSTANCE)_ARCHS),)
+TARGET_ARCHS = $($(THEOS_CURRENT_INSTANCE)_ARCHS)
+else
+TARGET_ARCHS = $(ARCHS)
+endif
+
+SDKFLAGS := $(foreach ARCH,$(TARGET_ARCHS),-arch $(ARCH))
 TARGET_CFLAGS := $(SDKFLAGS)
 TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress
 endif
