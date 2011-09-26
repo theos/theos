@@ -2,8 +2,6 @@ ifeq ($(_THEOS_TARGET_LOADED),)
 _THEOS_TARGET_LOADED := 1
 THEOS_TARGET_NAME := iphone
 
-SDKBINPATH ?= $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneOS.platform/Developer/usr/bin
-
 # A version specified as a target argument overrides all previous definitions.
 _SDKVERSION := $(or $(firstword $(_THEOS_TARGET_ARGS)),$(SDKVERSION))
 _THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION := $(or $(word 2,$(_THEOS_TARGET_ARGS)),$(TARGET_IPHONEOS_DEPLOYMENT_VERSION),$(_SDKVERSION),3.0)
@@ -23,12 +21,12 @@ endif
 
 SYSROOT ?= $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(_THEOS_TARGET_SDK_VERSION).sdk
 
-TARGET_CC ?= $(SDKBINPATH)/gcc-4.2
-TARGET_CXX ?= $(SDKBINPATH)/g++-4.2
-TARGET_LD ?= $(SDKBINPATH)/g++-4.2
-TARGET_STRIP ?= $(SDKBINPATH)/strip
+TARGET_CC ?= xcrun -sdk iphoneos gcc
+TARGET_CXX ?= xcrun -sdk iphoneos g++
+TARGET_LD ?= xcrun -sdk iphoneos g++
+TARGET_STRIP ?= xcrun -sdk iphoneos strip
 TARGET_STRIP_FLAGS ?= -x
-TARGET_CODESIGN_ALLOCATE ?= $(SDKBINPATH)/codesign_allocate
+TARGET_CODESIGN_ALLOCATE ?= "$(shell xcrun -sdk iphoneos -find codesign_allocate)"
 TARGET_CODESIGN ?= ldid
 TARGET_CODESIGN_FLAGS ?= -S
 
@@ -45,7 +43,7 @@ else
 TARGET_ARCHS = $(ARCHS)
 endif
 
-SDKFLAGS := -isysroot $(SYSROOT) $(foreach ARCH,$(TARGET_ARCHS),-arch $(ARCH)) -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)) -miphoneos-version-min=$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)
+SDKFLAGS := -isysroot "$(SYSROOT)" $(foreach ARCH,$(TARGET_ARCHS),-arch $(ARCH)) -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)) -miphoneos-version-min=$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)
 TARGET_CFLAGS := $(SDKFLAGS)
 TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress
 endif

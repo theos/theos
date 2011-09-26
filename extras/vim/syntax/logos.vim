@@ -19,6 +19,7 @@ syn match logosDirective '%log' display contained containedin=logosHook,logosSub
 syn match logosDirective '%orig' display contained containedin=logosHook,logosSubclass,logosGroup
 
 syn match logosDirective '%init' display
+syn match logosDirective '%new' display
 syn region logosInit matchgroup=logosDirective start='%init(' end=')' contains=cParen
 
 syn region logosNew oneline matchgroup=logosNew start='%new(' end=')' contains=logosTypeEncoding,logosTypeEncodingUnion

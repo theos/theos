@@ -311,9 +311,8 @@ foreach my $line (@lines) {
 				next if fallsBetween($-[0], @quotes);
 
 				nestingMustContain($lineno, "%new", \@nestingstack, "hook", "subclass");
-				my $xtype = "v\@:";
+				my $xtype = "";
 				$xtype = $2 if $2;
-				fileWarning($lineno, "%new without a type specifier, assuming v\@: (void return, id and SEL args)") if !$2;
 				$isNewMethod = $xtype;
 				$line = $`.$';
 
@@ -347,7 +346,7 @@ foreach my $line (@lines) {
 				$currentMethod->scope($scope);
 				$currentMethod->return($return);
 
-				if($isNewMethod) {
+				if(defined $isNewMethod) {
 					$currentMethod->setNew(1);
 					$currentMethod->type($isNewMethod);
 					$isNewMethod = undef;
@@ -697,7 +696,7 @@ sub getGroup {
 
 sub matchedParenthesisSet {
 	my $in = shift;
-	my $atstart = shift or 1;
+	my $atstart = shift // 1;
 	my $opening = -1;
 	my $closing = -1;
 	if(!$atstart || $in =~ /^\s*\(/) {
@@ -742,7 +741,7 @@ sub smartSplit {
 	my $in = shift;
 	return () if $in eq "";
 
-	my $limit = shift or 0;
+	my $limit = shift // 0;
 
 	my @quotes = quotes($in);
 	my @parens = matchedParenthesisSet($in, 0);
