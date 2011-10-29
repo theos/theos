@@ -8,10 +8,36 @@
 
 # Lines are only processed if we were in an @interface, so you can run this on a file containing
 # an @implementation, as well.
-$interface = 0;
-while($line = <>) {
+use strict;
+
+use FindBin;
+use lib "$FindBin::Bin/lib";
+
+use Logos::BaseMethod;
+use Logos::Util;
+$Logos::Util::errorhandler = sub {
+	die "$ARGV:$.: error: missing closing parenthesis$/"
+};
+
+my $interface = 0;
+while(my $line = <>) {
 	if($line =~ m/^[+-]\s*\((.*?)\).*?(?=;)/ && $interface == 1) {
-		print "$& { %log; ".($1 ne "void" ? "return " : "")."%orig; }\n";
+		print logLineForDeclaration($&);
+	} elsif($line =~ m/^\s*\@property\s*\((.*?)\)\s*(.*?)\b([\$a-zA-Z_][\$_a-zA-Z0-9]*)(?=;)/ && $interface == 1) {
+		my @attributes = smartSplit(qr/\s*,\s*/, $1);
+		my $propertyName = $3;
+		my $type = $2;
+		my $readonly = scalar(grep(/readonly/, @attributes));
+		my %methods = ("setter" => "set".ucfirst($propertyName).":", "getter" => $propertyName);
+		foreach my $attribute (@attributes) {
+			next if($attribute !~ /=/);
+			my @x = smartSplit(qr/\s*=\s*/, $attribute);
+			$methods{$x[0]} = $x[1];
+		}
+		if($readonly eq 0) {
+			print logLineForDeclaration("- (void)".$methods{"setter"}."($type)$propertyName");
+		}
+		print logLineForDeclaration("- ($type)".$methods{"getter"});
 	} elsif($line =~ m/^\@interface\s+(.*?)\s*[:(]/ && $interface == 0) {
 		print "%hook $1\n";
 		$interface = 1;
@@ -21,3 +47,17 @@ while($line = <>) {
 	}
 }
 
+sub logLineForDeclaration {
+	my $declaration = shift;
+	$declaration =~ m/^[+-]\s*\((.*?)\).*?/;
+	my $rtype = $1;
+	my $innards = "%log; ";
+	if($rtype ne "void") {
+		$innards .= "$rtype r = %orig; ";
+		$innards .= "NSLog(@\" = ".BaseMethod::formatCharForArgType($rtype)."\", ".BaseMethod::printArgForArgType($rtype, "r")."); ";
+		$innards .= "return r; ";
+	} else {
+		$innards .= "%orig; ";
+	}
+	return "$declaration { $innards}\n";
+}
