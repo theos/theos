@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 
+use 5.006;
 use warnings;
 use strict;
 use FindBin;
