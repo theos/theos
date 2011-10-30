@@ -34,7 +34,7 @@ while(my $line = <>) {
 			my @x = smartSplit(qr/\s*=\s*/, $attribute);
 			$methods{$x[0]} = $x[1];
 		}
-		if($readonly eq 0) {
+		if($readonly == 0) {
 			print logLineForDeclaration("- (void)".$methods{"setter"}."($type)$propertyName");
 		}
 		print logLineForDeclaration("- ($type)".$methods{"getter"});
