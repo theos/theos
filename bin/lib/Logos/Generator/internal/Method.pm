@@ -27,35 +27,12 @@ sub newFunctionName {
 	return "\$".$self->groupIdentifier."\$".$self->classname."\$".$self->new_selector;
 }
 
-sub methodSignature {
-	my $self = shift;
-	my $build = "";
-	my $classargtype = "";
-	if($self->{SCOPE} eq "+") {
-		$classargtype = "Class";
-	} else {
-		$classargtype = $self->class->type;
-	}
-	if(!$self->{NEW}) {
-		$build .= "static ".$self->{RETURN}." (*".$self->originalFunctionName.")(".$classargtype.", SEL"; 
-		my $argtypelist = join(", ", @{$self->{ARGTYPES}});
-		$build .= ", ".$argtypelist if $argtypelist;
-
-		$build .= ");"
-	}
-	my $arglist = "";
-	map $arglist .= ", ".$self->{ARGTYPES}[$_]." ".$self->{ARGNAMES}[$_], (0..$self->numArgs - 1);
-
-	$build .= "static ".$self->{RETURN}." ".$self->newFunctionName."(".$classargtype." self, SEL _cmd".$arglist.")";
-	return $build;
-}
-
-sub originalCall {
+sub originalCallParams {
 	my $self = shift;
 	my $customargs = shift;
 	return "" if $self->{NEW};
 
-	my $build = $self->originalFunctionName."(self, _cmd";
+	my $build = "(self, _cmd";
 	if(defined $customargs && $customargs ne "") {
 		$build .= ", ".$customargs;
 	} elsif($self->numArgs > 0) {
@@ -65,6 +42,45 @@ sub originalCall {
 	return $build;
 }
 
+sub methodSignature {
+	my $self = shift;
+	my $build = "";
+	my $classargtype = "";
+	my $classref = "";
+	if($self->{SCOPE} eq "+") {
+		$classargtype = "Class";
+		$classref = $self->class->metaexpression;
+	} else {
+		$classargtype = $self->class->type;
+		$classref = $self->class->expression;
+	}
+	if(!$self->{NEW}) {
+		$build .= "static ".$self->{RETURN}." (*".$self->originalFunctionName.")(".$classargtype.", SEL"; 
+		my $argtypelist = join(", ", @{$self->{ARGTYPES}});
+		$build .= ", ".$argtypelist if $argtypelist;
+
+		$build .= ");";
+
+		my $arglist = "";
+		map $arglist .= ", ".$self->{ARGTYPES}[$_]." ".$self->{ARGNAMES}[$_], (0..$self->numArgs - 1);
+
+		$build .= "static ".$self->{RETURN}." ".$self->originalFunctionName."_s(".$classargtype." self, SEL _cmd".$arglist.") {";
+		$build .=     "return ((".$self->{RETURN}." (*)(".$classargtype.", SEL";
+		$build .=         ", ".$argtypelist if $argtypelist;
+		$build .=         "))class_getMethodImplementation(class_getSuperclass(".$classref."), \@selector(".$self->selector.")))";
+		$build .=         $self->originalCallParams.";";
+		$build .= "}";
+	
+		$build .= "static ".$self->{RETURN}." ".$self->newFunctionName."(".$classargtype." self, SEL _cmd".$arglist.")";
+	}
+	return $build;
+}
+
+sub originalCall {
+	my $self = shift;
+	return $self->originalFunctionName.$self->originalCallParams;
+}
+
 sub initializers {
 	my $self = shift;
 	my $r = "{ ";
@@ -72,8 +88,9 @@ sub initializers {
 		$r .= "Class _class = \$\$".$self->classname.";";
 		$r .= "Method _method = class_getInstanceMethod(_class, \@selector(".$self->selector."));";
 		$r .= "if (_method) {";
-		$r .=     "*((IMP*)&".$self->originalFunctionName.") = method_getImplementation(_method);";
+		$r .=     $self->originalFunctionName." = ".$self->originalFunctionName."_s;";
 		$r .=     "if (!class_addMethod(_class, \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", method_getTypeEncoding(_method))) {";
+		$r .=         "*((IMP*)&".$self->originalFunctionName.") = method_getImplementation(_method);";
 		$r .=         "method_setImplementation(_method, (IMP)&".$self->newFunctionName.");";
 		$r .=     "}";
 		$r .= "}";
