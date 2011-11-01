@@ -27,10 +27,10 @@ sub newFunctionName {
 	return "\$".$self->groupIdentifier."\$".$self->classname."\$".$self->new_selector;
 }
 
-sub _originalMethodPointer {
+sub _originalMethodPointerDeclaration {
 	my $self = shift;
 	if(!$self->{NEW}) {
-		my $build = "";
+		my $build = "static ";
 		my $classargtype = $self->class->type;
 		$classargtype = "Class" if $self->{SCOPE} eq "+";
 		$build .= $self->{RETURN}." (*".$self->originalFunctionName.")(".$classargtype.", SEL";
@@ -58,8 +58,6 @@ sub _methodPrototype {
 sub methodPrototypeLine {
 	my $self = shift;
 	my $build = "";
-	my $originalMethodPointer = $self->_originalMethodPointer;
-	$build .= "static ".$originalMethodPointer.";" if $originalMethodPointer;
 	$build .= $self->_methodPrototype;
 	return $build;
 }
@@ -76,6 +74,15 @@ sub originalCall {
 		$build .= ", ".join(", ",@{$self->{ARGNAMES}});
 	}
 	$build .= ")";
+	return $build;
+}
+
+sub declarations {
+	my $self = shift;
+	my $build = "";
+	my $orig = $self->_originalMethodPointerDeclaration;
+	$build .= $orig."; " if $orig;
+	$build .= $self->_methodPrototype."; ";
 	return $build;
 }
 

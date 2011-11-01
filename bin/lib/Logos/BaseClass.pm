@@ -77,6 +77,11 @@ sub addMethod {
 	$self->{NUM_METHODS}++;
 }
 
+sub declarations {
+	::fileError(-1, "Generator hasn't implemented Class::declarations :(");
+	return "";
+}
+
 sub initializers {
 	::fileError(-1, "Generator hasn't implemented Class::initializers :(");
 	return "";

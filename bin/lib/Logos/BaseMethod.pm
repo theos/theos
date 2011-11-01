@@ -102,6 +102,11 @@ sub originalCall {
 }
 
 sub initializers {
+	::fileError(-1, "Generator hasn't implemented Method::declarations :(");
+	return "";
+}
+
+sub initializers {
 	::fileError(-1, "Generator hasn't implemented Method::initializers :(");
 	return "";
 }

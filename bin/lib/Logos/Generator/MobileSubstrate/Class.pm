@@ -3,6 +3,16 @@ use strict;
 use Logos::BaseClass;
 @Class::ISA = ('BaseClass');
 
+# TODO: If overridden, store a global variable.
+sub declarations {
+	my $self = shift;
+	my $return = "";
+	foreach(@{$self->{METHODS}}) {
+		$return .= $_->declarations;
+	}
+	return $return;
+}
+
 sub initializers {
 	my $self = shift;
 	my $return = "";
