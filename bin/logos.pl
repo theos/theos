@@ -8,6 +8,7 @@ use lib "$FindBin::Bin/lib";
 use Digest::MD5 'md5_hex';
 use Module::Load;
 use Module::Load::Conditional 'can_load';
+use Getopt::Long;
 
 use Logos::Patch;
 use Logos::Util;
@@ -15,6 +16,8 @@ $Logos::Util::errorhandler = \&utilErrorHandler;
 
 %main::CONFIG = ( generator => "MobileSubstrate"
 		);
+
+GetOptions("config|c=s" => \%main::CONFIG);
 
 my $filename = $ARGV[0];
 die "Syntax: $FindBin::Script filename\n" if !$filename;
