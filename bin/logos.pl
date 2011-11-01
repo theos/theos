@@ -577,6 +577,22 @@ my $numUnGroups = @unInitGroups;
 fileError($lineno, "non-initialized hook group".($numUnGroups == 1 ? "" : "s").": ".join(", ", @unInitGroups)) if $numUnGroups > 0;
 
 my @sortedPatches = sort { ($b->line == $a->line ? ($b->start || -1) <=> ($a->start || -1) : $b->line <=> $a->line) } @patches;
+
+if(exists $main::CONFIG{"dump"} && $main::CONFIG{"dump"} eq "yaml") {
+	load 'YAML::Syck';
+	if(exists $main::CONFIG{"patches"} && $main::CONFIG{"patches"} eq "full") {
+		for(@sortedPatches) {
+			my $l = $_->line;
+			my ($s, $e) = @{$_->range};
+			if(defined $s) {
+				$_->{"1_ORIG"} = substr($lines[$l], $s, $e-$s);
+			}
+			$_->{"2_PATCH"} = $_->subref ? &{$_->subref}() : "";
+		}
+	}
+	print STDERR YAML::Syck::Dump({groups=>\@groups, patches=>\@patches});
+}
+
 for(@sortedPatches) {
 	applyPatch($_, \@lines);
 }
