@@ -45,20 +45,26 @@ sub _originalMethodPointerDeclaration {
 
 sub _methodPrototype {
 	my $self = shift;
+	my $includeArgNames = 0 || shift;
 	my $build = "";
 	my $classargtype = $self->class->type;
 	$classargtype = "Class" if $self->{SCOPE} eq "+";
 	my $arglist = "";
-	map $arglist .= ", ".$self->{ARGTYPES}[$_]." ".$self->{ARGNAMES}[$_], (0..$self->numArgs - 1);
+	if($includeArgNames == 1) {
+		map $arglist .= ", ".$self->{ARGTYPES}[$_]." ".$self->{ARGNAMES}[$_], (0..$self->numArgs - 1);
+	} else {
+		my $typelist = join(", ", @{$self->{ARGTYPES}});
+		$arglist = ", ".$typelist if $typelist;
+	}
 
-	$build .= "static ".$self->{RETURN}." ".$self->newFunctionName."(".$classargtype." self, SEL _cmd".$arglist.")";
+	$build .= "static ".$self->{RETURN}." ".$self->newFunctionName."(".$classargtype.($includeArgNames?" self":"").", SEL".($includeArgNames?" _cmd":"").$arglist.")";
 	return $build;
 }
 
 sub definition {
 	my $self = shift;
 	my $build = "";
-	$build .= $self->_methodPrototype;
+	$build .= $self->_methodPrototype(1);
 	return $build;
 }
 
