@@ -111,11 +111,11 @@ READLOOP: while(my $line = <FILE>) {
 
 close(FILE);
 
-$lineMapping{1} = ["$filename", 1] if scalar keys %lineMapping == 0;
+$lineMapping{0} = ["$filename", 0] if scalar keys %lineMapping == 0;
 
 # Process the input lines for directives which must be parsed before main processing, such as %config
 # Mk. I processing loop - preprocessing.
-my $lineno = 1;
+my $lineno = 0;
 my $generatorLine = 1;
 foreach my $line (@lines) {
 	SCANLOOP: while(1) {
@@ -145,7 +145,7 @@ load $GeneratorPackage."::Subclass";
 load 'Logos::Group';
 load $GeneratorPackage."::StaticClassGroup";
 
-$lineno = 1;
+$lineno = 0;
 
 my @firstDirectivePosition;
 my $generateAutoConstructor = 1;
@@ -517,7 +517,7 @@ while(scalar(@nestingstack) > 0) {
 
 # Mk. III processing loop - braces 
 my %depthMapping = ("0:0" => 0);
-$lineno = 1;
+$lineno = 0;
 {
 my $depth = 0;
 foreach my $line (@lines) {
@@ -554,12 +554,12 @@ if(@firstDirectivePosition) {
 	while(1) {
 		my $depth = lookupDepthMapping($line, $pos);
 		my $above;
-		$above = "" if $line eq 1;
+		$above = "" if $line eq 0;
 		if($preprocessed) {
 			my @lm = lookupLineMapping($line);
 			$above = "" if($lm[0] eq $filename && $lm[1] == 1);
 		}
-		$above = $lines[$line-2] if !defined $above;
+		$above = $lines[$line-1] if !defined $above;
 
 		last if $depth == 0 && $above =~ /^\s*$/;
 
@@ -586,7 +586,7 @@ if(@firstDirectivePosition) {
 		push(@lines, generateConstructor());
 	}
 
-	splice(@lines, $line - 1, 0, @preambleLines);
+	splice(@lines, $line, 0, @preambleLines);
 
 }
 
@@ -597,7 +597,7 @@ foreach(@groups) {
 my $numUnGroups = @unInitGroups;
 fileError($lineno, "non-initialized hook group".($numUnGroups == 1 ? "" : "s").": ".join(", ", @unInitGroups)) if $numUnGroups > 0;
 
-splice(@lines, 0, 0, generateLineDirectiveForPhysicalLine(1)) if !$preprocessed;
+splice(@lines, 0, 0, generateLineDirectiveForPhysicalLine(0)) if !$preprocessed;
 foreach my $oline (@lines) {
 	print $oline."\n" if defined($oline);
 }
@@ -720,7 +720,7 @@ sub lookupLineMapping {
 	for (sort {$b <=> $a} keys %lineMapping) {
 		if($fileline >= $_) {
 			my @x = @{$lineMapping{$_}};
-			return ($x[0], $x[1] + ($fileline-$_-1));
+			return ($x[0], $x[1] + ($fileline-$_));
 		}
 	}
 	return undef;
