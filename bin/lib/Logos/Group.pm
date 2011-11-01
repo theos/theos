@@ -90,7 +90,6 @@ sub declarations {
 sub initializers {
 	my $self = shift;
 	my $return = "";
-	$self->initialized(1);
 	$return .= "{";
 	foreach(@{$self->{CLASSES}}) {
 		$return .= $_->initializers;

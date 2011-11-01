@@ -21,7 +21,6 @@ sub declarations {
 sub initializers {
 	my $self = shift;
 	my $return = "";
-	$self->initialized(1);
 	return "" if scalar(keys %{$self->{USEDMETACLASSES}}) + scalar(keys %{$self->{USEDCLASSES}}) == 0;
 	$return .= "{";
 	foreach(keys %{$self->{USEDMETACLASSES}}) {
