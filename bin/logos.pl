@@ -159,7 +159,6 @@ my @groups = ($defaultGroup);
 my $staticClassGroup = StaticClassGroup->new();
 my %classes = ();
 
-my $hassubstrateh = 0;
 my $ignore = 0;
 
 my @nestingstack = ();
@@ -176,9 +175,7 @@ my $isNewMethod = undef;
 foreach my $line (@lines) {
 	pos($line) = 0;
 	# Search for a discrete %x% or an open-ended %x (or %x with a { or ; after it)
-	if($line =~ /\s*#\s*include\s*[<"]substrate\.h[">]/) {
-		$hassubstrateh = 1;
-	} elsif($line =~ /^\s*#\s*if\s*0\s*$/) {
+	if($line =~ /^\s*#\s*if\s*0\s*$/) {
 		$ignore = 1;
 	} elsif($ignore == 1 && $line =~ /^\s*#\s*endif/) {
 		$ignore = 0;
@@ -506,7 +503,8 @@ foreach my $line (@lines) {
 # Always insert $staticClassGroup after _ungrouped.
 splice(@groups, 1, 0, $staticClassGroup);
 
-$hassubstrateh = 1 if($preprocessed);
+my $hasGeneratorPreamble = $preprocessed; # If we're already preprocessed, we cannot insert #include statements.
+$hasGeneratorPreamble = Generator->findPreamble(\@lines) if !$hasGeneratorPreamble;
 
 if(@firstDirectivePosition) {
 	# Loop until we find a blank line at depth 0 to splice our preamble in.
@@ -538,7 +536,7 @@ if(@firstDirectivePosition) {
 	$patch->line($line);
 	$patch->subref(sub {
 		my @out = ();
-		push(@out, "#include <substrate.h>") if !$hassubstrateh;
+		push(@out, Generator->preamble) if !$hasGeneratorPreamble;
 		push(@out, Generator->generateClassList(keys %classes));
 		push(@out, $groups[0]->declarations);
 		push(@out, $staticClassGroup->declarations);
