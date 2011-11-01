@@ -375,7 +375,7 @@ foreach my $line (@lines) {
 				$class->addMethod($currentMethod);
 				$lastMethod = $currentMethod;
 
-				my $replacement = $currentMethod->methodSignature;
+				my $replacement = $currentMethod->methodPrototypeLine;
 				$replacement .= $selnametext if $selnametext ne "";
 				$line = $replacement;
 

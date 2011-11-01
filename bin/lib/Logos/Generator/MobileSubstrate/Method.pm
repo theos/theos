@@ -27,26 +27,40 @@ sub newFunctionName {
 	return "\$".$self->groupIdentifier."\$".$self->classname."\$".$self->new_selector;
 }
 
-sub methodSignature {
+sub _originalMethodPointer {
 	my $self = shift;
-	my $build = "";
-	my $classargtype = "";
-	if($self->{SCOPE} eq "+") {
-		$classargtype = "Class";
-	} else {
-		$classargtype = $self->class->type;
-	}
 	if(!$self->{NEW}) {
-		$build .= "static ".$self->{RETURN}." (*".$self->originalFunctionName.")(".$classargtype.", SEL"; 
+		my $build = "";
+		my $classargtype = $self->class->type;
+		$classargtype = "Class" if $self->{SCOPE} eq "+";
+		$build .= $self->{RETURN}." (*".$self->originalFunctionName.")(".$classargtype.", SEL";
 		my $argtypelist = join(", ", @{$self->{ARGTYPES}});
 		$build .= ", ".$argtypelist if $argtypelist;
 
-		$build .= ");"
+		$build .= ")";
+		return $build;
 	}
+	return undef;
+}
+
+sub _methodPrototype {
+	my $self = shift;
+	my $build = "";
+	my $classargtype = $self->class->type;
+	$classargtype = "Class" if $self->{SCOPE} eq "+";
 	my $arglist = "";
 	map $arglist .= ", ".$self->{ARGTYPES}[$_]." ".$self->{ARGNAMES}[$_], (0..$self->numArgs - 1);
 
 	$build .= "static ".$self->{RETURN}." ".$self->newFunctionName."(".$classargtype." self, SEL _cmd".$arglist.")";
+	return $build;
+}
+
+sub methodPrototypeLine {
+	my $self = shift;
+	my $build = "";
+	my $originalMethodPointer = $self->_originalMethodPointer;
+	$build .= "static ".$originalMethodPointer.";" if $originalMethodPointer;
+	$build .= $self->_methodPrototype;
 	return $build;
 }
 
