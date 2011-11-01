@@ -346,7 +346,7 @@ foreach my $line (@lines) {
 				my $patch = Patch->new();
 				$patch->line($lineno);
 				$patch->range($patchStart, pos($line));
-				$patch->subref(sub { return $currentMethod->methodPrototypeLine; });
+				$patch->subref(sub { return $currentMethod->definition; });
 				addPatch($patch);
 			} elsif($line =~ /\G%orig(?=\W?)/gc) {
 				nestingMustContain($lineno, $&, \@nestingstack, "hook", "subclass");

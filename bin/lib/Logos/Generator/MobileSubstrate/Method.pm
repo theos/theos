@@ -55,7 +55,7 @@ sub _methodPrototype {
 	return $build;
 }
 
-sub methodPrototypeLine {
+sub definition {
 	my $self = shift;
 	my $build = "";
 	$build .= $self->_methodPrototype;
