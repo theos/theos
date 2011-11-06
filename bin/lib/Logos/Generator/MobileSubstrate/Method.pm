@@ -94,8 +94,9 @@ sub declarations {
 
 sub initializers {
 	my $self = shift;
+	my $classvar = ($self->{SCOPE} eq "+" ? $self->class->metaVariable : $self->class->variable);
 	if(!$self->{NEW}) {
-		return "MSHookMessageEx(\$\$".$self->classname.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", (IMP*)&".$self->originalFunctionName.");";
+		return "MSHookMessageEx(".$classvar.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", (IMP*)&".$self->originalFunctionName.");";
 	} else {
 		my $r = "";
 		$r .= "{ ";
@@ -119,7 +120,7 @@ sub initializers {
 		} else {
 			$r .= "const char *_typeEncoding = \"".$self->{TYPE}."\"; ";
 		}
-		$r .= "class_addMethod(\$\$".$self->classname.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", _typeEncoding); ";
+		$r .= "class_addMethod(".$classvar.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", _typeEncoding); ";
 		$r .= "}";
 		return $r;
 	}

@@ -3,10 +3,12 @@ use strict;
 use Logos::BaseClass;
 @Class::ISA = ('BaseClass');
 
-# TODO: If overridden, store a global variable.
 sub declarations {
 	my $self = shift;
 	my $return = "";
+	if($self->{OVERRIDDEN}) {
+		$return .= "static Class ".$self->variable.", ".$self->metaVariable."; ";
+	}
 	foreach(@{$self->{METHODS}}) {
 		$return .= $_->declarations;
 	}
@@ -16,8 +18,17 @@ sub declarations {
 sub initializers {
 	my $self = shift;
 	my $return = "";
-	$return .= "Class \$\$".$self->{NAME}." = ".$self->expression."; " if $self->{INST} or $self->{META};
-	$return .= "Class \$\$meta\$".$self->{NAME}." = ".$self->metaexpression."; " if $self->{META};
+	if($self->{OVERRIDDEN}) {
+		$return .= $_->variable." = ".$self->_initExpr."; ";
+		$return .= $_->metaVariable." = ".$self->_metaInitExpr."; ";
+	} else {
+		if($self->{INST} || $self->{META}) {
+			$return .= "Class ".$self->variable." = ".$self->_initExpr."; ";
+		}
+		if($self->{META}) {
+			$return .= "Class ".$self->metaVariable." = ".$self->_metaInitExpr."; ";
+		}
+	}
 	foreach(@{$self->{METHODS}}) {
 		$return .= $_->initializers;
 	}
