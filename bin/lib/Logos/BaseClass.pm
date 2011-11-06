@@ -11,6 +11,7 @@ sub new {
 	$self->{TYPE} = undef;
 	$self->{META} = 0;
 	$self->{INST} = 0;
+	$self->{OVERRIDEN} = 0;
 	$self->{METHODS} = [];
 	$self->{NUM_METHODS} = 0;
 	$self->{GROUP} = undef;
@@ -29,16 +30,16 @@ sub name {
 
 sub expression {
 	my $self = shift;
-	if(@_) { $self->{EXPR} = shift; $self->type("id"); }
-	return $self->{EXPR} if $self->{EXPR};
+	if(@_) { $self->{EXPR} = shift; $self->type("id"); $self->{OVERRIDDEN} = 1; }
+	return $self->variable if $self->{OVERRIDDEN};
 	return "objc_getClass(\"".$self->{NAME}."\")";
 }
 
 sub metaexpression {
 	my $self = shift;
-	if(@_) { $self->{METAEXPR} = shift; }
-	return $self->{METAEXPR} if $self->{METAEXPR};
-	return "object_getClass(\$\$".$self->{NAME}.")";
+	if(@_) { $self->{METAEXPR} = shift; $self->{OVERRIDDEN} = 1; }
+	return $self->metaVariable if $self->{OVERRIDDEN};
+	return "object_getClass(".$self->variable.")";
 }
 
 sub type {
@@ -75,6 +76,33 @@ sub addMethod {
 	my $hook = shift;
 	push(@{$self->{METHODS}}, $hook);
 	$self->{NUM_METHODS}++;
+}
+
+sub _initExpr {
+	my $self = shift;
+	return $self->{EXPR} if $self->{EXPR};
+	return "objc_getClass(\"".$self->{NAME}."\")";
+}
+
+sub _metaInitExpr {
+	my $self = shift;
+	return $self->{METAEXPR} if $self->{METAEXPR};
+	return "object_getClass(".$self->variable.")";
+}
+
+sub variable {
+	my $self = shift;
+	return "_".$self->group->name."\$C\$".$self->name;
+}
+
+sub metaVariable {
+	my $self = shift;
+	return "_".$self->group->name."\$C\$meta\$".$self->name;
+}
+
+sub declarations {
+	::fileError(-1, "Generator hasn't implemented Class::declarations :(");
+	return "";
 }
 
 sub initializers {

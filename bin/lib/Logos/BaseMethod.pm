@@ -91,13 +91,18 @@ sub selector {
 	}
 }
 
-sub methodSignature {
-	::fileError(-1, "Generator hasn't implemented Method::buildMethodSignature :(");
+sub definition {
+	::fileError(-1, "Generator hasn't implemented Method::definition :(");
 	return "";
 }
 
 sub originalCall {
 	::fileError(-1, "Generator hasn't implemented Method::originalCall :(");
+	return "";
+}
+
+sub declarations {
+	::fileError(-1, "Generator hasn't implemented Method::declarations :(");
 	return "";
 }
 
@@ -178,6 +183,7 @@ sub formatCharForArgType {
 	return "%p" if /^void\s*\*$/;
 	return "%p" if /^((unsigned|signed)\s+)?(unsigned|signed|int|long|long\s+long|bool|BOOL|_Bool|char|short|float|double)\s*\*+$/;
 	return "%p" if /^NS.*?(Pointer|Array)$/;
+	return "%p" if /^NSZone\s*\*$/;
 
 	# Floating-Point Types
 	return "%f" if /^(double|float|CGFloat|CGDouble|NSTimeInterval)$/;
@@ -190,9 +196,6 @@ sub formatCharForArgType {
 	return "{{%g, %g}, {%g, %g}}" if /^(CG|NS)Rect$/;
 	return "{%g, %g}" if /^(CG|NS)Point$/;
 	return "{%g, %g}" if /^(CG|NS)Size$/;
-
-	# Opaque Types (pointer)
-	return "%p" if /^NSZone$/;
 
 	# Discarded Types
 	return "--" if /^(CG\w*|CF\w*|void)$/;

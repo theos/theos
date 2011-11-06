@@ -27,26 +27,44 @@ sub newFunctionName {
 	return "\$".$self->groupIdentifier."\$".$self->classname."\$".$self->new_selector;
 }
 
-sub methodSignature {
+sub _originalMethodPointerDeclaration {
 	my $self = shift;
-	my $build = "";
-	my $classargtype = "";
-	if($self->{SCOPE} eq "+") {
-		$classargtype = "Class";
-	} else {
-		$classargtype = $self->class->type;
-	}
 	if(!$self->{NEW}) {
-		$build .= "static ".$self->{RETURN}." (*".$self->originalFunctionName.")(".$classargtype.", SEL"; 
+		my $build = "static ";
+		my $classargtype = $self->class->type;
+		$classargtype = "Class" if $self->{SCOPE} eq "+";
+		$build .= $self->{RETURN}." (*".$self->originalFunctionName.")(".$classargtype.", SEL";
 		my $argtypelist = join(", ", @{$self->{ARGTYPES}});
 		$build .= ", ".$argtypelist if $argtypelist;
 
-		$build .= ");"
+		$build .= ")";
+		return $build;
 	}
-	my $arglist = "";
-	map $arglist .= ", ".$self->{ARGTYPES}[$_]." ".$self->{ARGNAMES}[$_], (0..$self->numArgs - 1);
+	return undef;
+}
 
-	$build .= "static ".$self->{RETURN}." ".$self->newFunctionName."(".$classargtype." self, SEL _cmd".$arglist.")";
+sub _methodPrototype {
+	my $self = shift;
+	my $includeArgNames = 0 || shift;
+	my $build = "";
+	my $classargtype = $self->class->type;
+	$classargtype = "Class" if $self->{SCOPE} eq "+";
+	my $arglist = "";
+	if($includeArgNames == 1) {
+		map $arglist .= ", ".$self->{ARGTYPES}[$_]." ".$self->{ARGNAMES}[$_], (0..$self->numArgs - 1);
+	} else {
+		my $typelist = join(", ", @{$self->{ARGTYPES}});
+		$arglist = ", ".$typelist if $typelist;
+	}
+
+	$build .= "static ".$self->{RETURN}." ".$self->newFunctionName."(".$classargtype.($includeArgNames?" self":"").", SEL".($includeArgNames?" _cmd":"").$arglist.")";
+	return $build;
+}
+
+sub definition {
+	my $self = shift;
+	my $build = "";
+	$build .= $self->_methodPrototype(1);
 	return $build;
 }
 
@@ -65,10 +83,20 @@ sub originalCall {
 	return $build;
 }
 
+sub declarations {
+	my $self = shift;
+	my $build = "";
+	my $orig = $self->_originalMethodPointerDeclaration;
+	$build .= $orig."; " if $orig;
+	$build .= $self->_methodPrototype."; ";
+	return $build;
+}
+
 sub initializers {
 	my $self = shift;
+	my $classvar = ($self->{SCOPE} eq "+" ? $self->class->metaVariable : $self->class->variable);
 	if(!$self->{NEW}) {
-		return "MSHookMessageEx(\$\$".$self->classname.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", (IMP*)&".$self->originalFunctionName.");";
+		return "MSHookMessageEx(".$classvar.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", (IMP*)&".$self->originalFunctionName.");";
 	} else {
 		my $r = "";
 		$r .= "{ ";
@@ -92,7 +120,7 @@ sub initializers {
 		} else {
 			$r .= "const char *_typeEncoding = \"".$self->{TYPE}."\"; ";
 		}
-		$r .= "class_addMethod(\$\$".$self->classname.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", _typeEncoding); ";
+		$r .= "class_addMethod(".$classvar.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", _typeEncoding); ";
 		$r .= "}";
 		return $r;
 	}

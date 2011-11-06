@@ -78,10 +78,18 @@ sub getClassNamed {
 	return undef;
 }
 
+sub declarations {
+	my $self = shift;
+	my $return = "";
+	foreach(@{$self->{CLASSES}}) {
+		$return .= $_->declarations;
+	}
+	return $return;
+}
+
 sub initializers {
 	my $self = shift;
 	my $return = "";
-	$self->initialized(1);
 	$return .= "{";
 	foreach(@{$self->{CLASSES}}) {
 		$return .= $_->initializers;

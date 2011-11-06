@@ -1,5 +1,19 @@
 package Generator;
 use strict;
+use Logos::BaseGenerator;
+@Method::ISA = ('BaseGenerator');
+
+sub findPreamble {
+	shift;
+	my $aref = shift;
+	my @matches = grep(/\s*#\s*include\s*[<"]substrate\.h[">]/, @$aref);
+	return @matches > 0;
+}
+
+sub preamble {
+	shift;
+	return "#include <substrate.h>";
+}
 
 sub generateClassList {
 	shift;
