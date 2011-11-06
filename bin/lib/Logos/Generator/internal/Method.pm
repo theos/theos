@@ -94,15 +94,26 @@ sub declarations {
 
 sub initializers {
 	my $self = shift;
+	my $classvar = ($self->{SCOPE} eq "+" ? $self->class->metaVariable : $self->class->variable);
 	my $r = "{ ";
 	if(!$self->{NEW}) {
-		$r .= "Class _class = ".$self->class->variable.";";
+		my $classargtype = "";
+		if($self->{SCOPE} eq "+") {
+			$classargtype = "Class";
+		} else {
+			$classargtype = $self->class->type;
+		}
+		my $pointertype = $self->{RETURN}." (*)(".$classargtype.", SEL";
+		my $argtypelist = join(", ", @{$self->{ARGTYPES}});
+		$pointertype .= ", ".$argtypelist if $argtypelist;
+		$pointertype .= ")";
+		$r .= "Class _class = ".$classvar.";";
 		$r .= "Method _method = class_getInstanceMethod(_class, \@selector(".$self->selector."));";
 		$r .= "if (_method) {";
 		$r .=     $self->originalFunctionName." = ".$self->originalFunctionName."_s;";
 		$r .=     "if (!class_addMethod(_class, \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", method_getTypeEncoding(_method))) {";
-		$r .=         "*((IMP*)&".$self->originalFunctionName.") = method_getImplementation(_method);";
-		$r .=         "method_setImplementation(_method, (IMP)&".$self->newFunctionName.");";
+		$r .=         $self->originalFunctionName." = (".$pointertype.")method_getImplementation(_method);";
+		$r .=         $self->originalFunctionName." = (".$pointertype.")method_setImplementation(_method, (IMP)&".$self->newFunctionName.");";
 		$r .=     "}";
 		$r .= "}";
 	} else {
@@ -126,7 +137,7 @@ sub initializers {
 		} else {
 			$r .= "const char *_typeEncoding = \"".$self->{TYPE}."\"; ";
 		}
-		$r .= "class_addMethod(\$\$".$self->classname.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", _typeEncoding); ";
+		$r .= "class_addMethod(".$classvar.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", _typeEncoding); ";
 	}
 	$r .= "}";
 	return $r;
