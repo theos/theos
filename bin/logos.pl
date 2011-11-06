@@ -157,9 +157,9 @@ my $generateAutoConstructor = 1;
 my $defaultGroup = Group->new();
 $defaultGroup->name("_ungrouped");
 $defaultGroup->explicit(0);
-my @groups = ($defaultGroup);
-
 my $staticClassGroup = StaticClassGroup->new();
+my @groups = ($defaultGroup, $staticClassGroup);
+
 my %classes = ();
 
 my $ignore = 0;
@@ -498,9 +498,6 @@ foreach my $line (@lines) {
 	$lineno++;
 }
 }
-
-# Always insert $staticClassGroup after _ungrouped.
-splice(@groups, 1, 0, $staticClassGroup);
 
 my $hasGeneratorPreamble = $preprocessed; # If we're already preprocessed, we cannot insert #include statements.
 $hasGeneratorPreamble = Generator->findPreamble(\@lines) if !$hasGeneratorPreamble;
