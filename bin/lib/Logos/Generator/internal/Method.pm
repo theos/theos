@@ -42,32 +42,27 @@ sub originalCallParams {
 	return $build;
 }
 
-sub methodSignature {
+sub definition {
 	my $self = shift;
 	my $build = "";
 	my $classargtype = "";
 	my $classref = "";
 	if($self->{SCOPE} eq "+") {
 		$classargtype = "Class";
-		$classref = $self->class->metaexpression;
+		$classref = $self->class->superMetaVariable;
 	} else {
 		$classargtype = $self->class->type;
-		$classref = $self->class->expression;
+		$classref = $self->class->superVariable;
 	}
 	if(!$self->{NEW}) {
-		$build .= "static ".$self->{RETURN}." (*".$self->originalFunctionName.")(".$classargtype.", SEL"; 
 		my $argtypelist = join(", ", @{$self->{ARGTYPES}});
-		$build .= ", ".$argtypelist if $argtypelist;
-
-		$build .= ");";
-
 		my $arglist = "";
 		map $arglist .= ", ".$self->{ARGTYPES}[$_]." ".$self->{ARGNAMES}[$_], (0..$self->numArgs - 1);
 
 		$build .= "static ".$self->{RETURN}." ".$self->originalFunctionName."_s(".$classargtype." self, SEL _cmd".$arglist.") {";
 		$build .=     "return ((".$self->{RETURN}." (*)(".$classargtype.", SEL";
 		$build .=         ", ".$argtypelist if $argtypelist;
-		$build .=         "))class_getMethodImplementation(class_getSuperclass(".$classref."), \@selector(".$self->selector.")))";
+		$build .=         "))class_getMethodImplementation(".$classref.", \@selector(".$self->selector.")))";
 		$build .=         $self->originalCallParams.";";
 		$build .= "}";
 	
@@ -81,11 +76,27 @@ sub originalCall {
 	return $self->originalFunctionName.$self->originalCallParams;
 }
 
+sub declarations {
+	my $self = shift;
+	my $classargtype = "";
+	if($self->{SCOPE} eq "+") {
+		$classargtype = "Class";
+	} else {
+		$classargtype = $self->class->type;
+	}
+	my $build = "";
+	$build .= "static ".$self->{RETURN}." (*".$self->originalFunctionName.")(".$classargtype.", SEL"; 
+	my $argtypelist = join(", ", @{$self->{ARGTYPES}});
+	$build .= ", ".$argtypelist if $argtypelist;
+	$build .= ");";
+	return $build;
+}
+
 sub initializers {
 	my $self = shift;
 	my $r = "{ ";
 	if(!$self->{NEW}) {
-		$r .= "Class _class = \$\$".$self->classname.";";
+		$r .= "Class _class = ".$self->class->variable.";";
 		$r .= "Method _method = class_getInstanceMethod(_class, \@selector(".$self->selector."));";
 		$r .= "if (_method) {";
 		$r .=     $self->originalFunctionName." = ".$self->originalFunctionName."_s;";
