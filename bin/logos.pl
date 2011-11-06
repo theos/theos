@@ -32,7 +32,7 @@ my $preprocessed = 0;
 
 my %lineMapping = ();
 
-{
+{ # If the first line matches "# \d \"...\"", this file has been run through the preprocessor already.
 my $firstline = <FILE>;
 seek(FILE, 0, Fcntl::SEEK_SET);
 if($firstline =~ /^# \d+ \"(.*?)\"$/) {
@@ -177,15 +177,11 @@ my $isNewMethod = undef;
 # Mk. II processing loop - directive processing.
 foreach my $line (@lines) {
 	pos($line) = 0;
-	# Search for a discrete %x% or an open-ended %x (or %x with a { or ; after it)
 	if($line =~ /^\s*#\s*if\s*0\s*$/) {
 		$ignore = 1;
 	} elsif($ignore == 1 && $line =~ /^\s*#\s*endif/) {
 		$ignore = 0;
 	} elsif($ignore == 0) {
-		# %hook name
-		my $matched = 0;
-		
 		# We don't want to process in-order, so %group %thing %end won't kill itself automatically
 		# because it found a %end with the %group. This allows things to proceed out-of-order:
 		# we re-start the scan loop with the next % every time we find a match so that the commands don't need to
@@ -196,8 +192,8 @@ foreach my $line (@lines) {
 		while($line =~ m/(?=(\%\w|[+-]\s*\(\s*.*?\s*\)))/gc) {
 			next if fallsBetween($-[0], @quotes);
 
-			# %hook at the beginning of a line after any amount of space
 			if($line =~ /\G%(hook)\s+([\$_\w]+)/gc) {
+				# "%hook <identifier>"
 				nestingMustNotContain($lineno, "%$1", \@nestingstack, "hook", "subclass");
 
 				@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
@@ -209,6 +205,7 @@ foreach my $line (@lines) {
 				$inclass = 1;
 				patchHere(undef);
 			} elsif($line =~ /\G%(subclass)\s+([\$_\w]+)\s*:\s*([\$_\w]+)\s*(\<\s*(.*?)\s*\>)?/gc) {
+				# %subclass <identifier> : <identifier> \<<protocols ...>\>
 				nestingMustNotContain($lineno, "%$1", \@nestingstack, "hook", "subclass");
 
 				@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
@@ -235,8 +232,7 @@ foreach my $line (@lines) {
 				$inclass = 1;
 				patchHere(undef);
 			} elsif($line =~ /\G%(group)\s+([\$_\w]+)/gc) {
-				# %group at the beginning of a line after any amount of space
-
+				# %group <identifier>
 				nestingMustNotContain($lineno, "%$1", \@nestingstack, "group");
 
 				@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
@@ -253,11 +249,7 @@ foreach my $line (@lines) {
 				my $capturedGroup = $curGroup;
 				patchHere(sub { return $capturedGroup->declarations });
 			} elsif($line =~ /\G%(class)\s+([+-])?([\$_\w]+)/gc) {
-				# %class at the beginning of a line after any amount of space
-
-				# TODO: This will cause a constructor if you use %class but not %hook (blank constructor)
-				# Not a really big deal, but still nice to fix. Maybe with a list of patchups instead of
-				# "put this hre."
+				# %class [+-]<identifier>
 				@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
 
 				my $scope = $2;
@@ -271,7 +263,7 @@ foreach my $line (@lines) {
 				$classes{$classname}++;
 				patchHere(undef);
 			} elsif($line =~ /\G%c\(\s*([+-])?([\$_\w]+)\s*\)/gc) {
-				# TODO: Same caveats as %class.
+				# %c([+-]<identifier>)
 				@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
 
 				my $scope = $1;
@@ -285,14 +277,14 @@ foreach my $line (@lines) {
 				$classes{$classname}++;
 				patchHere(sub { return Generator->classReferenceWithScope($classname, $scope); });
 			} elsif($line =~ /\G%new(\((.*?)\))?(?=\W?)/gc) {
-				# %new(type) at the beginning of a line after any amount of space
+				# %new[(type)]
 				nestingMustContain($lineno, "%new", \@nestingstack, "hook", "subclass");
 				my $xtype = "";
 				$xtype = $2 if $2;
 				$isNewMethod = $xtype;
 				patchHere(undef);
 			} elsif($inclass && $line =~ /\G([+-])\s*\(\s*(.*?)\s*\)(?=\s*[\w:])/gc && $inclass) {
-				# - (return)[X:], but only when we're in a %hook.
+				# [+-] (<return>)<[X:]>, but only when we're in a %hook.
 
 				# Gasp! We've been moved to a different group!
 				if($class->group != $curGroup) {
@@ -349,6 +341,7 @@ foreach my $line (@lines) {
 				$patch->subref(sub { return $currentMethod->definition; });
 				addPatch($patch);
 			} elsif($line =~ /\G%orig(?=\W?)/gc) {
+				# %orig, with optional following parens.
 				nestingMustContain($lineno, $&, \@nestingstack, "hook", "subclass");
 				fileWarning($lineno, "$& in a new method will be non-operative.") if $lastMethod->isNew;
 
@@ -368,15 +361,18 @@ foreach my $line (@lines) {
 				$patch->subref(sub { return $capturedMethod->originalCall($orig_args); });
 				addPatch($patch);
 			} elsif($line =~ /\G%log(?=\W?)/gc) {
+				# %log
 				nestingMustContain($lineno, $&, \@nestingstack, "hook", "subclass");
 
 				my $capturedMethod = $lastMethod;
 				patchHere(sub { return $capturedMethod->buildLogCall; });
 			} elsif($line =~ /\G%ctor(?=\W?)/gc) {
+				# %ctor
 				nestingMustNotContain($lineno, $&, \@nestingstack, "hook", "subclass");
 				my $replacement = "static __attribute__((constructor)) void _logosLocalCtor_".substr(md5_hex($`.$lineno.$'), 0, 8)."()";
 				patchHere(sub { return $replacement; });
 			} elsif($line =~ /\G%init(?=\W?)/gc) {
+				# %init, with optional following parens
 				my $groupname = "_ungrouped";
 
 				my $remaining = substr($line, pos($line));
@@ -461,7 +457,7 @@ foreach my $line (@lines) {
 				$generateAutoConstructor = 0; # "Do not generate a constructor."
 				@lastInitPos = ($lineno, pos($line));
 			} elsif($line =~ /\G%end/gc) {
-				# %end (Make it the last thing we check for so we don't terminate something pre-emptively.
+				# %end
 				my $closing = nestPop(\@nestingstack);
 				fileError($lineno, "dangling %end") if !$closing;
 				if($closing eq "group") {
