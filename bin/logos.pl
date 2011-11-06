@@ -563,6 +563,7 @@ if(@firstDirectivePosition) {
 			$patch->subref(sub {
 				return [$staticClassGroup->initializers];
 			});
+			$staticClassGroup->initialized(1);
 			addPatch($patch);
 		}
 	} else {
