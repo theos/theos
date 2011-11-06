@@ -9,6 +9,7 @@ sub new {
 	$self->{SUPERCLASS} = undef;
 	$self->{PROTOCOLS} = {};
 	$self->{IVARS} = [];
+	$self->{OVERRIDDEN} = 1;
 	bless($self, $class);
 	return $self;
 }
@@ -18,11 +19,7 @@ sub new {
 # #####################
 sub name {
 	my $self = shift;
-	if(@_) {
-		$self->{NAME} = shift;
-		$self->expression("\$".$self->{NAME});
-		$self->metaexpression("object_getClass(\$".$self->{NAME}.")");
-	}
+	if(@_) { $self->{NAME} = shift; }
 	return $self->{NAME};
 }
 
@@ -34,6 +31,21 @@ sub superclass {
 ##### #
 # END #
 # #####
+
+sub initExpr {
+	::fileError(-1, "Generator hasn't implemented Subclass::initExpr :(");
+	return "";
+}
+
+sub _initExpr {
+	my $self = shift;
+	return $self->initExpr;
+}
+
+sub _metaInitExpr {
+	my $self = shift;
+	return "object_getClass(".$self->variable.")";
+}
 
 sub addProtocol {
 	my $self = shift;
@@ -55,6 +67,11 @@ sub getIvarNamed {
 		return $_ if $_->name eq $name;
 	}
 	return undef;
+}
+
+sub declarations {
+	::fileError(-1, "Generator hasn't implemented Subclass::declarations :(");
+	return "";
 }
 
 sub initializers {

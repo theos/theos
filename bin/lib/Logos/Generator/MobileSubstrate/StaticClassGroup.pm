@@ -9,10 +9,10 @@ sub declarations {
 	foreach(keys %{$self->{USEDMETACLASSES}}) {
 		$return .= "static Class \$meta\$$_; ";
 	}
-	foreach(keys %{$self->{USEDCLASSES}}) {
-		$return .= "static Class \$$_; ";
-	}
-	foreach(keys %{$self->{DECLAREDONLYCLASSES}}) {
+	my %coalescedClasses = ();
+	$coalescedClasses{$_}++ for(keys %{$self->{USEDCLASSES}});
+	$coalescedClasses{$_}++ for(keys %{$self->{DECLAREDONLYCLASSES}});
+	foreach(keys %coalescedClasses) {
 		$return .= "static Class \$$_; ";
 	}
 	return $return;
