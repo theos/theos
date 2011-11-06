@@ -26,10 +26,7 @@ sub classReferenceWithScope {
 	shift;
 	my $classname = shift;
 	my $scope = shift;
-	my $prefix = "\$";
-	if($scope eq "+") {
-		$prefix = "\$meta\$";
-	}
+	my $prefix = Logos::sigil($scope eq "+" ? "static_metaclass" : "static_class");
 	return $prefix.$classname;
 }
 

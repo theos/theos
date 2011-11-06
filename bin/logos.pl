@@ -10,6 +10,10 @@ use Module::Load;
 use Module::Load::Conditional 'can_load';
 use Getopt::Long;
 
+package Logos;
+sub sigil { return "_logos_".shift."\$"; }
+package main;
+
 use Logos::Patch;
 use Logos::Util;
 $Logos::Util::errorhandler = \&utilErrorHandler;
