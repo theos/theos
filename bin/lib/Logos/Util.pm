@@ -37,7 +37,9 @@ sub sanitize {
 
 sub matchedParenthesisSet {
 	my $in = shift;
-	my $atstart = shift || 1;
+	my $atstart = shift;
+	$atstart = 1 if !defined $atstart;
+
 	my $opening = -1;
 	my $closing = -1;
 	if(!$atstart || $in =~ /^\s*\(/) {
@@ -82,7 +84,8 @@ sub smartSplit {
 	my $in = shift;
 	return () if $in eq "";
 
-	my $limit = shift || 0;
+	my $limit = shift;
+	$limit = 0 if !defined $limit;
 
 	my @quotes = quotes($in);
 	my @parens = matchedParenthesisSet($in, 0);
