@@ -11,7 +11,7 @@ sub new {
 	$self->{TYPE} = undef;
 	$self->{META} = 0;
 	$self->{INST} = 0;
-	$self->{OVERRIDEN} = 0;
+	$self->{OVERRIDDEN} = 0;
 	$self->{METHODS} = [];
 	$self->{NUM_METHODS} = 0;
 	$self->{GROUP} = undef;
