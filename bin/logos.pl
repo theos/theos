@@ -134,6 +134,9 @@ READLOOP: while(my $line = <FILE>) {
 		push(@lines, $line) if !$readignore;
 	}
 }
+if($building == 1) {
+	push(@lines, $built);
+}
 }
 
 close(FILE);
@@ -206,32 +209,32 @@ foreach my $line (@lines) {
 	while($line =~ m/(?=(\%\w|[+-]\s*\(\s*.*?\s*\)))/gc) {
 		next if fallsBetween($-[0], @quotes);
 
-		if($line =~ /\G%(hook)\s+([\$_\w]+)/gc) {
+		if($line =~ /\G%hook\s+([\$_\w]+)/gc) {
 			# "%hook <identifier>"
-			nestingMustNotContain($lineno, "%$1", \@nestingstack, "hook", "subclass");
+			nestingMustNotContain($lineno, "%hook", \@nestingstack, "hook", "subclass");
 
 			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
 
-			nestPush($1, $lineno, \@nestingstack);
+			nestPush("hook", $lineno, \@nestingstack);
 
-			$currentClass = $currentGroup->addClassNamed($2);
+			$currentClass = $currentGroup->addClassNamed($1);
 			$classes{$currentClass->name}++;
 			patchHere(undef);
-		} elsif($line =~ /\G%(subclass)\s+([\$_\w]+)\s*:\s*([\$_\w]+)\s*(\<\s*(.*?)\s*\>)?/gc) {
+		} elsif($line =~ /\G%subclass\s+([\$_\w]+)\s*:\s*([\$_\w]+)\s*(\<\s*(.*?)\s*\>)?/gc) {
 			# %subclass <identifier> : <identifier> \<<protocols ...>\>
-			nestingMustNotContain($lineno, "%$1", \@nestingstack, "hook", "subclass");
+			nestingMustNotContain($lineno, "%subclass", \@nestingstack, "hook", "subclass");
 
 			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
 
-			nestPush($1, $lineno, \@nestingstack);
+			nestPush("subclass", $lineno, \@nestingstack);
 
-			my $classname = $2;
-			my $superclassname = $3;
+			my $classname = $1;
+			my $superclassname = $2;
 			$currentClass = Subclass->new();
 			$currentClass->name($classname);
 			$currentClass->superclass($superclassname);
-			if(defined($4) && defined($5)) {
-				my @protocols = split(/\s*,\s*/, $5);
+			if(defined($3) && defined($4)) {
+				my @protocols = split(/\s*,\s*/, $4);
 				foreach(@protocols) {
 					$currentClass->addProtocol($_);
 				}
@@ -243,30 +246,30 @@ foreach my $line (@lines) {
 			$classes{$classname}++;
 
 			patchHere(undef);
-		} elsif($line =~ /\G%(group)\s+([\$_\w]+)/gc) {
+		} elsif($line =~ /\G%group\s+([\$_\w]+)/gc) {
 			# %group <identifier>
-			nestingMustNotContain($lineno, "%$1", \@nestingstack, "group");
+			nestingMustNotContain($lineno, "%group", \@nestingstack, "group");
 
 			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
 
-			nestPush($1, $lineno, \@nestingstack);
+			nestPush("group", $lineno, \@nestingstack);
 
-			$currentGroup = getGroup($2);
+			$currentGroup = getGroup($1);
 			if(!defined($currentGroup)) {
 				$currentGroup = Group->new();
-				$currentGroup->name($2);
+				$currentGroup->name($1);
 				push(@groups, $currentGroup);
 			}
 
 			my $capturedGroup = $currentGroup;
 			patchHere(sub { return $capturedGroup->declarations });
-		} elsif($line =~ /\G%(class)\s+([+-])?([\$_\w]+)/gc) {
+		} elsif($line =~ /\G%class\s+([+-])?([\$_\w]+)/gc) {
 			# %class [+-]<identifier>
 			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
 
-			my $scope = $2;
+			my $scope = $1;
 			$scope = "-" if !$scope;
-			my $classname = $3;
+			my $classname = $2;
 			if($scope eq "+") {
 				$staticClassGroup->addUsedMetaClass($classname);
 			} else {
@@ -354,8 +357,8 @@ foreach my $line (@lines) {
 			addPatch($patch);
 		} elsif($line =~ /\G%orig(?=\W?)/gc) {
 			# %orig, with optional following parens.
-			nestingMustContain($lineno, $&, \@nestingstack, "hook", "subclass");
-			fileWarning($lineno, "$& in a new method will be non-operative.") if $currentMethod->isNew;
+			nestingMustContain($lineno, "%orig", \@nestingstack, "hook", "subclass");
+			fileWarning($lineno, "%orig in a new method will be non-operative.") if $currentMethod->isNew;
 
 			my $remaining = substr($line, pos($line));
 			my $orig_args = undef;
@@ -374,17 +377,18 @@ foreach my $line (@lines) {
 			addPatch($patch);
 		} elsif($line =~ /\G%log(?=\W?)/gc) {
 			# %log
-			nestingMustContain($lineno, $&, \@nestingstack, "hook", "subclass");
+			nestingMustContain($lineno, "%log", \@nestingstack, "hook", "subclass");
 
 			my $capturedMethod = $currentMethod;
 			patchHere(sub { return $capturedMethod->buildLogCall; });
 		} elsif($line =~ /\G%ctor(?=\W?)/gc) {
 			# %ctor
-			nestingMustNotContain($lineno, $&, \@nestingstack, "hook", "subclass");
+			nestingMustNotContain($lineno, "%ctor", \@nestingstack, "hook", "subclass");
 			my $replacement = "static __attribute__((constructor)) void _logosLocalCtor_".substr(md5_hex($`.$lineno.$'), 0, 8)."()";
 			patchHere(sub { return $replacement; });
 		} elsif($line =~ /\G%init(?=\W?)/gc) {
 			# %init, with optional following parens
+			nestingMustNotContain($lineno, "%init", \@nestingstack, "hook", "subclass");
 			my $groupname = "_ungrouped";
 
 			my $remaining = substr($line, pos($line));
