@@ -1,4 +1,4 @@
-package Group;
+package Logos::Group;
 use strict;
 
 sub new {
@@ -63,7 +63,7 @@ sub addClassNamed {
 	my $class = $self->getClassNamed($name);
 	return $class if defined($class);
 
-	$class = Class->new();
+	$class = ::Class()->new();
 	$class->name($name);
 	$self->addClass($class);
 	return $class;

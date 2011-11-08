@@ -1,6 +1,7 @@
-package StaticClassGroup;
-use Logos::BaseStaticClassGroup;
-@ISA = "BaseStaticClassGroup";
+package Logos::Generator::MobileSubstrate::StaticClassGroup;
+use strict;
+use Logos::StaticClassGroup;
+our @ISA = ('Logos::StaticClassGroup');
 
 sub declarations {
 	my $self = shift;

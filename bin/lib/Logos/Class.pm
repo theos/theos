@@ -1,4 +1,4 @@
-package BaseClass;
+package Logos::Class;
 use strict;
 
 sub new {

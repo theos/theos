@@ -1,4 +1,4 @@
-package Patch;
+package Logos::Patch;
 use strict;
 
 sub new {

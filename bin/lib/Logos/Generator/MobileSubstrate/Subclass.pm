@@ -1,7 +1,8 @@
-package Subclass;
+package Logos::Generator::MobileSubstrate::Subclass;
+use strict;
 use Logos::Generator::MobileSubstrate::Class;
-use Logos::BaseSubclass;
-@Subclass::ISA = ('BaseSubclass', 'Class');
+use Logos::Subclass;
+our @ISA = ('Logos::Subclass', 'Logos::Generator::MobileSubstrate::Class');
 
 # declarations is inherited from Class.
 

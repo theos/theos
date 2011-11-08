@@ -1,4 +1,4 @@
-package Ivar;
+package Logos::Ivar;
 use strict;
 
 sub new {

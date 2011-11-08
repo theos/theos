@@ -1,7 +1,7 @@
 package Logos::Util;
 use 5.006;
 use strict;
-our @ISA = qw(Exporter);
+our @ISA = ('Exporter');
 our @EXPORT = qw(quotes fallsBetween sanitize matchedParenthesisSet nestedParenString smartSplit);
 our $errorhandler = \&_defaultErrorHandler;
 

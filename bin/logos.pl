@@ -17,6 +17,14 @@ package main;
 use Logos::Patch;
 use Logos::Util;
 $Logos::Util::errorhandler = \&utilErrorHandler;
+sub Group { "Logos::Group"; }
+sub Patch { "Logos::Patch"; }
+
+use Logos::Group;
+use Logos::Method;
+use Logos::Class;
+use Logos::Subclass;
+use Logos::StaticClassGroup;
 
 %main::CONFIG = ( generator => "MobileSubstrate"
 		);
@@ -171,14 +179,18 @@ my $generatorname = $main::CONFIG{generator};
 $Module::Load::Conditional::VERBOSE = 1;
 my $GeneratorPackage = "Logos::Generator::$generatorname";
 fileError($generatorLine, "I can't find the \"$generatorname\" Generator!") if(!can_load(modules => {
-			$GeneratorPackage."::Base" => undef,
+			$GeneratorPackage."::Generator" => undef,
 		}));
 
 load $GeneratorPackage."::Method";
 load $GeneratorPackage."::Class";
 load $GeneratorPackage."::Subclass";
-load 'Logos::Group';
 load $GeneratorPackage."::StaticClassGroup";
+sub Generator { $GeneratorPackage; }
+sub Method { $GeneratorPackage."::Method"; }
+sub Class { $GeneratorPackage."::Class" }
+sub Subclass { $GeneratorPackage."::Subclass" }
+sub StaticClassGroup { $GeneratorPackage."::StaticClassGroup" }
 
 my $lineno = 0;
 

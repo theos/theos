@@ -1,4 +1,4 @@
-package BaseMethod;
+package Logos::Method;
 use strict;
 
 sub new {

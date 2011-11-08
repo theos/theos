@@ -1,7 +1,7 @@
-package Method;
+package Logos::Generator::MobileSubstrate::Method;
 use strict;
-use Logos::BaseMethod;
-@Method::ISA = ('BaseMethod');
+use Logos::Method;
+our @ISA = ('Logos::Method');
 
 sub _originalMethodPointerDeclaration {
 	my $self = shift;

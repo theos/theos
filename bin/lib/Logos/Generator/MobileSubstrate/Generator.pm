@@ -1,7 +1,7 @@
-package Generator;
+package Logos::Generator::MobileSubstrate;
 use strict;
-use Logos::BaseGenerator;
-@Method::ISA = ('BaseGenerator');
+use Logos::Generator;
+our @ISA = ('Logos::Generator');
 
 sub findPreamble {
 	shift;
