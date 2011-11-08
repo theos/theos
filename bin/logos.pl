@@ -11,7 +11,7 @@ use Module::Load::Conditional 'can_load';
 use Getopt::Long;
 
 package Logos;
-sub sigil { return "_logos_".shift."\$"; }
+sub sigil { my $id = shift; return "_logos_$id\$"; }
 package main;
 
 use Logos::Patch;
