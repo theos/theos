@@ -405,7 +405,6 @@ foreach my $line (@lines) {
 			patchHere(sub { return $replacement; });
 		} elsif($line =~ /\G%init(?=\W?)/gc) {
 			# %init, with optional following parens
-			nestingMustNotContain($lineno, "%init", \@nestingstack, "hook", "subclass");
 			my $groupname = "_ungrouped";
 
 			my $remaining = substr($line, pos($line));
