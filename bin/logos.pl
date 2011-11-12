@@ -377,6 +377,8 @@ foreach my $line (@lines) {
 			nestingMustContain($lineno, "%orig", \@nestingstack, "hook", "subclass");
 			fileWarning($lineno, "%orig in a new method will be non-operative.") if $currentMethod->isNew;
 
+			my $patchStart = $-[0];
+
 			my $remaining = substr($line, pos($line));
 			my $orig_args = undef;
 
@@ -389,7 +391,7 @@ foreach my $line (@lines) {
 			my $capturedMethod = $currentMethod;
 			my $patch = Patch->new();
 			$patch->line($lineno);
-			$patch->range($-[0], pos($line));
+			$patch->range($patchStart, pos($line));
 			$patch->subref(sub { return $capturedMethod->originalCall($orig_args); });
 			addPatch($patch);
 		} elsif($line =~ /\G%log(?=\W?)/gc) {
@@ -406,6 +408,8 @@ foreach my $line (@lines) {
 		} elsif($line =~ /\G%init(?=\W?)/gc) {
 			# %init, with optional following parens
 			my $groupname = "_ungrouped";
+
+			my $patchStart = $-[0];
 
 			my $remaining = substr($line, pos($line));
 			my $argstring = undef;
@@ -468,13 +472,12 @@ foreach my $line (@lines) {
 				$staticClassGroup->initialized(1);
 			}
 
-			my $patchStart = $-[0];
 			while($line =~ /\G\s*;/gc) { };
 			my $patchEnd = pos($line);
 
 			my $patch = Patch->new();
 			$patch->line($lineno);
-			$patch->range($-[0], pos($line));
+			$patch->range($patchStart, pos($line));
 			if($groupname eq "_ungrouped") {
 				$patch->subref(sub {
 					return "{".$group->initializers.$staticClassGroup->initializers."}";
