@@ -54,10 +54,10 @@ sub definition {
 		$classargtype = $self->class->type;
 		$classref = $self->class->superVariable;
 	}
+	my $arglist = "";
+	map $arglist .= ", ".$self->{ARGTYPES}[$_]." ".$self->{ARGNAMES}[$_], (0..$self->numArgs - 1);
 	if(!$self->{NEW}) {
 		my $argtypelist = join(", ", @{$self->{ARGTYPES}});
-		my $arglist = "";
-		map $arglist .= ", ".$self->{ARGTYPES}[$_]." ".$self->{ARGNAMES}[$_], (0..$self->numArgs - 1);
 
 		$build .= "static ".$self->{RETURN}." ".$self->originalFunctionName."_s(".$classargtype." self, SEL _cmd".$arglist.") {";
 		$build .=     "return ((".$self->{RETURN}." (*)(".$classargtype.", SEL";
@@ -66,8 +66,8 @@ sub definition {
 		$build .=         $self->originalCallParams.";";
 		$build .= "}";
 	
-		$build .= "static ".$self->{RETURN}." ".$self->newFunctionName."(".$classargtype." self, SEL _cmd".$arglist.")";
 	}
+	$build .= "static ".$self->{RETURN}." ".$self->newFunctionName."(".$classargtype." self, SEL _cmd".$arglist.")";
 	return $build;
 }
 
@@ -120,7 +120,7 @@ sub initializers {
 		if(!$self->{TYPE}) {
 			$r .= "char _typeEncoding[1024]; unsigned int i = 0; ";
 			for ($self->{RETURN}, "id", "SEL", @{$self->{ARGTYPES}}) {
-				my $typeEncoding = BaseMethod::typeEncodingForArgType($_);
+				my $typeEncoding = Logos::Method::typeEncodingForArgType($_);
 				if(defined $typeEncoding) {
 					my @typeEncodingBits = split(//, $typeEncoding);
 					my $i = 0;
