@@ -13,7 +13,7 @@ use strict;
 use FindBin;
 use lib "$FindBin::Bin/lib";
 
-use Logos::BaseMethod;
+use Logos::Method;
 use Logos::Util;
 $Logos::Util::errorhandler = sub {
 	die "$ARGV:$.: error: missing closing parenthesis$/"
@@ -54,7 +54,7 @@ sub logLineForDeclaration {
 	my $innards = "%log; ";
 	if($rtype ne "void") {
 		$innards .= "$rtype r = %orig; ";
-		$innards .= "NSLog(@\" = ".BaseMethod::formatCharForArgType($rtype)."\", ".BaseMethod::printArgForArgType($rtype, "r")."); ";
+		$innards .= "NSLog(@\" = ".Logos::Method::formatCharForArgType($rtype)."\", ".Logos::Method::printArgForArgType($rtype, "r")."); ";
 		$innards .= "return r; ";
 	} else {
 		$innards .= "%orig; ";
