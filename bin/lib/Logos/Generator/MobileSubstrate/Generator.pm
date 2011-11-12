@@ -1,7 +1,7 @@
-package Generator;
+package Logos::Generator::MobileSubstrate;
 use strict;
-use Logos::BaseGenerator;
-@Method::ISA = ('BaseGenerator');
+use Logos::Generator;
+our @ISA = ('Logos::Generator');
 
 sub findPreamble {
 	shift;
@@ -26,10 +26,7 @@ sub classReferenceWithScope {
 	shift;
 	my $classname = shift;
 	my $scope = shift;
-	my $prefix = "\$";
-	if($scope eq "+") {
-		$prefix = "\$meta\$";
-	}
+	my $prefix = Logos::sigil($scope eq "+" ? "static_metaclass" : "static_class");
 	return $prefix.$classname;
 }
 

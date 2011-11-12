@@ -1,4 +1,4 @@
-package BaseClass;
+package Logos::Class;
 use strict;
 
 sub new {
@@ -11,7 +11,7 @@ sub new {
 	$self->{TYPE} = undef;
 	$self->{META} = 0;
 	$self->{INST} = 0;
-	$self->{OVERRIDEN} = 0;
+	$self->{OVERRIDDEN} = 0;
 	$self->{METHODS} = [];
 	$self->{NUM_METHODS} = 0;
 	$self->{GROUP} = undef;
@@ -92,12 +92,12 @@ sub _metaInitExpr {
 
 sub variable {
 	my $self = shift;
-	return "_".$self->group->name."\$C\$".$self->name;
+	return Logos::sigil("class").$self->group->name."\$".$self->name;
 }
 
 sub metaVariable {
 	my $self = shift;
-	return "_".$self->group->name."\$C\$meta\$".$self->name;
+	return Logos::sigil("metaclass").$self->group->name."\$".$self->name;
 }
 
 sub declarations {

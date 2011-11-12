@@ -1,31 +1,7 @@
-package Method;
+package Logos::Generator::MobileSubstrate::Method;
 use strict;
-use Logos::BaseMethod;
-@Method::ISA = ('BaseMethod');
-
-sub classname {
-	my $self = shift;
-	return ($self->{SCOPE} eq "+" ? "meta\$" : "").$self->class->name;
-}
-
-sub new_selector {
-	my $self = shift;
-	if($self->numArgs == 0) {
-		return $self->{SELECTOR_PARTS}[0];
-	} else {
-		return join("\$", @{$self->{SELECTOR_PARTS}})."\$";
-	}
-}
-
-sub originalFunctionName {
-	my $self = shift;
-	return "_".$self->groupIdentifier."\$".$self->classname."\$".$self->new_selector;
-}
-
-sub newFunctionName {
-	my $self = shift;
-	return "\$".$self->groupIdentifier."\$".$self->classname."\$".$self->new_selector;
-}
+use Logos::Method;
+our @ISA = ('Logos::Method');
 
 sub _originalMethodPointerDeclaration {
 	my $self = shift;

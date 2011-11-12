@@ -1,4 +1,4 @@
-package BaseGenerator;
+package Logos::Generator;
 use strict;
 
 sub findPreamble {

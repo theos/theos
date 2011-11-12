@@ -1,4 +1,4 @@
-package BaseMethod;
+package Logos::Method;
 use strict;
 
 sub new {
@@ -89,6 +89,25 @@ sub selector {
 	} else {
 		return join(":", @{$self->{SELECTOR_PARTS}}).":";
 	}
+}
+
+sub _new_selector {
+	my $self = shift;
+	if($self->numArgs == 0) {
+		return $self->{SELECTOR_PARTS}[0];
+	} else {
+		return join("\$", @{$self->{SELECTOR_PARTS}})."\$";
+	}
+}
+
+sub originalFunctionName {
+	my $self = shift;
+	return Logos::sigil(($self->{SCOPE} eq "+" ? "meta_" : "")."orig").$self->groupIdentifier."\$".$self->class->name."\$".$self->_new_selector;
+}
+
+sub newFunctionName {
+	my $self = shift;
+	return Logos::sigil(($self->{SCOPE} eq "+" ? "meta_" : "")."method").$self->groupIdentifier."\$".$self->class->name."\$".$self->_new_selector;
 }
 
 sub definition {

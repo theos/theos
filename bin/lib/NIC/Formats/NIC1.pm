@@ -1,9 +1,10 @@
-package NIC1;
+package NIC::Formats::NIC1;
+use strict;
 
 sub new {
 	my $proto = shift;
 	my $fh = shift;
-	$class = ref($proto) || $proto;
+	my $class = ref($proto) || $proto;
 	my $self = {};
 	$self->{NAME} = undef;
 	$self->{DIRECTORIES} = ();
@@ -11,7 +12,7 @@ sub new {
 	$self->{SYMLINKS} = {};
 	$self->{VARIABLES} = {};
 	$self->{CONSTRAINTS} = {};
-	$self->{PROMPTS} = ();
+	$self->{PROMPTS} = [];
 	bless($self, $class);
 	return $self;
 }
@@ -129,7 +130,7 @@ sub _fileMeetsConstraints {
 sub _substituteVariables {
 	my $self = shift;
 	my $line = shift;
-	foreach $key (keys %{$self->{VARIABLES}}) {
+	foreach my $key (keys %{$self->{VARIABLES}}) {
 		my $value = $self->{VARIABLES}->{$key};
 		$line =~ s/\@\@$key\@\@/$value/g;
 	}
@@ -141,10 +142,10 @@ sub build {
 	my $dir = shift;
 	mkdir($dir);
 	chdir($dir) or die $!;
-	foreach $subdir (@{$self->{DIRECTORIES}}) {
+	foreach my $subdir (@{$self->{DIRECTORIES}}) {
 		mkdir $self->_substituteVariables($subdir);
 	}
-	foreach $filename (keys %{$self->{FILES}}) {
+	foreach my $filename (keys %{$self->{FILES}}) {
 		my $file = $self->{FILES}->{$filename};
 		if(defined $file->{constraints}) {
 			if(!$self->_fileMeetsConstraints($file)) {
@@ -155,7 +156,7 @@ sub build {
 		print $nicfile $self->_substituteVariables($file->{data});
 		close($nicfile);
 	}
-	foreach $symlink (keys %{$self->{SYMLINKS}}) {
+	foreach my $symlink (keys %{$self->{SYMLINKS}}) {
 		my $name = $self->_substituteVariables($symlink);
 		my $dest = $self->_substituteVariables($self->{SYMLINKS}->{$symlink});
 		symlink($dest, $name);
@@ -172,7 +173,7 @@ sub dumpPreamble {
 		print $pfh " \"".$prompt->{default}."\"" if defined $prompt->{default};
 		print $pfh $/;
 	}
-	foreach $filename (keys %{$self->{FILES}}) {
+	foreach my $filename (keys %{$self->{FILES}}) {
 		my $file = $self->{FILES}->{$filename};
 		if(!defined $file->{constraints}) {
 			next;

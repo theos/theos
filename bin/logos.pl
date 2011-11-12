@@ -10,9 +10,21 @@ use Module::Load;
 use Module::Load::Conditional 'can_load';
 use Getopt::Long;
 
+package Logos;
+sub sigil { my $id = shift; return "_logos_$id\$"; }
+package main;
+
 use Logos::Patch;
 use Logos::Util;
 $Logos::Util::errorhandler = \&utilErrorHandler;
+sub Group { "Logos::Group"; }
+sub Patch { "Logos::Patch"; }
+
+use Logos::Group;
+use Logos::Method;
+use Logos::Class;
+use Logos::Subclass;
+use Logos::StaticClassGroup;
 
 %main::CONFIG = ( generator => "MobileSubstrate"
 		);
@@ -25,14 +37,11 @@ open(FILE, $filename) or die "Could not open $filename.\n";
 
 my @lines = ();
 my @patches = ();
-my $readignore = 0;
-my $built = "";
-my $building = 0;
 my $preprocessed = 0;
 
 my %lineMapping = ();
 
-{
+{ # If the first line matches "# \d \"...\"", this file has been run through the preprocessor already.
 my $firstline = <FILE>;
 seek(FILE, 0, Fcntl::SEEK_SET);
 if($firstline =~ /^# \d+ \"(.*?)\"$/) {
@@ -42,6 +51,11 @@ if($firstline =~ /^# \d+ \"(.*?)\"$/) {
 $.--; # Reset line number.
 }
 
+{
+my $readignore = 0;
+my $built = "";
+my $building = 0;
+my $iflevel = -1;
 READLOOP: while(my $line = <FILE>) {
 	chomp($line);
 
@@ -49,10 +63,21 @@ READLOOP: while(my $line = <FILE>) {
 		$lineMapping{$.+1} = [$2, $1];
 	}
 
-	# End of a multi-line comment while ignoring input.
-	if($readignore && $line =~ /^.*?\*\/\s*/) {
-		$readignore = 0;
-		$line = $';
+	if($readignore) {
+		# Handle #if nesting.
+		if($iflevel > -1 && $line =~ /^#\s*if(n?def)?/) {
+			$iflevel++;
+		} elsif($iflevel > 0 && $line =~ /^#\s*endif/) {
+			$line = $';
+			$iflevel--;
+		}
+
+		# End of a multi-line comment or #if block while ignoring input.
+		if($iflevel == 0 || ($iflevel == -1 && $line =~ /^.*?\*\/\s*/)) {
+			$readignore = 0;
+			$iflevel = -1;
+			$line = $';
+		}
 	}
 	if($readignore) { push(@lines, ""); next; }
 
@@ -77,6 +102,14 @@ READLOOP: while(my $line = <FILE>) {
 		next if fallsBetween($-[0], @quotes);
 		$line = $`;
 		push(@lines, $line);
+		$readignore = 1;
+		next READLOOP;
+	}
+
+	# #if 0.
+	while($line =~ /^\s*#\s*if\s+0/) {
+		$iflevel = 1;
+		push(@lines, "");
 		$readignore = 1;
 		next READLOOP;
 	}
@@ -113,6 +146,10 @@ READLOOP: while(my $line = <FILE>) {
 		push(@lines, $line) if !$readignore;
 	}
 }
+if($building == 1) {
+	push(@lines, $built);
+}
+}
 
 close(FILE);
 
@@ -120,8 +157,9 @@ $lineMapping{0} = ["$filename", 0] if scalar keys %lineMapping == 0;
 
 # Process the input lines for directives which must be parsed before main processing, such as %config
 # Mk. I processing loop - preprocessing.
-my $lineno = 0;
 my $generatorLine = 1;
+{
+my $lineno = 0;
 foreach my $line (@lines) {
 	pos($line) = 0;
 	my @quotes = quotes($line);
@@ -135,343 +173,331 @@ foreach my $line (@lines) {
 	}
 	$lineno++;
 }
+}
 
 my $generatorname = $main::CONFIG{generator};
 $Module::Load::Conditional::VERBOSE = 1;
 my $GeneratorPackage = "Logos::Generator::$generatorname";
 fileError($generatorLine, "I can't find the \"$generatorname\" Generator!") if(!can_load(modules => {
-			$GeneratorPackage."::Base" => undef,
+			$GeneratorPackage."::Generator" => undef,
 		}));
 
 load $GeneratorPackage."::Method";
 load $GeneratorPackage."::Class";
 load $GeneratorPackage."::Subclass";
-load 'Logos::Group';
 load $GeneratorPackage."::StaticClassGroup";
+sub Generator { $GeneratorPackage; }
+sub Method { $GeneratorPackage."::Method"; }
+sub Class { $GeneratorPackage."::Class" }
+sub Subclass { $GeneratorPackage."::Subclass" }
+sub StaticClassGroup { $GeneratorPackage."::StaticClassGroup" }
 
-$lineno = 0;
-
-my @firstDirectivePosition;
-my $generateAutoConstructor = 1;
+my $lineno = 0;
 
 my $defaultGroup = Group->new();
 $defaultGroup->name("_ungrouped");
 $defaultGroup->explicit(0);
-my @groups = ($defaultGroup);
-
 my $staticClassGroup = StaticClassGroup->new();
+my @groups = ($defaultGroup, $staticClassGroup);
+
+my $currentGroup = $defaultGroup;
+my $currentClass = undef;
+my $currentMethod = undef;
+my $newMethodTypeEncoding = undef;
+
 my %classes = ();
 
-my $ignore = 0;
-
 my @nestingstack = ();
-my $inclass = 0;
-my $class;
 
-my @lastInitPos;
-my $curGroup = $defaultGroup;
-my $lastMethod;
-
-my $isNewMethod = undef;
+my @firstDirectivePosition;
+my @lastInitPosition;
 
 # Mk. II processing loop - directive processing.
 foreach my $line (@lines) {
 	pos($line) = 0;
-	# Search for a discrete %x% or an open-ended %x (or %x with a { or ; after it)
-	if($line =~ /^\s*#\s*if\s*0\s*$/) {
-		$ignore = 1;
-	} elsif($ignore == 1 && $line =~ /^\s*#\s*endif/) {
-		$ignore = 0;
-	} elsif($ignore == 0) {
-		# %hook name
-		my $matched = 0;
-		
-		# We don't want to process in-order, so %group %thing %end won't kill itself automatically
-		# because it found a %end with the %group. This allows things to proceed out-of-order:
-		# we re-start the scan loop with the next % every time we find a match so that the commands don't need to
-		# be in the processed order on every line. That would be pointless.
+	# We don't want to process in-order, so %group %thing %end won't kill itself automatically
+	# because it found a %end with the %group. This allows things to proceed out-of-order:
+	# we re-start the scan loop with the next % every time we find a match so that the commands don't need to
+	# be in the processed order on every line. That would be pointless.
 
-		# Beginning of a directive, or [+-](type)
-		my @quotes = quotes($line);
-		while($line =~ m/(?=(\%\w|[+-]\s*\(\s*.*?\s*\)))/gc) {
-			next if fallsBetween($-[0], @quotes);
+	# Beginning of a directive, or [+-](type)
+	my @quotes = quotes($line);
+	while($line =~ m/(?=(\%\w|[+-]\s*\(\s*.*?\s*\)))/gc) {
+		next if fallsBetween($-[0], @quotes);
 
-			# %hook at the beginning of a line after any amount of space
-			if($line =~ /\G%(hook)\s+([\$_\w]+)/gc) {
-				nestingMustNotContain($lineno, "%$1", \@nestingstack, "hook", "subclass");
+		if($line =~ /\G%hook\s+([\$_\w]+)/gc) {
+			# "%hook <identifier>"
+			nestingMustNotContain($lineno, "%hook", \@nestingstack, "hook", "subclass");
 
-				@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
+			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
 
-				nestPush($1, $lineno, \@nestingstack);
+			nestPush("hook", $lineno, \@nestingstack);
 
-				$class = $curGroup->addClassNamed($2);
-				$classes{$class->name}++;
-				$inclass = 1;
-				patchHere(undef);
-			} elsif($line =~ /\G%(subclass)\s+([\$_\w]+)\s*:\s*([\$_\w]+)\s*(\<\s*(.*?)\s*\>)?/gc) {
-				nestingMustNotContain($lineno, "%$1", \@nestingstack, "hook", "subclass");
+			$currentClass = $currentGroup->addClassNamed($1);
+			$classes{$currentClass->name}++;
+			patchHere(undef);
+		} elsif($line =~ /\G%subclass\s+([\$_\w]+)\s*:\s*([\$_\w]+)\s*(\<\s*(.*?)\s*\>)?/gc) {
+			# %subclass <identifier> : <identifier> \<<protocols ...>\>
+			nestingMustNotContain($lineno, "%subclass", \@nestingstack, "hook", "subclass");
 
-				@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
+			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
 
-				nestPush($1, $lineno, \@nestingstack);
+			nestPush("subclass", $lineno, \@nestingstack);
 
-				my $classname = $2;
-				my $superclassname = $3;
-				$class = Subclass->new();
-				$class->name($classname);
-				$class->superclass($superclassname);
-				if(defined($4) && defined($5)) {
-					my @protocols = split(/\s*,\s*/, $5);
-					foreach(@protocols) {
-						$class->addProtocol($_);
-					}
+			my $classname = $1;
+			my $superclassname = $2;
+			$currentClass = Subclass->new();
+			$currentClass->name($classname);
+			$currentClass->superclass($superclassname);
+			if(defined($3) && defined($4)) {
+				my @protocols = split(/\s*,\s*/, $4);
+				foreach(@protocols) {
+					$currentClass->addProtocol($_);
 				}
-				$curGroup->addClass($class);
-
-				$staticClassGroup->addDeclaredOnlyClass($classname);
-				$classes{$superclassname}++;
-				$classes{$classname}++;
-
-				$inclass = 1;
-				patchHere(undef);
-			} elsif($line =~ /\G%(group)\s+([\$_\w]+)/gc) {
-				# %group at the beginning of a line after any amount of space
-
-				nestingMustNotContain($lineno, "%$1", \@nestingstack, "group");
-
-				@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
-
-				nestPush($1, $lineno, \@nestingstack);
-
-				$curGroup = getGroup($2);
-				if(!defined($curGroup)) {
-					$curGroup = Group->new();
-					$curGroup->name($2);
-					push(@groups, $curGroup);
-				}
-
-				my $capturedGroup = $curGroup;
-				patchHere(sub { return $capturedGroup->declarations });
-			} elsif($line =~ /\G%(class)\s+([+-])?([\$_\w]+)/gc) {
-				# %class at the beginning of a line after any amount of space
-
-				# TODO: This will cause a constructor if you use %class but not %hook (blank constructor)
-				# Not a really big deal, but still nice to fix. Maybe with a list of patchups instead of
-				# "put this hre."
-				@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
-
-				my $scope = $2;
-				$scope = "-" if !$scope;
-				my $classname = $3;
-				if($scope eq "+") {
-					$staticClassGroup->addUsedMetaClass($classname);
-				} else {
-					$staticClassGroup->addUsedClass($classname);
-				}
-				$classes{$classname}++;
-				patchHere(undef);
-			} elsif($line =~ /\G%c\(\s*([+-])?([\$_\w]+)\s*\)/gc) {
-				# TODO: Same caveats as %class.
-				@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
-
-				my $scope = $1;
-				$scope = "-" if !$scope;
-				my $classname = $2;
-				if($scope eq "+") {
-					$staticClassGroup->addUsedMetaClass($classname);
-				} else {
-					$staticClassGroup->addUsedClass($classname);
-				}
-				$classes{$classname}++;
-				patchHere(sub { return Generator->classReferenceWithScope($classname, $scope); });
-			} elsif($line =~ /\G%new(\((.*?)\))?(?=\W?)/gc) {
-				# %new(type) at the beginning of a line after any amount of space
-				nestingMustContain($lineno, "%new", \@nestingstack, "hook", "subclass");
-				my $xtype = "";
-				$xtype = $2 if $2;
-				$isNewMethod = $xtype;
-				patchHere(undef);
-			} elsif($inclass && $line =~ /\G([+-])\s*\(\s*(.*?)\s*\)(?=\s*[\w:])/gc && $inclass) {
-				# - (return)[X:], but only when we're in a %hook.
-
-				# Gasp! We've been moved to a different group!
-				if($class->group != $curGroup) {
-					my $classname = $class->name;
-					$class = $curGroup->addClassNamed($classname);
-				}
-
-				my $scope = $1;
-				my $return = $2;
-
-				my $currentMethod = Method->new();
-
-				$currentMethod->class($class);
-				if($scope eq "+") {
-					$class->hasmetahooks(1);
-				} else {
-					$class->hasinstancehooks(1);
-				}
-
-				$currentMethod->scope($scope);
-				$currentMethod->return($return);
-
-				if(defined $isNewMethod) {
-					$currentMethod->setNew(1);
-					$currentMethod->type($isNewMethod);
-					$isNewMethod = undef;
-				}
-
-				my @selparts = ();
-
-				my $patchStart = $-[0];
-
-				# word, then an optional: ": (argtype)argname"
-				while($line =~ /\G\s*([\$\w]*)(\s*:\s*(\((.+?)\))?\s*([\$\w]+?)\b)?/gc) {
-					if(!$1 && !$2) { # Exit the loop if both Keywords and Args are missing: e.g. false positive.
-						pos($line) = $-[0];
-						last;
-					}
-
-					my $keyword = $1; # Add any keyword.
-					push(@selparts, $keyword);
-
-					last if !$2;  # Exit the loop if there are no args (single keyword.)
-					$currentMethod->addArgument($3 ? $4 : "id", $5);
-				}
-
-				$currentMethod->selectorParts(@selparts);
-				$class->addMethod($currentMethod);
-				$lastMethod = $currentMethod;
-
-				my $patch = Patch->new();
-				$patch->line($lineno);
-				$patch->range($patchStart, pos($line));
-				$patch->subref(sub { return $currentMethod->definition; });
-				addPatch($patch);
-			} elsif($line =~ /\G%orig(?=\W?)/gc) {
-				nestingMustContain($lineno, $&, \@nestingstack, "hook", "subclass");
-				fileWarning($lineno, "$& in a new method will be non-operative.") if $lastMethod->isNew;
-
-				my $remaining = substr($line, pos($line));
-				my $orig_args = undef;
-
-				my ($popen, $pclose) = matchedParenthesisSet($remaining);
-				if(defined $popen) {
-					$orig_args = substr($remaining, $popen, $pclose-$popen-1);;
-					pos($line) = pos($line) + $pclose;
-				}
-
-				my $capturedMethod = $lastMethod;
-				my $patch = Patch->new();
-				$patch->line($lineno);
-				$patch->range($-[0], pos($line));
-				$patch->subref(sub { return $capturedMethod->originalCall($orig_args); });
-				addPatch($patch);
-			} elsif($line =~ /\G%log(?=\W?)/gc) {
-				nestingMustContain($lineno, $&, \@nestingstack, "hook", "subclass");
-
-				my $capturedMethod = $lastMethod;
-				patchHere(sub { return $capturedMethod->buildLogCall; });
-			} elsif($line =~ /\G%ctor(?=\W?)/gc) {
-				nestingMustNotContain($lineno, $&, \@nestingstack, "hook", "subclass");
-				my $replacement = "static __attribute__((constructor)) void _logosLocalCtor_".substr(md5_hex($`.$lineno.$'), 0, 8)."()";
-				patchHere(sub { return $replacement; });
-			} elsif($line =~ /\G%init(?=\W?)/gc) {
-				my $groupname = "_ungrouped";
-
-				my $remaining = substr($line, pos($line));
-				my $argstring = undef;
-				my ($popen, $pclose) = matchedParenthesisSet($remaining);
-				if(defined $popen) {
-					$argstring = substr($remaining, $popen, $pclose-$popen-1);;
-					pos($line) = pos($line) + $pclose;
-				}
-
-				my @args;
-				@args = smartSplit(qr/\s*,\s*/, $argstring) if defined($argstring);
-
-				my $tempgroupname = undef;
-				$tempgroupname = $args[0] if $args[0] && $args[0] !~ /=/;
-				if(defined($tempgroupname)) {
-					$groupname = $tempgroupname;
-					shift(@args);
-				}
-
-				my $group = getGroup($groupname);
-
-				foreach my $arg (@args) {
-					if($arg !~ /=/) {
-						fileWarning($lineno, "unknown argument to %init: $arg");
-						next;
-					}
-
-					my @parts = smartSplit(qr/\s*=\s*/, $arg, 2);
-					if(!defined($parts[0]) || !defined($parts[1])) {
-						fileWarning($lineno, "invalid class=expr in %init");
-						next;
-					}
-
-					my $classname = $parts[0];
-					my $expr = $parts[1];
-					my $scope = "-";
-					if($classname =~ /^([+-])/) {
-						$scope = $1;
-						$classname = $';
-					}
-
-					my $class = $group->getClassNamed($classname);
-					if(!defined($class)) {
-						fileWarning($lineno, "tried to set expression for unknown class $classname in group $groupname");
-						next;
-					}
-
-					$class->expression($expr) if $scope eq "-";
-					$class->metaexpression($expr) if $scope eq "+";
-				}
-
-				fileError($lineno, "%init for an undefined %group $groupname") if !$group;
-				fileError($lineno, "re-%init of %group ".$group->name.", first initialized at ".lineDescriptionForPhysicalLine($group->initLine)) if $group->initialized;
-
-				$group->initLine($lineno);
-				$group->initialized(1);
-
-				if($groupname eq "_ungrouped") {
-					$staticClassGroup->initLine($lineno);
-					$staticClassGroup->initialized(1);
-				}
-
-				my $patchStart = $-[0];
-				while($line =~ /\G\s*;/gc) { };
-				my $patchEnd = pos($line);
-
-				my $patch = Patch->new();
-				$patch->line($lineno);
-				$patch->range($-[0], pos($line));
-				if($groupname eq "_ungrouped") {
-					$patch->subref(sub {
-						return "{".$group->initializers.$staticClassGroup->initializers."}";
-					});
-				} else {
-					$patch->subref(sub {
-						return $group->initializers;
-					});
-				}
-				addPatch($patch);
-
-				$generateAutoConstructor = 0; # "Do not generate a constructor."
-				@lastInitPos = ($lineno, pos($line));
-			} elsif($line =~ /\G%end/gc) {
-				# %end (Make it the last thing we check for so we don't terminate something pre-emptively.
-				my $closing = nestPop(\@nestingstack);
-				fileError($lineno, "dangling %end") if !$closing;
-				if($closing eq "group") {
-					$curGroup = getGroup("_ungrouped");
-				} 
-				if($closing eq "hook" || $closing eq "subclass") {
-					$inclass = 0;
-				}
-				patchHere(undef);
 			}
+			$currentGroup->addClass($currentClass);
+
+			$staticClassGroup->addDeclaredOnlyClass($classname);
+			$classes{$superclassname}++;
+			$classes{$classname}++;
+
+			patchHere(undef);
+		} elsif($line =~ /\G%group\s+([\$_\w]+)/gc) {
+			# %group <identifier>
+			nestingMustNotContain($lineno, "%group", \@nestingstack, "group");
+
+			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
+
+			nestPush("group", $lineno, \@nestingstack);
+
+			$currentGroup = getGroup($1);
+			if(!defined($currentGroup)) {
+				$currentGroup = Group->new();
+				$currentGroup->name($1);
+				push(@groups, $currentGroup);
+			}
+
+			my $capturedGroup = $currentGroup;
+			patchHere(sub { return $capturedGroup->declarations });
+		} elsif($line =~ /\G%class\s+([+-])?([\$_\w]+)/gc) {
+			# %class [+-]<identifier>
+			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
+
+			my $scope = $1;
+			$scope = "-" if !$scope;
+			my $classname = $2;
+			if($scope eq "+") {
+				$staticClassGroup->addUsedMetaClass($classname);
+			} else {
+				$staticClassGroup->addUsedClass($classname);
+			}
+			$classes{$classname}++;
+			patchHere(undef);
+		} elsif($line =~ /\G%c\(\s*([+-])?([\$_\w]+)\s*\)/gc) {
+			# %c([+-]<identifier>)
+			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
+
+			my $scope = $1;
+			$scope = "-" if !$scope;
+			my $classname = $2;
+			if($scope eq "+") {
+				$staticClassGroup->addUsedMetaClass($classname);
+			} else {
+				$staticClassGroup->addUsedClass($classname);
+			}
+			$classes{$classname}++;
+			patchHere(sub { return Generator->classReferenceWithScope($classname, $scope); });
+		} elsif($line =~ /\G%new(\((.*?)\))?(?=\W?)/gc) {
+			# %new[(type)]
+			nestingMustContain($lineno, "%new", \@nestingstack, "hook", "subclass");
+			my $xtype = "";
+			$xtype = $2 if $2;
+			$newMethodTypeEncoding = $xtype;
+			patchHere(undef);
+		} elsif($currentClass && $line =~ /\G([+-])\s*\(\s*(.*?)\s*\)(?=\s*[\w:])/gc) {
+			# [+-] (<return>)<[X:]>, but only when we're in a %hook.
+
+			# Gasp! We've been moved to a different group!
+			if($currentClass->group != $currentGroup) {
+				my $classname = $currentClass->name;
+				$currentClass = $currentGroup->addClassNamed($classname);
+			}
+
+			my $scope = $1;
+			my $return = $2;
+
+			my $method = Method->new();
+
+			$method->class($currentClass);
+			if($scope eq "+") {
+				$currentClass->hasmetahooks(1);
+			} else {
+				$currentClass->hasinstancehooks(1);
+			}
+
+			$method->scope($scope);
+			$method->return($return);
+
+			if(defined $newMethodTypeEncoding) {
+				$method->setNew(1);
+				$method->type($newMethodTypeEncoding);
+				$newMethodTypeEncoding = undef;
+			}
+
+			my @selparts = ();
+
+			my $patchStart = $-[0];
+
+			# word, then an optional: ": (argtype)argname"
+			while($line =~ /\G\s*([\$\w]*)(\s*:\s*(\((.+?)\))?\s*([\$\w]+?)\b)?/gc) {
+				if(!$1 && !$2) { # Exit the loop if both Keywords and Args are missing: e.g. false positive.
+					pos($line) = $-[0];
+					last;
+				}
+
+				my $keyword = $1; # Add any keyword.
+				push(@selparts, $keyword);
+
+				last if !$2;  # Exit the loop if there are no args (single keyword.)
+				$method->addArgument($3 ? $4 : "id", $5);
+			}
+
+			$method->selectorParts(@selparts);
+			$currentClass->addMethod($method);
+			$currentMethod = $method;
+
+			my $patch = Patch->new();
+			$patch->line($lineno);
+			$patch->range($patchStart, pos($line));
+			$patch->subref(sub { return $method->definition; });
+			addPatch($patch);
+		} elsif($line =~ /\G%orig(?=\W?)/gc) {
+			# %orig, with optional following parens.
+			nestingMustContain($lineno, "%orig", \@nestingstack, "hook", "subclass");
+			fileWarning($lineno, "%orig in a new method will be non-operative.") if $currentMethod->isNew;
+
+			my $remaining = substr($line, pos($line));
+			my $orig_args = undef;
+
+			my ($popen, $pclose) = matchedParenthesisSet($remaining);
+			if(defined $popen) {
+				$orig_args = substr($remaining, $popen, $pclose-$popen-1);;
+				pos($line) = pos($line) + $pclose;
+			}
+
+			my $capturedMethod = $currentMethod;
+			my $patch = Patch->new();
+			$patch->line($lineno);
+			$patch->range($-[0], pos($line));
+			$patch->subref(sub { return $capturedMethod->originalCall($orig_args); });
+			addPatch($patch);
+		} elsif($line =~ /\G%log(?=\W?)/gc) {
+			# %log
+			nestingMustContain($lineno, "%log", \@nestingstack, "hook", "subclass");
+
+			my $capturedMethod = $currentMethod;
+			patchHere(sub { return $capturedMethod->buildLogCall; });
+		} elsif($line =~ /\G%ctor(?=\W?)/gc) {
+			# %ctor
+			nestingMustNotContain($lineno, "%ctor", \@nestingstack, "hook", "subclass");
+			my $replacement = "static __attribute__((constructor)) void _logosLocalCtor_".substr(md5_hex($`.$lineno.$'), 0, 8)."()";
+			patchHere(sub { return $replacement; });
+		} elsif($line =~ /\G%init(?=\W?)/gc) {
+			# %init, with optional following parens
+			nestingMustNotContain($lineno, "%init", \@nestingstack, "hook", "subclass");
+			my $groupname = "_ungrouped";
+
+			my $remaining = substr($line, pos($line));
+			my $argstring = undef;
+			my ($popen, $pclose) = matchedParenthesisSet($remaining);
+			if(defined $popen) {
+				$argstring = substr($remaining, $popen, $pclose-$popen-1);;
+				pos($line) = pos($line) + $pclose;
+			}
+
+			my @args;
+			@args = smartSplit(qr/\s*,\s*/, $argstring) if defined($argstring);
+
+			my $tempgroupname = undef;
+			$tempgroupname = $args[0] if $args[0] && $args[0] !~ /=/;
+			if(defined($tempgroupname)) {
+				$groupname = $tempgroupname;
+				shift(@args);
+			}
+
+			my $group = getGroup($groupname);
+
+			foreach my $arg (@args) {
+				if($arg !~ /=/) {
+					fileWarning($lineno, "unknown argument to %init: $arg");
+					next;
+				}
+
+				my @parts = smartSplit(qr/\s*=\s*/, $arg, 2);
+				if(!defined($parts[0]) || !defined($parts[1])) {
+					fileWarning($lineno, "invalid class=expr in %init");
+					next;
+				}
+
+				my $classname = $parts[0];
+				my $expr = $parts[1];
+				my $scope = "-";
+				if($classname =~ /^([+-])/) {
+					$scope = $1;
+					$classname = $';
+				}
+
+				my $class = $group->getClassNamed($classname);
+				if(!defined($class)) {
+					fileWarning($lineno, "tried to set expression for unknown class $classname in group $groupname");
+					next;
+				}
+
+				$class->expression($expr) if $scope eq "-";
+				$class->metaexpression($expr) if $scope eq "+";
+			}
+
+			fileError($lineno, "%init for an undefined %group $groupname") if !$group;
+			fileError($lineno, "re-%init of %group ".$group->name.", first initialized at ".lineDescriptionForPhysicalLine($group->initLine)) if $group->initialized;
+
+			$group->initLine($lineno);
+			$group->initialized(1);
+
+			if($groupname eq "_ungrouped") {
+				$staticClassGroup->initLine($lineno);
+				$staticClassGroup->initialized(1);
+			}
+
+			my $patchStart = $-[0];
+			while($line =~ /\G\s*;/gc) { };
+			my $patchEnd = pos($line);
+
+			my $patch = Patch->new();
+			$patch->line($lineno);
+			$patch->range($-[0], pos($line));
+			if($groupname eq "_ungrouped") {
+				$patch->subref(sub {
+					return "{".$group->initializers.$staticClassGroup->initializers."}";
+				});
+			} else {
+				$patch->subref(sub {
+					return $group->initializers;
+				});
+			}
+			addPatch($patch);
+
+			@lastInitPosition = ($lineno, pos($line));
+		} elsif($line =~ /\G%end/gc) {
+			# %end
+			my $closing = nestPop(\@nestingstack);
+			fileError($lineno, "dangling %end") if !$closing;
+			if($closing eq "group") {
+				$currentGroup = getGroup("_ungrouped");
+			}
+			if($closing eq "hook" || $closing eq "subclass") {
+				$currentClass = undef;
+			}
+			patchHere(undef);
 		}
 	}
 	$lineno++;
@@ -485,8 +511,8 @@ while(scalar(@nestingstack) > 0) {
 
 # Mk. III processing loop - braces 
 my %depthMapping = ("0:0" => 0);
-$lineno = 0;
 {
+my $lineno = 0;
 my $depth = 0;
 foreach my $line (@lines) {
 	my @quotes = quotes($line);
@@ -502,9 +528,6 @@ foreach my $line (@lines) {
 	$lineno++;
 }
 }
-
-# Always insert $staticClassGroup after _ungrouped.
-splice(@groups, 1, 0, $staticClassGroup);
 
 my $hasGeneratorPreamble = $preprocessed; # If we're already preprocessed, we cannot insert #include statements.
 $hasGeneratorPreamble = Generator->findPreamble(\@lines) if !$hasGeneratorPreamble;
@@ -547,15 +570,16 @@ if(@firstDirectivePosition) {
 	});
 	addPatch($patch);
 
-	if(!$generateAutoConstructor) {
+	if(@lastInitPosition) {
 		# If the static class list hasn't been initialized, glue it after the last %init directive.
 		if(!$staticClassGroup->initialized) {
 			my $patch = Patch->new();
-			$patch->line($lastInitPos[0]);
-			$patch->range($lastInitPos[1], $lastInitPos[1]);
+			$patch->line($lastInitPosition[0]);
+			$patch->range($lastInitPosition[1], $lastInitPosition[1]);
 			$patch->subref(sub {
 				return [$staticClassGroup->initializers];
 			});
+			$staticClassGroup->initialized(1);
 			addPatch($patch);
 		}
 	} else {
