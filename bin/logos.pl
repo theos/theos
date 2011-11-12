@@ -155,11 +155,12 @@ close(FILE);
 
 $lineMapping{0} = ["$filename", 0] if scalar keys %lineMapping == 0;
 
+my $lineno = 0;
+
 # Process the input lines for directives which must be parsed before main processing, such as %config
 # Mk. I processing loop - preprocessing.
 my $generatorLine = 1;
 {
-my $lineno = 0;
 foreach my $line (@lines) {
 	pos($line) = 0;
 	my @quotes = quotes($line);
@@ -192,7 +193,7 @@ sub Class { $GeneratorPackage."::Class" }
 sub Subclass { $GeneratorPackage."::Subclass" }
 sub StaticClassGroup { $GeneratorPackage."::StaticClassGroup" }
 
-my $lineno = 0;
+$lineno = 0;
 
 my $defaultGroup = Group->new();
 $defaultGroup->name("_ungrouped");
