@@ -1,7 +1,7 @@
 package Subclass;
 use Logos::Generator::internal::Class;
-use Logos::BaseSubclass;
-@Subclass::ISA = ('Class', 'BaseSubclass');
+use Logos::Subclass;
+our @ISA = ('Logos::Subclass', 'Logos::Generator::internal::Class');
 
 sub initializers {
 	my $self = shift;

@@ -1,7 +1,7 @@
-package Method;
+package Logos::Generator::internal::Method;
 use strict;
-use Logos::BaseMethod;
-@Method::ISA = ('BaseMethod');
+use Logos::Method;
+our @ISA = ('Logos::Method');
 
 sub classname {
 	my $self = shift;

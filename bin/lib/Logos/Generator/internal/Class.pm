@@ -1,7 +1,7 @@
-package Class;
+package Logos::Generator::internal::Class;
 use strict;
-use Logos::BaseClass;
-@Class::ISA = ('BaseClass');
+use Logos::Class;
+our @ISA = ('Logos::Class');
 
 sub superVariable {
 	my $self = shift;
