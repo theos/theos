@@ -9,8 +9,6 @@ ifeq ($(LOCAL_INSTALL_PATH),)
 	LOCAL_INSTALL_PATH = /Library/MobileSubstrate/DynamicLibraries
 endif
 
-AUXILIARY_LDFLAGS += -lsubstrate
-
 include $(THEOS_MAKE_PATH)/instance/library.mk
 
 internal-tweak-all_:: internal-library-all_
