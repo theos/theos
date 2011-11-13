@@ -78,17 +78,19 @@ sub originalCall {
 
 sub declarations {
 	my $self = shift;
-	my $classargtype = "";
-	if($self->{SCOPE} eq "+") {
-		$classargtype = "Class";
-	} else {
-		$classargtype = $self->class->type;
-	}
 	my $build = "";
-	$build .= "static ".$self->{RETURN}." (*".$self->originalFunctionName.")(".$classargtype.", SEL"; 
-	my $argtypelist = join(", ", @{$self->{ARGTYPES}});
-	$build .= ", ".$argtypelist if $argtypelist;
-	$build .= ");";
+	if(!$self->{NEW}) {
+		my $classargtype = "";
+		if($self->{SCOPE} eq "+") {
+			$classargtype = "Class";
+		} else {
+			$classargtype = $self->class->type;
+		}
+		$build .= "static ".$self->{RETURN}." (*".$self->originalFunctionName.")(".$classargtype.", SEL"; 
+		my $argtypelist = join(", ", @{$self->{ARGTYPES}});
+		$build .= ", ".$argtypelist if $argtypelist;
+		$build .= ");";
+	}
 	return $build;
 }
 
