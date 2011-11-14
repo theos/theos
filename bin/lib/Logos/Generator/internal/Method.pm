@@ -41,19 +41,21 @@ sub definition {
 		$classref = $self->class->superVariable;
 	}
 	my $arglist = "";
-	map $arglist .= ", ".$self->{ARGTYPES}[$_]." ".$self->{ARGNAMES}[$_], (0..$self->numArgs - 1);
+	map $arglist .= ", ".$self->declarationForTypeWithName($self->{ARGTYPES}[$_], $self->{ARGNAMES}[$_]), (0..$self->numArgs - 1);
+	my $parameters = "(".$classargtype." self, SEL _cmd".$arglist.")";
 	if(!$self->{NEW}) {
 		my $argtypelist = join(", ", @{$self->{ARGTYPES}});
 
-		$build .= "static ".$self->{RETURN}." ".$self->superFunctionName."(".$classargtype." self, SEL _cmd".$arglist.") {";
-		$build .=     "return ((".$self->{RETURN}." (*)(".$classargtype.", SEL";
-		$build .=         ", ".$argtypelist if $argtypelist;
-		$build .=         "))class_getMethodImplementation(".$classref.", \@selector(".$self->selector.")))";
+		$build .= "static ".$self->declarationForTypeWithName($self->{RETURN}, $self->superFunctionName.$parameters)." {";
+		my $pointerType = "(*)(".$classargtype.", SEL";
+		$pointerType .=       ", ".$argtypelist if $argtypelist;
+		$pointerType .=   ")";
+		$build .=     "return ((".$self->declarationForTypeWithName($self->{RETURN}, $pointerType).")class_getMethodImplementation(".$classref.", \@selector(".$self->selector.")))";
 		$build .=         $self->originalCallParams.";";
 		$build .= "}";
 	
 	}
-	$build .= "static ".$self->{RETURN}." ".$self->newFunctionName."(".$classargtype." self, SEL _cmd".$arglist.")";
+	$build .= "static ".$self->declarationForTypeWithName($self->{RETURN}, $self->newFunctionName.$parameters);
 	return $build;
 }
 
@@ -72,10 +74,13 @@ sub declarations {
 		} else {
 			$classargtype = $self->class->type;
 		}
-		$build .= "static ".$self->{RETURN}." (*".$self->originalFunctionName.")(".$classargtype.", SEL"; 
+		$build .= "static ";
+		my $name = "";
+		$name .= "(*".$self->originalFunctionName.")(".$classargtype.", SEL";
 		my $argtypelist = join(", ", @{$self->{ARGTYPES}});
-		$build .= ", ".$argtypelist if $argtypelist;
-		$build .= ");";
+		$name .= ", ".$argtypelist if $argtypelist;
+		$name .= ")";
+		$build .= $self->declarationForTypeWithName($self->{RETURN}, $name).";";
 	}
 	return $build;
 }
@@ -91,10 +96,11 @@ sub initializers {
 		} else {
 			$classargtype = $self->class->type;
 		}
-		my $pointertype = $self->{RETURN}." (*)(".$classargtype.", SEL";
+		my $_pointertype = "(*)(".$classargtype.", SEL";
 		my $argtypelist = join(", ", @{$self->{ARGTYPES}});
-		$pointertype .= ", ".$argtypelist if $argtypelist;
-		$pointertype .= ")";
+		$_pointertype .= ", ".$argtypelist if $argtypelist;
+		$_pointertype .= ")";
+		my $pointertype = $self->declarationForTypeWithName($self->{RETURN}, $_pointertype);
 		$r .= "Class _class = ".$classvar.";";
 		$r .= "Method _method = class_getInstanceMethod(_class, \@selector(".$self->selector."));";
 		$r .= "if (_method) {";
