@@ -27,7 +27,7 @@ sub _methodPrototype {
 	$classargtype = "Class" if $self->{SCOPE} eq "+";
 	my $arglist = "";
 	if($includeArgNames == 1) {
-		map $arglist .= ", ".$self->{ARGTYPES}[$_]." ".$self->{ARGNAMES}[$_], (0..$self->numArgs - 1);
+		map $arglist .= ", ".$self->parameterDeclaration($self->{ARGTYPES}[$_], $self->{ARGNAMES}[$_]), (0..$self->numArgs - 1);
 	} else {
 		my $typelist = join(", ", @{$self->{ARGTYPES}});
 		$arglist = ", ".$typelist if $typelist;
