@@ -263,7 +263,7 @@ sub typeEncodingForArgType {
 	return undef;
 }
 
-sub parameterDeclaration {
+sub declarationForTypeWithName {
 	my $self = shift;
 	my $argtype = shift;
 	my $argname = shift;

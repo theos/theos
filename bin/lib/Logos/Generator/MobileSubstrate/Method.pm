@@ -9,11 +9,12 @@ sub _originalMethodPointerDeclaration {
 		my $build = "static ";
 		my $classargtype = $self->class->type;
 		$classargtype = "Class" if $self->{SCOPE} eq "+";
-		$build .= $self->{RETURN}." (*".$self->originalFunctionName.")(".$classargtype.", SEL";
+		my $name = "(*".$self->originalFunctionName.")(".$classargtype.", SEL";
 		my $argtypelist = join(", ", @{$self->{ARGTYPES}});
-		$build .= ", ".$argtypelist if $argtypelist;
+		$name .= ", ".$argtypelist if $argtypelist;
 
-		$build .= ")";
+		$name .= ")";
+		$build .= $self->declarationForTypeWithName($self->{RETURN}, $name);
 		return $build;
 	}
 	return undef;
@@ -22,18 +23,19 @@ sub _originalMethodPointerDeclaration {
 sub _methodPrototype {
 	my $self = shift;
 	my $includeArgNames = 0 || shift;
-	my $build = "";
+	my $build = "static ";
 	my $classargtype = $self->class->type;
 	$classargtype = "Class" if $self->{SCOPE} eq "+";
 	my $arglist = "";
 	if($includeArgNames == 1) {
-		map $arglist .= ", ".$self->parameterDeclaration($self->{ARGTYPES}[$_], $self->{ARGNAMES}[$_]), (0..$self->numArgs - 1);
+		map $arglist .= ", ".$self->declarationForTypeWithName($self->{ARGTYPES}[$_], $self->{ARGNAMES}[$_]), (0..$self->numArgs - 1);
 	} else {
 		my $typelist = join(", ", @{$self->{ARGTYPES}});
 		$arglist = ", ".$typelist if $typelist;
 	}
 
-	$build .= "static ".$self->{RETURN}." ".$self->newFunctionName."(".$classargtype.($includeArgNames?" self":"").", SEL".($includeArgNames?" _cmd":"").$arglist.")";
+	my $name = $self->newFunctionName."(".$classargtype.($includeArgNames?" self":"").", SEL".($includeArgNames?" _cmd":"").$arglist.")";
+	$build .= $self->declarationForTypeWithName($self->{RETURN}, $name);
 	return $build;
 }
 
