@@ -8,23 +8,9 @@ sub classname {
 	return ($self->{SCOPE} eq "+" ? "meta\$" : "").$self->class->name;
 }
 
-sub new_selector {
+sub superFunctionName {
 	my $self = shift;
-	if($self->numArgs == 0) {
-		return $self->{SELECTOR_PARTS}[0];
-	} else {
-		return join("\$", @{$self->{SELECTOR_PARTS}})."\$";
-	}
-}
-
-sub originalFunctionName {
-	my $self = shift;
-	return "_".$self->groupIdentifier."\$".$self->classname."\$".$self->new_selector;
-}
-
-sub newFunctionName {
-	my $self = shift;
-	return "\$".$self->groupIdentifier."\$".$self->classname."\$".$self->new_selector;
+	return Logos::sigil(($self->{SCOPE} eq "+" ? "meta_" : "")."super").$self->groupIdentifier."\$".$self->classname."\$".$self->_new_selector;
 }
 
 sub originalCallParams {
@@ -59,7 +45,7 @@ sub definition {
 	if(!$self->{NEW}) {
 		my $argtypelist = join(", ", @{$self->{ARGTYPES}});
 
-		$build .= "static ".$self->{RETURN}." ".$self->originalFunctionName."_s(".$classargtype." self, SEL _cmd".$arglist.") {";
+		$build .= "static ".$self->{RETURN}." ".$self->superFunctionName."(".$classargtype." self, SEL _cmd".$arglist.") {";
 		$build .=     "return ((".$self->{RETURN}." (*)(".$classargtype.", SEL";
 		$build .=         ", ".$argtypelist if $argtypelist;
 		$build .=         "))class_getMethodImplementation(".$classref.", \@selector(".$self->selector.")))";
@@ -112,7 +98,7 @@ sub initializers {
 		$r .= "Class _class = ".$classvar.";";
 		$r .= "Method _method = class_getInstanceMethod(_class, \@selector(".$self->selector."));";
 		$r .= "if (_method) {";
-		$r .=     $self->originalFunctionName." = ".$self->originalFunctionName."_s;";
+		$r .=     $self->originalFunctionName." = ".$self->superFunctionName.";";
 		$r .=     "if (!class_addMethod(_class, \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", method_getTypeEncoding(_method))) {";
 		$r .=         $self->originalFunctionName." = (".$pointertype.")method_getImplementation(_method);";
 		$r .=         $self->originalFunctionName." = (".$pointertype.")method_setImplementation(_method, (IMP)&".$self->newFunctionName.");";
