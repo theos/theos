@@ -5,12 +5,12 @@ our @ISA = ('Logos::Class');
 
 sub superVariable {
 	my $self = shift;
-	return $self->variable."\$S";
+	return Logos::sigil("superclass").$self->group->name."\$".$self->name;
 }
 
 sub superMetaVariable {
 	my $self = shift;
-	return $self->metaVariable."\$S";
+	return Logos::sigil("supermetaclass").$self->group->name."\$".$self->name;
 }
 
 sub declarations {

@@ -3,14 +3,9 @@ use strict;
 use Logos::Method;
 our @ISA = ('Logos::Method');
 
-sub classname {
-	my $self = shift;
-	return ($self->{SCOPE} eq "+" ? "meta\$" : "").$self->class->name;
-}
-
 sub superFunctionName {
 	my $self = shift;
-	return Logos::sigil(($self->{SCOPE} eq "+" ? "meta_" : "")."super").$self->groupIdentifier."\$".$self->classname."\$".$self->_new_selector;
+	return Logos::sigil(($self->{SCOPE} eq "+" ? "meta_" : "")."super").$self->groupIdentifier."\$".$self->class->name."\$".$self->_new_selector;
 }
 
 sub originalCallParams {
