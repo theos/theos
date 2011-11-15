@@ -13,14 +13,14 @@ sub initExpr {
 
 sub declarations {
 	my $self = shift;
-	return $self->Class::declarations;
+	return $self->Logos::Generator::MobileSubstrate::Class::declarations;
 }
 
 sub initializers {
 	my $self = shift;
 	my $return = "";
 	$return .= "{ ";
-	$return .= $self->Class::initializers." ";
+	$return .= $self->Logos::Generator::MobileSubstrate::Class::initializers." ";
 	# <ivars>
 	foreach(@{$self->{IVARS}}) {
 		$return .= $_->initializers;
@@ -30,7 +30,7 @@ sub initializers {
 		$return .= "class_addProtocol(".$self->variable.", objc_getProtocol(\"$_\")); ";
 	}
 	$return .= "objc_registerClassPair(".$self->variable."); ";
-	$return .= Generator->classReferenceWithScope($self->name, "-")." = ".$self->variable.";";
+	$return .= ::Generator->classReferenceWithScope($self->name, "-")." = ".$self->variable.";";
 	$return .= "}";
 	return $return;
 }
