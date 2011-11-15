@@ -17,12 +17,6 @@ sub new {
 ##################### #
 # Setters and Getters #
 # #####################
-sub name {
-	my $self = shift;
-	if(@_) { $self->{NAME} = shift; }
-	return $self->{NAME};
-}
-
 sub superclass {
 	my $self = shift;
 	if(@_) { $self->{SUPERCLASS} = shift; }
