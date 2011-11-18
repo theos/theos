@@ -33,14 +33,19 @@ sub addDeclaredOnlyClass {
 	$self->{DECLAREDONLYCLASSES}{$class}++;
 }
 
-sub declarations {
-	::fileError(-1, "Generator hasn't implemented StaticClassGroup::declarations :(");
-	return "";
+sub declaredOnlyClasses {
+	my $self = shift;
+	return $self->{DECLAREDONLYCLASSES};
 }
 
-sub initializers {
-	::fileError(-1, "Generator hasn't implemented StaticClassGroup::initializers :(");
-	return "";
+sub usedClasses {
+	my $self = shift;
+	return $self->{USEDCLASSES};
+}
+
+sub usedMetaClasses {
+	my $self = shift;
+	return $self->{USEDMETACLASSES};
 }
 
 1;

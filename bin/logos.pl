@@ -26,6 +26,14 @@ use Logos::Class;
 use Logos::Subclass;
 use Logos::StaticClassGroup;
 
+sub Method { "Logos::Method"; }
+sub Class { "Logos::Class" }
+sub Subclass { "Logos::Subclass" }
+sub StaticClassGroup { "Logos::StaticClassGroup" }
+
+use Logos::Generator;
+sub Generator { "Logos::Generator" }
+
 %main::CONFIG = ( generator => "MobileSubstrate"
 		);
 
@@ -157,44 +165,6 @@ $lineMapping{0} = ["$filename", 0] if scalar keys %lineMapping == 0;
 
 my $lineno = 0;
 
-# Process the input lines for directives which must be parsed before main processing, such as %config
-# Mk. I processing loop - preprocessing.
-my $generatorLine = 1;
-{
-foreach my $line (@lines) {
-	pos($line) = 0;
-	my @quotes = quotes($line);
-	while($line =~ m/(?=\%)/gc) {
-		next if fallsBetween($-[0], @quotes);
-		if($line =~ /\G%config\s*\(\s*(\w+)\s*=\s*(.*?)\s*\)/gc) {
-			$generatorLine = $lineno if($1 eq "generator");
-			$main::CONFIG{$1} = $2;
-			patchHere(undef);
-		}
-	}
-	$lineno++;
-}
-}
-
-my $generatorname = $main::CONFIG{generator};
-$Module::Load::Conditional::VERBOSE = 1;
-my $GeneratorPackage = "Logos::Generator::$generatorname";
-fileError($generatorLine, "I can't find the \"$generatorname\" Generator!") if(!can_load(modules => {
-			$GeneratorPackage."::Generator" => undef,
-		}));
-
-load $GeneratorPackage."::Method";
-load $GeneratorPackage."::Class";
-load $GeneratorPackage."::Subclass";
-load $GeneratorPackage."::StaticClassGroup";
-sub Generator { $GeneratorPackage; }
-sub Method { $GeneratorPackage."::Method"; }
-sub Class { $GeneratorPackage."::Class" }
-sub Subclass { $GeneratorPackage."::Subclass" }
-sub StaticClassGroup { $GeneratorPackage."::StaticClassGroup" }
-
-$lineno = 0;
-
 my $defaultGroup = Group->new();
 $defaultGroup->name("_ungrouped");
 $defaultGroup->explicit(0);
@@ -213,7 +183,7 @@ my @nestingstack = ();
 my @firstDirectivePosition;
 my @lastInitPosition;
 
-# Mk. II processing loop - directive processing.
+# Mk. I processing loop - directive processing.
 foreach my $line (@lines) {
 	pos($line) = 0;
 	# We don't want to process in-order, so %group %thing %end won't kill itself automatically
@@ -279,7 +249,7 @@ foreach my $line (@lines) {
 			}
 
 			my $capturedGroup = $currentGroup;
-			patchHere(sub { return $capturedGroup->declarations });
+			patchHere(sub { return Generator::for($capturedGroup)->declarations; });
 		} elsif($line =~ /\G%class\s+([+-])?([\$_\w]+)/gc) {
 			# %class [+-]<identifier>
 			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
@@ -307,7 +277,7 @@ foreach my $line (@lines) {
 				$staticClassGroup->addUsedClass($classname);
 			}
 			$classes{$classname}++;
-			patchHere(sub { return Generator->classReferenceWithScope($classname, $scope); });
+			patchHere(sub { return Generator::for($classname)->classReferenceWithScope($scope); });
 		} elsif($line =~ /\G%new(\((.*?)\))?(?=\W?)/gc) {
 			# %new[(type)]
 			nestingMustContain($lineno, "%new", \@nestingstack, "hook", "subclass");
@@ -370,7 +340,7 @@ foreach my $line (@lines) {
 			my $patch = Patch->new();
 			$patch->line($lineno);
 			$patch->range($patchStart, pos($line));
-			$patch->subref(sub { return $method->definition; });
+			$patch->subref(sub { return Generator::for($method)->definition; });
 			addPatch($patch);
 		} elsif($line =~ /\G%orig(?=\W?)/gc) {
 			# %orig, with optional following parens.
@@ -392,14 +362,14 @@ foreach my $line (@lines) {
 			my $patch = Patch->new();
 			$patch->line($lineno);
 			$patch->range($patchStart, pos($line));
-			$patch->subref(sub { return $capturedMethod->originalCall($orig_args); });
+			$patch->subref(sub { return Generator::for($capturedMethod)->originalCall($orig_args); });
 			addPatch($patch);
 		} elsif($line =~ /\G%log(?=\W?)/gc) {
 			# %log
 			nestingMustContain($lineno, "%log", \@nestingstack, "hook", "subclass");
 
 			my $capturedMethod = $currentMethod;
-			patchHere(sub { return $capturedMethod->buildLogCall; });
+			patchHere(sub { return Generator::for($capturedMethod)->buildLogCall; });
 		} elsif($line =~ /\G%ctor(?=\W?)/gc) {
 			# %ctor
 			nestingMustNotContain($lineno, "%ctor", \@nestingstack, "hook", "subclass");
@@ -480,11 +450,11 @@ foreach my $line (@lines) {
 			$patch->range($patchStart, pos($line));
 			if($groupname eq "_ungrouped") {
 				$patch->subref(sub {
-					return "{".$group->initializers.$staticClassGroup->initializers."}";
+					return "{".Generator::for($group)->initializers.Generator::for($staticClassGroup)->initializers."}";
 				});
 			} else {
 				$patch->subref(sub {
-					return $group->initializers;
+					return Generator::for($group)->initializers;
 				});
 			}
 			addPatch($patch);
@@ -501,6 +471,9 @@ foreach my $line (@lines) {
 				$currentClass = undef;
 			}
 			patchHere(undef);
+		} elsif($line =~ /\G%config\s*\(\s*(\w+)\s*=\s*(.*?)\s*\)/gc) {
+			$main::CONFIG{$1} = $2;
+			patchHere(undef);
 		}
 	}
 	$lineno++;
@@ -512,7 +485,9 @@ while(scalar(@nestingstack) > 0) {
 	fileWarning($lineno, "missing %end (%".$parts[0]." opened at ".lineDescriptionForPhysicalLine($parts[1])." extends to EOF)");
 }
 
-# Mk. III processing loop - braces 
+Generator::use($main::CONFIG{"generator"});
+
+# Mk. II processing loop - braces
 my %depthMapping = ("0:0" => 0);
 {
 my $lineno = 0;
@@ -533,7 +508,7 @@ foreach my $line (@lines) {
 }
 
 my $hasGeneratorPreamble = $preprocessed; # If we're already preprocessed, we cannot insert #include statements.
-$hasGeneratorPreamble = Generator->findPreamble(\@lines) if !$hasGeneratorPreamble;
+$hasGeneratorPreamble = Generator::for->findPreamble(\@lines) if !$hasGeneratorPreamble;
 
 if(@firstDirectivePosition) {
 	# Loop until we find a blank line at depth 0 to splice our preamble in.
@@ -565,10 +540,10 @@ if(@firstDirectivePosition) {
 	$patch->line($line);
 	$patch->subref(sub {
 		my @out = ();
-		push(@out, Generator->preamble) if !$hasGeneratorPreamble;
-		push(@out, Generator->generateClassList(keys %classes));
-		push(@out, $groups[0]->declarations);
-		push(@out, $staticClassGroup->declarations);
+		push(@out, Generator::for->preamble) if !$hasGeneratorPreamble;
+		push(@out, Generator::for->generateClassList(keys %classes));
+		push(@out, Generator::for($groups[0])->declarations);
+		push(@out, Generator::for($staticClassGroup)->declarations);
 		return \@out;
 	});
 	addPatch($patch);
@@ -580,7 +555,7 @@ if(@firstDirectivePosition) {
 			$patch->line($lastInitPosition[0]);
 			$patch->range($lastInitPosition[1], $lastInitPosition[1]);
 			$patch->subref(sub {
-				return [$staticClassGroup->initializers];
+				return [Generator::for($staticClassGroup)->initializers];
 			});
 			$staticClassGroup->initialized(1);
 			addPatch($patch);
@@ -645,7 +620,7 @@ sub generateConstructor {
 	foreach(@groups) {
 		next if $_->explicit;
 		fileError($lineno, "re-%init of %group ".$_->name.", first initialized at ".lineDescriptionForPhysicalLine($_->initLine)) if $_->initialized;
-		$return .= $_->initializers." ";
+		$return .= Generator::for($_)->initializers." ";
 		$_->initLine($lineno);
 	}
 	$return .= "\n#if __has_feature(objc_arc)\n";

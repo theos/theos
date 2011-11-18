@@ -30,16 +30,21 @@ sub name {
 
 sub expression {
 	my $self = shift;
-	if(@_) { $self->{EXPR} = shift; $self->type("id"); $self->{OVERRIDDEN} = 1; }
-	return $self->variable if $self->{OVERRIDDEN};
-	return "objc_getClass(\"".$self->{NAME}."\")";
+	if(@_) {
+		$self->{EXPR} = shift;
+		$self->type("id");
+		$self->{OVERRIDDEN} = 1;
+	}
+	return $self->{EXPR};
 }
 
 sub metaexpression {
 	my $self = shift;
-	if(@_) { $self->{METAEXPR} = shift; $self->{OVERRIDDEN} = 1; }
-	return $self->metaVariable if $self->{OVERRIDDEN};
-	return "object_getClass(".$self->variable.")";
+	if(@_) {
+		$self->{METAEXPR} = shift;
+		$self->{OVERRIDDEN} = 1;
+	}
+	return $self->{METAEXPR};
 }
 
 sub type {
@@ -67,6 +72,16 @@ sub group {
 	return $self->{GROUP};
 }
 
+sub overridden {
+	my $self = shift;
+	return $self->{OVERRIDDEN};
+}
+
+sub methods {
+	my $self = shift;
+	return $self->{METHODS};
+}
+
 ##### #
 # END #
 # #####
@@ -76,38 +91,6 @@ sub addMethod {
 	my $hook = shift;
 	push(@{$self->{METHODS}}, $hook);
 	$self->{NUM_METHODS}++;
-}
-
-sub _initExpr {
-	my $self = shift;
-	return $self->{EXPR} if $self->{EXPR};
-	return "objc_getClass(\"".$self->{NAME}."\")";
-}
-
-sub _metaInitExpr {
-	my $self = shift;
-	return $self->{METAEXPR} if $self->{METAEXPR};
-	return "object_getClass(".$self->variable.")";
-}
-
-sub variable {
-	my $self = shift;
-	return Logos::sigil("class").$self->group->name."\$".$self->name;
-}
-
-sub metaVariable {
-	my $self = shift;
-	return Logos::sigil("metaclass").$self->group->name."\$".$self->name;
-}
-
-sub declarations {
-	::fileError(-1, "Generator hasn't implemented Class::declarations :(");
-	return "";
-}
-
-sub initializers {
-	::fileError(-1, "Generator hasn't implemented Class::initializers :(");
-	return "";
 }
 
 1;
