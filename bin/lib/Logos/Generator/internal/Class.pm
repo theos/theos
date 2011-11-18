@@ -43,7 +43,7 @@ sub initializers {
 			$return .= "Class ".$self->variable($class)." = ".$self->_initExpression($class)."; ";
 		}
 		if($class->hasmetahooks) {
-			$return .= "Class ".$class->metaVariable($class)." = ".$self->_metaInitExpr($class)."; ";
+			$return .= "Class ".$self->metaVariable($class)." = ".$self->_metaInitExpr($class)."; ";
 		}
 	}
 	if ($class->hasinstancehooks) {
