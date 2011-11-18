@@ -14,22 +14,15 @@ package Logos;
 sub sigil { my $id = shift; return "_logos_$id\$"; }
 package main;
 
-use Logos::Patch;
 use Logos::Util;
 $Logos::Util::errorhandler = \&utilErrorHandler;
-sub Group { "Logos::Group"; }
-sub Patch { "Logos::Patch"; }
 
-use Logos::Group;
-use Logos::Method;
-use Logos::Class;
-use Logos::Subclass;
-use Logos::StaticClassGroup;
-
-sub Method { "Logos::Method"; }
-sub Class { "Logos::Class" }
-sub Subclass { "Logos::Subclass" }
-sub StaticClassGroup { "Logos::StaticClassGroup" }
+use aliased 'Logos::Patch';
+use aliased 'Logos::Group';
+use aliased 'Logos::Method';
+use aliased 'Logos::Class';
+use aliased 'Logos::Subclass';
+use aliased 'Logos::StaticClassGroup' ;
 
 use Logos::Generator;
 
