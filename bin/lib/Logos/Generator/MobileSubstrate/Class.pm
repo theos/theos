@@ -1,37 +1,34 @@
 package Logos::Generator::MobileSubstrate::Class;
 use strict;
-use Logos::Class;
-our @ISA = ('Logos::Class');
+use parent qw(Logos::Generator::Base::Class);
 
 sub declarations {
 	my $self = shift;
+	my $class = shift;
 	my $return = "";
-	if($self->{OVERRIDDEN}) {
-		$return .= "static Class ".$self->variable.", ".$self->metaVariable."; ";
+	if($class->overridden) {
+		$return .= "static Class ".$self->variable($class).", ".$self->metaVariable($class)."; ";
 	}
-	foreach(@{$self->{METHODS}}) {
-		$return .= $_->declarations;
-	}
+	$return .= $self->SUPER::declarations($class);
 	return $return;
 }
 
 sub initializers {
 	my $self = shift;
+	my $class = shift;
 	my $return = "";
-	if($self->{OVERRIDDEN}) {
-		$return .= $_->variable." = ".$self->_initExpr."; ";
-		$return .= $_->metaVariable." = ".$self->_metaInitExpr."; ";
+	if($class->overridden) {
+		$return .= $self->variable($class)." = ".$self->_initExpression($class)."; ";
+		$return .= $self->metaVariable($class)." = ".$self->_metaInitExpression($class)."; ";
 	} else {
-		if($self->{INST} || $self->{META}) {
-			$return .= "Class ".$self->variable." = ".$self->_initExpr."; ";
+		if($class->hasinstancehooks || $class->hasmetahooks) {
+			$return .= "Class ".$self->variable($class)." = ".$self->_initExpression($class)."; ";
 		}
-		if($self->{META}) {
-			$return .= "Class ".$self->metaVariable." = ".$self->_metaInitExpr."; ";
+		if($class->hasmetahooks) {
+			$return .= "Class ".$self->metaVariable($class)." = ".$self->_metaInitExpression($class)."; ";
 		}
 	}
-	foreach(@{$self->{METHODS}}) {
-		$return .= $_->initializers;
-	}
+	$return .= $self->SUPER::initializers($class);
 	return $return;
 }
 

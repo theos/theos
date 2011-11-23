@@ -1,7 +1,6 @@
-package Logos::Generator::internal;
+package Logos::Generator::internal::Generator;
 use strict;
-use Logos::Generator;
-our @ISA = ('Logos::Generator');
+use parent qw(Logos::Generator::Base::Generator);
 
 sub findPreamble {
 	shift;
@@ -13,21 +12,6 @@ sub findPreamble {
 sub preamble {
 	shift;
 	return "#include <objc/message.h>";
-}
-
-sub generateClassList {
-	shift;
-	my $return = "";
-	map $return .= "\@class $_; ", @_;
-	return $return;
-}
-
-sub classReferenceWithScope {
-	shift;
-	my $classname = shift;
-	my $scope = shift;
-	my $prefix = Logos::sigil($scope eq "+" ? "static_metaclass" : "static_class");
-	return $prefix.$classname;
 }
 
 1;

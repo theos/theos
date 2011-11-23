@@ -45,6 +45,11 @@ sub initLine {
 	if(@_) { $self->{INITLINE} = shift; }
 	return $self->{INITLINE};
 }
+
+sub classes {
+	my $self = shift;
+	return $self->{CLASSES};
+}
 ##### #
 # END #
 # #####
@@ -76,26 +81,6 @@ sub getClassNamed {
 		return $_ if $_->name eq $name;
 	}
 	return undef;
-}
-
-sub declarations {
-	my $self = shift;
-	my $return = "";
-	foreach(@{$self->{CLASSES}}) {
-		$return .= $_->declarations;
-	}
-	return $return;
-}
-
-sub initializers {
-	my $self = shift;
-	my $return = "";
-	$return .= "{";
-	foreach(@{$self->{CLASSES}}) {
-		$return .= $_->initializers;
-	}
-	$return .= "}";
-	return $return;
 }
 
 1;

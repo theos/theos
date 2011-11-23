@@ -36,9 +36,4 @@ sub class {
 # END #
 # #####
 
-sub initializers {
-	my $self = shift;
-	return "class_addIvar(\$".$self->class->name.", \"".$self->{NAME}."\", sizeof(".$self->{TYPE}."), 0, \@encode(".$self->{TYPE}.")); ";
-}
-
 1;

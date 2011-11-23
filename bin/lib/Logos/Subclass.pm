@@ -17,35 +17,24 @@ sub new {
 ##################### #
 # Setters and Getters #
 # #####################
-sub name {
-	my $self = shift;
-	if(@_) { $self->{NAME} = shift; }
-	return $self->{NAME};
-}
-
 sub superclass {
 	my $self = shift;
 	if(@_) { $self->{SUPERCLASS} = shift; }
 	return $self->{SUPERCLASS};
 }
+
+sub ivars {
+	my $self = shift;
+	return $self->{IVARS};
+}
+
+sub protocols {
+	my $self = shift;
+	return $self->{PROTOCOLS};
+}
 ##### #
 # END #
 # #####
-
-sub initExpr {
-	::fileError(-1, "Generator hasn't implemented Subclass::initExpr :(");
-	return "";
-}
-
-sub _initExpr {
-	my $self = shift;
-	return $self->initExpr;
-}
-
-sub _metaInitExpr {
-	my $self = shift;
-	return "object_getClass(".$self->variable.")";
-}
 
 sub addProtocol {
 	my $self = shift;
@@ -67,16 +56,6 @@ sub getIvarNamed {
 		return $_ if $_->name eq $name;
 	}
 	return undef;
-}
-
-sub declarations {
-	::fileError(-1, "Generator hasn't implemented Subclass::declarations :(");
-	return "";
-}
-
-sub initializers {
-	::fileError(-1, "Generator hasn't implemented Subclass::initializers :(");
-	return "";
 }
 
 1;

@@ -1,59 +1,58 @@
 package Logos::Generator::internal::Class;
 use strict;
-use Logos::Class;
-our @ISA = ('Logos::Class');
+use parent qw(Logos::Generator::Base::Class);
 
 sub superVariable {
 	my $self = shift;
-	return $self->variable."\$S";
+	my $class = shift;
+	return Logos::sigil("superclass").$class->group->name."\$".$class->name;
 }
 
 sub superMetaVariable {
 	my $self = shift;
-	return $self->metaVariable."\$S";
+	my $class = shift;
+	return Logos::sigil("supermetaclass").$class->group->name."\$".$class->name;
 }
 
 sub declarations {
 	my $self = shift;
+	my $class = shift;
 	my $return = "";
-	if($self->{OVERRIDDEN}) {
-		$return .= "static Class ".$self->variable.", ".$self->metaVariable."; ";
+	if($class->overridden) {
+		$return .= "static Class ".$self->variable($class).", ".$self->metaVariable($class)."; ";
 	}
-	if($self->hasinstancehooks) {
-		$return .= "static Class ".$self->superVariable."; ";
+	if($class->hasinstancehooks) {
+		$return .= "static Class ".$self->superVariable($class)."; ";
 	}
-	if($self->hasmetahooks) {
-		$return .= "static Class ".$self->superMetaVariable."; ";
+	if($class->hasmetahooks) {
+		$return .= "static Class ".$self->superMetaVariable($class)."; ";
 	}
-	foreach(@{$self->{METHODS}}) {
-		$return .= $_->declarations;
-	}
+	$return .= $self->SUPER::declarations($class);
 	return $return;
 }
 
 sub initializers {
 	my $self = shift;
+	my $class = shift;
 	my $return = "";
-	if($self->{OVERRIDDEN}) {
-		$return .= $_->variable." = ".$self->_initExpr."; ";
-		$return .= $_->metaVariable." = ".$self->_metaInitExpr."; ";
+	if($class->overridden) {
+		$return .= $self->variable($class)." = ".$self->_initExpression($class)."; ";
+		$return .= $self->metaVariable($class)." = ".$self->_metaInitExpression($class)."; ";
 	} else {
-		if($self->hasinstancehooks || $self->hasmetahooks) {
-			$return .= "Class ".$self->variable." = ".$self->_initExpr."; ";
+		if($class->hasinstancehooks || $class->hasmetahooks) {
+			$return .= "Class ".$self->variable($class)." = ".$self->_initExpression($class)."; ";
 		}
-		if($self->hasmetahooks) {
-			$return .= "Class ".$self->metaVariable." = ".$self->_metaInitExpr."; ";
+		if($class->hasmetahooks) {
+			$return .= "Class ".$self->metaVariable($class)." = ".$self->_metaInitExpr($class)."; ";
 		}
 	}
-	if ($self->hasinstancehooks) {
-		$return .= $self->superVariable." = class_getSuperclass(".$self->variable."); ";
+	if ($class->hasinstancehooks) {
+		$return .= $self->superVariable($class)." = class_getSuperclass(".$self->variable($class)."); ";
 	}
-	if ($self->hasmetahooks) {
-		$return .= $self->superMetaVariable." = class_getSuperclass(".$self->metaVariable."); ";
+	if ($class->hasmetahooks) {
+		$return .= $self->superMetaVariable($class)." = class_getSuperclass(".$self->metaVariable($class)."); ";
 	}
-	foreach(@{$self->{METHODS}}) {
-		$return .= $_->initializers;
-	}
+	$return .= $self->SUPER::initializers($class);
 	return $return;
 }
 
