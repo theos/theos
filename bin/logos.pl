@@ -604,8 +604,12 @@ sub generateConstructor {
 	}
 	fileError($lineno, "Cannot generate an autoconstructor with multiple %groups. Please explicitly create a constructor.") if $explicitGroups > 0;
 	$return .= "static __attribute__((constructor)) void _logosLocalInit() {\n";
+	$return .= "#ifdef __clang__\n";
 	$return .= "#if __has_feature(objc_arc)\n";
 	$return .= "\@autoreleasepool {\n";
+	$return .= "#else\n";
+	$return .= "NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];\n";
+	$return .= "#endif\n";
 	$return .= "#else\n";
 	$return .= "NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];\n";
 	$return .= "#endif\n";
@@ -615,8 +619,12 @@ sub generateConstructor {
 		$return .= Logos::Generator::for($_)->initializers." ";
 		$_->initLine($lineno);
 	}
-	$return .= "\n#if __has_feature(objc_arc)\n";
+	$return .= "\n#ifdef __clang__\n";
+	$return .= "#if __has_feature(objc_arc)\n";
 	$return .= "}\n";
+	$return .= "#else\n";
+	$return .= "[pool drain];\n";
+	$return .= "#endif\n";
 	$return .= "#else\n";
 	$return .= "[pool drain];\n";
 	$return .= "#endif\n";
