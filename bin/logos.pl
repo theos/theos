@@ -83,13 +83,6 @@ READLOOP: while(my $line = <FILE>) {
 
 	my @quotes = quotes($line);
 
-	# Delete all single-line to-EOL // xxx comments.
-	while($line =~ /\/\//g) {
-		next if fallsBetween($-[0], @quotes);
-		$line = $`;
-		redo READLOOP;
-	}
-
 	# Delete all single-line /* xxx */ comments.
 	while($line =~ /\/\*.*?\*\//g) {
 		next if fallsBetween($-[0], @quotes);
@@ -104,6 +97,13 @@ READLOOP: while(my $line = <FILE>) {
 		push(@lines, $line);
 		$readignore = 1;
 		next READLOOP;
+	}
+
+	# Delete all single-line to-EOL // xxx comments.
+	while($line =~ /\/\//g) {
+		next if fallsBetween($-[0], @quotes);
+		$line = $`;
+		redo READLOOP;
 	}
 
 	# #if 0.
@@ -175,16 +175,20 @@ my @nestingstack = ();
 my @firstDirectivePosition;
 my @lastInitPosition;
 
+my %depthMapping = ("0:0" => 0);
+my $depth = 0;
+
 # Mk. I processing loop - directive processing.
 foreach my $line (@lines) {
-	pos($line) = 0;
 	# We don't want to process in-order, so %group %thing %end won't kill itself automatically
 	# because it found a %end with the %group. This allows things to proceed out-of-order:
 	# we re-start the scan loop with the next % every time we find a match so that the commands don't need to
 	# be in the processed order on every line. That would be pointless.
 
-	# Beginning of a directive, or [+-](type)
 	my @quotes = quotes($line);
+
+	# Beginning of a directive, or [+-](type)
+	pos($line) = 0;
 	while($line =~ m/(?=(\%\w|[+-]\s*\(\s*.*?\s*\)))/gc) {
 		next if fallsBetween($-[0], @quotes);
 
@@ -468,6 +472,18 @@ foreach my $line (@lines) {
 			patchHere(undef);
 		}
 	}
+
+	# Brace Depth Mapping
+	pos($line) = 0;
+	while($line =~ /[{}]/g) {
+		next if fallsBetween($-[0], @quotes);
+
+		my $depthtoken = $lineno.":".($-[0]+1);
+
+		$depth += ($& eq "{") ? 1 : -1;
+		$depthMapping{$depthtoken} = $depth;
+	}
+
 	$lineno++;
 }
 
@@ -478,26 +494,6 @@ while(scalar(@nestingstack) > 0) {
 }
 
 Logos::Generator::use($main::CONFIG{"generator"});
-
-# Mk. II processing loop - braces
-my %depthMapping = ("0:0" => 0);
-{
-my $lineno = 0;
-my $depth = 0;
-foreach my $line (@lines) {
-	my @quotes = quotes($line);
-
-	while($line =~ /[{}]/g) {
-		next if fallsBetween($-[0], @quotes);
-
-		my $depthtoken = $lineno.":".($-[0]+1);
-
-		$depth += ($& eq "{") ? 1 : -1;
-		$depthMapping{$depthtoken} = $depth;
-	}
-	$lineno++;
-}
-}
 
 my $hasGeneratorPreamble = $preprocessed; # If we're already preprocessed, we cannot insert #include statements.
 $hasGeneratorPreamble = Logos::Generator::for->findPreamble(\@lines) if !$hasGeneratorPreamble;
