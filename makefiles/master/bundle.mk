@@ -8,7 +8,7 @@ internal-all:: $(BUNDLE_NAME:=.all.bundle.variables);
 
 internal-stage:: $(BUNDLE_NAME:=.stage.bundle.variables);
 
-BUNDLES_WITH_SUBPROJECTS = $(strip $(foreach bundle,$(BUNDLE_NAME),$(patsubst %,$(bundle),$($(bundle)_SUBPROJECTS))))
+BUNDLES_WITH_SUBPROJECTS = $(strip $(foreach bundle,$(BUNDLE_NAME),$(patsubst %,$(bundle),$(call __schema_var_all,$(bundle)_,SUBPROJECTS))))
 ifneq ($(BUNDLES_WITH_SUBPROJECTS),)
 internal-clean:: $(BUNDLES_WITH_SUBPROJECTS:=.clean.bundle.subprojects)
 endif

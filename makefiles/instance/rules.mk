@@ -1,28 +1,33 @@
 .PHONY: before-$(THEOS_CURRENT_INSTANCE)-all after-$(THEOS_CURRENT_INSTANCE)-all internal-$(_THEOS_CURRENT_TYPE)-all \
 	before-$(THEOS_CURRENT_INSTANCE)-stage after-$(THEOS_CURRENT_INSTANCE)-stage internal-$(_THEOS_CURRENT_TYPE)-stage
 
-OBJ_FILES = $(strip $(patsubst %,%.o,$($(THEOS_CURRENT_INSTANCE)_FILES) $($(THEOS_CURRENT_INSTANCE)_OBJCC_FILES) $($(THEOS_CURRENT_INSTANCE)_LOGOS_FILES) $($(THEOS_CURRENT_INSTANCE)_OBJC_FILES) $($(THEOS_CURRENT_INSTANCE)_CC_FILES) $($(THEOS_CURRENT_INSTANCE)_C_FILES)))
+__ALL_FILES = $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,FILES) $($(THEOS_CURRENT_INSTANCE)_OBJCC_FILES) $($(THEOS_CURRENT_INSTANCE)_LOGOS_FILES) $($(THEOS_CURRENT_INSTANCE)_OBJC_FILES) $($(THEOS_CURRENT_INSTANCE)_CC_FILES) $($(THEOS_CURRENT_INSTANCE)_C_FILES)
+__ON_FILES = $(filter-out -%,$(__ALL_FILES))
+__OFF_FILES = $(patsubst -%,%,$(filter -%,$(__ALL_FILES)))
+_FILES = $(strip $(filter-out $(__OFF_FILES),$(__ON_FILES)))
+OBJ_FILES = $(strip $(patsubst %,%.o,$(_FILES)))
 
-_OBJC_FILE_COUNT = $(words $(filter %.m.o %.mm.o %.x.o %.xm.o %.xi.o %.xmi.o,$(OBJ_FILES)))
-_OBJCC_FILE_COUNT = $(words $(filter %.mm.o %.xm.o %.xmi.o,$(OBJ_FILES)))
+_OBJC_FILE_COUNT = $(words $(filter %.m %.mm %.x %.xm %.xi %.xmi,$(_FILES)))
+_OBJCC_FILE_COUNT = $(words $(filter %.mm %.xm %.xmi,$(_FILES)))
 
-ifneq ($($(THEOS_CURRENT_INSTANCE)_SUBPROJECTS),)
-SUBPROJECT_OBJ_FILES = $(foreach d, $($(THEOS_CURRENT_INSTANCE)_SUBPROJECTS), $(THEOS_BUILD_DIR)/$(d)/$(THEOS_OBJ_DIR_NAME)/$(THEOS_SUBPROJECT_PRODUCT))
+_SUBPROJECTS = $(strip $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,SUBPROJECTS))
+ifneq ($(_SUBPROJECTS),)
+SUBPROJECT_OBJ_FILES = $(foreach d, $(_SUBPROJECTS), $(THEOS_BUILD_DIR)/$(d)/$(THEOS_OBJ_DIR_NAME)/$(THEOS_SUBPROJECT_PRODUCT))
 #SUBPROJECT_OBJ_FILES = $(addsuffix /$(THEOS_OBJ_DIR_NAME)/$(THEOS_SUBPROJECT_PRODUCT), $(addprefix $(THEOS_BUILD_DIR)/,$($(THEOS_CURRENT_INSTANCE)_SUBPROJECTS)))
-SUBPROJECT_LDFLAGS = $(shell sort $(foreach d, $($(THEOS_CURRENT_INSTANCE)_SUBPROJECTS), $(THEOS_BUILD_DIR)/$(d)/$(THEOS_OBJ_DIR_NAME)/ldflags) | uniq)
+SUBPROJECT_LDFLAGS = $(shell sort $(foreach d, $(_SUBPROJECTS), $(THEOS_BUILD_DIR)/$(d)/$(THEOS_OBJ_DIR_NAME)/ldflags) | uniq)
 AUXILIARY_LDFLAGS += $(SUBPROJECT_LDFLAGS)
 endif
 
-OBJ_FILES_TO_LINK = $(strip $(addprefix $(THEOS_OBJ_DIR)/,$(OBJ_FILES)) $($(THEOS_CURRENT_INSTANCE)_OBJ_FILES) $(SUBPROJECT_OBJ_FILES))
+OBJ_FILES_TO_LINK = $(strip $(addprefix $(THEOS_OBJ_DIR)/,$(OBJ_FILES)) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,OBJ_FILES) $(SUBPROJECT_OBJ_FILES))
 _OBJ_DIR_STAMPS = $(sort $(foreach o,$(filter $(THEOS_OBJ_DIR)%,$(OBJ_FILES_TO_LINK)),$(dir $o).stamp))
 
-ADDITIONAL_CPPFLAGS += $($(THEOS_CURRENT_INSTANCE)_CPPFLAGS)
-ADDITIONAL_CFLAGS += $($(THEOS_CURRENT_INSTANCE)_CFLAGS)
-ADDITIONAL_OBJCFLAGS += $($(THEOS_CURRENT_INSTANCE)_OBJCFLAGS)
-ADDITIONAL_CCFLAGS += $($(THEOS_CURRENT_INSTANCE)_CCFLAGS)
-ADDITIONAL_OBJCCFLAGS += $($(THEOS_CURRENT_INSTANCE)_OBJCCFLAGS)
-ADDITIONAL_LOGOSFLAGS += $($(THEOS_CURRENT_INSTANCE)_LOGOSFLAGS)
-ADDITIONAL_LDFLAGS += $($(THEOS_CURRENT_INSTANCE)_LDFLAGS)
+ADDITIONAL_CPPFLAGS += $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,CPPFLAGS)
+ADDITIONAL_CFLAGS += $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,CFLAGS)
+ADDITIONAL_OBJCFLAGS += $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,OBJCFLAGS)
+ADDITIONAL_CCFLAGS += $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,CCFLAGS)
+ADDITIONAL_OBJCCFLAGS += $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,OBJCCFLAGS)
+ADDITIONAL_LOGOSFLAGS += $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,LOGOSFLAGS)
+ADDITIONAL_LDFLAGS += $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,LDFLAGS)
 
 # If we have any Objective-C objects, link Foundation and libobjc.
 ifneq ($(_OBJC_FILE_COUNT),0)
@@ -36,16 +41,16 @@ endif
 
 # Add all frameworks from the type and instance.
 AUXILIARY_LDFLAGS += $(foreach framework,$($(_THEOS_CURRENT_TYPE)_FRAMEWORKS),-framework $(framework))
-AUXILIARY_LDFLAGS += $(foreach framework,$($(THEOS_CURRENT_INSTANCE)_FRAMEWORKS),-framework $(framework))
+AUXILIARY_LDFLAGS += $(foreach framework,$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,FRAMEWORKS),-framework $(framework))
 
 # Add all private frameworks from the type and instance, as well as -F for the private framework dir.
-ifneq ($(words $($(_THEOS_CURRENT_TYPE)_PRIVATE_FRAMEWORKS)$($(THEOS_CURRENT_INSTANCE)_PRIVATE_FRAMEWORKS)),0)
+ifneq ($(words $($(_THEOS_CURRENT_TYPE)_PRIVATE_FRAMEWORKS)$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,PRIVATE_FRAMEWORKS)),0)
 	AUXILIARY_OBJCFLAGS += -F$(TARGET_PRIVATE_FRAMEWORK_PATH)
 	AUXILIARY_LDFLAGS += -F$(TARGET_PRIVATE_FRAMEWORK_PATH)
 endif
 
 AUXILIARY_LDFLAGS += $(foreach framework,$($(_THEOS_CURRENT_TYPE)_PRIVATE_FRAMEWORKS),-framework $(framework))
-AUXILIARY_LDFLAGS += $(foreach framework,$($(THEOS_CURRENT_INSTANCE)_PRIVATE_FRAMEWORKS),-framework $(framework))
+AUXILIARY_LDFLAGS += $(foreach framework,$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,PRIVATE_FRAMEWORKS),-framework $(framework))
 
 before-$(THEOS_CURRENT_INSTANCE)-all::
 
