@@ -25,12 +25,15 @@ endif
 
 .SUFFIXES:
 
-.SUFFIXES: .m .mm .c .cc .cpp .xm
+.SUFFIXES: .m .mm .c .cc .cpp .xm .S
 
 $(THEOS_OBJ_DIR)/%.m.o: %.m
 	$(ECHO_COMPILING)$(TARGET_CXX) -x objective-c -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(TARGET_ONLY_OBJCFLAGS) $< -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.mm.o: %.mm
+	$(ECHO_COMPILING)$(TARGET_CXX) -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_CCFLAGS) $(ALL_OBJCCFLAGS) $< -o $@$(ECHO_END)
+
+$(THEOS_OBJ_DIR)/%.S.o: %.S
 	$(ECHO_COMPILING)$(TARGET_CXX) -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_CCFLAGS) $(ALL_OBJCCFLAGS) $< -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.c.o: %.c
