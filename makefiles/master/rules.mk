@@ -32,7 +32,7 @@ include $(THEOS_MAKE_PATH)/package.mk
 
 ifeq ($(MAKELEVEL),0)
 ifneq ($(THEOS_BUILD_DIR),.)
-_THEOS_ABSOLUTE_BUILD_DIR = $(shell (unset CDPATH; cd "$(THEOS_BUILD_DIR)"; pwd))
+_THEOS_ABSOLUTE_BUILD_DIR = $(call __clean_pwd,$(THEOS_BUILD_DIR))
 else
 _THEOS_ABSOLUTE_BUILD_DIR = .
 endif
