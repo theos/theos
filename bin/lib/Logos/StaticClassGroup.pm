@@ -1,11 +1,11 @@
-package BaseStaticClassGroup;
+package Logos::StaticClassGroup;
 use Logos::Group;
-@ISA = "Group";
+our @ISA = ('Logos::Group');
 
 sub new {
 	my $proto = shift;
 	my $class = ref($proto) || $proto;
-	my $self = Group->new();
+	my $self = Logos::Group->new();
 	$self->name("_staticClass");
 	$self->explicit(0);
 	$self->{DECLAREDONLYCLASSES} = {};
@@ -33,14 +33,19 @@ sub addDeclaredOnlyClass {
 	$self->{DECLAREDONLYCLASSES}{$class}++;
 }
 
-sub declarations {
-	::fileError(-1, "Generator hasn't implemented StaticClassGroup::declarations :(");
-	return "";
+sub declaredOnlyClasses {
+	my $self = shift;
+	return $self->{DECLAREDONLYCLASSES};
 }
 
-sub initializers {
-	::fileError(-1, "Generator hasn't implemented StaticClassGroup::initializers :(");
-	return "";
+sub usedClasses {
+	my $self = shift;
+	return $self->{USEDCLASSES};
+}
+
+sub usedMetaClasses {
+	my $self = shift;
+	return $self->{USEDMETACLASSES};
 }
 
 1;

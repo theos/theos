@@ -10,6 +10,7 @@ PREFIX := $(SDKBINPATH)/$(SDKTARGET)-
 
 TARGET_CC ?= $(PREFIX)gcc
 TARGET_CXX ?= $(PREFIX)g++
+TARGET_LD ?= $(PREFIX)g++
 TARGET_STRIP ?= $(PREFIX)strip
 TARGET_STRIP_FLAGS ?= -x
 TARGET_CODESIGN_ALLOCATE ?= $(PREFIX)codesign_allocate
@@ -18,6 +19,8 @@ TARGET_CODESIGN_FLAGS ?= -S
 
 include $(THEOS_MAKE_PATH)/targets/_common/install_deb_remote.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
+
+TARGET_PRIVATE_FRAMEWORK_PATH = $(SYSROOT)/System/Library/PrivateFrameworks
 
 SDKFLAGS := -isysroot $(SYSROOT)
 TARGET_CFLAGS := $(SDKFLAGS)

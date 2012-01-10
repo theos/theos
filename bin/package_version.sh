@@ -1,6 +1,19 @@
 #!/bin/bash
 
-while getopts ":e:1c:b:v" flag; do
+UPDATE=1
+SKIPONE=0
+JUST_ECHO_VERSION=0
+KEEP_LAST=0
+
+function build_num_from_file {
+	version=$(< "$1")
+	version=${version##*-}
+	version=${version%%+*}
+	version=${version%%~*}
+	echo -n "$version"
+}
+
+while getopts ":e:1c:nok" flag; do
 	case "$flag" in
 		:)	echo "$0: Option -$OPTARG requires an argument." 1>&2
 			exit 1
@@ -8,11 +21,12 @@ while getopts ":e:1c:b:v" flag; do
 		\?)	echo "$0: What're you talking about?" 1>&2
 			exit 1
 			;;
-		b)	BUMP="$OPTARG" ;;
 		e)	EXTRAVERS="$OPTARG" ;;
 		c)	CONTROL="$OPTARG" ;;
-		v)	ONLYVERSION=1 ;;
 		1)	SKIPONE=1 ;;
+		n)	UPDATE=0 ;;
+		o)	JUST_ECHO_VERSION=1 ;;
+		k)	KEEP_LAST=1 ;;
 	esac
 done
 
@@ -30,20 +44,16 @@ if [[ ! -d "${THEOS_PROJECT_DIR}/.theos/packages" ]]; then
 	fi
 fi
 
-package=$(grep "^Package:" "$CONTROL" | cut -d' ' -f2)
-version=$(grep "^Version:" "$CONTROL" | cut -d' ' -f2)
+package=$(grep "^Package:" "$CONTROL" | cut -d' ' -f2-)
+version=$(grep "^Version:" "$CONTROL" | cut -d' ' -f2-)
 versionfile="${THEOS_PROJECT_DIR}/.theos/packages/$package-$version"
 build_number=0
 
 if [[ ! -e "$versionfile" ]]; then
-	[ "$BUMP" != "no" ] && echo -n 1 > "$versionfile"
 	build_number=1
 else
-	build_number=$(< "$versionfile")
+	build_number=$(build_num_from_file "$versionfile")
 	let build_number++
-	if [ "$BUMP" != "no" ]; then
-		echo -n "$build_number" > "$versionfile"
-	fi
 fi
 
 buildno_part="-$build_number"
@@ -56,8 +66,21 @@ if [[ ! -z "$EXTRAVERS" ]]; then
 	extra_part="+$EXTRAVERS"
 fi
 
-if [[ $ONLYVERSION -eq 1 ]]; then
-	echo "$version$buildno_part$extra_part"
+full_version="$version$buildno_part$extra_part"
+if [[ $KEEP_LAST -eq 1 ]]; then
+	if [[ -e "$versionfile" ]]; then
+		full_version=$(< "$versionfile")
+	else
+		full_version="none"
+	fi
+fi
+
+if [[ $UPDATE -eq 1 && $KEEP_LAST -eq 0 ]]; then
+	echo -n "$full_version" > "$versionfile"
+fi
+
+if [[ $JUST_ECHO_VERSION -eq 1 ]]; then
+	echo "$full_version"
 else
-	sed -e "s/^Version: \(.*\)/Version: \1$buildno_part$extra_part/g" $CONTROL
+	sed -e "s/^Version: \(.*\)/Version: $full_version/g" $CONTROL
 fi

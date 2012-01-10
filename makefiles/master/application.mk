@@ -12,10 +12,12 @@ internal-stage:: $(APPLICATION_NAME:=.stage.application.variables);
 # install.exec "uicache"
 internal-after-install::
 
-APPLICATIONS_WITH_SUBPROJECTS = $(strip $(foreach application,$(APPLICATION_NAME),$(patsubst %,$(application),$($(application)_SUBPROJECTS))))
+APPLICATIONS_WITH_SUBPROJECTS = $(strip $(foreach application,$(APPLICATION_NAME),$(patsubst %,$(application),$(call __schema_var_all,$(application)_,SUBPROJECTS))))
 ifneq ($(APPLICATIONS_WITH_SUBPROJECTS),)
 internal-clean:: $(APPLICATIONS_WITH_SUBPROJECTS:=.clean.application.subprojects)
 endif
 
 $(APPLICATION_NAME):
 	@$(MAKE) --no-print-directory --no-keep-going $@.all.application.variables
+
+$(eval $(call __mod,master/application.mk))

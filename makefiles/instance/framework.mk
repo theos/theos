@@ -10,7 +10,7 @@ else
 LOCAL_FRAMEWORK_NAME = $($(THEOS_CURRENT_INSTANCE)_FRAMEWORK_NAME)
 endif
 
-AUXILIARY_LDFLAGS += -dynamiclib -install_name $($(THEOS_CURRENT_INSTANCE)_INSTALL_PATH)/$(LOCAL_FRAMEWORK_NAME).framework/$(THEOS_CURRENT_INSTANCE)
+AUXILIARY_LDFLAGS += -dynamiclib -install_name "$($(THEOS_CURRENT_INSTANCE)_INSTALL_PATH)/$(LOCAL_FRAMEWORK_NAME).framework/$(THEOS_CURRENT_INSTANCE)"
 
 ifeq ($(_THEOS_MAKE_PARALLEL_BUILDING), no)
 internal-framework-all_:: $(_OBJ_DIR_STAMPS) $(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE)
@@ -32,3 +32,5 @@ include $(THEOS_MAKE_PATH)/instance/shared/bundle.mk
 internal-framework-stage_:: shared-instance-bundle-stage
 	$(ECHO_NOTHING)mkdir -p "$(THEOS_SHARED_BUNDLE_RESOURCE_PATH)"$(ECHO_END)
 	$(ECHO_NOTHING)cp $(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE) "$(THEOS_SHARED_BUNDLE_RESOURCE_PATH)"$(ECHO_END)
+
+$(eval $(call __mod,instance/framework.mk))

@@ -2,7 +2,7 @@ ifeq ($(_THEOS_RULES_LOADED),)
 include $(THEOS_MAKE_PATH)/rules.mk
 endif
 
-SUBPROJECTS := $(strip $(SUBPROJECTS))
+SUBPROJECTS := $(strip $(call __schema_var_all,,SUBPROJECTS))
 ifneq ($(SUBPROJECTS),)
 internal-all internal-stage internal-clean::
 	@operation=$(subst internal-,,$@); \
@@ -40,3 +40,5 @@ internal-after-install::
 	  fi; \
 	done;
 endif
+
+$(eval $(call __mod,master/aggregate.mk))

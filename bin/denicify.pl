@@ -23,7 +23,7 @@ seek($nichandle, 0, 0);
 
 my $NICPackage = "NIC$nicversion";
 exitWithError("I don't understand NIC version $nicversion!") if(!can_load(modules => {"NIC::Formats::$NICPackage" => undef}));
-my $NIC = $NICPackage->new();
+my $NIC = "NIC::Formats::$NICPackage"->new();
 $NIC->load($nichandle);
 close($nichandle);
 ### YAY! ###

@@ -1,76 +1,112 @@
-package Method;
+package Logos::Generator::MobileSubstrate::Method;
 use strict;
-use Logos::BaseMethod;
-@Method::ISA = ('BaseMethod');
+use parent qw(Logos::Generator::Base::Method);
 
-sub classname {
+sub _originalMethodPointerDeclaration {
 	my $self = shift;
-	return ($self->{SCOPE} eq "+" ? "meta\$" : "").$self->class->name;
-}
+	my $method = shift;
+	if(!$method->isNew) {
+		my $build = "static ";
+		my $classargtype = $method->class->type;
+		$classargtype = "Class" if $method->scope eq "+";
+		my $name = "(*".$self->originalFunctionName($method).")(".$classargtype.", SEL";
+		my $argtypelist = join(", ", @{$method->argtypes});
+		$name .= ", ".$argtypelist if $argtypelist;
 
-sub new_selector {
-	my $self = shift;
-	if($self->{NUM_ARGS} == 0) {
-		return $self->{SELECTOR_PARTS}[0];
-	} else {
-		return join("\$", @{$self->{SELECTOR_PARTS}})."\$";
+		$name .= ")";
+		$build .= Logos::Method::declarationForTypeWithName($method->return, $name);
+		return $build;
 	}
+	return undef;
 }
 
-sub originalFunctionName {
+sub _methodPrototype {
 	my $self = shift;
-	return "_".$self->groupIdentifier."\$".$self->classname."\$".$self->new_selector;
-}
-
-sub newFunctionName {
-	my $self = shift;
-	return "\$".$self->groupIdentifier."\$".$self->classname."\$".$self->new_selector;
-}
-
-sub methodSignature {
-	my $self = shift;
-	my $build = "";
-	my $classargtype = "";
-	if($self->{SCOPE} eq "+") {
-		$classargtype = "Class";
-	} else {
-		$classargtype = $self->class->type;
-	}
-	if(!$self->{NEW}) {
-		$build .= "static ".$self->{RETURN}." (*".$self->originalFunctionName.")(".$classargtype.", SEL"; 
-		my $argtypelist = join(", ", @{$self->{ARGTYPES}});
-		$build .= ", ".$argtypelist if $argtypelist;
-
-		$build .= ");"
-	}
+	my $method = shift;
+	my $includeArgNames = 0 || shift;
+	my $build = "static ";
+	my $classargtype = $method->class->type;
+	$classargtype = "Class" if $method->scope eq "+";
 	my $arglist = "";
-	map $arglist .= ", ".$self->{ARGTYPES}[$_]." ".$self->{ARGNAMES}[$_], (0..$self->{NUM_ARGS} - 1);
+	if($includeArgNames == 1) {
+		map $arglist .= ", ".Logos::Method::declarationForTypeWithName($method->argtypes->[$_], $method->argnames->[$_]), (0..$method->numArgs - 1);
+	} else {
+		my $typelist = join(", ", @{$method->argtypes});
+		$arglist = ", ".$typelist if $typelist;
+	}
 
-	$build .= "static ".$self->{RETURN}." ".$self->newFunctionName."(".$classargtype." self, SEL _cmd".$arglist.")";
+	my $name = $self->newFunctionName($method)."(".$classargtype.($includeArgNames?" self":"").", SEL".($includeArgNames?" _cmd":"").$arglist.")";
+	$build .= Logos::Method::declarationForTypeWithName($method->return, $name);
+	return $build;
+}
+
+sub definition {
+	my $self = shift;
+	my $method = shift;
+	my $build = "";
+	$build .= $self->_methodPrototype($method, 1);
 	return $build;
 }
 
 sub originalCall {
 	my $self = shift;
+	my $method = shift;
 	my $customargs = shift;
-	return "" if $self->{NEW};
+	return "" if $method->isNew;
 
-	my $build = $self->originalFunctionName."(self, _cmd";
+	my $build = $self->originalFunctionName($method)."(self, _cmd";
 	if(defined $customargs && $customargs ne "") {
 		$build .= ", ".$customargs;
-	} elsif($self->{NUM_ARGS} > 0) {
-		$build .= ", ".join(", ",@{$self->{ARGNAMES}});
+	} elsif($method->numArgs > 0) {
+		$build .= ", ".join(", ",@{$method->argnames});
 	}
 	$build .= ")";
 	return $build;
 }
 
+sub declarations {
+	my $self = shift;
+	my $method = shift;
+	my $build = "";
+	my $orig = $self->_originalMethodPointerDeclaration($method);
+	$build .= $orig."; " if $orig;
+	$build .= $self->_methodPrototype($method)."; ";
+	return $build;
+}
+
 sub initializers {
 	my $self = shift;
-	if(!$self->{NEW}) {
-		return "MSHookMessageEx(\$\$".$self->classname.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", (IMP*)&".$self->originalFunctionName.");";
+	my $method = shift;
+	my $cgen = Logos::Generator::for($method->class);
+	my $classvar = ($method->scope eq "+" ? $cgen->metaVariable : $cgen->variable);
+	if(!$method->isNew) {
+		return "MSHookMessageEx(".$classvar.", \@selector(".$method->selector."), (IMP)&".$self->newFunctionName($method).", (IMP*)&".$self->originalFunctionName($method).");";
 	} else {
-		return "class_addMethod(\$\$".$self->classname.", \@selector(".$self->selector."), (IMP)&".$self->newFunctionName.", \"".$self->{TYPE}."\");";
+		my $r = "";
+		$r .= "{ ";
+		if(!$method->type) {
+			$r .= "char _typeEncoding[1024]; unsigned int i = 0; ";
+			for ($method->return, "id", "SEL", @{$method->argtypes}) {
+				my $typeEncoding = Logos::Method::typeEncodingForArgType($_);
+				if(defined $typeEncoding) {
+					my @typeEncodingBits = split(//, $typeEncoding);
+					my $i = 0;
+					for my $char (@typeEncodingBits) {
+						$r .= "_typeEncoding[i".($i > 0 ? " + $i" : "")."] = '$char'; ";
+						$i++;
+					}
+					$r .= "i += ".(scalar @typeEncodingBits)."; ";
+				} else {
+					$r .= "memcpy(_typeEncoding + i, \@encode($_), strlen(\@encode($_))); i += strlen(\@encode($_)); ";
+				}
+			}
+			$r .= "_typeEncoding[i] = '\\0'; ";
+		} else {
+			$r .= "const char *_typeEncoding = \"".$method->type."\"; ";
+		}
+		$r .= "class_addMethod(".$classvar.", \@selector(".$method->selector."), (IMP)&".$self->newFunctionName($method).", _typeEncoding); ";
+		$r .= "}";
+		return $r;
 	}
 }
 

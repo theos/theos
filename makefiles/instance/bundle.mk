@@ -50,3 +50,5 @@ internal-bundle-stage_:: shared-instance-bundle-stage
 ifneq ($(OBJ_FILES_TO_LINK),)
 	$(ECHO_NOTHING)cp $(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE) "$(THEOS_SHARED_BUNDLE_RESOURCE_PATH)"$(ECHO_END)
 endif
+
+$(eval $(call __mod,instance/bundle.mk))

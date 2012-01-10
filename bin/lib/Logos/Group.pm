@@ -1,4 +1,4 @@
-package Group;
+package Logos::Group;
 use strict;
 
 sub new {
@@ -35,10 +35,20 @@ sub initialized {
 	return $self->{INITIALIZED};
 }
 
+sub identifier {
+	my $self = shift;
+	return main::sanitize($self->{NAME});
+}
+
 sub initLine {
 	my $self = shift;
 	if(@_) { $self->{INITLINE} = shift; }
 	return $self->{INITLINE};
+}
+
+sub classes {
+	my $self = shift;
+	return $self->{CLASSES};
 }
 ##### #
 # END #
@@ -58,7 +68,7 @@ sub addClassNamed {
 	my $class = $self->getClassNamed($name);
 	return $class if defined($class);
 
-	$class = Class->new();
+	$class = ::Class()->new();
 	$class->name($name);
 	$self->addClass($class);
 	return $class;
@@ -71,18 +81,6 @@ sub getClassNamed {
 		return $_ if $_->name eq $name;
 	}
 	return undef;
-}
-
-sub initializers {
-	my $self = shift;
-	my $return = "";
-	$self->initialized(1);
-	$return .= "{";
-	foreach(@{$self->{CLASSES}}) {
-		$return .= $_->initializers;
-	}
-	$return .= "}";
-	return $return;
 }
 
 1;

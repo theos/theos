@@ -22,7 +22,7 @@ endif
 endif
 
 shared-instance-bundle-stage::
-	$(ECHO_NOTHING)mkdir -p $(THEOS_SHARED_BUNDLE_RESOURCE_PATH)$(ECHO_END)
+	$(ECHO_NOTHING)mkdir -p "$(THEOS_SHARED_BUNDLE_RESOURCE_PATH)"$(ECHO_END)
 ifneq ($(_RESOURCE_FILES),)
 	$(ECHO_COPYING_RESOURCE_FILES)for f in $(_RESOURCE_FILES); do \
 		if [ -f "$$f" -o -d "$$f" ]; then \
