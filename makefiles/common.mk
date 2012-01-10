@@ -24,7 +24,7 @@ export THEOS_PROJECT_DIR
 export PATH := $(THEOS_BIN_PATH):$(PATH)
 
 ifeq ($(THEOS_SCHEMA),)
-_THEOS_SCHEMA := $(shell echo "$(or $(schema),$(SCHEMA))" | tr 'a-z' 'A-Z')
+_THEOS_SCHEMA := $(shell echo "$(strip $(schema) $(SCHEMA))" | tr 'a-z' 'A-Z')
 _THEOS_ON_SCHEMA := DEFAULT $(filter-out -%,$(_THEOS_SCHEMA))
 ifeq ($(DEBUG),1)
 	_THEOS_ON_SCHEMA += DEBUG
