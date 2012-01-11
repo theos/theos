@@ -24,7 +24,7 @@ export THEOS_PROJECT_DIR
 export PATH := $(THEOS_BIN_PATH):$(PATH)
 
 ifeq ($(THEOS_SCHEMA),)
-_THEOS_SCHEMA := $(shell echo "$(or $(schema),$(SCHEMA))" | tr 'a-z' 'A-Z')
+_THEOS_SCHEMA := $(shell echo "$(strip $(schema) $(SCHEMA))" | tr 'a-z' 'A-Z')
 _THEOS_ON_SCHEMA := DEFAULT $(filter-out -%,$(_THEOS_SCHEMA))
 ifeq ($(DEBUG),1)
 	_THEOS_ON_SCHEMA += DEBUG
@@ -41,7 +41,7 @@ endif
 # "origin:name" pairs, and then filter out all pairs where the origin is "undefined".
 # We then substitute " " for ":" and take the last word, so we end up with only the entries from
 # __schema_all_var_names that are defined.
-__schema_all_var_names = $(foreach sch,$(THEOS_SCHEMA),$(1)$(subst DEFAULT_,,$(sch)_$(2)))
+__schema_all_var_names = $(foreach sch,$(THEOS_SCHEMA),$(subst DEFAULT.,,$(sch).)$(1)$(2))
 __schema_defined_var_names = $(foreach tuple,$(filter-out undefined:%,$(foreach schvar,$(call __schema_all_var_names,$(1),$(2)),$(origin $(schvar)):$(schvar))),$(lastword $(subst :, ,$(tuple))))
 __schema_var_all = $(strip $(foreach sch,$(call __schema_all_var_names,$(1),$(2)),$($(sch))))
 __schema_var_last = $(strip $($(lastword $(call __schema_defined_var_names,$(1),$(2)))))
