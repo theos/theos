@@ -238,14 +238,21 @@ foreach my $line (@lines) {
 			nestPush("group", $lineno, \@nestingstack);
 
 			$currentGroup = getGroup($1);
+			my $existed = 0;
 			if(!defined($currentGroup)) {
 				$currentGroup = Group->new();
 				$currentGroup->name($1);
 				push(@groups, $currentGroup);
+			} else {
+				$existed = 1;
 			}
 
 			my $capturedGroup = $currentGroup;
-			patchHere(sub { return Logos::Generator::for($capturedGroup)->declarations; });
+			if(!$existed) {
+				patchHere(sub { return Logos::Generator::for($capturedGroup)->declarations; });
+			} else {
+				patchHere(undef);
+			}
 		} elsif($line =~ /\G%class\s+([+-])?([\$_\w]+)/gc) {
 			# %class [+-]<identifier>
 			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
