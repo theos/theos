@@ -2,9 +2,12 @@ all::
 
 THEOS_PROJECT_DIR ?= $(shell pwd)
 
+### Function for getting a clean absolute path from cd.
+__clean_pwd = $(shell (unset CDPATH; cd "$(1)"; pwd))
+
 _THEOS_RELATIVE_MAKE_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
 ifeq ($(THEOS),)
-THEOS := $(shell (unset CDPATH; cd $(_THEOS_RELATIVE_MAKE_PATH); cd ..; pwd))
+THEOS := $(call __clean_pwd,$(_THEOS_RELATIVE_MAKE_PATH)/..)
 ifneq ($(words $(THEOS)),1) # It's a hack, but it works.
 $(shell unlink /tmp/theos &> /dev/null; ln -Ffs "$(THEOS)" /tmp/theos)
 THEOS := /tmp/theos
@@ -21,6 +24,29 @@ export THEOS_PROJECT_DIR
 
 export PATH := $(THEOS_BIN_PATH):$(PATH)
 
+ifeq ($(THEOS_SCHEMA),)
+_THEOS_SCHEMA := $(shell echo "$(strip $(schema) $(SCHEMA))" | tr 'a-z' 'A-Z')
+_THEOS_ON_SCHEMA := DEFAULT $(filter-out -%,$(_THEOS_SCHEMA))
+ifeq ($(DEBUG),1)
+	_THEOS_ON_SCHEMA += DEBUG
+endif
+_THEOS_OFF_SCHEMA := $(patsubst -%,%,$(filter -%,$(_THEOS_SCHEMA)))
+THEOS_SCHEMA := $(strip $(filter-out $(_THEOS_OFF_SCHEMA),$(_THEOS_ON_SCHEMA)))
+_THEOS_CLEANED_SCHEMA_SET := $(shell echo "$(filter-out DEFAULT,$(THEOS_SCHEMA))" | tr -Cd ' A-Z' | tr ' A-Z' '_a-z')
+export THEOS_SCHEMA _THEOS_CLEANED_SCHEMA_SET
+endif
+
+###
+# __schema_defined_var_names bears explanation:
+# For each schema'd variable gathered from __schema_all_var_names, we generate a list of
+# "origin:name" pairs, and then filter out all pairs where the origin is "undefined".
+# We then substitute " " for ":" and take the last word, so we end up with only the entries from
+# __schema_all_var_names that are defined.
+__schema_all_var_names = $(foreach sch,$(THEOS_SCHEMA),$(subst DEFAULT.,,$(sch).)$(1)$(2))
+__schema_defined_var_names = $(foreach tuple,$(filter-out undefined:%,$(foreach schvar,$(call __schema_all_var_names,$(1),$(2)),$(origin $(schvar)):$(schvar))),$(lastword $(subst :, ,$(tuple))))
+__schema_var_all = $(strip $(foreach sch,$(call __schema_all_var_names,$(1),$(2)),$($(sch))))
+__schema_var_last = $(strip $($(lastword $(call __schema_defined_var_names,$(1),$(2)))))
+
 # There are some packaging-related variables set here because some of the target install rules rely on them.
 ifeq ($(_THEOS_TOP_INVOCATION_DONE),)
 _THEOS_HAS_STAGING_LAYOUT := $(shell [ -d "$(THEOS_PROJECT_DIR)/layout" ] && echo 1 || echo 0)
@@ -33,7 +59,7 @@ _THEOS_CAN_PACKAGE := $(shell [ -f "$(_THEOS_PACKAGE_CONTROL_PATH)" ] && echo 1 
 endif # _THEOS_TOP_INVOCATION_DONE
 _THEOS_PACKAGE_LAST_VERSION = $(shell THEOS_PROJECT_DIR="$(THEOS_PROJECT_DIR)" $(THEOS_BIN_PATH)/package_version.sh -k -n -o -c "$(_THEOS_PACKAGE_CONTROL_PATH)")
 
-_THEOS_LOAD_MODULES := $(sort $(MODULES) $(THEOS_AUTOLOAD_MODULES))
+_THEOS_LOAD_MODULES := $(sort $(call __schema_var_all,,MODULES) $(THEOS_AUTOLOAD_MODULES))
 __mod = -include $$(foreach mod,$$(_THEOS_LOAD_MODULES),$$(THEOS_MODULE_PATH)/$$(mod)/$(1))
 
 include $(THEOS_MAKE_PATH)/legacy.mk
@@ -47,7 +73,7 @@ _THEOS_PLATFORM = $(uname_s)
 $(eval $(call __mod,platform/$(uname_s)-$(uname_p).mk))
 $(eval $(call __mod,platform/$(uname_s).mk))
 
-_THEOS_TARGET := $(or $(target),$(TARGET),$(_THEOS_PLATFORM_DEFAULT_TARGET))
+_THEOS_TARGET := $(or $(target),$(call __schema_var_last,,TARGET),$(_THEOS_PLATFORM_DEFAULT_TARGET))
 ifeq ($(_THEOS_TARGET),)
 $(error You did not specify a target, and the "$(THEOS_PLATFORM_NAME)" platform does not define a default target)
 endif
@@ -80,10 +106,9 @@ INTERNAL_LDFLAGS = $(if $(_THEOS_TARGET_HAS_LIBRARY_PATH),-L$(THEOS_TARGET_LIBRA
 
 OPTFLAG ?= -O2
 DEBUGFLAG ?= -ggdb
-ifeq ($(DEBUG),1)
-DEBUG_CFLAGS = -DDEBUG $(DEBUGFLAG)
-DEBUG_LDFLAGS = $(DEBUGFLAG)
-OPTFLAG := $(filter-out -O%, $(OPTFLAG))
+DEBUG.CFLAGS = -DDEBUG $(DEBUGFLAG) -O0
+DEBUG.LDFLAGS = $(DEBUGFLAG) -O0
+ifneq ($(findstring DEBUG,$(THEOS_SCHEMA)),)
 TARGET_STRIP = :
 PACKAGE_BUILDNAME ?= debug
 endif
@@ -91,17 +116,20 @@ endif
 CFLAGS += -I$(THEOS_FALLBACK_INCLUDE_PATH)
 INTERNAL_CFLAGS = -DTARGET_$(_THEOS_TARGET_NAME_DEFINE)=1 $(OPTFLAG) $(if $(_THEOS_TARGET_HAS_INCLUDE_PATH),-I$(THEOS_TARGET_INCLUDE_PATH) )-I$(THEOS_INCLUDE_PATH) -include $(THEOS)/Prefix.pch -Wall
 ifneq ($(GO_EASY_ON_ME),1)
+	INTERNAL_LOGOSFLAGS += -c warnings=error
 	INTERNAL_CFLAGS += -Werror
 endif
 INTERNAL_CFLAGS += $(SHARED_CFLAGS)
 
 THEOS_BUILD_DIR ?= .
 
-# If we're not using the default target, put the output in a folder named after the target.
+ifneq ($(_THEOS_CLEANED_SCHEMA_SET),)
+	_THEOS_OBJ_DIR_EXTENSION = /$(_THEOS_CLEANED_SCHEMA_SET)
+endif
 ifneq ($(THEOS_TARGET_NAME),$(_THEOS_PLATFORM_DEFAULT_TARGET))
-	THEOS_OBJ_DIR_NAME ?= .theos/obj/$(THEOS_TARGET_NAME)
+	THEOS_OBJ_DIR_NAME ?= .theos/obj/$(THEOS_TARGET_NAME)$(_THEOS_OBJ_DIR_EXTENSION)
 else
-	THEOS_OBJ_DIR_NAME ?= .theos/obj
+	THEOS_OBJ_DIR_NAME ?= .theos/obj$(_THEOS_OBJ_DIR_EXTENSION)
 endif
 THEOS_OBJ_DIR = $(THEOS_BUILD_DIR)/$(THEOS_OBJ_DIR_NAME)
 

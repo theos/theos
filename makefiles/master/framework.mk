@@ -8,7 +8,7 @@ internal-all:: $(FRAMEWORK_NAME:=.all.framework.variables);
 
 internal-stage:: $(FRAMEWORK_NAME:=.stage.framework.variables);
 
-FRAMEWORKS_WITH_SUBPROJECTS = $(strip $(foreach framework,$(FRAMEWORK_NAME),$(patsubst %,$(framework),$($(framework)_SUBPROJECTS))))
+FRAMEWORKS_WITH_SUBPROJECTS = $(strip $(foreach framework,$(FRAMEWORK_NAME),$(patsubst %,$(framework),$(call __schema_var_all,$(framework)_,SUBPROJECTS))))
 ifneq ($(FRAMEWORKS_WITH_SUBPROJECTS),)
 internal-clean:: $(FRAMEWORKS_WITH_SUBPROJECTS:=.clean.framework.subprojects)
 endif

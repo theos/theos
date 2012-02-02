@@ -35,7 +35,7 @@ include $(THEOS_MAKE_PATH)/package.mk
 
 ifeq ($(MAKELEVEL),0)
 ifneq ($(THEOS_BUILD_DIR),.)
-_THEOS_ABSOLUTE_BUILD_DIR = $(shell (unset CDPATH; cd "$(THEOS_BUILD_DIR)"; pwd))
+_THEOS_ABSOLUTE_BUILD_DIR = $(call __clean_pwd,$(THEOS_BUILD_DIR))
 else
 _THEOS_ABSOLUTE_BUILD_DIR = .
 endif
@@ -48,12 +48,13 @@ endif
 %.variables: _INSTANCE = $(basename $(basename $*))
 %.variables: _OPERATION = $(subst .,,$(suffix $(basename $*)))
 %.variables: _TYPE = $(subst -,_,$(subst .,,$(suffix $*)))
+%.variables: __SUBPROJECTS = $(strip $(call __schema_var_all,$(_INSTANCE)_,SUBPROJECTS))
 %.variables:
 	@ \
 abs_build_dir=$(_THEOS_ABSOLUTE_BUILD_DIR); \
-if [ "$($(_INSTANCE)_SUBPROJECTS)" != "" ]; then \
+if [ "$(__SUBPROJECTS)" != "" ]; then \
   echo Making $(_OPERATION) in subprojects of $(_TYPE) $(_INSTANCE)...; \
-  for d in $($(_INSTANCE)_SUBPROJECTS); do \
+  for d in $(__SUBPROJECTS); do \
     if [ "$${abs_build_dir}" = "." ]; then \
       lbuilddir="."; \
     else \
@@ -78,12 +79,13 @@ $(MAKE) --no-print-directory --no-keep-going \
 %.subprojects: _INSTANCE = $(basename $(basename $*))
 %.subprojects: _OPERATION = $(subst .,,$(suffix $(basename $*)))
 %.subprojects: _TYPE = $(subst -,_,$(subst .,,$(suffix $*)))
+%.subprojects: __SUBPROJECTS = $(strip $(call __schema_var_all,$(_INSTANCE)_,SUBPROJECTS))
 %.subprojects:
 	@ \
 abs_build_dir=$(_THEOS_ABSOLUTE_BUILD_DIR); \
-if [ "$($(_INSTANCE)_SUBPROJECTS)" != "" ]; then \
+if [ "$(__SUBPROJECTS)" != "" ]; then \
   echo Making $(_OPERATION) in subprojects of $(_TYPE) $(_INSTANCE)...; \
-  for d in $($(_INSTANCE)_SUBPROJECTS); do \
+  for d in $(__SUBPROJECTS); do \
     if [ "$${abs_build_dir}" = "." ]; then \
       lbuilddir="."; \
     else \

@@ -26,8 +26,10 @@ use aliased 'Logos::StaticClassGroup' ;
 
 use Logos::Generator;
 
-%main::CONFIG = ( generator => "MobileSubstrate"
+%main::CONFIG = ( generator => "MobileSubstrate",
+		  warnings => "default",
 		);
+$main::warnings = 0;
 
 GetOptions("config|c=s" => \%main::CONFIG);
 
@@ -238,14 +240,21 @@ foreach my $line (@lines) {
 			nestPush("group", $lineno, \@nestingstack);
 
 			$currentGroup = getGroup($1);
+			my $existed = 0;
 			if(!defined($currentGroup)) {
 				$currentGroup = Group->new();
 				$currentGroup->name($1);
 				push(@groups, $currentGroup);
+			} else {
+				$existed = 1;
 			}
 
 			my $capturedGroup = $currentGroup;
-			patchHere(sub { return Logos::Generator::for($capturedGroup)->declarations; });
+			if(!$existed) {
+				patchHere(sub { return Logos::Generator::for($capturedGroup)->declarations; });
+			} else {
+				patchHere(undef);
+			}
 		} elsif($line =~ /\G%class\s+([+-])?([\$_\w]+)/gc) {
 			# %class [+-]<identifier>
 			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
@@ -583,6 +592,10 @@ if(exists $main::CONFIG{"dump"} && $main::CONFIG{"dump"} eq "yaml") {
 	print STDERR YAML::Syck::Dump({groups=>\@groups, patches=>\@patches});
 }
 
+if($main::warnings > 0 && exists $main::CONFIG{"warnings"} && $main::CONFIG{"warnings"} eq "error") {
+	exit(1);
+}
+
 for(@sortedPatches) {
 	applyPatch($_, \@lines);
 }
@@ -633,7 +646,18 @@ sub fileWarning {
 	my $reason = shift;
 	my @lineMap = lookupLineMapping($curline);
 	my $filename = $lineMap[0];
-	print STDERR "$filename:".($curline > -1 ? $lineMap[1].":" : "")." warning: $reason\n";
+	my $print = 1;
+	if(exists($main::CONFIG{"warnings"})) {
+		if($main::CONFIG{"warnings"} eq "error") {
+			if($main::warnings == 0) {
+				print STDERR "logos: warnings being treated as errors\n";
+			}
+		} elsif($main::CONFIG{"warnings"} eq "none") {
+			$print = 0;
+		}
+	}
+	print STDERR "$filename:".($curline > -1 ? $lineMap[1].":" : "")." warning: $reason\n" if($print == 1);
+	$main::warnings++;
 }
 
 sub fileError {

@@ -13,7 +13,7 @@ internal-all:: $(SUBPROJECT_NAME:=.all.subproject.variables);
 
 internal-stage:: $(SUBPROJECT_NAME:=.stage.subproject.variables);
 
-SUBPROJECTS_WITH_SUBPROJECTS = $(strip $(foreach subproject,$(SUBPROJECT_NAME),$(patsubst %,$(subproject),$($(subproject)_SUBPROJECTS))))
+SUBPROJECTS_WITH_SUBPROJECTS = $(strip $(foreach subproject,$(SUBPROJECT_NAME),$(patsubst %,$(subproject),$(call __schema_var_all,$(subproject)_,SUBPROJECTS))))
 ifneq ($(SUBPROJECTS_WITH_SUBPROJECTS),)
 internal-clean:: $(SUBPROJECTS_WITH_SUBPROJECTS:=.clean.subproject.subprojects)
 endif

@@ -156,6 +156,7 @@ sub formatCharForArgType {
 	# Pointer Types
 	return "%s" if /^char\s*\*$/;
 	return "%p" if /^void\s*\*$/;
+	return "%p" if /^id\s*\*$/;
 	return "%p" if /^((unsigned|signed)\s+)?(unsigned|signed|int|long|long\s+long|bool|BOOL|_Bool|char|short|float|double)\s*\*+$/;
 	return "%p" if /^NS.*?(Pointer|Array)$/;
 	return "%p" if /^NSZone\s*\*$/;
