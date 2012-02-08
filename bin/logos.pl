@@ -189,7 +189,18 @@ foreach my $line (@lines) {
 
 	my @quotes = quotes($line);
 
-	# Beginning of a directive, or [+-](type)
+	# Brace Depth Mapping
+	pos($line) = 0;
+	while($line =~ /[{}]/g) {
+		next if fallsBetween($-[0], @quotes);
+
+		my $depthtoken = $lineno.":".($-[0]+1);
+
+		$depth += ($& eq "{") ? 1 : -1;
+		$depthMapping{$depthtoken} = $depth;
+	}
+
+	# Directive
 	pos($line) = 0;
 	while($line =~ m/(?=(\%\w|[+-]\s*\(\s*.*?\s*\)))/gc) {
 		next if fallsBetween($-[0], @quotes);
@@ -290,7 +301,7 @@ foreach my $line (@lines) {
 			$xtype = $2 if $2;
 			$newMethodTypeEncoding = $xtype;
 			patchHere(undef);
-		} elsif($currentClass && $line =~ /\G([+-])\s*\(\s*(.*?)\s*\)(?=\s*[\w:])/gc) {
+		} elsif($currentClass && $line =~ /\G([+-])\s*\(\s*(.*?)\s*\)(?=\s*[\w:])/gc && lookupDepthMapping($lineno, $-[0]) < 1) {
 			# [+-] (<return>)<[X:]>, but only when we're in a %hook.
 
 			# Gasp! We've been moved to a different group!
@@ -480,17 +491,6 @@ foreach my $line (@lines) {
 			$main::CONFIG{$1} = $2;
 			patchHere(undef);
 		}
-	}
-
-	# Brace Depth Mapping
-	pos($line) = 0;
-	while($line =~ /[{}]/g) {
-		next if fallsBetween($-[0], @quotes);
-
-		my $depthtoken = $lineno.":".($-[0]+1);
-
-		$depth += ($& eq "{") ? 1 : -1;
-		$depthMapping{$depthtoken} = $depth;
 	}
 
 	$lineno++;
