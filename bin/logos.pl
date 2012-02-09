@@ -26,8 +26,10 @@ use aliased 'Logos::StaticClassGroup' ;
 
 use Logos::Generator;
 
-%main::CONFIG = ( generator => "MobileSubstrate"
+%main::CONFIG = ( generator => "MobileSubstrate",
+		  warnings => "default",
 		);
+$main::warnings = 0;
 
 GetOptions("config|c=s" => \%main::CONFIG);
 
@@ -187,7 +189,18 @@ foreach my $line (@lines) {
 
 	my @quotes = quotes($line);
 
-	# Beginning of a directive, or [+-](type)
+	# Brace Depth Mapping
+	pos($line) = 0;
+	while($line =~ /[{}]/g) {
+		next if fallsBetween($-[0], @quotes);
+
+		my $depthtoken = $lineno.":".($-[0]+1);
+
+		$depth += ($& eq "{") ? 1 : -1;
+		$depthMapping{$depthtoken} = $depth;
+	}
+
+	# Directive
 	pos($line) = 0;
 	while($line =~ m/(?=(\%\w|[+-]\s*\(\s*.*?\s*\)))/gc) {
 		next if fallsBetween($-[0], @quotes);
@@ -288,7 +301,7 @@ foreach my $line (@lines) {
 			$xtype = $2 if $2;
 			$newMethodTypeEncoding = $xtype;
 			patchHere(undef);
-		} elsif($currentClass && $line =~ /\G([+-])\s*\(\s*(.*?)\s*\)(?=\s*[\w:])/gc) {
+		} elsif($currentClass && $line =~ /\G([+-])\s*\(\s*(.*?)\s*\)(?=\s*[\w:])/gc && lookupDepthMapping($lineno, $-[0]) < 1) {
 			# [+-] (<return>)<[X:]>, but only when we're in a %hook.
 
 			# Gasp! We've been moved to a different group!
@@ -480,17 +493,6 @@ foreach my $line (@lines) {
 		}
 	}
 
-	# Brace Depth Mapping
-	pos($line) = 0;
-	while($line =~ /[{}]/g) {
-		next if fallsBetween($-[0], @quotes);
-
-		my $depthtoken = $lineno.":".($-[0]+1);
-
-		$depth += ($& eq "{") ? 1 : -1;
-		$depthMapping{$depthtoken} = $depth;
-	}
-
 	$lineno++;
 }
 
@@ -590,6 +592,10 @@ if(exists $main::CONFIG{"dump"} && $main::CONFIG{"dump"} eq "yaml") {
 	print STDERR YAML::Syck::Dump({groups=>\@groups, patches=>\@patches});
 }
 
+if($main::warnings > 0 && exists $main::CONFIG{"warnings"} && $main::CONFIG{"warnings"} eq "error") {
+	exit(1);
+}
+
 for(@sortedPatches) {
 	applyPatch($_, \@lines);
 }
@@ -640,7 +646,18 @@ sub fileWarning {
 	my $reason = shift;
 	my @lineMap = lookupLineMapping($curline);
 	my $filename = $lineMap[0];
-	print STDERR "$filename:".($curline > -1 ? $lineMap[1].":" : "")." warning: $reason\n";
+	my $print = 1;
+	if(exists($main::CONFIG{"warnings"})) {
+		if($main::CONFIG{"warnings"} eq "error") {
+			if($main::warnings == 0) {
+				print STDERR "logos: warnings being treated as errors\n";
+			}
+		} elsif($main::CONFIG{"warnings"} eq "none") {
+			$print = 0;
+		}
+	}
+	print STDERR "$filename:".($curline > -1 ? $lineMap[1].":" : "")." warning: $reason\n" if($print == 1);
+	$main::warnings++;
 }
 
 sub fileError {
