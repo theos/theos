@@ -24,6 +24,8 @@ my $_theospath = File::Spec->catdir(@_dirs);
 {
 	my $_abstheospath = abs_path($_theospath);
 	my $_cwd = abs_path(Cwd::getcwd());
+	$_abstheospath .= '/' if $_abstheospath !~ /\/$/;
+	$_cwd .= '/' if $_cwd !~ /\/$/;
 	exitWithError("Cowardly refusing to make a project inside \$THEOS ($_abstheospath)") if($_cwd =~ /^$_abstheospath/);
 }
 
