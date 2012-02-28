@@ -202,7 +202,7 @@ foreach my $line (@lines) {
 
 	# Directive
 	pos($line) = 0;
-	while($line =~ m/(?=(\%\w|[+-]\s*\(\s*.*?\s*\)))/gc) {
+	while($line =~ m/\B(?=(\%\w|[+-]\s*\(\s*.*?\s*\)))/gc) {
 		next if fallsBetween($-[0], @quotes);
 
 		if($line =~ /\G%hook\s+([\$_\w]+)/gc) {
@@ -358,7 +358,7 @@ foreach my $line (@lines) {
 			$patch->range($patchStart, pos($line));
 			$patch->subref(sub { return Logos::Generator::for($method)->definition; });
 			addPatch($patch);
-		} elsif($line =~ /\G%orig(?=\W?)/gc) {
+		} elsif($line =~ /\G%orig\b/gc) {
 			# %orig, with optional following parens.
 			nestingMustContain($lineno, "%orig", \@nestingstack, "hook", "subclass");
 			fileWarning($lineno, "%orig in a new method will be non-operative.") if $currentMethod->isNew;
@@ -380,18 +380,18 @@ foreach my $line (@lines) {
 			$patch->range($patchStart, pos($line));
 			$patch->subref(sub { return Logos::Generator::for($capturedMethod)->originalCall($orig_args); });
 			addPatch($patch);
-		} elsif($line =~ /\G%log(?=\W?)/gc) {
+		} elsif($line =~ /\G%log\b/gc) {
 			# %log
 			nestingMustContain($lineno, "%log", \@nestingstack, "hook", "subclass");
 
 			my $capturedMethod = $currentMethod;
 			patchHere(sub { return Logos::Generator::for($capturedMethod)->buildLogCall; });
-		} elsif($line =~ /\G%ctor(?=\W?)/gc) {
+		} elsif($line =~ /\G%ctor\b/gc) {
 			# %ctor
 			nestingMustNotContain($lineno, "%ctor", \@nestingstack, "hook", "subclass");
 			my $replacement = "static __attribute__((constructor)) void _logosLocalCtor_".substr(md5_hex($`.$lineno.$'), 0, 8)."()";
 			patchHere(sub { return $replacement; });
-		} elsif($line =~ /\G%init(?=\W?)/gc) {
+		} elsif($line =~ /\G%init\b/gc) {
 			# %init, with optional following parens
 			my $groupname = "_ungrouped";
 
@@ -476,7 +476,7 @@ foreach my $line (@lines) {
 			addPatch($patch);
 
 			@lastInitPosition = ($lineno, pos($line));
-		} elsif($line =~ /\G%end/gc) {
+		} elsif($line =~ /\G%end\b/gc) {
 			# %end
 			my $closing = nestPop(\@nestingstack);
 			fileError($lineno, "dangling %end") if !$closing;
