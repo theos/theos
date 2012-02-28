@@ -205,8 +205,15 @@ foreach my $line (@lines) {
 	while($line =~ m/\B(?=(\%\w|[+-]\s*\(\s*.*?\s*\)))/gc) {
 		next if fallsBetween($-[0], @quotes);
 
+		my @directiveDepthTokens = locationOpeningDepthAtPosition($lineno, $-[0]);
+		my $directiveDepth;
+		$directiveDepth = 0 if(!@directiveDepthTokens);
+		$directiveDepth = $depthMapping{join(':', @directiveDepthTokens)};
+		my $depthPosition = lineDescriptionForPhysicalLine($directiveDepthTokens[0]).":".$directiveDepthTokens[1];
+
 		if($line =~ /\G%hook\s+([\$_\w]+)/gc) {
 			# "%hook <identifier>"
+			fileError($lineno, "%hook does not make sense inside a block (opened at $depthPosition)") if($directiveDepth >= 1);
 			nestingMustNotContain($lineno, "%hook", \@nestingstack, "hook", "subclass");
 
 			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
@@ -218,6 +225,7 @@ foreach my $line (@lines) {
 			patchHere(undef);
 		} elsif($line =~ /\G%subclass\s+([\$_\w]+)\s*:\s*([\$_\w]+)\s*(\<\s*(.*?)\s*\>)?/gc) {
 			# %subclass <identifier> : <identifier> \<<protocols ...>\>
+			fileError($lineno, "%subclass does not make sense inside a block (opened at $depthPosition)") if($directiveDepth >= 1);
 			nestingMustNotContain($lineno, "%subclass", \@nestingstack, "hook", "subclass");
 
 			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
@@ -244,6 +252,7 @@ foreach my $line (@lines) {
 			patchHere(undef);
 		} elsif($line =~ /\G%group\s+([\$_\w]+)/gc) {
 			# %group <identifier>
+			fileError($lineno, "%group does not make sense inside a block (opened at $depthPosition)") if($directiveDepth >= 1);
 			nestingMustNotContain($lineno, "%group", \@nestingstack, "group");
 
 			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
@@ -301,7 +310,7 @@ foreach my $line (@lines) {
 			$xtype = $2 if $2;
 			$newMethodTypeEncoding = $xtype;
 			patchHere(undef);
-		} elsif($currentClass && $line =~ /\G([+-])\s*\(\s*(.*?)\s*\)(?=\s*[\w:])/gc && lookupDepthMapping($lineno, $-[0]) < 1) {
+		} elsif($currentClass && $line =~ /\G([+-])\s*\(\s*(.*?)\s*\)(?=\s*[\w:])/gc && $directiveDepth < 1) {
 			# [+-] (<return>)<[X:]>, but only when we're in a %hook.
 
 			# Gasp! We've been moved to a different group!
@@ -388,11 +397,13 @@ foreach my $line (@lines) {
 			patchHere(sub { return Logos::Generator::for($capturedMethod)->buildLogCall; });
 		} elsif($line =~ /\G%ctor\b/gc) {
 			# %ctor
+			fileError($lineno, "%ctor does not make sense inside a block (opened at $depthPosition)") if($directiveDepth >= 1);
 			nestingMustNotContain($lineno, "%ctor", \@nestingstack, "hook", "subclass");
 			my $replacement = "static __attribute__((constructor)) void _logosLocalCtor_".substr(md5_hex($`.$lineno.$'), 0, 8)."()";
 			patchHere(sub { return $replacement; });
 		} elsif($line =~ /\G%init\b/gc) {
 			# %init, with optional following parens
+			fileError($lineno, "%init does not make sense outside a block") if($directiveDepth < 1);
 			my $groupname = "_ungrouped";
 
 			my $patchStart = $-[0];
@@ -478,6 +489,7 @@ foreach my $line (@lines) {
 			@lastInitPosition = ($lineno, pos($line));
 		} elsif($line =~ /\G%end\b/gc) {
 			# %end
+			fileError($lineno, "%end does not make sense inside a block (opened at $depthPosition)") if($directiveDepth >= 1);
 			my $closing = nestPop(\@nestingstack);
 			fileError($lineno, "dangling %end") if !$closing;
 			if($closing eq "group") {
@@ -742,7 +754,7 @@ sub lineDescriptionForPhysicalLine {
 	return "$filename:$lineno";
 }
 
-sub lookupDepthMapping {
+sub locationOpeningDepthAtPosition {
 	my $fileline = shift;
 	my $pos = shift;
 	my @keys = sort {
@@ -755,10 +767,18 @@ sub lookupDepthMapping {
 	for (@keys) {
 		my @depthTokens = split(/:/, $_);
 		if($fileline > $depthTokens[0] || ($fileline == $depthTokens[0] && $pos >= $depthTokens[1])) {
-			return $depthMapping{$_};
+			return @depthTokens;
 		}
 	}
-	return 0;
+	return undef;
+}
+
+sub lookupDepthMapping {
+	my $fileline = shift;
+	my $pos = shift;
+	my @depthTokens = locationOpeningDepthAtPosition($fileline, $pos);
+	return 0 if(!@depthTokens);
+	return $depthMapping{join(':', @depthTokens)};
 }
 
 sub patchHere {
