@@ -585,15 +585,27 @@ fileError($lineno, "non-initialized hook group".($numUnGroups == 1 ? "" : "s")."
 
 my @sortedPatches = sort { ($b->line == $a->line ? ($b->start || -1) <=> ($a->start || -1) : $b->line <=> $a->line) } @patches;
 
-if(exists $main::CONFIG{"dump"} && $main::CONFIG{"dump"} eq "yaml") {
-	print STDERR YAML::Syck::Dump({
-				linemap=>\%lineMapping,
-				depthmap=>\%depthMapping,
-				groups=>\@groups,
-				patches=>\@patches,
-				lines=>\@lines,
-				config=>\%::CONFIG
-				});
+if(exists $main::CONFIG{"dump"}) {
+	my $dumphref = {
+			linemap=>\%lineMapping,
+			depthmap=>\%depthMapping,
+			groups=>\@groups,
+			patches=>\@patches,
+			lines=>\@lines,
+			config=>\%::CONFIG
+		       };
+	if($main::CONFIG{"dump"} eq "yaml") {
+		load 'YAML::Syck';
+		print STDERR YAML::Syck::Dump($dumphref);
+	} elsif($main::CONFIG{"dump"} eq "perl") {
+		load 'Data::Dumper';
+		$Data::Dumper::Purity = 1;
+
+		my @k; my @v;
+		map {push(@k,$_); push(@v, $dumphref->{$_});} keys %$dumphref;
+		print STDERR Data::Dumper->Dump(\@v, \@k);
+	}
+	#print STDERR Data::Dumper->Dump([\@groups, \@patches, \@lines, \%::CONFIG], [qw(groups patches lines config)]);
 }
 
 if($main::warnings > 0 && exists $main::CONFIG{"warnings"} && $main::CONFIG{"warnings"} eq "error") {
