@@ -6,14 +6,21 @@ use Module::Load::Conditional qw(can_load);
 $Module::Load::Conditional::VERBOSE = 1;
 our $GeneratorPackage = "";
 
+my %cache;
+
 sub for {
 	my $object = shift;
 	my $dequalified = undef;
+	my $cachekey;
 	if(defined $object) {
+		$cachekey = $object;
 		my $class = blessed($object);
 		($dequalified = $class) =~ s/.*::// if defined $class
 	}
+	$cachekey = "-" if !$cachekey;
 	$dequalified .= "Generator" if !defined $dequalified;
+	return $cache{$cachekey} if $cache{$cachekey};
+
 	my $qualified = $GeneratorPackage."::".$dequalified;
 	my $fallback = "Logos::Generator::Base::".$dequalified;
 
@@ -22,6 +29,7 @@ sub for {
 	can_load(modules=>{$fallback=>undef},verbose=>1) if $shouldFallBack;
 
 	my $thunk = Logos::Generator::Thunk->for(($shouldFallBack ? $fallback : $qualified), $object);
+	$cache{$cachekey} = $thunk;
 	return $thunk;
 }
 
