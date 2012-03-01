@@ -18,6 +18,8 @@ use Logos::Util;
 $Logos::Util::errorhandler = \&utilErrorHandler;
 
 use aliased 'Logos::Patch';
+use aliased 'Logos::Patch::Source::Generator' => 'Patch::Source::Generator';
+use aliased 'Logos::Patch';
 use aliased 'Logos::Group';
 use aliased 'Logos::Method';
 use aliased 'Logos::Class';
@@ -271,7 +273,7 @@ foreach my $line (@lines) {
 
 			my $capturedGroup = $currentGroup;
 			if(!$existed) {
-				patchHere(sub { return Logos::Generator::for($capturedGroup)->declarations; });
+				patchHere(Patch::Source::Generator->new($capturedGroup, 'declarations'));
 			} else {
 				patchHere(undef);
 			}
@@ -302,7 +304,7 @@ foreach my $line (@lines) {
 				$staticClassGroup->addUsedClass($classname);
 			}
 			$classes{$classname}++;
-			patchHere(sub { return Logos::Generator::for($classname)->classReferenceWithScope($scope); });
+			patchHere(Patch::Source::Generator->new($classname, 'classReferenceWithScope', $scope));
 		} elsif($line =~ /\G%new(\((.*?)\))?(?=\W?)/gc) {
 			# %new[(type)]
 			nestingMustContain($lineno, "%new", \@nestingstack, "hook", "subclass");
@@ -365,7 +367,7 @@ foreach my $line (@lines) {
 			my $patch = Patch->new();
 			$patch->line($lineno);
 			$patch->range($patchStart, pos($line));
-			$patch->subref(sub { return Logos::Generator::for($method)->definition; });
+			$patch->source(Patch::Source::Generator->new($method, 'definition'));
 			addPatch($patch);
 		} elsif($line =~ /\G%orig\b/gc) {
 			# %orig, with optional following parens.
@@ -387,20 +389,20 @@ foreach my $line (@lines) {
 			my $patch = Patch->new();
 			$patch->line($lineno);
 			$patch->range($patchStart, pos($line));
-			$patch->subref(sub { return Logos::Generator::for($capturedMethod)->originalCall($orig_args); });
+			$patch->source(Patch::Source::Generator->new($capturedMethod, 'originalCall', $orig_args));
 			addPatch($patch);
 		} elsif($line =~ /\G%log\b/gc) {
 			# %log
 			nestingMustContain($lineno, "%log", \@nestingstack, "hook", "subclass");
 
 			my $capturedMethod = $currentMethod;
-			patchHere(sub { return Logos::Generator::for($capturedMethod)->buildLogCall; });
+			patchHere(Patch::Source::Generator->new($capturedMethod, 'buildLogCall'));
 		} elsif($line =~ /\G%ctor\b/gc) {
 			# %ctor
 			fileError($lineno, "%ctor does not make sense inside a block (opened at $depthPosition)") if($directiveDepth >= 1);
 			nestingMustNotContain($lineno, "%ctor", \@nestingstack, "hook", "subclass");
 			my $replacement = "static __attribute__((constructor)) void _logosLocalCtor_".substr(md5_hex($`.$lineno.$'), 0, 8)."()";
-			patchHere(sub { return $replacement; });
+			patchHere($replacement);
 		} elsif($line =~ /\G%init\b/gc) {
 			# %init, with optional following parens
 			fileError($lineno, "%init does not make sense outside a block") if($directiveDepth < 1);
@@ -476,13 +478,12 @@ foreach my $line (@lines) {
 			$patch->line($lineno);
 			$patch->range($patchStart, pos($line));
 			if($groupname eq "_ungrouped") {
-				$patch->subref(sub {
-					return "{".Logos::Generator::for($group)->initializers.Logos::Generator::for($staticClassGroup)->initializers."}";
-				});
+				$patch->source(["{",
+						Patch::Source::Generator->new($group, 'initializers'),
+						Patch::Source::Generator->new($staticClassGroup, 'initializers'),
+						"}"]);
 			} else {
-				$patch->subref(sub {
-					return Logos::Generator::for($group)->initializers;
-				});
+				$patch->source(Patch::Source::Generator->new($group, 'initializers'));
 			}
 			addPatch($patch);
 
@@ -547,14 +548,12 @@ if(@firstDirectivePosition) {
 	}
 	my $patch = Patch->new();
 	$patch->line($line);
-	$patch->subref(sub {
-		my @out = ();
-		push(@out, Logos::Generator::for->preamble) if !$hasGeneratorPreamble;
-		push(@out, Logos::Generator::for->generateClassList(keys %classes));
-		push(@out, Logos::Generator::for($groups[0])->declarations);
-		push(@out, Logos::Generator::for($staticClassGroup)->declarations);
-		return \@out;
-	});
+	my @patchsource = ();
+	push(@patchsource, Patch::Source::Generator->new(undef, 'preamble')) if !$hasGeneratorPreamble;
+	push(@patchsource, Patch::Source::Generator->new(undef, 'generateClassList', keys %classes));
+	push(@patchsource, Patch::Source::Generator->new($groups[0], 'declarations'));
+	push(@patchsource, Patch::Source::Generator->new($staticClassGroup, 'declarations'));
+	$patch->source(\@patchsource);
 	addPatch($patch);
 
 	if(@lastInitPosition) {
@@ -563,18 +562,15 @@ if(@firstDirectivePosition) {
 			my $patch = Patch->new();
 			$patch->line($lastInitPosition[0]);
 			$patch->range($lastInitPosition[1], $lastInitPosition[1]);
-			$patch->subref(sub {
-				return [Logos::Generator::for($staticClassGroup)->initializers];
-			});
+			$patch->source(Patch::Source::Generator->new($staticClassGroup, 'initializers'));
 			$staticClassGroup->initialized(1);
 			addPatch($patch);
 		}
 	} else {
 		my $patch = Patch->new();
 		$patch->line(scalar @lines);
-		$patch->subref(sub {
-			return [generateConstructor()];
-		});
+		$patch->squash(1);
+		$patch->source(defaultConstructorSource());
 		addPatch($patch);
 	}
 
@@ -591,16 +587,6 @@ my @sortedPatches = sort { ($b->line == $a->line ? ($b->start || -1) <=> ($a->st
 
 if(exists $main::CONFIG{"dump"} && $main::CONFIG{"dump"} eq "yaml") {
 	load 'YAML::Syck';
-	if(exists $main::CONFIG{"patches"} && $main::CONFIG{"patches"} eq "full") {
-		for(@sortedPatches) {
-			my $l = $_->line;
-			my ($s, $e) = @{$_->range};
-			if(defined $s) {
-				$_->{"1_ORIG"} = substr($lines[$l], $s, $e-$s);
-			}
-			$_->{"2_PATCH"} = $_->subref ? &{$_->subref}() : "";
-		}
-	}
 	print STDERR YAML::Syck::Dump({groups=>\@groups, patches=>\@patches});
 }
 
@@ -609,7 +595,7 @@ if($main::warnings > 0 && exists $main::CONFIG{"warnings"} && $main::CONFIG{"war
 }
 
 for(@sortedPatches) {
-	applyPatch($_, \@lines);
+	$_->apply(\@lines);
 }
 
 splice(@lines, 0, 0, generateLineDirectiveForPhysicalLine(0)) if !$preprocessed;
@@ -617,22 +603,23 @@ foreach my $oline (@lines) {
 	print $oline."\n" if defined($oline);
 }
 
-sub generateConstructor {
-	my $return = "";
+sub defaultConstructorSource {
+	my @return;
 	my $explicitGroups = 0;
 	foreach(@groups) {
 		$explicitGroups++ if $_->explicit;
 	}
 	fileError($lineno, "Cannot generate an autoconstructor with multiple %groups. Please explicitly create a constructor.") if $explicitGroups > 0;
-	$return .= "static __attribute__((constructor)) void _logosLocalInit() {\n";
+	push(@return, "static __attribute__((constructor)) void _logosLocalInit() {\n");
 	foreach(@groups) {
 		next if $_->explicit;
 		fileError($lineno, "re-%init of %group ".$_->name.", first initialized at ".lineDescriptionForPhysicalLine($_->initLine)) if $_->initialized;
-		$return .= Logos::Generator::for($_)->initializers." ";
+		push(@return, Patch::Source::Generator->new($_, 'initializers'));
+		push(@return, " ");
 		$_->initLine($lineno);
 	}
-	$return .= "}";
-	return $return;
+	push(@return, "}\n");
+	return \@return;
 }
 
 sub fileWarning {
@@ -782,37 +769,17 @@ sub lookupDepthMapping {
 }
 
 sub patchHere {
-	my $subref = shift;
+	my $source = shift;
 	my $patch = Patch->new();
 	$patch->line($lineno);
 	$patch->range($-[0], $+[0]);
-	$patch->subref($subref);
+	$patch->source($source);
 	push @patches, $patch;
 }
 
 sub addPatch {
 	my $patch = shift;
 	push @patches, $patch;
-}
-
-sub applyPatch {
-	my $patch = shift;
-	my $lineref = shift;
-	my $line = $_->line;
-	my ($start, $end) = @{$_->range};
-	my $subreturn = (defined $_->subref) ? &{$_->subref}() : "";
-	my @lines;
-	if(ref($subreturn) && ref($subreturn) eq "ARRAY") {
-		@lines = @$subreturn;
-	} else {
-		@lines = ($subreturn);
-	}
-	if(!defined $start) {
-		push(@lines, generateLineDirectiveForPhysicalLine($line));
-		splice(@$lineref, $line, 0, @lines);
-	} else {
-		substr($lineref->[$line], $start, $end-$start) = $lines[0];
-	}
 }
 
 sub utilErrorHandler {
