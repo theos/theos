@@ -18,6 +18,8 @@ use Logos::Util;
 $Logos::Util::errorhandler = \&utilErrorHandler;
 
 use aliased 'Logos::Patch';
+use aliased 'Logos::Patch::Source::Generator' => 'Patch::Source::Generator';
+use aliased 'Logos::Patch';
 use aliased 'Logos::Group';
 use aliased 'Logos::Method';
 use aliased 'Logos::Class';
@@ -202,11 +204,18 @@ foreach my $line (@lines) {
 
 	# Directive
 	pos($line) = 0;
-	while($line =~ m/(?=(\%\w|[+-]\s*\(\s*.*?\s*\)))/gc) {
+	while($line =~ m/\B(?=(\%\w|[+-]\s*\(\s*.*?\s*\)))/gc) {
 		next if fallsBetween($-[0], @quotes);
+
+		my @directiveDepthTokens = locationOpeningDepthAtPosition($lineno, $-[0]);
+		my $directiveDepth;
+		$directiveDepth = 0 if(!@directiveDepthTokens);
+		$directiveDepth = $depthMapping{join(':', @directiveDepthTokens)};
+		my $depthPosition = lineDescriptionForPhysicalLine($directiveDepthTokens[0]).":".$directiveDepthTokens[1];
 
 		if($line =~ /\G%hook\s+([\$_\w]+)/gc) {
 			# "%hook <identifier>"
+			fileError($lineno, "%hook does not make sense inside a block (opened at $depthPosition)") if($directiveDepth >= 1);
 			nestingMustNotContain($lineno, "%hook", \@nestingstack, "hook", "subclass");
 
 			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
@@ -218,6 +227,7 @@ foreach my $line (@lines) {
 			patchHere(undef);
 		} elsif($line =~ /\G%subclass\s+([\$_\w]+)\s*:\s*([\$_\w]+)\s*(\<\s*(.*?)\s*\>)?/gc) {
 			# %subclass <identifier> : <identifier> \<<protocols ...>\>
+			fileError($lineno, "%subclass does not make sense inside a block (opened at $depthPosition)") if($directiveDepth >= 1);
 			nestingMustNotContain($lineno, "%subclass", \@nestingstack, "hook", "subclass");
 
 			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
@@ -244,6 +254,7 @@ foreach my $line (@lines) {
 			patchHere(undef);
 		} elsif($line =~ /\G%group\s+([\$_\w]+)/gc) {
 			# %group <identifier>
+			fileError($lineno, "%group does not make sense inside a block (opened at $depthPosition)") if($directiveDepth >= 1);
 			nestingMustNotContain($lineno, "%group", \@nestingstack, "group");
 
 			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
@@ -262,7 +273,7 @@ foreach my $line (@lines) {
 
 			my $capturedGroup = $currentGroup;
 			if(!$existed) {
-				patchHere(sub { return Logos::Generator::for($capturedGroup)->declarations; });
+				patchHere(Patch::Source::Generator->new($capturedGroup, 'declarations'));
 			} else {
 				patchHere(undef);
 			}
@@ -293,7 +304,7 @@ foreach my $line (@lines) {
 				$staticClassGroup->addUsedClass($classname);
 			}
 			$classes{$classname}++;
-			patchHere(sub { return Logos::Generator::for($classname)->classReferenceWithScope($scope); });
+			patchHere(Patch::Source::Generator->new($classname, 'classReferenceWithScope', $scope));
 		} elsif($line =~ /\G%new(\((.*?)\))?(?=\W?)/gc) {
 			# %new[(type)]
 			nestingMustContain($lineno, "%new", \@nestingstack, "hook", "subclass");
@@ -301,7 +312,7 @@ foreach my $line (@lines) {
 			$xtype = $2 if $2;
 			$newMethodTypeEncoding = $xtype;
 			patchHere(undef);
-		} elsif($currentClass && $line =~ /\G([+-])\s*\(\s*(.*?)\s*\)(?=\s*[\w:])/gc && lookupDepthMapping($lineno, $-[0]) < 1) {
+		} elsif($currentClass && $line =~ /\G([+-])\s*\(\s*(.*?)\s*\)(?=\s*[\w:])/gc && $directiveDepth < 1) {
 			# [+-] (<return>)<[X:]>, but only when we're in a %hook.
 
 			# Gasp! We've been moved to a different group!
@@ -356,9 +367,9 @@ foreach my $line (@lines) {
 			my $patch = Patch->new();
 			$patch->line($lineno);
 			$patch->range($patchStart, pos($line));
-			$patch->subref(sub { return Logos::Generator::for($method)->definition; });
+			$patch->source(Patch::Source::Generator->new($method, 'definition'));
 			addPatch($patch);
-		} elsif($line =~ /\G%orig(?=\W?)/gc) {
+		} elsif($line =~ /\G%orig\b/gc) {
 			# %orig, with optional following parens.
 			nestingMustContain($lineno, "%orig", \@nestingstack, "hook", "subclass");
 			fileWarning($lineno, "%orig in a new method will be non-operative.") if $currentMethod->isNew;
@@ -378,21 +389,23 @@ foreach my $line (@lines) {
 			my $patch = Patch->new();
 			$patch->line($lineno);
 			$patch->range($patchStart, pos($line));
-			$patch->subref(sub { return Logos::Generator::for($capturedMethod)->originalCall($orig_args); });
+			$patch->source(Patch::Source::Generator->new($capturedMethod, 'originalCall', $orig_args));
 			addPatch($patch);
-		} elsif($line =~ /\G%log(?=\W?)/gc) {
+		} elsif($line =~ /\G%log\b/gc) {
 			# %log
 			nestingMustContain($lineno, "%log", \@nestingstack, "hook", "subclass");
 
 			my $capturedMethod = $currentMethod;
-			patchHere(sub { return Logos::Generator::for($capturedMethod)->buildLogCall; });
-		} elsif($line =~ /\G%ctor(?=\W?)/gc) {
+			patchHere(Patch::Source::Generator->new($capturedMethod, 'buildLogCall'));
+		} elsif($line =~ /\G%ctor\b/gc) {
 			# %ctor
+			fileError($lineno, "%ctor does not make sense inside a block (opened at $depthPosition)") if($directiveDepth >= 1);
 			nestingMustNotContain($lineno, "%ctor", \@nestingstack, "hook", "subclass");
 			my $replacement = "static __attribute__((constructor)) void _logosLocalCtor_".substr(md5_hex($`.$lineno.$'), 0, 8)."()";
-			patchHere(sub { return $replacement; });
-		} elsif($line =~ /\G%init(?=\W?)/gc) {
+			patchHere($replacement);
+		} elsif($line =~ /\G%init\b/gc) {
 			# %init, with optional following parens
+			fileError($lineno, "%init does not make sense outside a block") if($directiveDepth < 1);
 			my $groupname = "_ungrouped";
 
 			my $patchStart = $-[0];
@@ -465,19 +478,19 @@ foreach my $line (@lines) {
 			$patch->line($lineno);
 			$patch->range($patchStart, pos($line));
 			if($groupname eq "_ungrouped") {
-				$patch->subref(sub {
-					return "{".Logos::Generator::for($group)->initializers.Logos::Generator::for($staticClassGroup)->initializers."}";
-				});
+				$patch->source(["{",
+						Patch::Source::Generator->new($group, 'initializers'),
+						Patch::Source::Generator->new($staticClassGroup, 'initializers'),
+						"}"]);
 			} else {
-				$patch->subref(sub {
-					return Logos::Generator::for($group)->initializers;
-				});
+				$patch->source(Patch::Source::Generator->new($group, 'initializers'));
 			}
 			addPatch($patch);
 
 			@lastInitPosition = ($lineno, pos($line));
-		} elsif($line =~ /\G%end/gc) {
+		} elsif($line =~ /\G%end\b/gc) {
 			# %end
+			fileError($lineno, "%end does not make sense inside a block (opened at $depthPosition)") if($directiveDepth >= 1);
 			my $closing = nestPop(\@nestingstack);
 			fileError($lineno, "dangling %end") if !$closing;
 			if($closing eq "group") {
@@ -535,14 +548,12 @@ if(@firstDirectivePosition) {
 	}
 	my $patch = Patch->new();
 	$patch->line($line);
-	$patch->subref(sub {
-		my @out = ();
-		push(@out, Logos::Generator::for->preamble) if !$hasGeneratorPreamble;
-		push(@out, Logos::Generator::for->generateClassList(keys %classes));
-		push(@out, Logos::Generator::for($groups[0])->declarations);
-		push(@out, Logos::Generator::for($staticClassGroup)->declarations);
-		return \@out;
-	});
+	my @patchsource = ();
+	push(@patchsource, Patch::Source::Generator->new(undef, 'preamble')) if !$hasGeneratorPreamble;
+	push(@patchsource, Patch::Source::Generator->new(undef, 'generateClassList', keys %classes));
+	push(@patchsource, Patch::Source::Generator->new($groups[0], 'declarations'));
+	push(@patchsource, Patch::Source::Generator->new($staticClassGroup, 'declarations'));
+	$patch->source(\@patchsource);
 	addPatch($patch);
 
 	if(@lastInitPosition) {
@@ -551,18 +562,15 @@ if(@firstDirectivePosition) {
 			my $patch = Patch->new();
 			$patch->line($lastInitPosition[0]);
 			$patch->range($lastInitPosition[1], $lastInitPosition[1]);
-			$patch->subref(sub {
-				return [Logos::Generator::for($staticClassGroup)->initializers];
-			});
+			$patch->source(Patch::Source::Generator->new($staticClassGroup, 'initializers'));
 			$staticClassGroup->initialized(1);
 			addPatch($patch);
 		}
 	} else {
 		my $patch = Patch->new();
 		$patch->line(scalar @lines);
-		$patch->subref(sub {
-			return [generateConstructor()];
-		});
+		$patch->squash(1);
+		$patch->source(defaultConstructorSource());
 		addPatch($patch);
 	}
 
@@ -577,19 +585,27 @@ fileError($lineno, "non-initialized hook group".($numUnGroups == 1 ? "" : "s")."
 
 my @sortedPatches = sort { ($b->line == $a->line ? ($b->start || -1) <=> ($a->start || -1) : $b->line <=> $a->line) } @patches;
 
-if(exists $main::CONFIG{"dump"} && $main::CONFIG{"dump"} eq "yaml") {
-	load 'YAML::Syck';
-	if(exists $main::CONFIG{"patches"} && $main::CONFIG{"patches"} eq "full") {
-		for(@sortedPatches) {
-			my $l = $_->line;
-			my ($s, $e) = @{$_->range};
-			if(defined $s) {
-				$_->{"1_ORIG"} = substr($lines[$l], $s, $e-$s);
-			}
-			$_->{"2_PATCH"} = $_->subref ? &{$_->subref}() : "";
-		}
+if(exists $main::CONFIG{"dump"}) {
+	my $dumphref = {
+			linemap=>\%lineMapping,
+			depthmap=>\%depthMapping,
+			groups=>\@groups,
+			patches=>\@patches,
+			lines=>\@lines,
+			config=>\%::CONFIG
+		       };
+	if($main::CONFIG{"dump"} eq "yaml") {
+		load 'YAML::Syck';
+		print STDERR YAML::Syck::Dump($dumphref);
+	} elsif($main::CONFIG{"dump"} eq "perl") {
+		load 'Data::Dumper';
+		$Data::Dumper::Purity = 1;
+
+		my @k; my @v;
+		map {push(@k,$_); push(@v, $dumphref->{$_});} keys %$dumphref;
+		print STDERR Data::Dumper->Dump(\@v, \@k);
 	}
-	print STDERR YAML::Syck::Dump({groups=>\@groups, patches=>\@patches});
+	#print STDERR Data::Dumper->Dump([\@groups, \@patches, \@lines, \%::CONFIG], [qw(groups patches lines config)]);
 }
 
 if($main::warnings > 0 && exists $main::CONFIG{"warnings"} && $main::CONFIG{"warnings"} eq "error") {
@@ -597,7 +613,7 @@ if($main::warnings > 0 && exists $main::CONFIG{"warnings"} && $main::CONFIG{"war
 }
 
 for(@sortedPatches) {
-	applyPatch($_, \@lines);
+	$_->apply(\@lines);
 }
 
 splice(@lines, 0, 0, generateLineDirectiveForPhysicalLine(0)) if !$preprocessed;
@@ -605,40 +621,23 @@ foreach my $oline (@lines) {
 	print $oline."\n" if defined($oline);
 }
 
-sub generateConstructor {
-	my $return = "";
+sub defaultConstructorSource {
+	my @return;
 	my $explicitGroups = 0;
 	foreach(@groups) {
 		$explicitGroups++ if $_->explicit;
 	}
 	fileError($lineno, "Cannot generate an autoconstructor with multiple %groups. Please explicitly create a constructor.") if $explicitGroups > 0;
-	$return .= "static __attribute__((constructor)) void _logosLocalInit() {\n";
-	$return .= "#ifdef __clang__\n";
-	$return .= "#if __has_feature(objc_arc)\n";
-	$return .= "\@autoreleasepool {\n";
-	$return .= "#else\n";
-	$return .= "NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];\n";
-	$return .= "#endif\n";
-	$return .= "#else\n";
-	$return .= "NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];\n";
-	$return .= "#endif\n";
+	push(@return, "static __attribute__((constructor)) void _logosLocalInit() {\n");
 	foreach(@groups) {
 		next if $_->explicit;
 		fileError($lineno, "re-%init of %group ".$_->name.", first initialized at ".lineDescriptionForPhysicalLine($_->initLine)) if $_->initialized;
-		$return .= Logos::Generator::for($_)->initializers." ";
+		push(@return, Patch::Source::Generator->new($_, 'initializers'));
+		push(@return, " ");
 		$_->initLine($lineno);
 	}
-	$return .= "\n#ifdef __clang__\n";
-	$return .= "#if __has_feature(objc_arc)\n";
-	$return .= "}\n";
-	$return .= "#else\n";
-	$return .= "[pool drain];\n";
-	$return .= "#endif\n";
-	$return .= "#else\n";
-	$return .= "[pool drain];\n";
-	$return .= "#endif\n";
-	$return .= "}";
-	return $return;
+	push(@return, "}\n");
+	return \@return;
 }
 
 sub fileWarning {
@@ -760,7 +759,7 @@ sub lineDescriptionForPhysicalLine {
 	return "$filename:$lineno";
 }
 
-sub lookupDepthMapping {
+sub locationOpeningDepthAtPosition {
 	my $fileline = shift;
 	my $pos = shift;
 	my @keys = sort {
@@ -773,44 +772,32 @@ sub lookupDepthMapping {
 	for (@keys) {
 		my @depthTokens = split(/:/, $_);
 		if($fileline > $depthTokens[0] || ($fileline == $depthTokens[0] && $pos >= $depthTokens[1])) {
-			return $depthMapping{$_};
+			return @depthTokens;
 		}
 	}
-	return 0;
+	return undef;
+}
+
+sub lookupDepthMapping {
+	my $fileline = shift;
+	my $pos = shift;
+	my @depthTokens = locationOpeningDepthAtPosition($fileline, $pos);
+	return 0 if(!@depthTokens);
+	return $depthMapping{join(':', @depthTokens)};
 }
 
 sub patchHere {
-	my $subref = shift;
+	my $source = shift;
 	my $patch = Patch->new();
 	$patch->line($lineno);
 	$patch->range($-[0], $+[0]);
-	$patch->subref($subref);
+	$patch->source($source);
 	push @patches, $patch;
 }
 
 sub addPatch {
 	my $patch = shift;
 	push @patches, $patch;
-}
-
-sub applyPatch {
-	my $patch = shift;
-	my $lineref = shift;
-	my $line = $_->line;
-	my ($start, $end) = @{$_->range};
-	my $subreturn = (defined $_->subref) ? &{$_->subref}() : "";
-	my @lines;
-	if(ref($subreturn) && ref($subreturn) eq "ARRAY") {
-		@lines = @$subreturn;
-	} else {
-		@lines = ($subreturn);
-	}
-	if(!defined $start) {
-		push(@lines, generateLineDirectiveForPhysicalLine($line));
-		splice(@$lineref, $line, 0, @lines);
-	} else {
-		substr($lineref->[$line], $start, $end-$start) = $lines[0];
-	}
 }
 
 sub utilErrorHandler {

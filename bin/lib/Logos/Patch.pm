@@ -7,7 +7,8 @@ sub new {
 	my $self = {};
 	$self->{LINE} = -1;
 	$self->{RANGE} = [];
-	$self->{SUBREF} = undef;
+	$self->{SOURCE} = undef;
+	$self->{SQUASH} = 0;
 	bless($self, $class);
 	return $self;
 }
@@ -39,14 +40,59 @@ sub end {
 	return $self->{RANGE}[1];
 }
 
-sub subref {
+sub source {
 	my $self = shift;
-	if(@_) { $self->{SUBREF} = shift; }
-	return $self->{SUBREF};
+	if(@_) { $self->{SOURCE} = shift; }
+	return $self->{SOURCE};
+}
+
+sub squash {
+	my $self = shift;
+	if(@_) { $self->{SQUASH} = shift; }
+	return $self->{SQUASH};
 }
 
 ##### #
 # END #
 # #####
+
+sub evalSource {
+	my $self = shift;
+	my $source = shift;
+	my $sourceref = ref($source);
+	my @lines;
+	if($sourceref) {
+		if($sourceref eq "ARRAY") {
+			for(@$source) {
+				splice(@lines, scalar @lines, 0, $self->evalSource($_));
+			}
+		} else {
+			push(@lines, $source->eval());
+		}
+	} else {
+		push(@lines, $source);
+	}
+	return @lines;
+}
+
+sub apply {
+	my $self = shift;
+	my $lref = shift;
+	my $line = $self->{LINE};
+	my ($start, $end) = @{$self->{RANGE}};
+	my $source = $self->{SOURCE};
+	my @lines = $self->evalSource($source);
+	if(!defined $start) {
+		push(@lines, ::generateLineDirectiveForPhysicalLine($line));
+		if($self->{SQUASH}) {
+			push(@$lref, join('', @lines));
+		} else {
+			splice(@$lref, $line, 0, @lines);
+		}
+	} else {
+		substr($lref->[$line], $start, $end-$start) = join('', @lines);
+	}
+	return;
+}
 
 1;
