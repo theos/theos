@@ -12,7 +12,7 @@ sub _defaultErrorHandler {
 sub quotes {
 	my ($line) = @_;
 	my @quotes = ();
-	while($line =~ /(?<!\\)\"/g) {
+	while($line =~ /\G(?<!\\)\"/gc) {
 		push(@quotes, $-[0]);
 	}
 	return @quotes;
