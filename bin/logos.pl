@@ -193,6 +193,8 @@ foreach my $line (@lines) {
 
 	# Brace Depth Mapping
 	pos($line) = 0;
+	my %depthsForCurrentLine;
+	$depthsForCurrentLine{"$lineno:0"} = $depth;
 	while($line =~ /[{}]/g) {
 		next if fallsBetween($-[0], @quotes);
 
@@ -200,6 +202,7 @@ foreach my $line (@lines) {
 
 		$depth += ($& eq "{") ? 1 : -1;
 		$depthMapping{$depthtoken} = $depth;
+		$depthsForCurrentLine{$depthtoken} = $depth;
 	}
 
 	# Directive
@@ -207,15 +210,14 @@ foreach my $line (@lines) {
 	while($line =~ m/\B(?=(\%\w|[+-]\s*\(\s*.*?\s*\)))/gc) {
 		next if fallsBetween($-[0], @quotes);
 
-		my @directiveDepthTokens = locationOpeningDepthAtPosition($lineno, $-[0]);
+		my @directiveDepthTokens = locationOpeningDepthAtPositionInMapping(\%depthsForCurrentLine, $lineno, $-[0]);
 		my $directiveDepth;
 		$directiveDepth = 0 if(!@directiveDepthTokens);
-		$directiveDepth = $depthMapping{join(':', @directiveDepthTokens)};
-		my $depthPosition = lineDescriptionForPhysicalLine($directiveDepthTokens[0]).":".$directiveDepthTokens[1];
+		$directiveDepth = $depthsForCurrentLine{join(':', @directiveDepthTokens)} if @directiveDepthTokens;
 
 		if($line =~ /\G%hook\s+([\$_\w]+)/gc) {
 			# "%hook <identifier>"
-			fileError($lineno, "%hook does not make sense inside a block (opened at $depthPosition)") if($directiveDepth >= 1);
+			fileError($lineno, "%hook does not make sense inside a block") if($directiveDepth >= 1);
 			nestingMustNotContain($lineno, "%hook", \@nestingstack, "hook", "subclass");
 
 			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
@@ -227,7 +229,7 @@ foreach my $line (@lines) {
 			patchHere(undef);
 		} elsif($line =~ /\G%subclass\s+([\$_\w]+)\s*:\s*([\$_\w]+)\s*(\<\s*(.*?)\s*\>)?/gc) {
 			# %subclass <identifier> : <identifier> \<<protocols ...>\>
-			fileError($lineno, "%subclass does not make sense inside a block (opened at $depthPosition)") if($directiveDepth >= 1);
+			fileError($lineno, "%subclass does not make sense inside a block") if($directiveDepth >= 1);
 			nestingMustNotContain($lineno, "%subclass", \@nestingstack, "hook", "subclass");
 
 			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
@@ -254,7 +256,7 @@ foreach my $line (@lines) {
 			patchHere(undef);
 		} elsif($line =~ /\G%group\s+([\$_\w]+)/gc) {
 			# %group <identifier>
-			fileError($lineno, "%group does not make sense inside a block (opened at $depthPosition)") if($directiveDepth >= 1);
+			fileError($lineno, "%group does not make sense inside a block") if($directiveDepth >= 1);
 			nestingMustNotContain($lineno, "%group", \@nestingstack, "group");
 
 			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
@@ -399,7 +401,7 @@ foreach my $line (@lines) {
 			patchHere(Patch::Source::Generator->new($capturedMethod, 'buildLogCall'));
 		} elsif($line =~ /\G%ctor\b/gc) {
 			# %ctor
-			fileError($lineno, "%ctor does not make sense inside a block (opened at $depthPosition)") if($directiveDepth >= 1);
+			fileError($lineno, "%ctor does not make sense inside a block") if($directiveDepth >= 1);
 			nestingMustNotContain($lineno, "%ctor", \@nestingstack, "hook", "subclass");
 			my $replacement = "static __attribute__((constructor)) void _logosLocalCtor_".substr(md5_hex($`.$lineno.$'), 0, 8)."()";
 			patchHere($replacement);
@@ -490,7 +492,7 @@ foreach my $line (@lines) {
 			@lastInitPosition = ($lineno, pos($line));
 		} elsif($line =~ /\G%end\b/gc) {
 			# %end
-			fileError($lineno, "%end does not make sense inside a block (opened at $depthPosition)") if($directiveDepth >= 1);
+			fileError($lineno, "%end does not make sense inside a block") if($directiveDepth >= 1);
 			my $closing = nestPop(\@nestingstack);
 			fileError($lineno, "dangling %end") if !$closing;
 			if($closing eq "group") {
@@ -529,10 +531,19 @@ if(@firstDirectivePosition) {
 	# corresponding "{", however. Nobody codes like that anyway.
 	# This will probably also break if you keep your "{" and "}" inside header files
 	# that you #include into your code. Nobody codes like that, either.
+
+	# Optimization: Only do this once.
+	my @depthKeys = sort {
+		my @ba=split(/:/,$b);
+		my @aa=split(/:/,$a);
+		($ba[0] == $aa[0]
+		? $ba[1] <=> $aa[1]
+			: $ba[0] <=> $aa[0])
+	} keys %depthMapping;
 	my $line = $firstDirectivePosition[0];
 	my $pos = $firstDirectivePosition[1];
 	while(1) {
-		my $depth = lookupDepthMapping($line, $pos);
+		my $depth = lookupDepthMapping($line, $pos, \@depthKeys);
 		my $above;
 		$above = "" if $line eq 0;
 		if($preprocessed) {
@@ -759,16 +770,23 @@ sub lineDescriptionForPhysicalLine {
 	return "$filename:$lineno";
 }
 
-sub locationOpeningDepthAtPosition {
+sub locationOpeningDepthAtPositionInMapping {
+	my $dref = shift;
 	my $fileline = shift;
 	my $pos = shift;
-	my @keys = sort {
-		my @ba=split(/:/,$b);
-		my @aa=split(/:/,$a);
-		($ba[0] == $aa[0]
+	my $kref = shift;
+	my @keys;
+	if($kref) {
+		@keys = @$kref;
+	} else {
+		@keys = sort {
+			my @ba=split(/:/,$b);
+			my @aa=split(/:/,$a);
+			($ba[0] == $aa[0]
 			? $ba[1] <=> $aa[1]
-			: $ba[0] <=> $aa[0])
-	} keys %depthMapping;
+				: $ba[0] <=> $aa[0])
+		} keys %$dref;
+	}
 	for (@keys) {
 		my @depthTokens = split(/:/, $_);
 		if($fileline > $depthTokens[0] || ($fileline == $depthTokens[0] && $pos >= $depthTokens[1])) {
@@ -781,7 +799,8 @@ sub locationOpeningDepthAtPosition {
 sub lookupDepthMapping {
 	my $fileline = shift;
 	my $pos = shift;
-	my @depthTokens = locationOpeningDepthAtPosition($fileline, $pos);
+	my $kref = shift;
+	my @depthTokens = locationOpeningDepthAtPositionInMapping(\%depthMapping, $fileline, $pos, $kref);
 	return 0 if(!@depthTokens);
 	return $depthMapping{join(':', @depthTokens)};
 }
