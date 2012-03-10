@@ -3,9 +3,6 @@ _THEOS_PACKAGE_RULES_LOADED := 1
 
 .PHONY: package internal-before-package before-package internal-package after-package
 
-# For the toplevel invocation of make, mark 'all' and the *-package rules as prerequisites.
-# We do not do this for anything else, because otherwise, all the packaging rules would run for every subproject.
-ifeq ($(_THEOS_TOP_INVOCATION_DONE),)
 _THEOS_HAS_DPKG_DEB := $(shell PATH="$(THEOS_BIN_PATH):$$PATH" type dpkg-deb > /dev/null 2>&1 && echo 1 || echo 0)
 ifeq ($(_THEOS_HAS_DPKG_DEB),1)
 package:: stage before-package internal-package after-package
@@ -15,10 +12,6 @@ package::
 endif
 
 install:: before-install internal-install after-install
-else # _THEOS_TOP_INVOCATION_DONE
-package::
-install::
-endif
 
 FAKEROOT := $(THEOS_BIN_PATH)/fakeroot.sh -p "$(THEOS_PROJECT_DIR)/.theos/fakeroot"
 export FAKEROOT
@@ -32,8 +25,6 @@ THEOS_PACKAGE_VERSION = $(shell THEOS_PROJECT_DIR="$(THEOS_PROJECT_DIR)" $(THEOS
 export THEOS_PACKAGE_NAME THEOS_PACKAGE_ARCH THEOS_PACKAGE_BASE_VERSION THEOS_PACKAGE_VERSION
 endif # _THEOS_CAN_PACKAGE
 
-# Only do the master packaging rules if we're the toplevel make invocation.
-ifeq ($(_THEOS_TOP_INVOCATION_DONE),)
 ifeq ($(_THEOS_CAN_PACKAGE),1) # Control file found (or layout/ found.)
 
 THEOS_PACKAGE_FILENAME = $(THEOS_PACKAGE_NAME)_$(_THEOS_PACKAGE_LAST_VERSION)_$(THEOS_PACKAGE_ARCH)
@@ -56,8 +47,6 @@ internal-package::
 	@echo "$(MAKE) package requires you to have a layout/ directory in the project root, containing the basic package structure, or a control file in the project root describing the package."; exit 1
 
 endif # _THEOS_CAN_PACKAGE
-
-endif # _THEOS_TOP_INVOCATION_DONE
 
 before-package::
 after-package::
