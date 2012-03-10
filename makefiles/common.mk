@@ -47,7 +47,7 @@ __schema_var_all = $(strip $(foreach sch,$(call __schema_all_var_names,$(1),$(2)
 __schema_var_last = $(strip $($(lastword $(call __schema_defined_var_names,$(1),$(2)))))
 
 # There are some packaging-related variables set here because some of the target install rules rely on them.
-ifeq ($(_THEOS_TOP_INVOCATION_DONE),)
+ifeq ($(_THEOS_CAN_PACKAGE),)
 _THEOS_HAS_STAGING_LAYOUT := $(shell [ -d "$(THEOS_PROJECT_DIR)/layout" ] && echo 1 || echo 0)
 ifeq ($(_THEOS_HAS_STAGING_LAYOUT),1)
 	_THEOS_PACKAGE_CONTROL_PATH := $(THEOS_PROJECT_DIR)/layout/DEBIAN/control
@@ -55,7 +55,9 @@ else # _THEOS_HAS_STAGING_LAYOUT == 0
 	_THEOS_PACKAGE_CONTROL_PATH := $(THEOS_PROJECT_DIR)/control
 endif # _THEOS_HAS_STAGING_LAYOUT
 _THEOS_CAN_PACKAGE := $(shell [ -f "$(_THEOS_PACKAGE_CONTROL_PATH)" ] && echo 1 || echo 0)
-endif # _THEOS_TOP_INVOCATION_DONE
+export _THEOS_CAN_PACKAGE _THEOS_HAS_STAGING_LAYOUT _THEOS_PACKAGE_CONTROL_PATH
+endif # _THEOS_CAN_PACKAGE
+
 _THEOS_PACKAGE_LAST_VERSION = $(shell THEOS_PROJECT_DIR="$(THEOS_PROJECT_DIR)" $(THEOS_BIN_PATH)/package_version.sh -k -n -o -c "$(_THEOS_PACKAGE_CONTROL_PATH)")
 
 _THEOS_LOAD_MODULES := $(sort $(call __schema_var_all,,MODULES) $(THEOS_AUTOLOAD_MODULES))
