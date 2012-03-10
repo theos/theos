@@ -5,8 +5,8 @@ THEOS_PROJECT_DIR ?= $(shell pwd)
 ### Function for getting a clean absolute path from cd.
 __clean_pwd = $(shell (unset CDPATH; cd "$(1)"; pwd))
 
-_THEOS_RELATIVE_MAKE_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
 ifeq ($(THEOS),)
+_THEOS_RELATIVE_MAKE_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
 THEOS := $(call __clean_pwd,$(_THEOS_RELATIVE_MAKE_PATH)/..)
 ifneq ($(words $(THEOS)),1) # It's a hack, but it works.
 $(shell unlink /tmp/theos &> /dev/null; ln -Ffs "$(THEOS)" /tmp/theos)
