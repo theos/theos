@@ -74,7 +74,7 @@ _THEOS_PLATFORM = $(uname_s)
 $(eval $(call __mod,platform/$(uname_s)-$(uname_p).mk))
 $(eval $(call __mod,platform/$(uname_s).mk))
 
-_THEOS_TARGET := $(or $(target),$(call __schema_var_last,,TARGET),$(_THEOS_PLATFORM_DEFAULT_TARGET))
+_THEOS_TARGET := $(shell $(THEOS_BIN_PATH)/target.pl "$(target)" "$(call __schema_var_last,,TARGET)" "$(_THEOS_PLATFORM_DEFAULT_TARGET)")
 ifeq ($(_THEOS_TARGET),)
 $(error You did not specify a target, and the "$(THEOS_PLATFORM_NAME)" platform does not define a default target)
 endif
