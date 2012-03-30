@@ -21,6 +21,7 @@ TARGET_PRIVATE_FRAMEWORK_PATH = $(SYSROOT)/System/Library/PrivateFrameworks
 
 include $(THEOS_MAKE_PATH)/targets/_common/install_deb_local.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
+include $(THEOS_MAKE_PATH)/targets/_common/darwin_flat_bundle.mk
 
 SDKFLAGS := -isysroot $(SYSROOT)
 TARGET_CFLAGS := $(SDKFLAGS)

@@ -34,6 +34,7 @@ TARGET_PRIVATE_FRAMEWORK_PATH = $(SYSROOT)/System/Library/PrivateFrameworks
 
 include $(THEOS_MAKE_PATH)/targets/_common/install_deb_remote.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
+include $(THEOS_MAKE_PATH)/targets/_common/darwin_flat_bundle.mk
 
 ARCHS ?= armv6
 

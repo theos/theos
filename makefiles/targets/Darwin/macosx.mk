@@ -16,6 +16,7 @@ TARGET_PRIVATE_FRAMEWORK_PATH = /System/Library/PrivateFrameworks
 
 include $(THEOS_MAKE_PATH)/targets/_common/install_deb_local.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
+include $(THEOS_MAKE_PATH)/targets/_common/darwin_hierarchial_bundle.mk
 
 ARCHS ?= i386 x86_64
 SDKFLAGS := $(foreach ARCH,$(ARCHS),-arch $(ARCH)) $(if $(_THEOS_TARGET_MACOSX_DEPLOYMENT_VERSION),-mmacosx-version-min=$(_THEOS_TARGET_MACOSX_DEPLOYMENT_VERSION))
