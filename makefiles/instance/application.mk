@@ -4,7 +4,13 @@ endif
 
 .PHONY: internal-application-all_ internal-application-stage_ internal-application-compile
 
+ifeq ($(findstring UIKit,$($(THEOS_CURRENT_INSTANCE)_FRAMEWORKS))$(findstring AppKit,$($(THEOS_CURRENT_INSTANCE)_FRAMEWORKS)),)
 AUXILIARY_LDFLAGS += -framework UIKit
+ifeq ($(_THEOS_APPLICATION_WARNED_IMPLICIT_UIKIT_$(THEOS_CURRENT_INSTANCE)),)
+$(shell echo "$(THEOS_CURRENT_INSTANCE): warning: Implicit UIKit linkage for application instances is deprecated. Please add \"UIKit\" to $(THEOS_CURRENT_INSTANCE)_FRAMEWORKS." >&2)
+export _THEOS_APPLICATION_WARNED_IMPLICIT_UIKIT_$(THEOS_CURRENT_INSTANCE) = 1
+endif
+endif
 
 LOCAL_INSTALL_PATH ?= $(strip $($(THEOS_CURRENT_INSTANCE)_INSTALL_PATH))
 ifeq ($(LOCAL_INSTALL_PATH),)

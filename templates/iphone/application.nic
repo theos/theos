@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
 
 // vim:ft=objc
 
-file 25 @@PROJECTNAME@@Application.mm
+file 26 @@PROJECTNAME@@Application.mm
 #import "RootViewController.h"
 
 @interface @@PROJECTNAME@@Application: UIApplication <UIApplicationDelegate> {
@@ -56,6 +56,7 @@ file 25 @@PROJECTNAME@@Application.mm
 }
 
 - (void)dealloc {
+	[_viewController release];
 	[_window release];
 	[super dealloc];
 }
@@ -68,11 +69,12 @@ file 3 RootViewController.h
 }
 @end
 
-file 6 Makefile
+file 7 Makefile
 include theos/makefiles/common.mk
 
 APPLICATION_NAME = @@PROJECTNAME@@
 @@PROJECTNAME@@_FILES = main.m @@PROJECTNAME@@Application.mm RootViewController.mm
+@@PROJECTNAME@@_FRAMEWORKS = UIKit CoreGraphics
 
 include $(THEOS_MAKE_PATH)/application.mk
 
