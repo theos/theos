@@ -48,7 +48,7 @@ my %lineMapping = ();
 { # If the first line matches "# \d \"...\"", this file has been run through the preprocessor already.
 my $firstline = <FILE>;
 seek(FILE, 0, Fcntl::SEEK_SET);
-if($firstline =~ /^# \d+ \"(.*?)\"$/) {
+if($firstline && $firstline =~ /^# \d+ \"(.*?)\"$/) {
 	$preprocessed = 1;
 	$filename = $1;
 }
