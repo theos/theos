@@ -4,7 +4,13 @@ endif
 
 .PHONY: internal-application-all_ internal-application-stage_ internal-application-compile
 
+ifeq ($(findstring UIKit,$($(THEOS_CURRENT_INSTANCE)_FRAMEWORKS))$(findstring AppKit,$($(THEOS_CURRENT_INSTANCE)_FRAMEWORKS)),)
 AUXILIARY_LDFLAGS += -framework UIKit
+ifeq ($(_THEOS_APPLICATION_WARNED_IMPLICIT_UIKIT_$(THEOS_CURRENT_INSTANCE)),)
+$(shell echo "$(THEOS_CURRENT_INSTANCE): warning: Implicit UIKit linkage for application instances is deprecated. Please add \"UIKit\" to $(THEOS_CURRENT_INSTANCE)_FRAMEWORKS." >&2)
+export _THEOS_APPLICATION_WARNED_IMPLICIT_UIKIT_$(THEOS_CURRENT_INSTANCE) = 1
+endif
+endif
 
 LOCAL_INSTALL_PATH ?= $(strip $($(THEOS_CURRENT_INSTANCE)_INSTALL_PATH))
 ifeq ($(LOCAL_INSTALL_PATH),)
@@ -35,7 +41,7 @@ THEOS_SHARED_BUNDLE_RESOURCE_PATH = $(THEOS_STAGING_DIR)$(LOCAL_INSTALL_PATH)/$(
 include $(THEOS_MAKE_PATH)/instance/shared/bundle.mk
 
 internal-application-stage_:: shared-instance-bundle-stage
-	$(ECHO_NOTHING)mkdir -p "$(THEOS_SHARED_BUNDLE_RESOURCE_PATH)"$(ECHO_END)
-	$(ECHO_NOTHING)cp $(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE)$(TARGET_EXE_EXT) "$(THEOS_SHARED_BUNDLE_RESOURCE_PATH)"$(ECHO_END)
+	$(ECHO_NOTHING)mkdir -p "$(THEOS_SHARED_BUNDLE_RESOURCE_PATH)$(_THEOS_TARGET_BUNDLE_BINARY_SUBDIRECTORY)"$(ECHO_END)
+	$(ECHO_NOTHING)cp $(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE)$(TARGET_EXE_EXT) "$(THEOS_SHARED_BUNDLE_RESOURCE_PATH)$(_THEOS_TARGET_BUNDLE_BINARY_SUBDIRECTORY)"$(ECHO_END)
 
 $(eval $(call __mod,instance/application.mk))

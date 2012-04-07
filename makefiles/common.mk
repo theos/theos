@@ -5,8 +5,8 @@ THEOS_PROJECT_DIR ?= $(shell pwd)
 ### Function for getting a clean absolute path from cd.
 __clean_pwd = $(shell (unset CDPATH; cd "$(1)"; pwd))
 
-_THEOS_RELATIVE_MAKE_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
 ifeq ($(THEOS),)
+_THEOS_RELATIVE_MAKE_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
 THEOS := $(call __clean_pwd,$(_THEOS_RELATIVE_MAKE_PATH)/..)
 ifneq ($(words $(THEOS)),1) # It's a hack, but it works.
 $(shell unlink /tmp/theos &> /dev/null; ln -Ffs "$(THEOS)" /tmp/theos)
@@ -31,8 +31,8 @@ ifeq ($(DEBUG),1)
 	_THEOS_ON_SCHEMA += DEBUG
 endif
 _THEOS_OFF_SCHEMA := $(patsubst -%,%,$(filter -%,$(_THEOS_SCHEMA)))
-THEOS_SCHEMA := $(strip $(filter-out $(_THEOS_OFF_SCHEMA),$(_THEOS_ON_SCHEMA)))
-_THEOS_CLEANED_SCHEMA_SET := $(shell echo "$(filter-out DEFAULT,$(THEOS_SCHEMA))" | tr -Cd ' A-Z' | tr ' A-Z' '_a-z')
+override THEOS_SCHEMA := $(strip $(filter-out $(_THEOS_OFF_SCHEMA),$(_THEOS_ON_SCHEMA)))
+override _THEOS_CLEANED_SCHEMA_SET := $(shell echo "$(filter-out DEFAULT,$(THEOS_SCHEMA))" | tr -Cd ' A-Z' | tr ' A-Z' '_a-z')
 export THEOS_SCHEMA _THEOS_CLEANED_SCHEMA_SET
 endif
 
@@ -48,7 +48,7 @@ __schema_var_all = $(strip $(foreach sch,$(call __schema_all_var_names,$(1),$(2)
 __schema_var_last = $(strip $($(lastword $(call __schema_defined_var_names,$(1),$(2)))))
 
 # There are some packaging-related variables set here because some of the target install rules rely on them.
-ifeq ($(_THEOS_TOP_INVOCATION_DONE),)
+ifeq ($(_THEOS_CAN_PACKAGE),)
 _THEOS_HAS_STAGING_LAYOUT := $(shell [ -d "$(THEOS_PROJECT_DIR)/layout" ] && echo 1 || echo 0)
 ifeq ($(_THEOS_HAS_STAGING_LAYOUT),1)
 	_THEOS_PACKAGE_CONTROL_PATH := $(THEOS_PROJECT_DIR)/layout/DEBIAN/control
@@ -56,7 +56,9 @@ else # _THEOS_HAS_STAGING_LAYOUT == 0
 	_THEOS_PACKAGE_CONTROL_PATH := $(THEOS_PROJECT_DIR)/control
 endif # _THEOS_HAS_STAGING_LAYOUT
 _THEOS_CAN_PACKAGE := $(shell [ -f "$(_THEOS_PACKAGE_CONTROL_PATH)" ] && echo 1 || echo 0)
-endif # _THEOS_TOP_INVOCATION_DONE
+export _THEOS_CAN_PACKAGE _THEOS_HAS_STAGING_LAYOUT _THEOS_PACKAGE_CONTROL_PATH
+endif # _THEOS_CAN_PACKAGE
+
 _THEOS_PACKAGE_LAST_VERSION = $(shell THEOS_PROJECT_DIR="$(THEOS_PROJECT_DIR)" $(THEOS_BIN_PATH)/package_version.sh -k -n -o -c "$(_THEOS_PACKAGE_CONTROL_PATH)")
 
 _THEOS_LOAD_MODULES := $(sort $(call __schema_var_all,,MODULES) $(THEOS_AUTOLOAD_MODULES))
@@ -73,7 +75,7 @@ _THEOS_PLATFORM = $(uname_s)
 $(eval $(call __mod,platform/$(uname_s)-$(uname_p).mk))
 $(eval $(call __mod,platform/$(uname_s).mk))
 
-_THEOS_TARGET := $(or $(target),$(call __schema_var_last,,TARGET),$(_THEOS_PLATFORM_DEFAULT_TARGET))
+_THEOS_TARGET := $(shell $(THEOS_BIN_PATH)/target.pl "$(target)" "$(call __schema_var_last,,TARGET)" "$(_THEOS_PLATFORM_DEFAULT_TARGET)")
 ifeq ($(_THEOS_TARGET),)
 $(error You did not specify a target, and the "$(THEOS_PLATFORM_NAME)" platform does not define a default target)
 endif

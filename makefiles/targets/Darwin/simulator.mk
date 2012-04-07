@@ -33,6 +33,7 @@ TARGET_CODESIGN_FLAGS ?=
 TARGET_PRIVATE_FRAMEWORK_PATH = $(SYSROOT)/System/Library/PrivateFrameworks
 
 include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
+include $(THEOS_MAKE_PATH)/targets/_common/darwin_flat_bundle.mk
 
 ifeq ($(IPHONE_SIMULATOR_ROOT),)
 internal-install::
