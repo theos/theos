@@ -60,7 +60,8 @@ sub definition {
 sub originalCall {
 	my $self = shift;
 	my $method = shift;
-	return $self->originalFunctionName($method).$self->originalCallParams($method);
+	my $customargs = shift;
+	return $self->originalFunctionName($method).$self->originalCallParams($method, $customargs);
 }
 
 sub declarations {
