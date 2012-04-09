@@ -7,13 +7,14 @@ use FindBin;
 use lib "$FindBin::Bin/lib";
 
 use Getopt::Long;
-use Cwd 'abs_path';
+use Cwd qw(abs_path getcwd);
 use File::Spec;
 use File::Find;
 use File::Copy;
 use User::pwent;
 use POSIX qw(getuid);
 use Module::Load::Conditional 'can_load';
+use Tie::File;
 
 my @_dirs = File::Spec->splitdir(abs_path($FindBin::Bin));
 $_dirs[$#_dirs]="templates";
@@ -103,7 +104,9 @@ $NIC->set("PROJECTNAME", $clean_project_name);
 $NIC->set("PACKAGENAME", $package_name);
 $NIC->set("USER", $username);
 
-$NIC->addConstraint("package");
+if(! -e "control" && ! -e "layout/DEBIAN/control") {
+	$NIC->addConstraint("package");
+}
 
 foreach $prompt ($NIC->prompts) {
 	# Do we want to import these variables into the NIC automatically? In the format name.VARIABLE?
@@ -117,8 +120,42 @@ foreach $prompt ($NIC->prompts) {
 
 print "Instantiating $template in ".lc($clean_project_name)."/...",$/;
 my $dirname = lc($clean_project_name);
+my $cwd = abs_path(getcwd());
 $NIC->build($dirname);
-symlink($_theospath, "theos");
+if(-l "$cwd/theos") {
+	print "Parent directory contains a symbolic link to Theos. Using it instead.",$/;
+	symlink(readlink("$cwd/theos"), "theos");
+} else {
+	symlink($_theospath, "theos");
+}
+chdir($cwd);
+
+my @makefiles = ("GNUmakefile", "makefile", "Makefile");
+my $makefile;
+map { $makefile = $_ if -e $_; } @makefiles;
+if($makefile) {
+	tie(my @lines, 'Tie::File', $makefile);
+	my $hasCommon = 0;
+	map {$hasCommon++ if /common\.mk/;} @lines;
+	if($hasCommon > 0) {
+		my $alreadyHas = 0;
+		map {$alreadyHas++ if /^\s*SUBPROJECTS.*$dirname/;} @lines;
+		if($alreadyHas == 0) {
+			print "Adding '$project_name' as an aggregate subproject in Theos makefile '$makefile'.",$/;
+			my $newline = "SUBPROJECTS += $dirname";
+			my $i = 0;
+			my $aggLine = -1;
+			map {$aggLine = $i if /aggregate\.mk/; $i++;} @lines;
+			if($aggLine == -1) {
+				push(@lines, $newline);
+				push(@lines, "include \$(THEOS_MAKE_PATH)/aggregate.mk");
+			} else {
+				splice(@lines, $aggLine, 0, $newline);
+			}
+		}
+	}
+	untie(@lines);
+}
 print "Done.",$/;
 
 sub promptIfMissing {
