@@ -1,6 +1,7 @@
 nic 1
 name "iphone/tweak"
 prompt FILTER "MobileSubstrate Bundle filter" "com.apple.springboard"
+constrain file "control" to package
 file 1 @@PROJECTNAME@@.plist
 { Filter = { Bundles = ( "@@FILTER@@" ); }; }
 
