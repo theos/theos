@@ -1,4 +1,6 @@
 nic 1
+name "iphone/preference_bundle"
+constrain file "control" to package
 dir Resources
 file 28 Resources/Info.plist
 <?xml version="1.0" encoding="UTF-8"?>

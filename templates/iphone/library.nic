@@ -1,3 +1,6 @@
+nic 1
+name "iphone/library"
+constrain file "control" to package
 file 5 @@PROJECTNAME@@.mm
 int main(int argc, char **argv, char **envp) {
 	return 0;
