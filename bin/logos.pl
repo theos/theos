@@ -195,12 +195,16 @@ foreach my $line (@lines) {
 	pos($line) = 0;
 	my %depthsForCurrentLine;
 	$depthsForCurrentLine{"$lineno:0"} = $depth;
-	while($line =~ /[{}]/g) {
+	while($line =~ /([{}]|(?<=@)(interface|implementation|end))/g) {
 		next if fallsBetween($-[0], @quotes);
 
 		my $depthtoken = $lineno.":".($-[0]+1);
 
-		$depth += ($& eq "{") ? 1 : -1;
+		$depth++ if($& eq "{");
+		$depth++ if($& eq "implementation");
+		$depth++ if($& eq "interface");
+		$depth-- if($& eq "}");
+		$depth-- if($& eq "end");
 		$depthMapping{$depthtoken} = $depth;
 		$depthsForCurrentLine{$depthtoken} = $depth;
 	}
