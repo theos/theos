@@ -52,6 +52,7 @@ abs_build_dir=$(_THEOS_ABSOLUTE_BUILD_DIR); \
 if [ "$(__SUBPROJECTS)" != "" ]; then \
   echo Making $(_OPERATION) in subprojects of $(_TYPE) $(_INSTANCE)...; \
   for d in $(__SUBPROJECTS); do \
+    d="$${d%:*}"; \
     if [ "$${abs_build_dir}" = "." ]; then \
       lbuilddir="."; \
     else \
@@ -83,6 +84,7 @@ abs_build_dir=$(_THEOS_ABSOLUTE_BUILD_DIR); \
 if [ "$(__SUBPROJECTS)" != "" ]; then \
   echo Making $(_OPERATION) in subprojects of $(_TYPE) $(_INSTANCE)...; \
   for d in $(__SUBPROJECTS); do \
+    d="$${d%:*}"; \
     if [ "$${abs_build_dir}" = "." ]; then \
       lbuilddir="."; \
     else \
