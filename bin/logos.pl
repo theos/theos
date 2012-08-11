@@ -211,7 +211,7 @@ foreach my $line (@lines) {
 
 	# Directive
 	pos($line) = 0;
-	while($line =~ m/\B(?=(\%\w|[+-]\s*\(\s*.*?\s*\)))/gc) {
+	while($line =~ m/\B(?=(\%\w|&\s*\%\w|[+-]\s*\(\s*.*?\s*\)))/gc) {
 		next if fallsBetween($-[0], @quotes);
 
 		my @directiveDepthTokens = locationOpeningDepthAtPositionInMapping(\%depthsForCurrentLine, $lineno, $-[0]);
@@ -397,6 +397,13 @@ foreach my $line (@lines) {
 			$patch->range($patchStart, pos($line));
 			$patch->source(Patch::Source::Generator->new($capturedMethod, 'originalCall', $orig_args));
 			addPatch($patch);
+		} elsif($line =~ /\G&\s*%orig\b/gc) {
+			# &%orig, at a word boundary
+			nestingMustContain($lineno, "%orig", \@nestingstack, "hook", "subclass");
+			fileError($lineno, "no original method pointer for &%orig in new method.") if $currentMethod->isNew;
+
+			my $capturedMethod = $currentMethod;
+			patchHere(Patch::Source::Generator->new($capturedMethod, 'originalFunctionName'));
 		} elsif($line =~ /\G%log\b/gc) {
 			# %log
 			nestingMustContain($lineno, "%log", \@nestingstack, "hook", "subclass");
