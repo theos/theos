@@ -378,7 +378,7 @@ foreach my $line (@lines) {
 		} elsif($line =~ /\G%orig\b/gc) {
 			# %orig, with optional following parens.
 			nestingMustContain($lineno, "%orig", \@nestingstack, "hook", "subclass");
-			fileWarning($lineno, "%orig in a new method will be non-operative.") if $currentMethod->isNew;
+			fileWarning($lineno, "%orig in new method ".prettyPrintMethod($currentMethod)." will be non-operative.") if $currentMethod->isNew;
 
 			my $patchStart = $-[0];
 
@@ -400,7 +400,7 @@ foreach my $line (@lines) {
 		} elsif($line =~ /\G&\s*%orig\b/gc) {
 			# &%orig, at a word boundary
 			nestingMustContain($lineno, "%orig", \@nestingstack, "hook", "subclass");
-			fileError($lineno, "no original method pointer for &%orig in new method.") if $currentMethod->isNew;
+			fileError($lineno, "no original method pointer for &%orig in new method ".prettyPrintMethod($currentMethod).".") if $currentMethod->isNew;
 
 			my $capturedMethod = $currentMethod;
 			patchHere(Patch::Source::Generator->new($capturedMethod, 'originalFunctionName'));
@@ -828,6 +828,11 @@ sub patchHere {
 sub addPatch {
 	my $patch = shift;
 	push @patches, $patch;
+}
+
+sub prettyPrintMethod {
+	my $method = shift;
+	return $method->scope."[".$method->class->name." ".$method->selector."]";
 }
 
 sub utilErrorHandler {
