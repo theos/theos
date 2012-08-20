@@ -195,7 +195,7 @@ foreach my $line (@lines) {
 	pos($line) = 0;
 	my %depthsForCurrentLine;
 	$depthsForCurrentLine{"$lineno:0"} = $depth;
-	while($line =~ /([{}]|(?<=@)(interface|implementation|end))/g) {
+	while($line =~ /([{}]|(?<=@)(interface|implementation|protocol|end))/g) {
 		next if fallsBetween($-[0], @quotes);
 
 		my $depthtoken = $lineno.":".($-[0]+1);
@@ -203,6 +203,8 @@ foreach my $line (@lines) {
 		$depth++ if($& eq "{");
 		$depth++ if($& eq "implementation");
 		$depth++ if($& eq "interface");
+		# @protocol, but not "@protocol X;"
+		$depth++ if($& eq "protocol" && substr($line, $-[0]) !~ /^protocol\s+([_\$A-Za-z0-9]+(,\s*)?)+;/);
 		$depth-- if($& eq "}");
 		$depth-- if($& eq "end");
 		$depthMapping{$depthtoken} = $depth;
