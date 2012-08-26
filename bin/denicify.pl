@@ -25,6 +25,7 @@ my $NICPackage = "NIC$nicversion";
 exitWithError("I don't understand NIC version $nicversion!") if(!can_load(modules => {"NIC::Formats::$NICPackage" => undef}));
 my $NIC = "NIC::Formats::$NICPackage"->new();
 $NIC->load($nichandle);
+$NIC->addConstraint("package");
 close($nichandle);
 ### YAY! ###
 
