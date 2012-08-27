@@ -1,7 +1,9 @@
 package NIC::Formats::NICTar;
 use parent NIC::NICBase;
 use strict;
-use File::Path "make_path";
+use NIC::Formats::NICTar::File;
+use NIC::Formats::NICTar::Directory;
+use NIC::Formats::NICTar::Symlink;
 use Archive::Tar;
 $Archive::Tar::WARN = 0;
 
@@ -27,6 +29,10 @@ sub new {
 	return $self;
 }
 
+sub _fileClass { "NIC::Formats::NICTar::File"; }
+sub _directoryClass { "NIC::Formats::NICTar::Directory"; }
+sub _symlinkClass { "NIC::Formats::NICTar::Symlink"; }
+
 sub _processData {
 	my $self = shift;
 	my $data = shift;
@@ -45,7 +51,7 @@ sub _processLine {
 		my $prompt = $2;
 		my $default = $4 || undef;
 		$self->registerPrompt($key, $prompt, $default);
-	} elsif(/^constrain file \"(.+)\" to (.+)$/) {
+	} elsif(/^constrain (file )?\"(.+)\" to (.+)$/) {
 		my $constraint = $2;
 		my $filename = $1;
 		$self->registerFileConstraint($filename, $constraint);
@@ -55,40 +61,24 @@ sub _processLine {
 sub load {
 	my $self = shift;
 	for($self->{_TAR}->get_files()) {
-		next if $_->name =~ /^(\.\/)?NIC/;
+		next if !$_->name || $_->name =~ /^(\.\/)?NIC/;
 		my $n = $_->name;
 		$n =~ s/^\.\///;
+		next if length $n == 0;
 		if($_->is_dir) {
 			my $ref = $self->registerDirectory($n);
-			$ref->{_TARFILE} = $_;
+			$ref->tarfile($_);
 		} elsif($_->is_symlink) {
 			my $target = $_->linkname;
 			$target =~ s/^\.\///;
 
 			my $ref = $self->registerSymlink($n, $target);
-			$ref->{_TARFILE} = $_;
+			$ref->tarfile($_);
 		} elsif($_->is_file) {
 			my $ref = $self->registerFile($n);
-			$ref->{_TARFILE} = $_;
+			$ref->tarfile($_);
 		}
 	}
-}
-
-sub buildDirectory {
-	my $self = shift;
-	my $dir = shift;
-	my $dirname = $self->_substituteVariables($dir->{NAME});
-	make_path($dirname, { mode => $dir->{_TARFILE}->mode });
-}
-
-sub buildFile {
-	my $self = shift;
-	my $file = shift;
-	my $filename = $self->_substituteVariables($file->{NAME});
-	open(my $nicfile, ">", $filename);
-	syswrite $nicfile, $self->_substituteVariables($file->{_TARFILE}->get_content);
-	close($nicfile);
-	chmod($file->{_TARFILE}->mode, $filename);
 }
 
 1;

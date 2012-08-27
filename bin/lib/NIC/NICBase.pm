@@ -1,15 +1,16 @@
 package NIC::NICBase;
-use File::Path "make_path";
 use strict;
+
+use NIC::NICBase::File;
+use NIC::NICBase::Directory;
+use NIC::NICBase::Symlink;
 
 sub new {
 	my $proto = shift;
 	my $class = ref($proto) || $proto;
 	my $self = {};
 	$self->{NAME} = undef;
-	$self->{DIRECTORIES} = {};
-	$self->{FILES} = {};
-	$self->{SYMLINKS} = {};
+	$self->{CONTENTS} = [];
 	$self->{VARIABLES} = {};
 	$self->{CONSTRAINTS} = {};
 	$self->{PROMPTS} = [];
@@ -18,27 +19,48 @@ sub new {
 	return $self;
 }
 
-sub registerDirectory {
+sub _fileClass { "NIC::NICBase::File"; }
+sub _directoryClass { "NIC::NICBase::Directory"; }
+sub _symlinkClass { "NIC::NICBase::Symlink"; }
+
+sub _getContent {
 	my $self = shift;
 	my $name = shift;
-	$self->{DIRECTORIES}->{$name}->{NAME} = $name;
-	return $self->{DIRECTORIES}->{$name};
+	for(@{$self->{CONTENTS}}) {
+		return $_ if $_->name eq $name;
+	}
+	my $ref = NIC::NICType->new($self, $name, @_);
+	push(@{$self->{CONTENTS}}, $ref);
+	return $ref;
+}
+
+sub _generate {
+	my $self = shift;
+	my $class = shift;
+	my $name = shift;
+	my $ref = $self->_getContent($name, @_);
+	if($ref->type == NIC::NICType::TYPE_UNKNOWN) {
+		$class->take($ref, @_);
+	}
+	return $ref;
+}
+
+sub registerDirectory {
+	my $self = shift;
+	my $dir = $self->_generate($self->_directoryClass, @_);
+	return $dir;
 }
 
 sub registerFile {
 	my $self = shift;
-	my $name = shift;
-	$self->{FILES}->{$name}->{NAME} = $name;
-	return $self->{FILES}->{$name};
+	my $file = $self->_generate($self->_fileClass, @_);
+	return $file;
 }
 
 sub registerSymlink {
 	my $self = shift;
-	my $name = shift;
-	my $target = shift;
-	$self->{SYMLINKS}->{$name}->{NAME} = $name;
-	$self->{SYMLINKS}->{$name}->{TARGET} = $target;
-	return $self->{SYMLINKS}->{$name};
+	my $symlink = $self->_generate($self->_symlinkClass, @_);
+	return $symlink;
 }
 
 sub registerPrompt {
@@ -54,9 +76,7 @@ sub registerFileConstraint {
 	my $self = shift;
 	my $filename = shift;
 	my $constraint = shift;
-	$self->{FILES}->{$filename} = {} if !defined $self->{FILES}->{$filename};
-	$self->{FILES}->{$filename}->{constraints} = () if !defined $self->{FILES}->{$filename}->{constraints};
-	push(@{$self->{FILES}->{$filename}->{constraints}}, $constraint);
+	$self->_getContent($filename)->addConstraint($constraint);
 }
 
 sub set {
@@ -108,16 +128,16 @@ sub _constraintMatch {
 	return 1;
 }
 
-sub _fileMeetsConstraints {
+sub _meetsConstraints {
 	my $self = shift;
-	my $file = shift;
-	foreach (@{$file->{constraints}}) {
+	my $content = shift;
+	foreach ($content->constraints) {
 		return 0 if !$self->_constraintMatch($_);
 	}
 	return 1;
 }
 
-sub _substituteVariables {
+sub substituteVariables {
 	my $self = shift;
 	my $line = shift;
 	foreach my $key (keys %{$self->{VARIABLES}}) {
@@ -132,46 +152,11 @@ sub build {
 	my $dir = shift;
 	mkdir($dir);
 	chdir($dir) or die $!;
-	foreach my $directory (values %{$self->{DIRECTORIES}}) {
-		next if(!defined $directory->{NAME});
-		$self->buildDirectory($directory);
+	foreach my $content (sort { $a->type <=> $b->type } (@{$self->{CONTENTS}})) {
+		next if $content->type == NIC::NICType::TYPE_UNKNOWN;
+		next if !$self->_meetsConstraints($content);
+		$content->create();
 	}
-	foreach my $file (values %{$self->{FILES}}) {
-		next if(!defined $file->{NAME});
-		if(defined $file->{constraints}) {
-			if(!$self->_fileMeetsConstraints($file)) {
-				next;
-			}
-		}
-		$self->buildFile($file);
-	}
-	foreach my $symlink (values %{$self->{SYMLINKS}}) {
-		next if(!defined $symlink->{NAME});
-		$self->buildSymlink($symlink);
-	}
-}
-
-sub buildDirectory {
-	my $self = shift;
-	my $directory = shift;
-	make_path($self->_substituteVariables($directory->{NAME}));
-}
-
-sub buildFile {
-	my $self = shift;
-	my $file = shift;
-	my $filename = $file->{NAME};
-	open(my $nicfile, ">", $self->_substituteVariables($filename));
-	print $nicfile $self->_substituteVariables($file->{data});
-	close($nicfile);
-}
-
-sub buildSymlink {
-	my $self = shift;
-	my $symlink = shift;
-	my $name = $self->_substituteVariables($symlink->{NAME});
-	my $dest = $self->_substituteVariables($symlink->{TARGET});
-	symlink($dest, $name);
 }
 
 sub dumpPreamble {
