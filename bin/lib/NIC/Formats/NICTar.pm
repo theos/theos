@@ -52,8 +52,8 @@ sub _processLine {
 		my $default = $4 || undef;
 		$self->registerPrompt($key, $prompt, $default);
 	} elsif(/^constrain (file )?\"(.+)\" to (.+)$/) {
-		my $constraint = $2;
-		my $filename = $1;
+		my $constraint = $3;
+		my $filename = $2;
 		$self->registerFileConstraint($filename, $constraint);
 	}
 }
