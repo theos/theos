@@ -82,7 +82,7 @@ sub nestedParenString {
 sub smartSplit {
 	my $re = shift;
 	my $in = shift;
-	return () if $in eq "";
+	return () if !$in || $in eq "";
 
 	my $limit = shift;
 	$limit = 0 if !defined $limit;

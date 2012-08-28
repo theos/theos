@@ -1,5 +1,6 @@
 package Logos::Generator::Base::Method;
 use strict;
+use Logos::Util;
 
 sub originalFunctionName {
 	my $self = shift;
@@ -24,6 +25,7 @@ sub originalCall {
 sub buildLogCall {
 	my $self = shift;
 	my $method = shift;
+	my $args = shift;
 	# Log preamble
 	my $build = "NSLog(\@\"".$method->scope."[<".$method->class->name.": %p>";
 	my $argnamelist = "";
@@ -41,8 +43,26 @@ sub buildLogCall {
 		# Space and then the only keyword in the selector.
 		$build .= " ".$method->selector;
 	}
+
+	my @extraFormatSpecifiers;
+	my @extraArguments;
+	for(Logos::Util::smartSplit(qr/\s*,\s*/, $args)) {
+		my ($popen, $pclose) = matchedParenthesisSet($_);
+		my $type = "id";
+		if(defined $popen) {
+			$type = substr($_, $popen, $pclose-$popen-1);
+		}
+		push(@extraFormatSpecifiers, Logos::Method::formatCharForArgType($type));
+		my $n = Logos::Method::printArgForArgType($type, $_);
+		push(@extraArguments, $n) if $n;
+	}
+
 	# Log postamble
-	$build .= "]\", self".$argnamelist.")";
+	$build .= "]";
+	$build .= ": ".join(", ", @extraFormatSpecifiers) if @extraFormatSpecifiers > 0;
+	$build .= "\", self".$argnamelist;
+	$build .= ", ".join(", ", @extraArguments) if @extraArguments > 0;
+	$build .= ")";
 }
 
 sub declarations {

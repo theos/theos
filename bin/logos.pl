@@ -410,8 +410,23 @@ foreach my $line (@lines) {
 			# %log
 			nestingMustContain($lineno, "%log", \@nestingstack, "hook", "subclass");
 
+			my $patchStart = $-[0];
+
+			my $remaining = substr($line, pos($line));
+			my $log_args = undef;
+
+			my ($popen, $pclose) = matchedParenthesisSet($remaining);
+			if(defined $popen) {
+				$log_args = substr($remaining, $popen, $pclose-$popen-1);
+				pos($line) = pos($line) + $pclose;
+			}
+
 			my $capturedMethod = $currentMethod;
-			patchHere(Patch::Source::Generator->new($capturedMethod, 'buildLogCall'));
+			my $patch = Patch->new();
+			$patch->line($lineno);
+			$patch->range($patchStart, pos($line));
+			$patch->source(Patch::Source::Generator->new($capturedMethod, 'buildLogCall', $log_args));
+			addPatch($patch);
 		} elsif($line =~ /\G%ctor\b/gc) {
 			# %ctor
 			fileError($lineno, "%ctor does not make sense inside a block") if($directiveDepth >= 1);
