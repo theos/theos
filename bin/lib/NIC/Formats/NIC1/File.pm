@@ -16,7 +16,7 @@ sub data {
 sub create {
 	my $self = shift;
 	my $filename = $self->{NAME};
-	open(my $nicfile, ">", $self->{OWNER}->substituteVariables($filename)) || return 0;
+	open(my $nicfile, ">", $self->{OWNER}->substituteVariables($filename)) or return 0;
 	print $nicfile $self->{OWNER}->substituteVariables($self->{DATA});
 	close($nicfile);
 	return 1;

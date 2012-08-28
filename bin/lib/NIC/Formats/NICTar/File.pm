@@ -17,10 +17,11 @@ sub tarfile {
 sub create {
 	my $self = shift;
 	my $filename = $self->{OWNER}->substituteVariables($self->{NAME});
-	open(my $nicfile, ">", $filename);
+	open(my $nicfile, ">", $filename) or return 0;
 	syswrite $nicfile, $self->{OWNER}->substituteVariables($self->{TARFILE}->get_content);
 	close($nicfile);
 	chmod($self->{TARFILE}->mode, $filename);
+	return 1;
 }
 
 1;

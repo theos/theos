@@ -18,7 +18,8 @@ sub tarfile {
 sub create {
 	my $self = shift;
 	my $dirname = $self->{OWNER}->substituteVariables($self->{NAME});
-	make_path($dirname, { mode => $self->{TARFILE}->mode });
+	make_path($dirname, { mode => $self->{TARFILE}->mode }) or return 0;
+	return 1;
 }
 
 1;

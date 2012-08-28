@@ -22,7 +22,7 @@ sub create {
 	my $self = shift;
 	my $name = $self->{OWNER}->substituteVariables($self->{NAME});
 	my $dest = $self->{OWNER}->substituteVariables($self->{TARGET});
-	symlink($dest, $name) || return 0;
+	symlink($dest, $name) or return 0;
 	return 1;
 }
 

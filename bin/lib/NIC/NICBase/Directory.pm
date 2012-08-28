@@ -10,7 +10,7 @@ sub type {
 
 sub create {
 	my $self = shift;
-	make_path($self->{OWNER}->substituteVariables($self->{NAME})) || return 0;
+	make_path($self->{OWNER}->substituteVariables($self->{NAME})) or return 0;
 	return 1;
 }
 
