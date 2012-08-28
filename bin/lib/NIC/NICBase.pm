@@ -147,16 +147,26 @@ sub substituteVariables {
 	return $line;
 }
 
+sub prebuild {
+
+}
+
+sub postbuild {
+
+}
+
 sub build {
 	my $self = shift;
 	my $dir = shift;
 	mkdir($dir);
 	chdir($dir) or die $!;
+	$self->prebuild();
 	foreach my $content (sort { $a->type <=> $b->type } (@{$self->{CONTENTS}})) {
 		next if $content->type == NIC::NICType::TYPE_UNKNOWN;
 		next if !$self->_meetsConstraints($content);
 		$content->create();
 	}
+	$self->postbuild();
 }
 
 sub dumpPreamble {

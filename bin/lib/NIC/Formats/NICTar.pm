@@ -5,6 +5,8 @@ use NIC::Formats::NICTar::File;
 use NIC::Formats::NICTar::Directory;
 use NIC::Formats::NICTar::Symlink;
 use Archive::Tar;
+use File::Temp;
+use File::Spec;
 $Archive::Tar::WARN = 0;
 
 sub new {
@@ -15,8 +17,7 @@ sub new {
 	my $tar = Archive::Tar->new($fh);
 	return undef if(!$tar);
 
-	my @_controls = $tar->get_files("./NIC/control", "NIC/control");
-	my $control = (scalar @_controls > 0) ? $_controls[0] : undef;
+	my $control = _fileFromTar(undef, $tar, "NIC/control");
 	return undef if(!$control);
 
 	my $self = NIC::NICBase->new();
@@ -32,6 +33,14 @@ sub new {
 sub _fileClass { "NIC::Formats::NICTar::File"; }
 sub _directoryClass { "NIC::Formats::NICTar::Directory"; }
 sub _symlinkClass { "NIC::Formats::NICTar::Symlink"; }
+
+sub _fileFromTar {
+	my $self = shift;
+	my $tar = $self ? $self->{_TAR} : shift;
+	my $filename = shift;
+	my @_tarfiles = $tar->get_files("./$filename", $filename);
+	return (scalar @_tarfiles > 0) ? $_tarfiles[0] : undef;
+}
 
 sub _processData {
 	my $self = shift;
@@ -79,6 +88,42 @@ sub load {
 			$ref->tarfile($_);
 		}
 	}
+}
+
+sub _execPackageScript {
+	my $self = shift;
+	my $script = shift;
+	my $tarfile = $self->_fileFromTar("NIC/$script");
+	return if !$tarfile || $tarfile->mode & 0500 != 0500;
+	my $filename = File::Spec->catfile($self->{_TEMPDIR}->dirname, $script);
+	my $nicfile = NIC::NICType->new($self, $filename);
+	$self->_fileClass->take($nicfile);
+	$nicfile->tarfile($tarfile);
+	$nicfile->create();
+	my $ret = system $filename $script;
+	return ($ret >> 8) == 0
+}
+
+sub prebuild {
+	my $self = shift;
+	return $self->_execPackageScript("prebuild");
+}
+
+sub postbuild {
+	my $self = shift;
+	return $self->_execPackageScript("postbuild");
+}
+
+sub build {
+	my $self = shift;
+
+	for(keys %{$self->{VARIABLES}}) {
+		$ENV{"NIC_".$_} = $self->get($_);
+	}
+
+	$self->{_TEMPDIR} = File::Temp->newdir();
+	$self->SUPER::build(@_);
+	$self->{_TEMPDIR} = undef;
 }
 
 1;
