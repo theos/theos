@@ -118,9 +118,9 @@ print "Instantiating ".$NIC->name." in ".lc($clean_project_name)."/...",$/;
 my $dirname = lc($clean_project_name);
 my $cwd = abs_path(getcwd());
 $NIC->build($dirname);
-if(-l "$cwd/theos") {
-	print "Parent directory contains a symbolic link to Theos. Using it instead.",$/;
-	symlink(readlink("$cwd/theos"), "theos");
+if(-l "$cwd/theos" || -d "$cwd/theos") {
+	print "Parent directory contains a ".(-l "$cwd/theos" ? "symbolic link to" : "copy of")." Theos. Using it instead.",$/;
+	symlink(-l "$cwd/theos" ? readlink("$cwd/theos") : "$cwd/theos", "theos");
 } else {
 	symlink($_theospath, "theos");
 }
