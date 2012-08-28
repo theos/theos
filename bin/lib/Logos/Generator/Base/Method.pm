@@ -53,7 +53,7 @@ sub buildLogCall {
 			$type = substr($_, $popen, $pclose-$popen-1);
 		}
 		push(@extraFormatSpecifiers, Logos::Method::formatCharForArgType($type));
-		my $n = Logos::Method::printArgForArgType($type, $_);
+		my $n = Logos::Method::printArgForArgType($type, "($_)");
 		push(@extraArguments, $n) if $n;
 	}
 
