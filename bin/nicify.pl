@@ -90,6 +90,7 @@ $tar->write($filename) and info("Archived template \"".$newnic->name."\" to $fil
 sub wanted {
 	local $_ = $File::Find::name;
 	return if(/\.svn/);
+	return if(/\.git/);
 	my $mode = (stat($_))[2];
 
 	my $tarfile = undef;
@@ -99,7 +100,7 @@ sub wanted {
 		return if /^\.\/NIC\/?$/;
 		$tarfile = NIC::Archive::Tar::File->new(data=>$_, "", {mode=>$mode, uid=>0, gid=>0, type=>Archive::Tar::Constant::DIR});
 	} elsif(-f $_ && ! -l $_) {
-		return if(/\.[Nn][Ii][Cc]$/);
+		return if $_ eq "pre.NIC";
 		return if /^\.\/NIC\/control$/;
 		return if /\.nic\.tar$/;
 		$tarfile = NIC::Archive::Tar::File->new(file=>$_);
@@ -107,7 +108,7 @@ sub wanted {
 		$tarfile->uid(0);
 		$tarfile->gid(0);
 	} elsif(-l $_) {
-		return if(/\.[Nn][Ii][Cc]$/);
+		return if $_ eq "pre.NIC";
 		$tarfile = NIC::Archive::Tar::File->new(data=>$_, "", {linkname=>readlink($_), uid=>0, gid=>0, type=>Archive::Tar::Constant::SYMLINK});
 	}
 	push(@tarfiles, $tarfile) if $tarfile;
