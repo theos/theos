@@ -98,7 +98,7 @@ sub preprocess {
 
 sub wanted {
 	local $_ = $File::Find::name;
-	my $mode = stat[2];
+	my $mode = (stat)[2];
 
 	my $tarfile = undef;
 	if(-d) {
