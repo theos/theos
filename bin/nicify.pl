@@ -59,7 +59,7 @@ $controlfile->prefix("./NIC");
 $controlfile->name("control");
 push(@tarfiles, $controlfile);
 
-find({wanted => \&wanted, follow => 0, no_chdir => 1}, ".");
+find({wanted => \&wanted, preprocess => \&preprocess, follow => 0, no_chdir => 1}, ".");
 
 $tar->add_files(@tarfiles);
 
@@ -87,28 +87,31 @@ my $fixedfn = join("_", File::Spec->splitdir($newnic->name));
 my $filename = $fixedfn.".nic.tar";
 $tar->write($filename) and info("Archived template \"".$newnic->name."\" to $filename.");
 
+sub preprocess {
+	my @list = @_;
+	if($File::Find::dir eq "./NIC") {
+		@list = grep !/^control$/, @list;
+	}
+	@list = grep !/^pre.NIC$/ && !/^\.svn$/ && !/^\.git$/ && !/^_MTN$/ && !/\.nic\.tar$/, @list;
+	return @list;
+}
+
 sub wanted {
 	local $_ = $File::Find::name;
-	return if(/\.svn/);
-	return if(/\.git/);
-	my $mode = (stat($_))[2];
+	my $mode = stat[2];
 
 	my $tarfile = undef;
-	if(-d $_) {
+	if(-d) {
 		s/$/\// if !/\/$/;
 		return if /^\.\/$/;
 		return if /^\.\/NIC\/?$/;
 		$tarfile = NIC::Archive::Tar::File->new(data=>$_, "", {mode=>$mode, uid=>0, gid=>0, type=>Archive::Tar::Constant::DIR});
-	} elsif(-f $_ && ! -l $_) {
-		return if $_ eq "pre.NIC";
-		return if /^\.\/NIC\/control$/;
-		return if /\.nic\.tar$/;
+	} elsif(-f && ! -l) {
 		$tarfile = NIC::Archive::Tar::File->new(file=>$_);
 		$tarfile->mode($mode);
 		$tarfile->uid(0);
 		$tarfile->gid(0);
-	} elsif(-l $_) {
-		return if $_ eq "pre.NIC";
+	} elsif(-l) {
 		$tarfile = NIC::Archive::Tar::File->new(data=>$_, "", {linkname=>readlink($_), uid=>0, gid=>0, type=>Archive::Tar::Constant::SYMLINK});
 	}
 	push(@tarfiles, $tarfile) if $tarfile;
