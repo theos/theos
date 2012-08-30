@@ -11,10 +11,10 @@ $Archive::Tar::WARN = 0;
 
 sub new {
 	my $proto = shift;
-	my $fh = shift;
+	my $fh_or_tar = shift;
 	my $class = ref($proto) || $proto;
 
-	my $tar = Archive::Tar->new($fh);
+	my $tar = ref($fh_or_tar) eq "Archive::Tar" ? $fh_or_tar : Archive::Tar->new($fh_or_tar);
 	return undef if(!$tar);
 
 	my $control = _fileFromTar(undef, $tar, "NIC/control");
