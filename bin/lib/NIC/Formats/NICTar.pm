@@ -70,7 +70,7 @@ sub _processLine {
 sub load {
 	my $self = shift;
 	for($self->{_TAR}->get_files()) {
-		next if !$_->full_path || $_->full_path =~ /^(\.\/)?NIC/;
+		next if !$_->full_path || $_->full_path =~ /^(\.\/)?NIC(\/|$)/;
 		my $n = $_->full_path;
 		$n =~ s/^\.\///;
 		next if length $n == 0;
