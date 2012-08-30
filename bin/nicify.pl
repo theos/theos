@@ -30,6 +30,10 @@ sub _prefix_and_file {
 1;
 package main;
 
+if(@ARGV == 0) {
+	exitWithError("Syntax: $FindBin::Script <directory>");
+}
+
 my $cwd = abs_path(getcwd());
 my $tar = Archive::Tar->new();
 my $controlfile = undef;
