@@ -96,7 +96,7 @@ sub preprocess {
 	if($File::Find::dir eq "./NIC") {
 		@list = grep !/^control$/, @list;
 	}
-	@list = grep !/^pre.NIC$/ && !/^\.svn$/ && !/^\.git$/ && !/^_MTN$/ && !/\.nic\.tar$/, @list;
+	@list = grep !/^pre.NIC$/ && !/^\.svn$/ && !/^\.git$/ && !/^_MTN$/ && !/\.nic\.tar$/ && !/^\.DS_Store$/ && !/^\._/, @list;
 	return @list;
 }
 
