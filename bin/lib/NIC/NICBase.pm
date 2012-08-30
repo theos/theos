@@ -14,6 +14,7 @@ sub new {
 	$self->{VARIABLES} = {};
 	$self->{CONSTRAINTS} = {};
 	$self->{PROMPTS} = [];
+	$self->{IGNORED_VARS} = {};
 	bless($self, $class);
 
 	return $self;
@@ -145,6 +146,18 @@ sub substituteVariables {
 		$line =~ s/\@\@$key\@\@/$value/g;
 	}
 	return $line;
+}
+
+sub ignoreVariable {
+	my $self = shift;
+	my $var = shift;
+	$self->{IGNORED_VARS}->{$var}++;
+}
+
+sub variableIgnored {
+	my $self = shift;
+	my $var = shift;
+	return defined $self->{IGNORED_VARS}->{$var};
 }
 
 sub prebuild {

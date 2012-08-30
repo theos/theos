@@ -64,6 +64,8 @@ sub _processLine {
 		my $constraint = $3;
 		my $filename = $2;
 		$self->registerFileConstraint($filename, $constraint);
+	} elsif(/^ignore (\w+)$/) {
+		$self->ignoreVariable($1);
 	}
 }
 
