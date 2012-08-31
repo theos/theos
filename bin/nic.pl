@@ -95,10 +95,10 @@ if(-d $directory) {
 	exit 1 if(uc($response) eq "N");
 }
 
-$NIC->set("FULLPROJECTNAME", $project_name);
-$NIC->set("PROJECTNAME", $clean_project_name);
-$NIC->set("PACKAGENAME", $package_name);
-$NIC->set("USER", $username);
+$NIC->variable("FULLPROJECTNAME") = $project_name;
+$NIC->variable("PROJECTNAME") = $clean_project_name;
+$NIC->variable("PACKAGENAME") = $package_name;
+$NIC->variable("USER") = $username;
 
 if(! -e "control" && ! -e "layout/DEBIAN/control") {
 	$NIC->addConstraint("package");
@@ -111,7 +111,7 @@ foreach $prompt ($NIC->prompts) {
 	# This would also allow the user to set certain variables (package prefix, username) for different templates.
 	my $response = $CONFIG{$NIC->name().".".$prompt->{name}} || undef;
 	promptIfMissing(\$response, $prompt->{default}, $prompt->{prompt});
-	$NIC->set($prompt->{name}, $response);
+	$NIC->variable($prompt->{name}) = $response;
 }
 
 print "Instantiating ".$NIC->name." in ".lc($clean_project_name)."/...",$/;

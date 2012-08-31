@@ -120,7 +120,7 @@ sub build {
 	my $self = shift;
 
 	for(keys %{$self->{VARIABLES}}) {
-		$ENV{"NIC_".$_} = $self->get($_);
+		$ENV{"NIC_".$_} = $self->variable($_);
 	}
 
 	$self->{_TEMPDIR} = File::Temp->newdir();

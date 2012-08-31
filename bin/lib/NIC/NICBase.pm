@@ -80,17 +80,10 @@ sub registerFileConstraint {
 	$self->_getContent($filename)->addConstraint($constraint);
 }
 
-sub set {
+sub variable: lvalue {
 	my $self = shift;
 	my $key = shift;
-	my $value = shift;
-	$self->{VARIABLES}->{$key} = $value;
-}
-
-sub get {
-	my $self = shift;
-	my $key = shift;
-	return $self->{VARIABLES}->{$key};
+	$self->{VARIABLES}->{$key};
 }
 
 sub name {
