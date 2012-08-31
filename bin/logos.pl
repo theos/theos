@@ -203,8 +203,8 @@ foreach my $line (@lines) {
 		$depth++ if($& eq "{");
 		$depth++ if($& eq "implementation");
 		$depth++ if($& eq "interface");
-		# @protocol, but not "@protocol X;"
-		$depth++ if($& eq "protocol" && substr($line, $-[0]) !~ /^protocol\s+([_\$A-Za-z0-9]+(,\s*)?)+;/);
+		# @protocol, but not "@protocol X;" or "@protocol("
+		$depth++ if($& eq "protocol" && substr($line, $-[0]) !~ /^protocol(\s+([_\$A-Za-z0-9]+(,\s*)?)+;|\s*\()/);
 		$depth-- if($& eq "}");
 		$depth-- if($& eq "end");
 		$depthMapping{$depthtoken} = $depth;
