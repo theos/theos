@@ -8,14 +8,9 @@ sub _take_init {
 	$self->NIC::Formats::NICTar::_TarMixin::_take_init(@_);
 }
 
-sub create {
+sub data {
 	my $self = shift;
-	my $filename = $self->{OWNER}->substituteVariables($self->{NAME});
-	open(my $nicfile, ">", $filename) or return 0;
-	syswrite $nicfile, $self->{OWNER}->substituteVariables($self->{TARFILE}->get_content);
-	close($nicfile);
-	chmod($self->mode, $filename);
-	return 1;
+	return $self->SUPER::data(@_) // $self->tarfile->get_content;
 }
 
 1;

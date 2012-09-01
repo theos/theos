@@ -1,7 +1,6 @@
 package NIC::Formats::NIC1;
 use parent NIC::NICBase;
 use strict;
-use NIC::Formats::NIC1::File;
 
 sub new {
 	my $proto = shift;
@@ -14,8 +13,6 @@ sub new {
 	$self->load($fh);
 	return $self;
 }
-
-sub _fileClass { return "NIC::Formats::NIC1::File"; }
 
 sub _processLine {
 	my $self = shift;
