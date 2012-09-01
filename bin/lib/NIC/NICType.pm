@@ -14,6 +14,7 @@ sub new {
 	my $self = {};
 	$self->{OWNER} = shift // undef;
 	$self->{NAME} = shift // undef;
+	$self->{MODE} = undef;
 	$self->{CONSTRAINTS} = [];
 	bless($self, $class);
 
@@ -35,6 +36,16 @@ sub name {
 	my $self = shift;
 	if(@_) { $self->{NAME} = shift; }
 	return $self->{NAME};
+}
+
+sub _mode {
+	return 0;
+}
+
+sub mode {
+	my $self = shift;
+	if(@_) { $self->{MODE} = shift; }
+	return $self->{MODE} // $self->_mode;
 }
 
 sub type {

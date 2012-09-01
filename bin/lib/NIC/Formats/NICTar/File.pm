@@ -1,17 +1,11 @@
 package NIC::Formats::NICTar::File;
-use parent NIC::NICBase::File;
+use parent qw(NIC::Formats::NICTar::_TarMixin NIC::NICBase::File);
 use strict;
 
 sub _take_init {
 	my $self = shift;
-	$self->SUPER::_take_init(@_);
-	$self->{TARFILE} = undef;
-}
-
-sub tarfile {
-	my $self = shift;
-	if(@_) { $self->{TARFILE} = shift; }
-	return $self->{TARFILE};
+	$self->NIC::NICBase::File::_take_init(@_);
+	$self->NIC::Formats::NICTar::_TarMixin::_take_init(@_);
 }
 
 sub create {
@@ -20,7 +14,7 @@ sub create {
 	open(my $nicfile, ">", $filename) or return 0;
 	syswrite $nicfile, $self->{OWNER}->substituteVariables($self->{TARFILE}->get_content);
 	close($nicfile);
-	chmod($self->{TARFILE}->mode, $filename);
+	chmod($self->mode, $filename);
 	return 1;
 }
 

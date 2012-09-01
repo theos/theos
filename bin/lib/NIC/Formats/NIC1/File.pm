@@ -15,10 +15,11 @@ sub data {
 
 sub create {
 	my $self = shift;
-	my $filename = $self->{NAME};
-	open(my $nicfile, ">", $self->{OWNER}->substituteVariables($filename)) or return 0;
+	my $filename = $self->{OWNER}->substituteVariables($self->name);
+	open(my $nicfile, ">", $filename) or return 0;
 	print $nicfile $self->{OWNER}->substituteVariables($self->{DATA});
 	close($nicfile);
+	chmod($self->mode, $filename);
 	return 1;
 }
 

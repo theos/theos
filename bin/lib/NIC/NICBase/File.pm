@@ -7,6 +7,10 @@ sub type {
 	return NIC::NICType::TYPE_FILE;
 }
 
+sub _mode {
+	return 0644;
+}
+
 sub create {
 	return 0;
 }

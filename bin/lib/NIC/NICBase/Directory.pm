@@ -8,9 +8,13 @@ sub type {
 	return NIC::NICType::TYPE_DIRECTORY;
 }
 
+sub _mode {
+	return 0755;
+}
+
 sub create {
 	my $self = shift;
-	make_path($self->{OWNER}->substituteVariables($self->{NAME})) or return 0;
+	make_path($self->{OWNER}->substituteVariables($self->{NAME}), { mode => $self->mode }) or return 0;
 	return 1;
 }
 
