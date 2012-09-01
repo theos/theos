@@ -20,7 +20,7 @@ sub new {
 	my $control = _fileFromTar(undef, $tar, "NIC/control");
 	return undef if(!$control);
 
-	my $self = NIC::NICBase->new();
+	my $self = NIC::NICBase->new(@_);
 	$self->{_TAR} = $tar;
 	bless($self, $class);
 

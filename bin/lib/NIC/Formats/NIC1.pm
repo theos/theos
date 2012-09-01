@@ -7,7 +7,7 @@ sub new {
 	my $class = ref($proto) || $proto;
 
 	my $fh = shift;
-	my $self = NIC::NICBase->new();
+	my $self = NIC::NICBase->new(@_);
 	bless($self, $class);
 
 	$self->load($fh);

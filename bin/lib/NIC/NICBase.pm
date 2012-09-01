@@ -9,7 +9,7 @@ sub new {
 	my $proto = shift;
 	my $class = ref($proto) || $proto;
 	my $self = {};
-	$self->{NAME} = undef;
+	$self->{NAME} = shift;
 	$self->{CONTENTS} = [];
 	$self->{VARIABLES} = {};
 	$self->{CONSTRAINTS} = {};
@@ -89,7 +89,7 @@ sub variable: lvalue {
 sub name {
 	my $self = shift;
 	if(@_) { $self->{NAME} = shift; }
-	return $self->{NAME};
+	return $self->{NAME} // "(unnamed template)";
 }
 
 sub prompts {

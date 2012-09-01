@@ -20,7 +20,7 @@ use NIC::Formats::NICTar;
 
 my @_dirs = File::Spec->splitdir(abs_path($FindBin::Bin));
 $_dirs[$#_dirs]="templates";
-my $_templatepath = File::Spec->catdir(@_dirs);
+our $_templatepath = File::Spec->catdir(@_dirs);
 $#_dirs--;
 my $_theospath = File::Spec->catdir(@_dirs);
 
@@ -217,15 +217,18 @@ sub _loadNIC {
 	my $line = <$nichandle>;
 	seek($nichandle, 0, 0);
 
+	(my $prettyname = $nicfile) =~ s/$::_templatepath\/(.*)\.nic(\.tar)?/$1/g;
+	$prettyname .= " (unnamed template)";
+
 	my $nicversion = 1;
 	my $NIC = undef;
 	if($line =~ /^nic (\w+)$/) {
 		$nicversion = $1;
 		my $NICPackage = "NIC$nicversion";
 		return undef if(!can_load(modules => {"NIC::Formats::$NICPackage" => undef}));
-		$NIC = "NIC::Formats::$NICPackage"->new($nichandle);
+		$NIC = "NIC::Formats::$NICPackage"->new($nichandle, $prettyname);
 	} else {
-		$NIC = NIC::Formats::NICTar->new($nichandle);
+		$NIC = NIC::Formats::NICTar->new($nichandle, $prettyname);
 	}
 
 	close($nichandle);
