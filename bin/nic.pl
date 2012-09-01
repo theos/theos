@@ -61,7 +61,7 @@ print $_versionstring,$/;
 print "-" x length($_versionstring),$/;
 
 if($nicfile) {
-	$NIC = _loadNIC($nicfile) if $nicfile;
+	$NIC = _loadNIC($nicfile) if $nicfile && -f $nicfile;
 } else {
 	my @templates = getTemplates();
 	if(scalar @templates == 0) {
