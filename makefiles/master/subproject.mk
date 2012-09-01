@@ -1,9 +1,4 @@
 SUBPROJECT_NAME := $(strip $(SUBPROJECT_NAME))
-ifneq ($(words $(SUBPROJECT_NAME)), 1)
-SUBPROJECT_NAME := $(word 1, $(SUBPROJECT_NAME))
-$(warning Only a single subproject can be built in any directory!)
-$(warning Ignoring all subprojects and building only $(SUBPROJECT_NAME))
-endif
 
 ifeq ($(_THEOS_RULES_LOADED),)
 include $(THEOS_MAKE_PATH)/rules.mk

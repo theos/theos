@@ -195,19 +195,25 @@ foreach my $line (@lines) {
 	pos($line) = 0;
 	my %depthsForCurrentLine;
 	$depthsForCurrentLine{"$lineno:0"} = $depth;
-	while($line =~ /[{}]/g) {
+	while($line =~ /([{}]|(?<=@)(interface|implementation|protocol|end))/g) {
 		next if fallsBetween($-[0], @quotes);
 
 		my $depthtoken = $lineno.":".($-[0]+1);
 
-		$depth += ($& eq "{") ? 1 : -1;
+		$depth++ if($& eq "{");
+		$depth++ if($& eq "implementation");
+		$depth++ if($& eq "interface");
+		# @protocol, but not "@protocol X;" or "@protocol("
+		$depth++ if($& eq "protocol" && substr($line, $-[0]) !~ /^protocol(\s+([_\$A-Za-z0-9]+(,\s*)?)+;|\s*\()/);
+		$depth-- if($& eq "}");
+		$depth-- if($& eq "end");
 		$depthMapping{$depthtoken} = $depth;
 		$depthsForCurrentLine{$depthtoken} = $depth;
 	}
 
 	# Directive
 	pos($line) = 0;
-	while($line =~ m/\B(?=(\%\w|[+-]\s*\(\s*.*?\s*\)))/gc) {
+	while($line =~ m/\B(?=(\%\w|&\s*\%\w|[+-]\s*\(\s*.*?\s*\)))/gc) {
 		next if fallsBetween($-[0], @quotes);
 
 		my @directiveDepthTokens = locationOpeningDepthAtPositionInMapping(\%depthsForCurrentLine, $lineno, $-[0]);
@@ -374,7 +380,7 @@ foreach my $line (@lines) {
 		} elsif($line =~ /\G%orig\b/gc) {
 			# %orig, with optional following parens.
 			nestingMustContain($lineno, "%orig", \@nestingstack, "hook", "subclass");
-			fileWarning($lineno, "%orig in a new method will be non-operative.") if $currentMethod->isNew;
+			fileWarning($lineno, "%orig in new method ".prettyPrintMethod($currentMethod)." will be non-operative.") if $currentMethod->isNew;
 
 			my $patchStart = $-[0];
 
@@ -393,12 +399,34 @@ foreach my $line (@lines) {
 			$patch->range($patchStart, pos($line));
 			$patch->source(Patch::Source::Generator->new($capturedMethod, 'originalCall', $orig_args));
 			addPatch($patch);
+		} elsif($line =~ /\G&\s*%orig\b/gc) {
+			# &%orig, at a word boundary
+			nestingMustContain($lineno, "%orig", \@nestingstack, "hook", "subclass");
+			fileError($lineno, "no original method pointer for &%orig in new method ".prettyPrintMethod($currentMethod).".") if $currentMethod->isNew;
+
+			my $capturedMethod = $currentMethod;
+			patchHere(Patch::Source::Generator->new($capturedMethod, 'originalFunctionName'));
 		} elsif($line =~ /\G%log\b/gc) {
 			# %log
 			nestingMustContain($lineno, "%log", \@nestingstack, "hook", "subclass");
 
+			my $patchStart = $-[0];
+
+			my $remaining = substr($line, pos($line));
+			my $log_args = undef;
+
+			my ($popen, $pclose) = matchedParenthesisSet($remaining);
+			if(defined $popen) {
+				$log_args = substr($remaining, $popen, $pclose-$popen-1);
+				pos($line) = pos($line) + $pclose;
+			}
+
 			my $capturedMethod = $currentMethod;
-			patchHere(Patch::Source::Generator->new($capturedMethod, 'buildLogCall'));
+			my $patch = Patch->new();
+			$patch->line($lineno);
+			$patch->range($patchStart, pos($line));
+			$patch->source(Patch::Source::Generator->new($capturedMethod, 'buildLogCall', $log_args));
+			addPatch($patch);
 		} elsif($line =~ /\G%ctor\b/gc) {
 			# %ctor
 			fileError($lineno, "%ctor does not make sense inside a block") if($directiveDepth >= 1);
@@ -817,6 +845,11 @@ sub patchHere {
 sub addPatch {
 	my $patch = shift;
 	push @patches, $patch;
+}
+
+sub prettyPrintMethod {
+	my $method = shift;
+	return $method->scope."[".$method->class->name." ".$method->selector."]";
 }
 
 sub utilErrorHandler {

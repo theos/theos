@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-my $VER = "1.0";
+my $VER = "1.5";
 
 use warnings;
 use FindBin;
@@ -16,6 +16,8 @@ use POSIX qw(getuid);
 use Module::Load::Conditional 'can_load';
 use Tie::File;
 
+use NIC::Formats::NICTar;
+
 my @_dirs = File::Spec->splitdir(abs_path($FindBin::Bin));
 $_dirs[$#_dirs]="templates";
 my $_templatepath = File::Spec->catdir(@_dirs);
@@ -30,8 +32,6 @@ my $_theospath = File::Spec->catdir(@_dirs);
 	exitWithError("Cowardly refusing to make a project inside \$THEOS ($_abstheospath)") if($_cwd =~ /^$_abstheospath/);
 }
 
-my @templates = getTemplates();
-
 my %CONFIG = ();
 loadConfig();
 
@@ -42,9 +42,9 @@ $package_prefix = "com.yourcompany" if !$package_prefix;
 my $package_name = "";
 my $username = $CONFIG{'username'};
 $username = "" if !$username;
-my $template;
 
-my $nicfile = "";
+my $template = undef;
+my $nicfile = undef;
 
 Getopt::Long::Configure("bundling");
 
@@ -60,37 +60,33 @@ my $_versionstring = "NIC $VER - New Instance Creator";
 print $_versionstring,$/;
 print "-" x length($_versionstring),$/;
 
-$template = $nicfile if $nicfile ne "";
-if(!$template) {
-	$template = promptList(undef, "Choose a Template (required)", @templates);
-}
-$nicfile = "$_templatepath/$template.nic" if $nicfile eq "";
-exitWithError("Couldn't open template at path $nicfile") if(! -f $nicfile);
+if($nicfile) {
+	$NIC = _loadNIC($nicfile) if $nicfile;
+} else {
+	my @templates = getTemplates();
+	if(scalar @templates == 0) {
+		exitWithError("No file specified with --nic and no templates found.");
+	}
 
-### LOAD THE NICFILE! ###
-open(my $nichandle, "<", $nicfile);
-my $line = <$nichandle>;
-my $nicversion = 1;
-if($line =~ /^nic (\w+)$/) {
-	$nicversion = $1;
+	if($template) {
+		my @matched = grep { $_->name eq $template } @templates;
+		$NIC = $matched[0] if(scalar @matched > 0);
+	}
+	if(!$NIC) {
+		$NIC = promptList(undef, "Choose a Template (required)", sub { local $_ = shift; return $_->name; }, @templates);
+	}
 }
-seek($nichandle, 0, 0);
 
-my $NICPackage = "NIC$nicversion";
-exitWithError("I don't understand NIC version $nicversion!") if(!can_load(modules => {"NIC::Formats::$NICPackage" => undef}));
-my $NIC = "NIC::Formats::$NICPackage"->new();
-$NIC->load($nichandle);
-close($nichandle);
-### YAY! ###
+exitWithError("No NIC file loaded.") if !$NIC;
 
 promptIfMissing(\$project_name, undef, "Project Name (required)");
 exitWithError("I can't live without a project name! Aieeee!") if !$project_name;
 $clean_project_name = cleanProjectName($project_name);
 
 $package_name = $package_prefix.".".packageNameIze($project_name) if $CONFIG{'skip_package_name'};
-promptIfMissing(\$package_name, $package_prefix.".".packageNameIze($project_name), "Package Name");
+promptIfMissing(\$package_name, $package_prefix.".".packageNameIze($project_name), "Package Name") unless $NIC->variableIgnored("PACKAGENAME");
 
-promptIfMissing(\$username, getUserName(), "Author/Maintainer Name");
+promptIfMissing(\$username, getUserName(), "Author/Maintainer Name") unless $NIC->variableIgnored("USER");
 
 my $directory = lc($clean_project_name);
 if(-d $directory) {
@@ -99,10 +95,10 @@ if(-d $directory) {
 	exit 1 if(uc($response) eq "N");
 }
 
-$NIC->set("FULLPROJECTNAME", $project_name);
-$NIC->set("PROJECTNAME", $clean_project_name);
-$NIC->set("PACKAGENAME", $package_name);
-$NIC->set("USER", $username);
+$NIC->variable("FULLPROJECTNAME") = $project_name;
+$NIC->variable("PROJECTNAME") = $clean_project_name;
+$NIC->variable("PACKAGENAME") = $package_name;
+$NIC->variable("USER") = $username;
 
 if(! -e "control" && ! -e "layout/DEBIAN/control") {
 	$NIC->addConstraint("package");
@@ -115,16 +111,16 @@ foreach $prompt ($NIC->prompts) {
 	# This would also allow the user to set certain variables (package prefix, username) for different templates.
 	my $response = $CONFIG{$NIC->name().".".$prompt->{name}} || undef;
 	promptIfMissing(\$response, $prompt->{default}, $prompt->{prompt});
-	$NIC->set($prompt->{name}, $response);
+	$NIC->variable($prompt->{name}) = $response;
 }
 
-print "Instantiating $template in ".lc($clean_project_name)."/...",$/;
+print "Instantiating ".$NIC->name." in ".lc($clean_project_name)."/...",$/;
 my $dirname = lc($clean_project_name);
 my $cwd = abs_path(getcwd());
 $NIC->build($dirname);
-if(-l "$cwd/theos") {
-	print "Parent directory contains a symbolic link to Theos. Using it instead.",$/;
-	symlink(readlink("$cwd/theos"), "theos");
+if(-l "$cwd/theos" || -d "$cwd/theos") {
+	print "Parent directory contains a ".(-l "$cwd/theos" ? "symbolic link to" : "copy of")." Theos. Using it instead.",$/;
+	symlink(-l "$cwd/theos" ? readlink("$cwd/theos") : "$cwd/theos", "theos");
 } else {
 	symlink($_theospath, "theos");
 }
@@ -184,11 +180,12 @@ sub promptIfMissing {
 sub promptList {
 	my $default = shift;
 	my $prompt = shift;
+	my $formatsub = shift // sub { shift; };
 	my @list = @_;
 
 	$default = -1 if(!defined $default);
 
-	map { print " ".($_==$default?">":" ")."[".($_+1).".] ",$list[$_],$/; } (0..$#list);
+	map { print " ".($_==$default?">":" ")."[".($_+1).".] ",$formatsub->($list[$_]),$/; } (0..$#list);
 	print $prompt,": ";
 	$| = 1;
 	my $idx = -1;
@@ -214,17 +211,37 @@ sub exitWithError {
 	exit 1;
 }
 
+sub _loadNIC {
+	my $nicfile = shift;
+	open(my $nichandle, "<", $nicfile);
+	my $line = <$nichandle>;
+	seek($nichandle, 0, 0);
+
+	my $nicversion = 1;
+	my $NIC = undef;
+	if($line =~ /^nic (\w+)$/) {
+		$nicversion = $1;
+		my $NICPackage = "NIC$nicversion";
+		return undef if(!can_load(modules => {"NIC::Formats::$NICPackage" => undef}));
+		$NIC = "NIC::Formats::$NICPackage"->new($nichandle);
+	} else {
+		$NIC = NIC::Formats::NICTar->new($nichandle);
+	}
+
+	close($nichandle);
+	return $NIC;
+}
+
 sub getTemplates {
 	our @templates = ();
 	find({wanted => \&templateWanted, no_chdir => 1}, $_templatepath);
 	sub templateWanted {
-		if(-f && /\.nic$/) {
-			my $template = substr($_,length($_templatepath)+1);
-			$template =~ s/\.nic$//;
-			push(@templates, $template);
+		if(-f && (/\.nic$/ || /\.nic\.tar$/)) {
+			my $nic = _loadNIC($_);
+			push(@templates, $nic) if $nic;
 		}
 	}
-	return sort @templates;
+	return sort { $a->name cmp $b->name } @templates;
 }
 
 sub packageNameIze {

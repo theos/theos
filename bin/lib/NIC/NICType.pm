@@ -1,0 +1,60 @@
+package NIC::NICType;
+use strict;
+
+use constant {
+	TYPE_UNKNOWN => 0,
+	TYPE_DIRECTORY => 1,
+	TYPE_FILE => 2,
+	TYPE_SYMLINK => 3
+};
+
+sub new {
+	my $proto = shift;
+	my $class = ref($proto) || $proto;
+	my $self = {};
+	$self->{OWNER} = shift // undef;
+	$self->{NAME} = shift // undef;
+	$self->{CONSTRAINTS} = [];
+	bless($self, $class);
+
+	return $self;
+}
+
+sub _take_init {
+}
+
+sub take {
+	my $proto = shift;
+	my $class = ref($proto) || $proto;
+	my $obj = shift;
+	bless($obj, $class);
+	$obj->_take_init(@_);
+}
+
+sub name {
+	my $self = shift;
+	if(@_) { $self->{NAME} = shift; }
+	return $self->{NAME};
+}
+
+sub type {
+	my $self = shift;
+	return TYPE_UNKNOWN;
+}
+
+sub constraints {
+	my $self = shift;
+	return @{$self->{CONSTRAINTS}};
+}
+
+sub addConstraint {
+	my $self = shift;
+	my $constraint = shift;
+	push(@{$self->{CONSTRAINTS}}, $constraint);
+}
+
+sub create {
+	return 0;
+}
+
+1;

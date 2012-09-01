@@ -114,6 +114,9 @@ sub printArgForArgType {
 	my $argtype = shift;
 	my $argname = shift;
 
+	my ($formatchar, $fallthrough) = formatCharForArgType($argtype);
+	return undef if $formatchar eq "--";
+
 	$argtype =~ s/^\s+//g;
 	$argtype =~ s/\s+$//g;
 
@@ -123,9 +126,7 @@ sub printArgForArgType {
 	return "$argname.x, $argname.y" if $argtype =~ /^(CG|NS)Point$/;
 	return "$argname.width, $argname.height" if $argtype =~ /^(CG|NS)Size$/;
 
-	return undef if formatCharForArgType($argtype) eq "--";
-
-	return $argname;
+	return ($fallthrough ? "(unsigned int)" : "").$argname;
 }
 
 sub formatCharForArgType {
@@ -155,11 +156,18 @@ sub formatCharForArgType {
 
 	# Pointer Types
 	return "%s" if /^char\s*\*$/;
-	return "%p" if /^void\s*\*$/;
-	return "%p" if /^id\s*\*$/;
+	return "%p" if /^void\s*\*$/; # void *
+	return "%p" if /^id\s*\*$/; # id *
 	return "%p" if /^((unsigned|signed)\s+)?(unsigned|signed|int|long|long\s+long|bool|BOOL|_Bool|char|short|float|double)\s*\*+$/;
 	return "%p" if /^NS.*?(Pointer|Array)$/;
 	return "%p" if /^NSZone\s*\*$/;
+	return "%p" if /^struct.*\*$/; # struct pointer
+	return "%p" if /\*\*+$/; # anything with more than one pointer indirection
+	return "%p" if /\[.*\]$/; # any array
+
+	# Objects
+	return "%@" if /^id$/; # id is an objc_object.
+	return "%@" if /^\w+\s*\*$/; # try to treat *any* other pointer as an objc_object.
 
 	# Floating-Point Types
 	return "%f" if /^(double|float|CGFloat|CGDouble|NSTimeInterval)$/;
@@ -176,9 +184,11 @@ sub formatCharForArgType {
 	# Discarded Types
 	return "--" if /^(CG\w*|CF\w*|void)$/;
 	return "--" if /^NS(HashTable(Callbacks)?|Map(Table((Key|Value)Callbacks)?|Enumerator))$/;
+	return "--" if /^struct/; # structs that aren't covered by 'struct ... *'
 
-	# Fallthrough
-	return "%@";
+	# Fallthrough - Treat everything we don't understand as POD.
+	return ("0x%x", 1) if wantarray; # The 1 is the fallthrough flag - used to signal to argName(...) that we should be casting.
+	return "0x%x";
 }
 
 sub typeEncodingForArgType {
