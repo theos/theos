@@ -2,6 +2,13 @@ package NIC::NICBase::Symlink;
 use parent NIC::NICType;
 use strict;
 
+use overload '""' => sub {
+	my $self = shift;
+	my $ref = ref($self);
+	$ref =~ s/^.*::(\w+)$/$1/g;
+	return '"'.$self->name."\" ($ref to \"".$self->target."\")";
+};
+
 sub _take_init {
 	my $self = shift;
 	$self->{TARGET} = shift // undef;

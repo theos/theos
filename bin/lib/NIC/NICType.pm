@@ -8,6 +8,13 @@ use constant {
 	TYPE_SYMLINK => 3
 };
 
+use overload '""' => sub {
+	my $self = shift;
+	my $ref = ref($self);
+	$ref =~ s/^.*::(\w+)$/$1/g;
+	return '"'.$self->name."\" ($ref, mode ".sprintf("%4.04o", $self->mode).")";
+};
+
 sub new {
 	my $proto = shift;
 	my $class = ref($proto) || $proto;

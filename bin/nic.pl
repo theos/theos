@@ -2,6 +2,7 @@
 
 my $VER = "1.5";
 
+use strict;
 use warnings;
 use FindBin;
 use lib "$FindBin::Bin/lib";
@@ -17,6 +18,8 @@ use Module::Load::Conditional 'can_load';
 use Tie::File;
 
 use NIC::Formats::NICTar;
+
+our $savedStdout = *STDOUT;
 
 my @_dirs = File::Spec->splitdir(abs_path($FindBin::Bin));
 $_dirs[$#_dirs]="templates";
@@ -60,6 +63,7 @@ my $_versionstring = "NIC $VER - New Instance Creator";
 print $_versionstring,$/;
 print "-" x length($_versionstring),$/;
 
+my $NIC;
 if($nicfile) {
 	$NIC = _loadNIC($nicfile) if $nicfile && -f $nicfile;
 } else {
@@ -104,14 +108,8 @@ if(! -e "control" && ! -e "layout/DEBIAN/control") {
 	$NIC->addConstraint("package");
 }
 
-foreach $prompt ($NIC->prompts) {
-	# Do we want to import these variables into the NIC automatically? In the format name.VARIABLE?
-	# If so, this could become awesome. We could $NIC->get($prompt->{name})
-	# and have loaded the variables in a loop beforehand.
-	# This would also allow the user to set certain variables (package prefix, username) for different templates.
-	my $response = $CONFIG{$NIC->name().".".$prompt->{name}} || undef;
-	promptIfMissing(\$response, $prompt->{default}, $prompt->{prompt});
-	$NIC->variable($prompt->{name}) = $response;
+foreach my $prompt ($NIC->prompts) {
+	nicPrompt($NIC, $prompt->{name}, $prompt->{prompt}, $prompt->{default});
 }
 
 print "Instantiating ".$NIC->name." in ".lc($clean_project_name)."/...",$/;
@@ -162,9 +160,9 @@ sub promptIfMissing {
 	my $prompt = shift;
 
 	if($default) {
-		print $prompt, " [$default]: ";
+		print $::savedStdout $prompt, " [$default]: ";
 	} else {
-		print $prompt, ": ";
+		print $::savedStdout $prompt, ": ";
 	}
 
 	$| = 1; $_ = <STDIN>;
@@ -281,4 +279,21 @@ sub loadConfig {
 			$CONFIG{$key} = $value;
 		}
 	}
+}
+
+sub nicPrompt {
+	# Do we want to import these variables into the NIC automatically? In the format name.VARIABLE?
+	# If so, this could become awesome. We could $NIC->get($prompt->{name})
+	# and have loaded the variables in a loop beforehand.
+	# This would also allow the user to set certain variables (package prefix, username) for different templates.
+	my ($nic, $variable, $prompt, $default) = @_;
+	my $response = undef;
+	$response = $CONFIG{$nic->name().".".$variable} if($variable);
+
+	promptIfMissing(\$response, $default, "[".$nic->name."] ".$prompt);
+
+	$NIC->variable($variable) = $response if $variable;
+
+	# Return the response for anybody who's interested.
+	$response;
 }
