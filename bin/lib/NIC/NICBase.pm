@@ -24,13 +24,20 @@ sub _fileClass { "NIC::NICBase::File"; }
 sub _directoryClass { "NIC::NICBase::Directory"; }
 sub _symlinkClass { "NIC::NICBase::Symlink"; }
 
-sub _getContent {
+sub _getContentWithoutCreate {
 	my $self = shift;
 	my $name = shift;
 	for(@{$self->{CONTENTS}}) {
 		return $_ if $_->name eq $name;
 	}
-	my $ref = NIC::NICType->new($self, $name, @_);
+	return undef;
+}
+
+sub _getContent {
+	my $self = shift;
+	my $ref = $self->_getContentWithoutCreate(@_);
+	return $ref if $ref;
+	$ref = NIC::NICType->new($self, @_);
 	push(@{$self->{CONTENTS}}, $ref);
 	return $ref;
 }
