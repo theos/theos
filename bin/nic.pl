@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-my $VER = "1.5";
+my $VER = "2.0";
 
 use strict;
 use warnings;
@@ -17,6 +17,7 @@ use POSIX qw(getuid);
 use Module::Load::Conditional 'can_load';
 use Tie::File;
 
+use NIC::Bridge::Context (PROMPT => \&nicPrompt);
 use NIC::Formats::NICTar;
 
 our $savedStdout = *STDOUT;
@@ -111,6 +112,9 @@ if(! -e "control" && ! -e "layout/DEBIAN/control") {
 foreach my $prompt ($NIC->prompts) {
 	nicPrompt($NIC, $prompt->{name}, $prompt->{prompt}, $prompt->{default});
 }
+
+# Execute control script.
+$NIC->exec or exitWithError("Failed to build template '".$NIC->name."'.");
 
 print "Instantiating ".$NIC->name." in ".lc($clean_project_name)."/...",$/;
 my $dirname = lc($clean_project_name);

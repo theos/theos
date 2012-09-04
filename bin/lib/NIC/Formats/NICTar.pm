@@ -7,6 +7,7 @@ use NIC::Formats::NICTar::Symlink;
 use Archive::Tar;
 use File::Temp;
 use File::Spec;
+use NIC::Bridge::Context;
 $Archive::Tar::WARN = 0;
 
 sub new {
@@ -114,6 +115,14 @@ sub prebuild {
 sub postbuild {
 	my $self = shift;
 	return $self->_execPackageScript("postbuild");
+}
+
+sub exec {
+	my $self = shift;
+	my $_controlpl = $self->_fileFromTar("NIC/control.pl");
+	if($_controlpl) {
+		NIC::Bridge::Context->_execute($self, $_controlpl->get_content);
+	}
 }
 
 sub build {
