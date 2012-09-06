@@ -121,8 +121,9 @@ sub exec {
 	my $self = shift;
 	my $_controlpl = $self->_fileFromTar("NIC/control.pl");
 	if($_controlpl) {
-		NIC::Bridge::Context->_execute($self, $_controlpl->get_content);
+		return NIC::Bridge::Context->_execute($self, $_controlpl->get_content);
 	}
+	return 1;
 }
 
 sub build {

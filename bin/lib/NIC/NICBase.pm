@@ -169,7 +169,7 @@ sub postbuild {
 }
 
 sub exec {
-
+	return 1;
 }
 
 sub build {
