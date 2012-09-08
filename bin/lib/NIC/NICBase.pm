@@ -1,9 +1,12 @@
 package NIC::NICBase;
 use strict;
+use warnings;
 
 use NIC::NICBase::File;
 use NIC::NICBase::Directory;
 use NIC::NICBase::Symlink;
+
+use List::Util qw(first);
 
 sub new {
 	my $proto = shift;
@@ -27,10 +30,7 @@ sub _symlinkClass { "NIC::NICBase::Symlink"; }
 sub _getContentWithoutCreate {
 	my $self = shift;
 	my $name = shift;
-	for(@{$self->{CONTENTS}}) {
-		return $_ if $_->name eq $name;
-	}
-	return undef;
+	return first { $_->name eq $name } @{$self->{CONTENTS}};
 }
 
 sub _getContent {

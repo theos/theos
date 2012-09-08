@@ -187,7 +187,7 @@ sub promptList {
 
 	$default = -1 if(!defined $default);
 
-	map { print " ".($_==$default?">":" ")."[".($_+1).".] ",$formatsub->($list[$_]),$/; } (0..$#list);
+	for(0..$#list) { print " ".($_==$default?">":" ")."[".($_+1).".] ",$formatsub->($list[$_]),$/; }
 	print $prompt,": ";
 	$| = 1;
 	my $idx = -1;
