@@ -66,13 +66,28 @@ sub _prompt {
 
 sub _wrap {
 	my $self = shift;
-	my $wrap = shift;
-	my $_wrapType = $wrap ? (ref $wrap) : "_Undefined";
-	$_wrapType =~ s/.*:://;
-	my $wrappingClass = "NIC::Bridge::$_wrapType";
-	can_load(modules=>{$wrappingClass=>undef}, verbose=>0) or return undef;
-	my $wrapper = $wrappingClass->new($self, $wrap);
-	return $wrapper;
+	my @r = map {
+		my $wrap = $_;
+		my $_wrapType = $wrap ? (ref $wrap) : "_Undefined";
+		if(!$_wrapType || (ref($wrap) && $wrap->isa("NIC::Bridge::_BridgedObject"))) {
+			return $wrap;
+		} else {
+			$_wrapType =~ s/.*:://;
+			my $wrappingClass = "NIC::Bridge::$_wrapType";
+			can_load(modules=>{$wrappingClass=>undef}, verbose=>0) or return undef;
+			my $wrapper = $wrappingClass->new($self, $wrap);
+			return $wrapper;
+		}
+	} (@_);
+	return @r if wantarray;
+	return (@r > 0 ? $r[0] : undef);
+}
+
+sub _unwrap {
+	my $self = shift;
+	my @r = map { (ref($_) && $_->isa("NIC::Bridge::_BridgedObject")) ? $_->{FOR} : $_; } (@_);
+	return @r if wantarray;
+	return (@r > 0 ? $r[0] : undef);
 }
 
 sub _execute {
