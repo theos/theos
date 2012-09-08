@@ -2,11 +2,11 @@ package NIC::Bridge::Symlink;
 use strict;
 use warnings;
 use parent qw(NIC::Bridge::NICType);
-use NIC::Tie::Method;
+use NIC::Bridge::Tie::WrappedMethod;
 
 sub target :lvalue {
 	my $self = shift;
-	tie my $tied, 'NIC::Tie::Method', $self->{FOR}, "target";
+	tie my $tied, 'NIC::Bridge::Tie::WrappedMethod', $self->{CONTEXT}, $self->{FOR}, "target";
 	$tied;
 }
 

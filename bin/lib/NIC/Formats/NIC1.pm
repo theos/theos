@@ -54,6 +54,7 @@ sub load {
 	while(<$fh>) {
 		$self->_processLine($fh, $_);
 	}
+	$self->resolveSymlinks;
 }
 
 1;

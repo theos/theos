@@ -87,6 +87,15 @@ sub registerFileConstraint {
 	$self->_getContent($filename)->addConstraint($constraint);
 }
 
+sub resolveSymlinks {
+	my $self = shift;
+	for(@{$self->{CONTENTS}}) {
+		next unless $_->type == NIC::NICType::TYPE_SYMLINK;
+		next if $_->target_type != NIC::NICType::TYPE_UNKNOWN;
+		$_->target($self->_getContentWithoutCreate($_->target));
+	}
+}
+
 sub variable: lvalue {
 	my $self = shift;
 	my $key = shift;

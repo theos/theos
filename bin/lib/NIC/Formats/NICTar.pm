@@ -91,6 +91,7 @@ sub load {
 			$ref->tarfile($_);
 		}
 	}
+	$self->resolveSymlinks;
 }
 
 sub _execPackageScript {

@@ -10,9 +10,7 @@ use overload '""' => sub {
 sub new {
 	my $proto = shift;
 	my $class = ref($proto) || $proto;
-	my $context = shift;
-	my $wrapped = shift;
-	my $self = { CONTEXT => $context, FOR => $wrapped };
+	my $self = { CONTEXT => shift, FOR => shift };
 	bless($self, $proto);
 	return $self;
 }

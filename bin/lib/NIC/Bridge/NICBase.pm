@@ -41,7 +41,12 @@ sub symlink {
 	my $oldfile = shift;
 	my $newfile = shift;
 	my $ref = $self->{FOR}->_getContent($newfile);
-	NIC::NICBase::Symlink->take($ref, $oldfile);
+
+	my $realtarget = ref($oldfile) ? $self->{CONTEXT}->_unwrap($oldfile) : $self->{FOR}->_getContentWithoutCreate($oldfile);
+	$realtarget = $oldfile if !$realtarget;
+
+	NIC::NICBase::Symlink->take($ref, $realtarget);
+
 	return $self->{CONTEXT}->_wrap($ref);
 }
 
