@@ -92,7 +92,8 @@ sub resolveSymlinks {
 	for(@{$self->{CONTENTS}}) {
 		next unless $_->type == NIC::NICType::TYPE_SYMLINK;
 		next if $_->target_type != NIC::NICType::TYPE_UNKNOWN;
-		$_->target($self->_getContentWithoutCreate($_->target));
+		my $ref = $self->_getContentWithoutCreate($_->target);
+		$_->target($ref) if $ref;
 	}
 }
 

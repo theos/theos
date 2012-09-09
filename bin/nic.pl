@@ -19,6 +19,7 @@ use Tie::File;
 
 use NIC::Bridge::Context (PROMPT => \&nicPrompt);
 use NIC::Formats::NICTar;
+use NIC::NICType;
 
 our $savedStdout = *STDOUT;
 
@@ -36,7 +37,7 @@ my $_theospath = File::Spec->catdir(@_dirs);
 	exitWithError("Cowardly refusing to make a project inside \$THEOS ($_abstheospath)") if($_cwd =~ /^$_abstheospath/);
 }
 
-my %CONFIG = ();
+my %CONFIG = (link_theos => 1);
 loadConfig();
 
 my $clean_project_name = "";
@@ -113,19 +114,37 @@ foreach my $prompt ($NIC->prompts) {
 	nicPrompt($NIC, $prompt->{name}, $prompt->{prompt}, $prompt->{default});
 }
 
+my $cwd = abs_path(getcwd());
+
+# Add theos symlink to the template, if necessary
+if($CONFIG{'link_theos'} != 0 && !$NIC->variableIgnored("THEOS")) {
+	$NIC->addConstraint("link_theos");
+
+	my $template_theos_reference = $NIC->_getContentWithoutCreate("theos");
+	if(!$template_theos_reference || $template_theos_reference->type == NIC::NICType::TYPE_UNKNOWN) {
+		print STDERR "[warning] Asked to link theos, but template lacks an optional theos link. Creating one! Contact the author of this template about this issue.",$/;
+		$NIC->registerSymlink("theos", '@@THEOS_PATH@@');
+	}
+
+	my $theosLinkPath = $CONFIG{'theos_path'};
+	$theosLinkPath = readlink("$cwd/theos") if !$theosLinkPath && (-l "$cwd/theos") && !$CONFIG{'ignore_parent_theos'};
+	$theosLinkPath = "$cwd/theos" if !$theosLinkPath && (-d "$cwd/theos") && !$CONFIG{'ignore_parent_theos'};
+	$theosLinkPath = $_theospath if !$theosLinkPath;
+
+	# Set @@THEOS@@ to 'theos', so that the project refers to its linked copy of theos.
+	$NIC->variable("THEOS") = "theos";
+	$NIC->variable("THEOS_PATH") = $theosLinkPath;
+} else {
+	# Trust that the user knows what he's doing and set @@THEOS@@ to $(THEOS).
+	$NIC->variable("THEOS") = '$(THEOS)';
+}
+
 # Execute control script.
 $NIC->exec or exitWithError("Failed to build template '".$NIC->name."'.");
 
 print "Instantiating ".$NIC->name." in ".lc($clean_project_name)."/...",$/;
 my $dirname = lc($clean_project_name);
-my $cwd = abs_path(getcwd());
 $NIC->build($dirname);
-if(-l "$cwd/theos" || -d "$cwd/theos") {
-	print "Parent directory contains a ".(-l "$cwd/theos" ? "symbolic link to" : "copy of")." Theos. Using it instead.",$/;
-	symlink(-l "$cwd/theos" ? readlink("$cwd/theos") : "$cwd/theos", "theos");
-} else {
-	symlink($_theospath, "theos");
-}
 chdir($cwd);
 
 my @makefiles = ("GNUmakefile", "makefile", "Makefile");
