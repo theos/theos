@@ -1,7 +1,8 @@
 package NIC::NICBase::Directory;
-use parent NIC::NICType;
 use strict;
-use File::Path "make_path";
+use warnings;
+use parent qw(NIC::NICType);
+use File::Path qw(mkpath);
 
 sub type {
 	my $self = shift;
@@ -14,7 +15,7 @@ sub _mode {
 
 sub create {
 	my $self = shift;
-	make_path($self->{OWNER}->substituteVariables($self->{NAME}), { mode => $self->mode }) or return 0;
+	mkpath($self->{OWNER}->substituteVariables($self->{NAME}), { mode => $self->mode }) or return 0;
 	return 1;
 }
 

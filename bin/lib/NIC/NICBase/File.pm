@@ -1,6 +1,7 @@
 package NIC::NICBase::File;
-use parent NIC::NICType;
 use strict;
+use warnings;
+use parent qw(NIC::NICType);
 
 sub _take_init {
 	my $self = shift;

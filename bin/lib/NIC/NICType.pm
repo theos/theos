@@ -1,5 +1,6 @@
 package NIC::NICType;
 use strict;
+use warnings;
 
 use constant {
 	TYPE_UNKNOWN => 0,

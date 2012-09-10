@@ -1,13 +1,14 @@
 package NIC::NICBase::Symlink;
-use parent NIC::NICType;
-use Scalar::Util qw(refaddr);
 use strict;
+use warnings;
+use parent qw(NIC::NICType);
+use Scalar::Util qw(refaddr);
 
 use overload '""' => sub {
 	my $self = shift;
 	my $ref = ref($self);
 	$ref =~ s/^.*::(\w+)$/$1/g;
-	my $target = refaddr($self) == refaddr($self->target) ? "itself" : "\"".$self->target."\"";
+	my $target = (ref($self->target) && refaddr($self) == refaddr($self->target)) ? "itself" : "\"".$self->target."\"";
 	return '"'.$self->name."\" ($ref to $target)";
 };
 
