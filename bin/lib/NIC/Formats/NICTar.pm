@@ -6,6 +6,7 @@ use NIC::Formats::NICTar::Directory;
 use NIC::Formats::NICTar::Symlink;
 use Archive::Tar;
 use File::Temp;
+use File::Path;
 use File::Spec;
 use NIC::Bridge::Context;
 $Archive::Tar::WARN = 0;
@@ -99,7 +100,7 @@ sub _execPackageScript {
 	my $script = shift;
 	my $tarfile = $self->_fileFromTar("NIC/$script");
 	return if !$tarfile || $tarfile->mode & 0500 != 0500;
-	my $filename = File::Spec->catfile($self->{_TEMPDIR}->dirname, $script);
+	my $filename = File::Spec->catfile($self->{_TEMPDIR}, $script);
 	my $nicfile = NIC::NICType->new($self, $filename);
 	$self->_fileClass->take($nicfile);
 	$nicfile->tarfile($tarfile);
@@ -134,8 +135,11 @@ sub build {
 		$ENV{"NIC_".$_} = $self->variable($_);
 	}
 
-	$self->{_TEMPDIR} = File::Temp->newdir();
+	$self->{_TEMPDIR} = File::Temp::tempdir();
+
 	$self->SUPER::build(@_);
+
+	File::Path::rmtree($self->{_TEMPDIR});
 	$self->{_TEMPDIR} = undef;
 }
 
