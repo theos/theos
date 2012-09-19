@@ -1,21 +1,18 @@
 package NIC::Formats::NIC1;
 use parent NIC::NICBase;
 use strict;
-use NIC::Formats::NIC1::File;
 
 sub new {
 	my $proto = shift;
 	my $class = ref($proto) || $proto;
 
 	my $fh = shift;
-	my $self = NIC::NICBase->new();
+	my $self = NIC::NICBase->new(@_);
 	bless($self, $class);
 
 	$self->load($fh);
 	return $self;
 }
-
-sub _fileClass { return "NIC::Formats::NIC1::File"; }
 
 sub _processLine {
 	my $self = shift;
@@ -57,6 +54,7 @@ sub load {
 	while(<$fh>) {
 		$self->_processLine($fh, $_);
 	}
+	$self->resolveSymlinks;
 }
 
 1;

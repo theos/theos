@@ -1,5 +1,6 @@
 package NIC::NICType;
 use strict;
+use warnings;
 
 use constant {
 	TYPE_UNKNOWN => 0,
@@ -8,12 +9,20 @@ use constant {
 	TYPE_SYMLINK => 3
 };
 
+use overload '""' => sub {
+	my $self = shift;
+	my $ref = ref($self);
+	$ref =~ s/^.*::(\w+)$/$1/g;
+	return '"'.$self->name."\" ($ref, mode ".sprintf("%4.04o", $self->mode).")";
+};
+
 sub new {
 	my $proto = shift;
 	my $class = ref($proto) || $proto;
 	my $self = {};
 	$self->{OWNER} = shift // undef;
 	$self->{NAME} = shift // undef;
+	$self->{MODE} = undef;
 	$self->{CONSTRAINTS} = [];
 	bless($self, $class);
 
@@ -35,6 +44,16 @@ sub name {
 	my $self = shift;
 	if(@_) { $self->{NAME} = shift; }
 	return $self->{NAME};
+}
+
+sub _mode {
+	return 0;
+}
+
+sub mode {
+	my $self = shift;
+	if(@_) { $self->{MODE} = shift; }
+	return $self->{MODE} // $self->_mode;
 }
 
 sub type {

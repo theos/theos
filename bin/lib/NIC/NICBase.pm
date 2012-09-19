@@ -1,15 +1,18 @@
 package NIC::NICBase;
 use strict;
+use warnings;
 
 use NIC::NICBase::File;
 use NIC::NICBase::Directory;
 use NIC::NICBase::Symlink;
 
+use List::Util qw(first);
+
 sub new {
 	my $proto = shift;
 	my $class = ref($proto) || $proto;
 	my $self = {};
-	$self->{NAME} = undef;
+	$self->{NAME} = shift;
 	$self->{CONTENTS} = [];
 	$self->{VARIABLES} = {};
 	$self->{CONSTRAINTS} = {};
@@ -24,13 +27,17 @@ sub _fileClass { "NIC::NICBase::File"; }
 sub _directoryClass { "NIC::NICBase::Directory"; }
 sub _symlinkClass { "NIC::NICBase::Symlink"; }
 
-sub _getContent {
+sub _getContentWithoutCreate {
 	my $self = shift;
 	my $name = shift;
-	for(@{$self->{CONTENTS}}) {
-		return $_ if $_->name eq $name;
-	}
-	my $ref = NIC::NICType->new($self, $name, @_);
+	return first { $_->name eq $name } @{$self->{CONTENTS}};
+}
+
+sub _getContent {
+	my $self = shift;
+	my $ref = $self->_getContentWithoutCreate(@_);
+	return $ref if $ref;
+	$ref = NIC::NICType->new($self, @_);
 	push(@{$self->{CONTENTS}}, $ref);
 	return $ref;
 }
@@ -80,6 +87,16 @@ sub registerFileConstraint {
 	$self->_getContent($filename)->addConstraint($constraint);
 }
 
+sub resolveSymlinks {
+	my $self = shift;
+	for(@{$self->{CONTENTS}}) {
+		next unless $_->type == NIC::NICType::TYPE_SYMLINK;
+		next if $_->target_type != NIC::NICType::TYPE_UNKNOWN;
+		my $ref = $self->_getContentWithoutCreate($_->target);
+		$_->target($ref) if $ref;
+	}
+}
+
 sub variable: lvalue {
 	my $self = shift;
 	my $key = shift;
@@ -89,7 +106,7 @@ sub variable: lvalue {
 sub name {
 	my $self = shift;
 	if(@_) { $self->{NAME} = shift; }
-	return $self->{NAME};
+	return $self->{NAME} // "(unnamed template)";
 }
 
 sub prompts {
@@ -159,6 +176,10 @@ sub prebuild {
 
 sub postbuild {
 
+}
+
+sub exec {
+	return 1;
 }
 
 sub build {

@@ -1,7 +1,8 @@
 #!/usr/bin/perl
 
-my $VER = "1.5";
+my $VER = "2.0";
 
+use strict;
 use warnings;
 use FindBin;
 use lib "$FindBin::Bin/lib";
@@ -16,11 +17,15 @@ use POSIX qw(getuid);
 use Module::Load::Conditional 'can_load';
 use Tie::File;
 
+use NIC::Bridge::Context (PROMPT => \&nicPrompt);
 use NIC::Formats::NICTar;
+use NIC::NICType;
+
+our $savedStdout = *STDOUT;
 
 my @_dirs = File::Spec->splitdir(abs_path($FindBin::Bin));
 $_dirs[$#_dirs]="templates";
-my $_templatepath = File::Spec->catdir(@_dirs);
+our $_templatepath = File::Spec->catdir(@_dirs);
 $#_dirs--;
 my $_theospath = File::Spec->catdir(@_dirs);
 
@@ -32,7 +37,7 @@ my $_theospath = File::Spec->catdir(@_dirs);
 	exitWithError("Cowardly refusing to make a project inside \$THEOS ($_abstheospath)") if($_cwd =~ /^$_abstheospath/);
 }
 
-my %CONFIG = ();
+my %CONFIG = (link_theos => 1);
 loadConfig();
 
 my $clean_project_name = "";
@@ -60,8 +65,9 @@ my $_versionstring = "NIC $VER - New Instance Creator";
 print $_versionstring,$/;
 print "-" x length($_versionstring),$/;
 
+my $NIC;
 if($nicfile) {
-	$NIC = _loadNIC($nicfile) if $nicfile;
+	$NIC = _loadNIC($nicfile) if $nicfile && -f $nicfile;
 } else {
 	my @templates = getTemplates();
 	if(scalar @templates == 0) {
@@ -104,26 +110,41 @@ if(! -e "control" && ! -e "layout/DEBIAN/control") {
 	$NIC->addConstraint("package");
 }
 
-foreach $prompt ($NIC->prompts) {
-	# Do we want to import these variables into the NIC automatically? In the format name.VARIABLE?
-	# If so, this could become awesome. We could $NIC->get($prompt->{name})
-	# and have loaded the variables in a loop beforehand.
-	# This would also allow the user to set certain variables (package prefix, username) for different templates.
-	my $response = $CONFIG{$NIC->name().".".$prompt->{name}} || undef;
-	promptIfMissing(\$response, $prompt->{default}, $prompt->{prompt});
-	$NIC->variable($prompt->{name}) = $response;
+foreach my $prompt ($NIC->prompts) {
+	nicPrompt($NIC, $prompt->{name}, $prompt->{prompt}, $prompt->{default});
 }
+
+my $cwd = abs_path(getcwd());
+
+# Add theos symlink to the template, if necessary
+if($CONFIG{'link_theos'} != 0 && !$NIC->variableIgnored("THEOS")) {
+	$NIC->addConstraint("link_theos");
+
+	my $template_theos_reference = $NIC->_getContentWithoutCreate("theos");
+	if(!$template_theos_reference || $template_theos_reference->type == NIC::NICType::TYPE_UNKNOWN) {
+		print STDERR "[warning] Asked to link theos, but template lacks an optional theos link. Creating one! Contact the author of this template about this issue.",$/;
+		$NIC->registerSymlink("theos", '@@THEOS_PATH@@');
+	}
+
+	my $theosLinkPath = $CONFIG{'theos_path'};
+	$theosLinkPath = readlink("$cwd/theos") if !$theosLinkPath && (-l "$cwd/theos") && !$CONFIG{'ignore_parent_theos'};
+	$theosLinkPath = "$cwd/theos" if !$theosLinkPath && (-d "$cwd/theos") && !$CONFIG{'ignore_parent_theos'};
+	$theosLinkPath = $_theospath if !$theosLinkPath;
+
+	# Set @@THEOS@@ to 'theos', so that the project refers to its linked copy of theos.
+	$NIC->variable("THEOS") = "theos";
+	$NIC->variable("THEOS_PATH") = $theosLinkPath;
+} else {
+	# Trust that the user knows what he's doing and set @@THEOS@@ to $(THEOS).
+	$NIC->variable("THEOS") = '$(THEOS)';
+}
+
+# Execute control script.
+$NIC->exec or exitWithError("Failed to build template '".$NIC->name."'.");
 
 print "Instantiating ".$NIC->name." in ".lc($clean_project_name)."/...",$/;
 my $dirname = lc($clean_project_name);
-my $cwd = abs_path(getcwd());
 $NIC->build($dirname);
-if(-l "$cwd/theos" || -d "$cwd/theos") {
-	print "Parent directory contains a ".(-l "$cwd/theos" ? "symbolic link to" : "copy of")." Theos. Using it instead.",$/;
-	symlink(-l "$cwd/theos" ? readlink("$cwd/theos") : "$cwd/theos", "theos");
-} else {
-	symlink($_theospath, "theos");
-}
 chdir($cwd);
 
 my @makefiles = ("GNUmakefile", "makefile", "Makefile");
@@ -162,9 +183,9 @@ sub promptIfMissing {
 	my $prompt = shift;
 
 	if($default) {
-		print $prompt, " [$default]: ";
+		print $::savedStdout $prompt, " [$default]: ";
 	} else {
-		print $prompt, ": ";
+		print $::savedStdout $prompt, ": ";
 	}
 
 	$| = 1; $_ = <STDIN>;
@@ -185,7 +206,7 @@ sub promptList {
 
 	$default = -1 if(!defined $default);
 
-	map { print " ".($_==$default?">":" ")."[".($_+1).".] ",$formatsub->($list[$_]),$/; } (0..$#list);
+	for(0..$#list) { print " ".($_==$default?">":" ")."[".($_+1).".] ",$formatsub->($list[$_]),$/; }
 	print $prompt,": ";
 	$| = 1;
 	my $idx = -1;
@@ -217,15 +238,18 @@ sub _loadNIC {
 	my $line = <$nichandle>;
 	seek($nichandle, 0, 0);
 
+	(my $prettyname = $nicfile) =~ s/$::_templatepath\/(.*)\.nic(\.tar)?/$1/g;
+	$prettyname .= " (unnamed template)";
+
 	my $nicversion = 1;
 	my $NIC = undef;
 	if($line =~ /^nic (\w+)$/) {
 		$nicversion = $1;
 		my $NICPackage = "NIC$nicversion";
 		return undef if(!can_load(modules => {"NIC::Formats::$NICPackage" => undef}));
-		$NIC = "NIC::Formats::$NICPackage"->new($nichandle);
+		$NIC = "NIC::Formats::$NICPackage"->new($nichandle, $prettyname);
 	} else {
-		$NIC = NIC::Formats::NICTar->new($nichandle);
+		$NIC = NIC::Formats::NICTar->new($nichandle, $prettyname);
 	}
 
 	close($nichandle);
@@ -278,4 +302,21 @@ sub loadConfig {
 			$CONFIG{$key} = $value;
 		}
 	}
+}
+
+sub nicPrompt {
+	# Do we want to import these variables into the NIC automatically? In the format name.VARIABLE?
+	# If so, this could become awesome. We could $NIC->get($prompt->{name})
+	# and have loaded the variables in a loop beforehand.
+	# This would also allow the user to set certain variables (package prefix, username) for different templates.
+	my ($nic, $variable, $prompt, $default) = @_;
+	my $response = undef;
+	$response = $CONFIG{$nic->name().".".$variable} if($variable);
+
+	promptIfMissing(\$response, $default, "[".$nic->name."] ".$prompt);
+
+	$NIC->variable($variable) = $response if $variable;
+
+	# Return the response for anybody who's interested.
+	$response;
 }
