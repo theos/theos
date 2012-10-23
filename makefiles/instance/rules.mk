@@ -76,27 +76,14 @@ $$(THEOS_OBJ_DIR)/$(1).unsigned: $$(OBJ_FILES_TO_LINK)
 else
 $$(THEOS_OBJ_DIR)/$(1): $$(OBJ_FILES_TO_LINK)
 endif
+ifneq ($(2),nowarn)
 ifeq ($$(OBJ_FILES_TO_LINK),)
 	$$(WARNING_EMPTY_LINKING)
 endif
-	$$(ECHO_LINKING)$$(TARGET_LD) $$(ALL_LDFLAGS) -o "$$@" $$^$$(ECHO_END)
-ifeq ($$(DEBUG),)
-	$$(ECHO_STRIPPING)$$(TARGET_STRIP) $$(TARGET_STRIP_FLAGS) "$$@"$$(ECHO_END)
-endif
-endef
-
-define _THEOS_TEMPLATE_NOWARNING_LINKING_RULE
-ifneq ($$(_THEOS_CODESIGN_COMMANDLINE),)
-$$(THEOS_OBJ_DIR)/$(1): $$(THEOS_OBJ_DIR)/$(1).unsigned
-	$$(ECHO_SIGNING)$$(_THEOS_CODESIGN_COMMANDLINE) "$$<"; mv "$$<" "$$@"$$(ECHO_END)
-$$(THEOS_OBJ_DIR)/$(1).unsigned: $$(OBJ_FILES_TO_LINK)
-else
-$$(THEOS_OBJ_DIR)/$(1): $$(OBJ_FILES_TO_LINK)
 endif
 	$$(ECHO_LINKING)$$(TARGET_LD) $$(ALL_LDFLAGS) -o "$$@" $$^$$(ECHO_END)
 ifeq ($$(DEBUG),)
 	$$(ECHO_STRIPPING)$$(TARGET_STRIP) $$(TARGET_STRIP_FLAGS) "$$@"$$(ECHO_END)
-endif
 endif
 endef
 
