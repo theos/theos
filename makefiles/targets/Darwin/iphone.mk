@@ -24,6 +24,16 @@ ifeq ($(_THEOS_TARGET_SDK_VERSION),latest)
 override _THEOS_TARGET_SDK_VERSION := $(_LATEST_SDK)
 endif
 
+_COMMA:=,
+_SPACE:=
+_SPACE+= #
+_SDK_NOCOMMA=$(subst $(_COMMA),$(_SPACE),$(_THEOS_TARGET_SDK_VERSION))
+ifneq ($(words $(_SDK_NOCOMMA)),1)
+_REQUESTED_SDKS := $(foreach s,$(_SDK_NOCOMMA),$(wildcard $(_SDK_DIR)/iPhoneOS$(s).sdk))
+_FIRST_AVAILABLE_SDK := $(firstword $(_REQUESTED_SDKS))
+override _THEOS_TARGET_SDK_VERSION := $(patsubst $(_SDK_DIR)/iPhoneOS%.sdk,%,$(_FIRST_AVAILABLE_SDK))
+endif
+
 # We have to figure out the target version here, as we need it in the calculation of the deployment version.
 _TARGET_VERSION_GE_6_0 = $(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 6.0)
 _TARGET_VERSION_GE_3_0 = $(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 3.0)
