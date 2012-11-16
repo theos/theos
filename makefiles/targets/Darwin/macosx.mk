@@ -2,7 +2,7 @@ ifeq ($(_THEOS_TARGET_LOADED),)
 _THEOS_TARGET_LOADED := 1
 THEOS_TARGET_NAME := macosx
 
-_THEOS_TARGET_MACOSX_DEPLOYMENT_VERSION := $(firstword $(_THEOS_TARGET_ARGS))
+_THEOS_TARGET_MACOSX_DEPLOYMENT_VERSION := $(__THEOS_TARGET_ARG_1)
 TARGET_CC ?= xcrun -sdk macosx gcc
 TARGET_CXX ?= xcrun -sdk macosx g++
 TARGET_LD ?= xcrun -sdk macosx g++

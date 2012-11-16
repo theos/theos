@@ -2,9 +2,9 @@ ifeq ($(_THEOS_TARGET_LOADED),)
 _THEOS_TARGET_LOADED := 1
 THEOS_TARGET_NAME := linux
 
-ifneq ($(words $(_THEOS_TARGET_ARGS)),0)
-CROSS_COMPILE := $(firstword $(_THEOS_TARGET_ARGS))-
-endif 
+ifneq ($(__THEOS_TARGET_ARG_1),)
+CROSS_COMPILE := $(__THEOS_TARGET_ARG_1)-
+endif
 
 TARGET_CC ?= $(CROSS_COMPILE)gcc
 TARGET_CXX ?= $(CROSS_COMPILE)g++

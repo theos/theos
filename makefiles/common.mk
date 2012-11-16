@@ -65,22 +65,29 @@ __mod = -include $$(foreach mod,$$(_THEOS_LOAD_MODULES),$$(THEOS_MODULE_PATH)/$$
 
 include $(THEOS_MAKE_PATH)/legacy.mk
 
+ifneq ($(_THEOS_PLATFORM_CALCULATED),1)
 uname_s := $(shell uname -s)
 uname_p := $(shell uname -p)
-_THEOS_PLATFORM_ARCH = $(uname_s)-$(uname_p)
-_THEOS_PLATFORM = $(uname_s)
--include $(THEOS_MAKE_PATH)/platform/$(uname_s)-$(uname_p).mk
--include $(THEOS_MAKE_PATH)/platform/$(uname_s).mk
-$(eval $(call __mod,platform/$(uname_s)-$(uname_p).mk))
-$(eval $(call __mod,platform/$(uname_s).mk))
+export _THEOS_PLATFORM_ARCH = $(uname_s)-$(uname_p)
+export _THEOS_PLATFORM = $(uname_s)
+export _THEOS_PLATFORM_CALCULATED := 1
+endif
 
-_THEOS_TARGET := $(shell $(THEOS_BIN_PATH)/target.pl "$(target)" "$(call __schema_var_last,,TARGET)" "$(_THEOS_PLATFORM_DEFAULT_TARGET)")
+-include $(THEOS_MAKE_PATH)/platform/$(_THEOS_PLATFORM_ARCH).mk
+-include $(THEOS_MAKE_PATH)/platform/$(_THEOS_PLATFORM).mk
+$(eval $(call __mod,platform/$(_THEOS_PLATFORM_ARCH).mk))
+$(eval $(call __mod,platform/$(_THEOS_PLATFORM).mk))
+
+ifneq ($(_THEOS_TARGET_CALCULATED),1)
+__TARGET_MAKEFILE := $(shell $(THEOS_BIN_PATH)/target.pl "$(target)" "$(call __schema_var_last,,TARGET)" "$(_THEOS_PLATFORM_DEFAULT_TARGET)")
+-include $(__TARGET_MAKEFILE)
+$(shell rm -f $(__TARGET_MAKEFILE) > /dev/null 2>&1)
+export _THEOS_TARGET := $(__THEOS_TARGET_ARG_0)
 ifeq ($(_THEOS_TARGET),)
 $(error You did not specify a target, and the "$(THEOS_PLATFORM_NAME)" platform does not define a default target)
 endif
-_THEOS_TARGET := $(subst :, ,$(_THEOS_TARGET))
-_THEOS_TARGET_ARGS := $(wordlist 2,$(words $(_THEOS_TARGET)),$(_THEOS_TARGET))
-_THEOS_TARGET := $(firstword $(_THEOS_TARGET))
+export _THEOS_TARGET_CALCULATED := 1
+endif
 
 -include $(THEOS_MAKE_PATH)/targets/$(_THEOS_PLATFORM_ARCH)/$(_THEOS_TARGET).mk
 -include $(THEOS_MAKE_PATH)/targets/$(_THEOS_PLATFORM)/$(_THEOS_TARGET).mk
