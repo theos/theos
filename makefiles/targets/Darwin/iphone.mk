@@ -2,8 +2,18 @@ ifeq ($(_THEOS_TARGET_LOADED),)
 _THEOS_TARGET_LOADED := 1
 THEOS_TARGET_NAME := iphone
 
+ifeq ($(__THEOS_TARGET_ARG_1),clang)
+_THEOS_TARGET_CC := clang
+_THEOS_TARGET_CXX := clang++
+_THEOS_TARGET_ARG_ORDER := 2 3
+else
+_THEOS_TARGET_CC := gcc
+_THEOS_TARGET_CXX := g++
+_THEOS_TARGET_ARG_ORDER := 1 2
+endif
+
 # A version specified as a target argument overrides all previous definitions.
-_SDKVERSION := $(or $(__THEOS_TARGET_ARG_1),$(SDKVERSION))
+_SDKVERSION := $(or $(__THEOS_TARGET_ARG_$(word 1,$(_THEOS_TARGET_ARG_ORDER))),$(SDKVERSION))
 _THEOS_TARGET_SDK_VERSION := $(or $(_SDKVERSION),latest)
 
 _SDK_DIR := $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs
@@ -17,7 +27,7 @@ endif
 # We have to figure out the target version here, as we need it in the calculation of the deployment version.
 _TARGET_VERSION_GE_6_0 = $(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 6.0)
 _TARGET_VERSION_GE_3_0 = $(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 3.0)
-_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION := $(or $(__THEOS_TARGET_ARG_2),$(TARGET_IPHONEOS_DEPLOYMENT_VERSION),$(_SDKVERSION),$(if $(_TARGET_VERSION_GE_6_0),4.3,3.0))
+_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION := $(or $(__THEOS_TARGET_ARG_$(word 2,$(_THEOS_TARGET_ARG_ORDER))),$(TARGET_IPHONEOS_DEPLOYMENT_VERSION),$(_SDKVERSION),$(if $(_TARGET_VERSION_GE_6_0),4.3,3.0))
 
 ifeq ($(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION),latest)
 override _THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION := $(_LATEST_SDK)
@@ -31,9 +41,9 @@ endif
 
 SYSROOT ?= $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(_THEOS_TARGET_SDK_VERSION).sdk
 
-TARGET_CC ?= xcrun -sdk iphoneos gcc
-TARGET_CXX ?= xcrun -sdk iphoneos g++
-TARGET_LD ?= xcrun -sdk iphoneos g++
+TARGET_CC ?= xcrun -sdk iphoneos $(_THEOS_TARGET_CC)
+TARGET_CXX ?= xcrun -sdk iphoneos $(_THEOS_TARGET_CXX)
+TARGET_LD ?= xcrun -sdk iphoneos $(_THEOS_TARGET_CXX)
 TARGET_STRIP ?= xcrun -sdk iphoneos strip
 TARGET_STRIP_FLAGS ?= -x
 TARGET_CODESIGN_ALLOCATE ?= "$(shell xcrun -sdk iphoneos -find codesign_allocate)"
