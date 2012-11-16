@@ -185,7 +185,7 @@ sub exec {
 sub build {
 	my $self = shift;
 	my $dir = shift;
-	mkdir($dir);
+	mkdir($dir) or die "Failed to create the directory '$dir': $!\n";
 	chdir($dir) or die $!;
 	$self->prebuild();
 	foreach my $content (sort { $a->type <=> $b->type } (@{$self->{CONTENTS}})) {
