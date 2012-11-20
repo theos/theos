@@ -207,6 +207,7 @@ foreach my $line (@lines) {
 		$depth++ if($& eq "protocol" && substr($line, $-[0]) !~ /^protocol(\s+([_\$A-Za-z0-9]+(,\s*)?)+;|\s*\()/);
 		$depth-- if($& eq "}");
 		$depth-- if($& eq "end");
+		fileError($lineno, "fell off the face of the planet when we found a \'$&\'") if $depth < 0;
 		$depthMapping{$depthtoken} = $depth;
 		$depthsForCurrentLine{$depthtoken} = $depth;
 	}
