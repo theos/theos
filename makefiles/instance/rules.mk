@@ -70,6 +70,7 @@ internal-$(_THEOS_CURRENT_TYPE)-stage:: before-$(THEOS_CURRENT_INSTANCE)-stage i
 
 define _THEOS_TEMPLATE_DEFAULT_LINKING_RULE
 ifneq ($$(_THEOS_CODESIGN_COMMANDLINE),)
+.INTERMEDIATE: $$(THEOS_OBJ_DIR)/$(1).unsigned
 $$(THEOS_OBJ_DIR)/$(1): $$(THEOS_OBJ_DIR)/$(1).unsigned
 	$$(ECHO_SIGNING)$$(_THEOS_CODESIGN_COMMANDLINE) "$$<"; mv "$$<" "$$@"$$(ECHO_END)
 $$(THEOS_OBJ_DIR)/$(1).unsigned: $$(OBJ_FILES_TO_LINK)
