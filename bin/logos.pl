@@ -626,26 +626,7 @@ fileError($lineno, "non-initialized hook group".($numUnGroups == 1 ? "" : "s")."
 my @sortedPatches = sort { ($b->line == $a->line ? ($b->start || -1) <=> ($a->start || -1) : $b->line <=> $a->line) } @patches;
 
 if(exists $main::CONFIG{"dump"}) {
-	my $dumphref = {
-			linemap=>\%lineMapping,
-			depthmap=>\%depthMapping,
-			groups=>\@groups,
-			patches=>\@patches,
-			lines=>\@lines,
-			config=>\%::CONFIG
-		       };
-	if($main::CONFIG{"dump"} eq "yaml") {
-		load 'YAML::Syck';
-		print STDERR YAML::Syck::Dump($dumphref);
-	} elsif($main::CONFIG{"dump"} eq "perl") {
-		load 'Data::Dumper';
-		$Data::Dumper::Purity = 1;
-
-		my @k; my @v;
-		map {push(@k,$_); push(@v, $dumphref->{$_});} keys %$dumphref;
-		print STDERR Data::Dumper->Dump(\@v, \@k);
-	}
-	#print STDERR Data::Dumper->Dump([\@groups, \@patches, \@lines, \%::CONFIG], [qw(groups patches lines config)]);
+	performDump();
 }
 
 if($main::warnings > 0 && exists $main::CONFIG{"warnings"} && $main::CONFIG{"warnings"} eq "error") {
@@ -695,7 +676,9 @@ sub fileWarning {
 			$print = 0;
 		}
 	}
-	print STDERR "$filename:".($curline > -1 ? $lineMap[1].":" : "")." warning: $reason\n" if($print == 1);
+	my $pre = "";
+	$pre = "#^WARN:" if(exists($main::CONFIG{"dump"}));
+	print STDERR $pre."$filename:".($curline > -1 ? $lineMap[1].":" : "")." warning: $reason\n" if($print == 1);
 	$main::warnings++;
 }
 
@@ -704,7 +687,12 @@ sub fileError {
 	my $reason = shift;
 	my @lineMap = lookupLineMapping($curline);
 	my $filename = $lineMap[0];
-	die "$filename:".($curline > -1 ? $lineMap[1].":" : "")." error: $reason\n";
+	my $pre = "";
+	if(exists $main::CONFIG{"dump"}) {
+		performDump();
+	}
+	$pre = "#^ERR:" if(exists($main::CONFIG{"dump"}));
+	die $pre."$filename:".($curline > -1 ? $lineMap[1].":" : "")." error: $reason\n";
 }
 
 sub nestingError {
@@ -855,4 +843,24 @@ sub prettyPrintMethod {
 
 sub utilErrorHandler {
 	fileError($lineno, shift);
+}
+
+sub performDump {
+	my $dumphref = {
+			linemap=>\%lineMapping,
+			depthmap=>\%depthMapping,
+			groups=>\@groups,
+			patches=>\@patches,
+			lines=>\@lines,
+			config=>\%::CONFIG
+		       };
+	if($main::CONFIG{"dump"} eq "yaml") {
+		load 'YAML::Syck';
+		print STDERR YAML::Syck::Dump($dumphref);
+	} elsif($main::CONFIG{"dump"} eq "perl") {
+		load 'Data::Dumper';
+		$Data::Dumper::Purity = 1;
+		$Data::Dumper::Indent = 1;
+		print STDERR Data::Dumper->Dump([$dumphref], ["logos_state"]),$/;
+	}
 }

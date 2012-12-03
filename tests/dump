@@ -1,0 +1,232 @@
+$logos_state = {
+  'groups' => [
+    bless( {
+      'NAME' => '_ungrouped',
+      'INITLINE' => 18,
+      'INITIALIZED' => 0,
+      'EXPLICIT' => 0,
+      'CLASSES' => [
+        bless( {
+          'GROUP' => {},
+          'NAME' => 'Logging',
+          'META' => 0,
+          'INST' => 1,
+          'TYPE' => undef,
+          'OVERRIDDEN' => 0,
+          'METHODS' => [
+            bless( {
+              'SELECTOR_PARTS' => [
+                'charp',
+                'charpp',
+                'charppp',
+                'void',
+                'voidp',
+                'voidpp',
+                'inttype',
+                'unknown_int',
+                'object_id',
+                'object_unknown',
+                'array_whatever',
+                'array_int',
+                'array_id'
+              ],
+              'NEW' => 0,
+              'CLASS' => {},
+              'TYPE' => '',
+              'ARGTYPES' => [
+                'char *',
+                'char **',
+                'char ***',
+                'void',
+                'void*',
+                'void **',
+                'int',
+                'UIInterfaceOrientation',
+                'id',
+                'NSString *',
+                'void *[]',
+                'int[32]',
+                'id[]'
+              ],
+              'SCOPE' => '-',
+              'RETURN' => 'void',
+              'ARGNAMES' => [
+                'a',
+                'b',
+                'c',
+                'd',
+                'e',
+                'f',
+                'g',
+                'h',
+                'i',
+                'j',
+                'l',
+                'm',
+                'n'
+              ]
+            }, 'Logos::Method' )
+          ],
+          'METAEXPR' => undef,
+          'NUM_METHODS' => 1,
+          'EXPR' => undef
+        }, 'Logos::Class' )
+      ]
+    }, 'Logos::Group' ),
+    bless( {
+      'USEDMETACLASSES' => {},
+      'DECLAREDONLYCLASSES' => {},
+      'NAME' => '_staticClass',
+      'INITLINE' => 18,
+      'INITIALIZED' => 0,
+      'EXPLICIT' => 0,
+      'USEDCLASSES' => {},
+      'CLASSES' => []
+    }, 'Logos::StaticClassGroup' )
+  ],
+  'config' => {
+    'warnings' => 'default',
+    'dump' => 'perl',
+    'generator' => 'MobileSubstrate'
+  },
+  'lines' => [
+    '%hook Logging',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '- (void)charp:(char *)a charpp:(char **)b charppp:(char ***)c void:(void)d voidp:(void*)e voidpp:(void **)f inttype:(int)g unknown_int:(UIInterfaceOrientation)h object_id:(id)i object_unknown:(NSString *)j array_whatever:(void *[])l array_int:(int[32])m array_id:(id[])n {',
+    '	    %log;',
+    '}',
+    '%end'
+  ],
+  'depthmap' => {
+    '16:1' => 0,
+    '14:272' => 1,
+    '0:0' => 0
+  },
+  'linemap' => {
+    '0' => [
+      'tests/logging.xm',
+      0
+    ]
+  },
+  'patches' => [
+    bless( {
+      'SQUASH' => 0,
+      'RANGE' => [
+        '0',
+        '13'
+      ],
+      'SOURCE' => undef,
+      'LINE' => 0
+    }, 'Logos::Patch' ),
+    bless( {
+      'SQUASH' => 0,
+      'RANGE' => [
+        '0',
+        '270'
+      ],
+      'SOURCE' => bless( {
+        'ARGS' => [],
+        'OBJECT' => {},
+        'METHOD' => 'definition'
+      }, 'Logos::Patch::Source::Generator' ),
+      'LINE' => 14
+    }, 'Logos::Patch' ),
+    bless( {
+      'SQUASH' => 0,
+      'RANGE' => [
+        '5',
+        '9'
+      ],
+      'SOURCE' => bless( {
+        'ARGS' => [
+          undef
+        ],
+        'OBJECT' => {},
+        'METHOD' => 'buildLogCall'
+      }, 'Logos::Patch::Source::Generator' ),
+      'LINE' => 15
+    }, 'Logos::Patch' ),
+    bless( {
+      'SQUASH' => 0,
+      'RANGE' => [
+        '0',
+        '4'
+      ],
+      'SOURCE' => undef,
+      'LINE' => 17
+    }, 'Logos::Patch' ),
+    bless( {
+      'SQUASH' => 0,
+      'RANGE' => [],
+      'SOURCE' => [
+        bless( {
+          'ARGS' => [],
+          'OBJECT' => undef,
+          'METHOD' => 'preamble'
+        }, 'Logos::Patch::Source::Generator' ),
+        bless( {
+          'ARGS' => [
+            'Logging'
+          ],
+          'OBJECT' => undef,
+          'METHOD' => 'generateClassList'
+        }, 'Logos::Patch::Source::Generator' ),
+        bless( {
+          'ARGS' => [],
+          'OBJECT' => {},
+          'METHOD' => 'declarations'
+        }, 'Logos::Patch::Source::Generator' ),
+        bless( {
+          'ARGS' => [],
+          'OBJECT' => {},
+          'METHOD' => 'declarations'
+        }, 'Logos::Patch::Source::Generator' )
+      ],
+      'LINE' => 0
+    }, 'Logos::Patch' ),
+    bless( {
+      'SQUASH' => 1,
+      'RANGE' => [],
+      'SOURCE' => [
+        'static __attribute__((constructor)) void _logosLocalInit() {
+',
+        bless( {
+          'ARGS' => [],
+          'OBJECT' => {},
+          'METHOD' => 'initializers'
+        }, 'Logos::Patch::Source::Generator' ),
+        ' ',
+        bless( {
+          'ARGS' => [],
+          'OBJECT' => {},
+          'METHOD' => 'initializers'
+        }, 'Logos::Patch::Source::Generator' ),
+        ' ',
+        '}
+'
+      ],
+      'LINE' => 18
+    }, 'Logos::Patch' )
+  ]
+};
+$logos_state->{'groups'}[0]{'CLASSES'}[0]{'GROUP'} = $logos_state->{'groups'}[0];
+$logos_state->{'groups'}[0]{'CLASSES'}[0]{'METHODS'}[0]{'CLASS'} = $logos_state->{'groups'}[0]{'CLASSES'}[0];
+$logos_state->{'patches'}[1]{'SOURCE'}{'OBJECT'} = $logos_state->{'groups'}[0]{'CLASSES'}[0]{'METHODS'}[0];
+$logos_state->{'patches'}[2]{'SOURCE'}{'OBJECT'} = $logos_state->{'groups'}[0]{'CLASSES'}[0]{'METHODS'}[0];
+$logos_state->{'patches'}[4]{'SOURCE'}[2]{'OBJECT'} = $logos_state->{'groups'}[0];
+$logos_state->{'patches'}[4]{'SOURCE'}[3]{'OBJECT'} = $logos_state->{'groups'}[1];
+$logos_state->{'patches'}[5]{'SOURCE'}[1]{'OBJECT'} = $logos_state->{'groups'}[0];
+$logos_state->{'patches'}[5]{'SOURCE'}[3]{'OBJECT'} = $logos_state->{'groups'}[1];
+
