@@ -46,6 +46,7 @@ endif
 %.variables: _OPERATION = $(subst .,,$(suffix $(basename $*)))
 %.variables: _TYPE = $(subst -,_,$(subst .,,$(suffix $*)))
 %.variables: __SUBPROJECTS = $(strip $(call __schema_var_all,$(_INSTANCE)_,SUBPROJECTS))
+%.variables: __TARGETS = $(strip $(call __schema_var_all,$(_INSTANCE)_,TARGETS))
 %.variables:
 	@ \
 abs_build_dir=$(_THEOS_ABSOLUTE_BUILD_DIR); \
@@ -66,13 +67,16 @@ if [ "$(__SUBPROJECTS)" != "" ]; then \
     fi; \
   done; \
  fi; \
-echo Making $(_OPERATION) for $(_TYPE) $(_INSTANCE)...; \
+for t in $(__TARGETS); do \
+echo Making $(_OPERATION) for $(_TYPE) $(_INSTANCE) \($$t\)...; \
 $(MAKE) --no-print-directory --no-keep-going \
 	internal-$(_TYPE)-$(_OPERATION) \
 	_THEOS_CURRENT_TYPE="$(_TYPE)" \
 	THEOS_CURRENT_INSTANCE="$(_INSTANCE)" \
 	_THEOS_CURRENT_OPERATION="$(_OPERATION)" \
-	THEOS_BUILD_DIR="$(_THEOS_ABSOLUTE_BUILD_DIR)"
+	target="$$t" \
+	THEOS_BUILD_DIR="$(_THEOS_ABSOLUTE_BUILD_DIR)"; \
+done
 
 %.subprojects: _INSTANCE = $(basename $(basename $*))
 %.subprojects: _OPERATION = $(subst .,,$(suffix $(basename $*)))

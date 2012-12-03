@@ -78,40 +78,6 @@ endif
 $(eval $(call __mod,platform/$(_THEOS_PLATFORM_ARCH).mk))
 $(eval $(call __mod,platform/$(_THEOS_PLATFORM).mk))
 
-ifneq ($(_THEOS_TARGET_CALCULATED),1)
-__TARGET_MAKEFILE := $(shell $(THEOS_BIN_PATH)/target.pl "$(target)" "$(call __schema_var_last,,TARGET)" "$(_THEOS_PLATFORM_DEFAULT_TARGET)")
--include $(__TARGET_MAKEFILE)
-$(shell rm -f $(__TARGET_MAKEFILE) > /dev/null 2>&1)
-export _THEOS_TARGET := $(__THEOS_TARGET_ARG_0)
-ifeq ($(_THEOS_TARGET),)
-$(error You did not specify a target, and the "$(THEOS_PLATFORM_NAME)" platform does not define a default target)
-endif
-export _THEOS_TARGET_CALCULATED := 1
-endif
-
--include $(THEOS_MAKE_PATH)/targets/$(_THEOS_PLATFORM_ARCH)/$(_THEOS_TARGET).mk
--include $(THEOS_MAKE_PATH)/targets/$(_THEOS_PLATFORM)/$(_THEOS_TARGET).mk
--include $(THEOS_MAKE_PATH)/targets/$(_THEOS_TARGET).mk
-$(eval $(call __mod,targets/$(_THEOS_PLATFORM_ARCH)/$(_THEOS_TARGET).mk))
-$(eval $(call __mod,targets/$(_THEOS_PLATFORM)/$(_THEOS_TARGET).mk))
-$(eval $(call __mod,targets/$(_THEOS_TARGET).mk))
-
-ifneq ($(_THEOS_TARGET_LOADED),1)
-$(error The "$(_THEOS_TARGET)" target is not supported on the "$(THEOS_PLATFORM_NAME)" platform)
-endif
-
-_THEOS_TARGET_NAME_DEFINE := $(shell echo "$(THEOS_TARGET_NAME)" | tr 'a-z' 'A-Z')
-
-export TARGET_CC TARGET_CXX TARGET_LD TARGET_STRIP TARGET_CODESIGN_ALLOCATE TARGET_CODESIGN TARGET_CODESIGN_FLAGS
-
-THEOS_TARGET_INCLUDE_PATH := $(THEOS_INCLUDE_PATH)/$(THEOS_TARGET_NAME)
-THEOS_TARGET_LIBRARY_PATH := $(THEOS_LIBRARY_PATH)/$(THEOS_TARGET_NAME)
-_THEOS_TARGET_HAS_INCLUDE_PATH := $(shell [ -d "$(THEOS_TARGET_INCLUDE_PATH)" ] && echo 1)
-_THEOS_TARGET_HAS_LIBRARY_PATH := $(shell [ -d "$(THEOS_TARGET_LIBRARY_PATH)" ] && echo 1)
-
-# ObjC/++ stuff is not here, it's in instance/rules.mk and only added if there are OBJC/OBJCC objects.
-INTERNAL_LDFLAGS = $(if $(_THEOS_TARGET_HAS_LIBRARY_PATH),-L$(THEOS_TARGET_LIBRARY_PATH) )-L$(THEOS_LIBRARY_PATH)
-
 OPTFLAG ?= -O2
 DEBUGFLAG ?= -ggdb
 DEBUG.CFLAGS = -DDEBUG $(DEBUGFLAG) -O0
@@ -121,12 +87,10 @@ TARGET_STRIP = :
 PACKAGE_BUILDNAME ?= debug
 endif
 
-INTERNAL_CFLAGS = -DTARGET_$(_THEOS_TARGET_NAME_DEFINE)=1 $(OPTFLAG) $(if $(_THEOS_TARGET_HAS_INCLUDE_PATH),-I$(THEOS_TARGET_INCLUDE_PATH) )-I$(THEOS_INCLUDE_PATH) -include $(THEOS)/Prefix.pch -Wall
 ifneq ($(GO_EASY_ON_ME),1)
 	INTERNAL_LOGOSFLAGS += -c warnings=error
 	INTERNAL_CFLAGS += -Werror
 endif
-INTERNAL_CFLAGS += $(SHARED_CFLAGS)
 
 THEOS_BUILD_DIR ?= .
 
@@ -134,7 +98,7 @@ ifneq ($(_THEOS_CLEANED_SCHEMA_SET),)
 	_THEOS_OBJ_DIR_EXTENSION = /$(_THEOS_CLEANED_SCHEMA_SET)
 endif
 ifneq ($(THEOS_TARGET_NAME),$(_THEOS_PLATFORM_DEFAULT_TARGET))
-	THEOS_OBJ_DIR_NAME ?= obj/$(THEOS_TARGET_NAME)$(_THEOS_OBJ_DIR_EXTENSION)
+	THEOS_OBJ_DIR_NAME ?= obj/$(__THEOS_TARGET_NAME_CLEAN)$(_THEOS_OBJ_DIR_EXTENSION)
 else
 	THEOS_OBJ_DIR_NAME ?= obj$(_THEOS_OBJ_DIR_EXTENSION)
 endif

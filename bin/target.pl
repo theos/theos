@@ -21,6 +21,9 @@ for(@o) {
 	print $fh "export __THEOS_TARGET_ARG_$i := $_\n";
 	++$i;
 }
+$clean = join(':', @o);
+$clean =~ s/[^A-Za-z0-9]/_/g;
+print $fh "export __THEOS_TARGET_NAME_CLEAN := $clean\n";
 
 close($fh);
 print $tempfile,$/;
