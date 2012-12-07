@@ -1,4 +1,4 @@
-ifneq ($(messages),yes)
+ifneq ($(call __theos_bool,messages),$(_THEOS_TRUE))
 	ECHO_COMPILING = @(echo " Compiling $<...";
 	ECHO_LINKING = @(echo " Linking $(_THEOS_CURRENT_TYPE) $(THEOS_CURRENT_INSTANCE)...";
 	ECHO_STRIPPING = @(echo " Stripping $(THEOS_CURRENT_INSTANCE)...";

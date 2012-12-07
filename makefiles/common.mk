@@ -2,8 +2,14 @@ all::
 
 THEOS_PROJECT_DIR ?= $(shell pwd)
 
-### Function for getting a clean absolute path from cd.
+### Functions
+# Function for getting a clean absolute path from cd.
 __clean_pwd = $(shell (unset CDPATH; cd "$(1)"; pwd))
+# Truthiness
+_THEOS_TRUE := 1
+_THEOS_FALSE :=
+__theos_bool = $(if $(filter Y y YES yes 1,$($(1))),$(_THEOS_TRUE),$(_THEOS_FALSE))
+###
 
 ifeq ($(THEOS),)
 _THEOS_RELATIVE_MAKE_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
@@ -26,7 +32,7 @@ export PATH := $(THEOS_BIN_PATH):$(PATH)
 ifeq ($(THEOS_SCHEMA),)
 _THEOS_SCHEMA := $(shell echo "$(strip $(schema) $(SCHEMA))" | tr 'a-z' 'A-Z')
 _THEOS_ON_SCHEMA := DEFAULT $(filter-out -%,$(_THEOS_SCHEMA))
-ifeq ($(DEBUG),1)
+ifeq ($(call __theos_bool,DEBUG),$(_THEOS_TRUE))
 	_THEOS_ON_SCHEMA += DEBUG
 endif
 _THEOS_OFF_SCHEMA := $(patsubst -%,%,$(filter -%,$(_THEOS_SCHEMA)))
@@ -157,7 +163,7 @@ FW_PACKAGE_STAGING_DIR = $(THEOS_STAGING_DIR)$(warning FW_PACKAGE_STAGING_DIR is
 THEOS_SUBPROJECT_PRODUCT = subproject.o
 
 include $(THEOS_MAKE_PATH)/messages.mk
-ifneq ($(messages),yes)
+ifneq ($(call __theos_bool,messages),$(_THEOS_TRUE))
 	_THEOS_NO_PRINT_DIRECTORY_FLAG = --no-print-directory
 else
 	_THEOS_NO_PRINT_DIRECTORY_FLAG = 

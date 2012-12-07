@@ -165,7 +165,7 @@ ifeq ($$(OBJ_FILES_TO_LINK),)
 endif
 endif
 	$$(ECHO_LINKING)$$(TARGET_LD) $$(ALL_LDFLAGS) -o "$$@" $$^$$(ECHO_END)
-ifeq ($$(DEBUG),)
+ifeq ($$(findstring DEBUG,$$(THEOS_SCHEMA)),)
 	$$(ECHO_STRIPPING)$$(TARGET_STRIP) $$(TARGET_STRIP_FLAGS) "$$@"$$(ECHO_END)
 endif
 endef
