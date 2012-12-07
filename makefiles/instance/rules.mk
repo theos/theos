@@ -15,54 +15,48 @@ ifneq ($(_SUBPROJECTS),)
 SUBPROJECT_OBJ_FILES = $(foreach d, $(_SUBPROJECTS), $(THEOS_BUILD_DIR)/$(firstword $(subst :, ,$(d)))/$(THEOS_OBJ_DIR_NAME)/$(or $(word 2,$(subst :, ,$(d))),*).$(THEOS_SUBPROJECT_PRODUCT))
 #SUBPROJECT_OBJ_FILES = $(addsuffix /$(THEOS_OBJ_DIR_NAME)/$(THEOS_SUBPROJECT_PRODUCT), $(addprefix $(THEOS_BUILD_DIR)/,$($(THEOS_CURRENT_INSTANCE)_SUBPROJECTS)))
 SUBPROJECT_LDFLAGS = $(shell sort $(foreach d,$(_SUBPROJECTS),$(THEOS_BUILD_DIR)/$(firstword $(subst :, ,$(d)))/$(THEOS_OBJ_DIR_NAME)/$(or $(word 2,$(subst :, ,$(d))),*).ldflags) | uniq)
-AUXILIARY_LDFLAGS += $(SUBPROJECT_LDFLAGS)
+_THEOS_INTERNAL_LDFLAGS += $(SUBPROJECT_LDFLAGS)
 endif
 
 OBJ_FILES_TO_LINK = $(strip $(addprefix $(THEOS_OBJ_DIR)/,$(OBJ_FILES)) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,OBJ_FILES) $(SUBPROJECT_OBJ_FILES))
 _OBJ_DIR_STAMPS = $(sort $(foreach o,$(filter $(THEOS_OBJ_DIR)%,$(OBJ_FILES_TO_LINK)),$(dir $o).stamp))
 
 ADDITIONAL_CPPFLAGS += $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,CPPFLAGS)
-ADDITIONAL_CFLAGS += $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,CFLAGS)
-ADDITIONAL_OBJCFLAGS += $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,OBJCFLAGS)
-ADDITIONAL_CCFLAGS += $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,CCFLAGS)
-ADDITIONAL_OBJCCFLAGS += $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,OBJCCFLAGS)
-ADDITIONAL_LOGOSFLAGS += $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,LOGOSFLAGS)
-ADDITIONAL_LDFLAGS += $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,LDFLAGS)
 
 # If we have any Objective-C objects, link Foundation and libobjc.
 ifneq ($(_OBJC_FILE_COUNT),0)
-	AUXILIARY_LDFLAGS += -lobjc -framework Foundation -framework CoreFoundation
+	_THEOS_INTERNAL_LDFLAGS += -lobjc -framework Foundation -framework CoreFoundation
 endif
 
 # In addition, if we have any Objective-C++, add the ObjC++ linker flags.
 ifneq ($(_OBJCC_FILE_COUNT),0)
-	AUXILIARY_LDFLAGS += -ObjC++ -fobjc-exceptions -fobjc-call-cxx-cdtors
+	_THEOS_INTERNAL_LDFLAGS += -ObjC++ -fobjc-exceptions -fobjc-call-cxx-cdtors
 endif
 
 # Add all frameworks from the type and instance.
-AUXILIARY_LDFLAGS += $(foreach framework,$($(_THEOS_CURRENT_TYPE)_FRAMEWORKS),-framework $(framework))
-AUXILIARY_LDFLAGS += $(foreach framework,$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,FRAMEWORKS),-framework $(framework))
+_THEOS_INTERNAL_LDFLAGS += $(foreach framework,$($(_THEOS_CURRENT_TYPE)_FRAMEWORKS),-framework $(framework))
+_THEOS_INTERNAL_LDFLAGS += $(foreach framework,$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,FRAMEWORKS),-framework $(framework))
 
 # Add all libraries from the type and instance.
-AUXILIARY_LDFLAGS += $(foreach library,$($(_THEOS_CURRENT_TYPE)_LIBRARIES),-l$(library))
-AUXILIARY_LDFLAGS += $(foreach library,$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,LIBRARIES),-l$(library))
+_THEOS_INTERNAL_LDFLAGS += $(foreach library,$($(_THEOS_CURRENT_TYPE)_LIBRARIES),-l$(library))
+_THEOS_INTERNAL_LDFLAGS += $(foreach library,$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,LIBRARIES),-l$(library))
 
 # Add all private frameworks from the type and instance, as well as -F for the private framework dir.
 ifneq ($(words $($(_THEOS_CURRENT_TYPE)_PRIVATE_FRAMEWORKS)$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,PRIVATE_FRAMEWORKS)),0)
-	AUXILIARY_OBJCFLAGS += -F$(TARGET_PRIVATE_FRAMEWORK_PATH)
-	AUXILIARY_LDFLAGS += -F$(TARGET_PRIVATE_FRAMEWORK_PATH)
+	_THEOS_INTERNAL_OBJCFLAGS += -F$(TARGET_PRIVATE_FRAMEWORK_PATH)
+	_THEOS_INTERNAL_LDFLAGS += -F$(TARGET_PRIVATE_FRAMEWORK_PATH)
 endif
 
-AUXILIARY_LDFLAGS += $(foreach framework,$($(_THEOS_CURRENT_TYPE)_PRIVATE_FRAMEWORKS),-framework $(framework))
-AUXILIARY_LDFLAGS += $(foreach framework,$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,PRIVATE_FRAMEWORKS),-framework $(framework))
+_THEOS_INTERNAL_LDFLAGS += $(foreach framework,$($(_THEOS_CURRENT_TYPE)_PRIVATE_FRAMEWORKS),-framework $(framework))
+_THEOS_INTERNAL_LDFLAGS += $(foreach framework,$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,PRIVATE_FRAMEWORKS),-framework $(framework))
 
-ALL_CFLAGS = $(INTERNAL_CFLAGS) $(TARGET_CFLAGS) $(ADDITIONAL_CFLAGS) $(AUXILIARY_CFLAGS) $(call __schema_var_all,,CFLAGS)
-ALL_CCFLAGS = $(ADDITIONAL_CCFLAGS) $(call __schema_var_all,,CCFLAGS)
-ALL_OBJCFLAGS = $(INTERNAL_OBJCFLAGS) $(TARGET_OBJCFLAGS) $(ADDITIONAL_OBJCFLAGS) $(AUXILIARY_OBJCFLAGS) $(call __schema_var_all,,OBJCFLAGS)
-ALL_OBJCCFLAGS = $(ADDITIONAL_OBJCCFLAGS) $(call __schema_var_all,,OBJCCFLAGS)
-ALL_LOGOSFLAGS = $(INTERNAL_LOGOSFLAGS) $(ADDITIONAL_LOGOSFLAGS) $(call __schema_var_all,,LOGOSFLAGS)
+ALL_CFLAGS = $(_THEOS_INTERNAL_CFLAGS) $(_THEOS_TARGET_CFLAGS) $(ADDITIONAL_CFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,CFLAGS) $(call __schema_var_all,,CFLAGS)
+ALL_CCFLAGS = $(ADDITIONAL_CCFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,CCFLAGS) $(call __schema_var_all,,CCFLAGS)
+ALL_OBJCFLAGS = $(_THEOS_INTERNAL_OBJCFLAGS) $(_THEOS_TARGET_OBJCFLAGS) $(ADDITIONAL_OBJCFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,OBJCFLAGS) $(call __schema_var_all,,OBJCFLAGS)
+ALL_OBJCCFLAGS = $(ADDITIONAL_OBJCCFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,OBJCCFLAGS) $(call __schema_var_all,,OBJCCFLAGS)
+ALL_LOGOSFLAGS = $(_THEOS_INTERNAL_LOGOSFLAGS) $(ADDITIONAL_LOGOSFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,LOGOSFLAGS) $(call __schema_var_all,,LOGOSFLAGS)
 
-ALL_LDFLAGS = $(INTERNAL_LDFLAGS) $(ADDITIONAL_LDFLAGS) $(AUXILIARY_LDFLAGS) $(TARGET_LDFLAGS) $(DEBUG_LDFLAGS) $(call __schema_var_all,,LDFLAGS)
+ALL_LDFLAGS = $(_THEOS_INTERNAL_LDFLAGS) $(ADDITIONAL_LDFLAGS) $(_THEOS_TARGET_LDFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,LDFLAGS) $(call __schema_var_all,,LDFLAGS)
 
 _THEOS_FLAG_HASH_TEMP = $(shell echo "$(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_CCFLAGS) $(ALL_OBJCCFLAGS) $(ALL_LOGOSFLAGS)" | $(_THEOS_PLATFORM_MD5SUM) | cut -c1-8)
 
@@ -94,16 +88,16 @@ internal-$(_THEOS_CURRENT_TYPE)-stage:: before-$(THEOS_CURRENT_INSTANCE)-stage i
 .SUFFIXES: .m .mm .c .cc .cpp .xm
 
 $(THEOS_OBJ_DIR)/%.m.$(_THEOS_OBJ_FILE_TAG).o: %.m
-	$(ECHO_COMPILING)$(TARGET_CXX) -x objective-c -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(TARGET_ONLY_OBJCFLAGS) $< -o $@$(ECHO_END)
+	$(ECHO_COMPILING)$(TARGET_CXX) -x objective-c -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(_THEOS_TARGET_ONLY_OBJCFLAGS) $< -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.mi.$(_THEOS_OBJ_FILE_TAG).o: %.mi
-	$(ECHO_COMPILING)$(TARGET_CXX) -x objective-c-cpp-output -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(TARGET_ONLY_OBJCFLAGS) $< -o $@$(ECHO_END)
+	$(ECHO_COMPILING)$(TARGET_CXX) -x objective-c-cpp-output -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(_THEOS_TARGET_ONLY_OBJCFLAGS) $< -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.mm.$(_THEOS_OBJ_FILE_TAG).o: %.mm
 	$(ECHO_COMPILING)$(TARGET_CXX) -x objective-c++ -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_CCFLAGS) $(ALL_OBJCCFLAGS) $< -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.mii.$(_THEOS_OBJ_FILE_TAG).o: %.mii
-	$(ECHO_COMPILING)$(TARGET_CXX) -x objective-c++-cpp-output -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(TARGET_ONLY_OBJCFLAGS) $< -o $@$(ECHO_END)
+	$(ECHO_COMPILING)$(TARGET_CXX) -x objective-c++-cpp-output -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(_THEOS_TARGET_ONLY_OBJCFLAGS) $< -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.c.$(_THEOS_OBJ_FILE_TAG).o: %.c
 	$(ECHO_COMPILING)$(TARGET_CXX) -x c -c $(ALL_CFLAGS) $< -o $@$(ECHO_END)
@@ -138,7 +132,7 @@ $(THEOS_OBJ_DIR)/%.ii.$(_THEOS_OBJ_FILE_TAG).o: %.ii
 
 $(THEOS_OBJ_DIR)/%.x.$(_THEOS_OBJ_FILE_TAG).o: %.x
 	$(ECHO_PREPROCESSING)$(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $< > $(THEOS_OBJ_DIR)/$<.m$(ECHO_END)
-	$(ECHO_COMPILING)$(TARGET_CXX) -x objective-c -c -I"$(call __clean_pwd,$(dir $<))" $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(TARGET_ONLY_OBJCFLAGS) $(THEOS_OBJ_DIR)/$<.m -o $@$(ECHO_END)
+	$(ECHO_COMPILING)$(TARGET_CXX) -x objective-c -c -I"$(call __clean_pwd,$(dir $<))" $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(_THEOS_TARGET_ONLY_OBJCFLAGS) $(THEOS_OBJ_DIR)/$<.m -o $@$(ECHO_END)
 	$(ECHO_NOTHING)rm $(THEOS_OBJ_DIR)/$<.m$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.xm.$(_THEOS_OBJ_FILE_TAG).o: %.xm
@@ -147,8 +141,8 @@ $(THEOS_OBJ_DIR)/%.xm.$(_THEOS_OBJ_FILE_TAG).o: %.xm
 	$(ECHO_NOTHING)rm $(THEOS_OBJ_DIR)/$<.mm$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.xi.$(_THEOS_OBJ_FILE_TAG).o: %.xi
-	$(ECHO_PREPROCESSING)$(TARGET_CXX) -x objective-c -E -I"$(call __clean_pwd,$(dir $<))" $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(TARGET_ONLY_OBJCFLAGS) -include substrate.h $< > $(THEOS_OBJ_DIR)/$<.pre && $(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $(THEOS_OBJ_DIR)/$<.pre > $(THEOS_OBJ_DIR)/$<.mi $(ECHO_END)
-	$(ECHO_COMPILING)$(TARGET_CXX) -c -I"$(shell pwd)" $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(TARGET_ONLY_OBJCFLAGS) $(THEOS_OBJ_DIR)/$<.mi -o $@$(ECHO_END)
+	$(ECHO_PREPROCESSING)$(TARGET_CXX) -x objective-c -E -I"$(call __clean_pwd,$(dir $<))" $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(_THEOS_TARGET_ONLY_OBJCFLAGS) -include substrate.h $< > $(THEOS_OBJ_DIR)/$<.pre && $(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $(THEOS_OBJ_DIR)/$<.pre > $(THEOS_OBJ_DIR)/$<.mi $(ECHO_END)
+	$(ECHO_COMPILING)$(TARGET_CXX) -c -I"$(shell pwd)" $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(_THEOS_TARGET_ONLY_OBJCFLAGS) $(THEOS_OBJ_DIR)/$<.mi -o $@$(ECHO_END)
 	$(ECHO_NOTHING)rm $(THEOS_OBJ_DIR)/$<.pre $(THEOS_OBJ_DIR)/$<.mi$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.xmi.$(_THEOS_OBJ_FILE_TAG).o: %.xmi

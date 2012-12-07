@@ -17,5 +17,4 @@ TARGET_CODESIGN_FLAGS ?=
 
 include $(THEOS_MAKE_PATH)/targets/_common/linux.mk
 
-SDKFLAGS :=
 endif

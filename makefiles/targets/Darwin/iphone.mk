@@ -67,6 +67,6 @@ endif
 endif
 
 SDKFLAGS := -isysroot "$(SYSROOT)" $(foreach ARCH,$(ARCHS),-arch $(ARCH)) -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)) -miphoneos-version-min=$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)
-TARGET_CFLAGS := $(SDKFLAGS)
-TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress
+_THEOS_TARGET_CFLAGS := $(SDKFLAGS)
+_THEOS_TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress
 endif

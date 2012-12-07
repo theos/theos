@@ -16,7 +16,7 @@ _LOCAL_INSTANCE_TARGET := $(_LOCAL_BUNDLE_FULL_NAME)$(_THEOS_TARGET_BUNDLE_BINAR
 include $(THEOS_MAKE_PATH)/instance/shared/bundle.mk
 # End Bundle Setup
 
-AUXILIARY_LDFLAGS += -dynamiclib -install_name "$(LOCAL_INSTALL_PATH)/$(_LOCAL_INSTANCE_TARGET)"
+_THEOS_INTERNAL_LDFLAGS += -dynamiclib -install_name "$(LOCAL_INSTALL_PATH)/$(_LOCAL_INSTANCE_TARGET)"
 
 ifeq ($(_THEOS_MAKE_PARALLEL_BUILDING), no)
 internal-framework-all_:: $(_OBJ_DIR_STAMPS) shared-instance-bundle-all $(THEOS_OBJ_DIR)/$(_LOCAL_INSTANCE_TARGET)
