@@ -8,7 +8,7 @@ __clean_pwd = $(shell (unset CDPATH; cd "$(1)"; pwd))
 # Truthiness
 _THEOS_TRUE := 1
 _THEOS_FALSE :=
-__theos_bool = $(if $(filter Y y YES yes 1,$($(1))),$(_THEOS_TRUE),$(_THEOS_FALSE))
+__theos_bool = $(if $(filter Y y YES yes 1,$(1)),$(_THEOS_TRUE),$(_THEOS_FALSE))
 ###
 
 ifeq ($(THEOS),)
@@ -32,7 +32,7 @@ export PATH := $(THEOS_BIN_PATH):$(PATH)
 ifeq ($(THEOS_SCHEMA),)
 _THEOS_SCHEMA := $(shell echo "$(strip $(schema) $(SCHEMA))" | tr 'a-z' 'A-Z')
 _THEOS_ON_SCHEMA := DEFAULT $(filter-out -%,$(_THEOS_SCHEMA))
-ifeq ($(call __theos_bool,DEBUG),$(_THEOS_TRUE))
+ifeq ($(call __theos_bool,$(or $(debug),$(DEBUG))),$(_THEOS_TRUE))
 	_THEOS_ON_SCHEMA += DEBUG
 endif
 _THEOS_OFF_SCHEMA := $(patsubst -%,%,$(filter -%,$(_THEOS_SCHEMA)))
