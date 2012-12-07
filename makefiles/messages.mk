@@ -11,6 +11,8 @@ ifneq ($(call __theos_bool,messages),$(_THEOS_TRUE))
 	STDERR_NULL_REDIRECT = 2> /dev/null
 
 	ECHO_END = )
+
+	_THEOS_VERBOSE := $(_THEOS_FALSE)
 else
 	ECHO_COMPILING =
 	ECHO_LINKING = 
@@ -22,6 +24,8 @@ else
 	ECHO_NOTHING = 
 	STDERR_NULL_REDIRECT = 
 	ECHO_END = 
+
+	_THEOS_VERBOSE := $(_THEOS_TRUE)
 endif
 
 WARNING_EMPTY_LINKING = @(echo " Warning! No files to link. Please check your Makefile! Make sure you set $(THEOS_CURRENT_INSTANCE)_FILES (or similar variables)")

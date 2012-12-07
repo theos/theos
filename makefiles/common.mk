@@ -163,10 +163,10 @@ FW_PACKAGE_STAGING_DIR = $(THEOS_STAGING_DIR)$(warning FW_PACKAGE_STAGING_DIR is
 THEOS_SUBPROJECT_PRODUCT = subproject.o
 
 include $(THEOS_MAKE_PATH)/messages.mk
-ifneq ($(call __theos_bool,messages),$(_THEOS_TRUE))
-	_THEOS_NO_PRINT_DIRECTORY_FLAG = --no-print-directory
+ifeq ($(_THEOS_VERBOSE),$(_THEOS_FALSE))
+	_THEOS_NO_PRINT_DIRECTORY_FLAG := --no-print-directory
 else
-	_THEOS_NO_PRINT_DIRECTORY_FLAG = 
+	_THEOS_NO_PRINT_DIRECTORY_FLAG := 
 endif
 
 unexport THEOS_CURRENT_INSTANCE _THEOS_CURRENT_TYPE
