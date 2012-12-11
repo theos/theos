@@ -290,6 +290,8 @@ foreach my $line (@lines) {
 			# %class [+-]<identifier>
 			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
 
+			fileWarning($lineno, "%class is deprecated and will be removed in the future; consider switching to inline %c()");
+
 			my $scope = $1;
 			$scope = "-" if !$scope;
 			my $classname = $2;
