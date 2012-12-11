@@ -13,13 +13,15 @@ __theos_bool = $(if $(filter Y y YES yes 1,$(1)),$(_THEOS_TRUE),$(_THEOS_FALSE))
 
 __THEOS_COMMON_MK_VERSION := 1
 
-ifeq ($(THEOS),)
+ifeq ($(_THEOS_INTERNAL_TRUE_PATH),)
 _THEOS_RELATIVE_MAKE_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
-THEOS := $(call __clean_pwd,$(_THEOS_RELATIVE_MAKE_PATH)/..)
-ifneq ($(words $(THEOS)),1) # It's a hack, but it works.
-$(shell unlink /tmp/theos &> /dev/null; ln -Ffs "$(THEOS)" /tmp/theos)
-THEOS := /tmp/theos
+_THEOS_INTERNAL_TRUE_PATH := $(call __clean_pwd,$(_THEOS_RELATIVE_MAKE_PATH)/..)
+ifneq ($(words $(_THEOS_INTERNAL_TRUE_PATH)),1) # It's a hack, but it works.
+$(shell unlink /tmp/theos &> /dev/null; ln -Ffs "$(_THEOS_INTERNAL_TRUE_PATH)" /tmp/theos)
+_THEOS_INTERNAL_TRUE_PATH := /tmp/theos
 endif
+override THEOS := $(_THEOS_INTERNAL_TRUE_PATH)
+export _THEOS_INTERNAL_TRUE_PATH
 endif
 THEOS_MAKE_PATH := $(THEOS)/makefiles
 THEOS_BIN_PATH := $(THEOS)/bin
