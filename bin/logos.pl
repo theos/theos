@@ -165,7 +165,7 @@ my $defaultGroup = Group->new();
 $defaultGroup->name("_ungrouped");
 $defaultGroup->explicit(0);
 my $staticClassGroup = StaticClassGroup->new();
-my @groups = ($defaultGroup, $staticClassGroup);
+my @groups = ($defaultGroup);
 
 my $currentGroup = $defaultGroup;
 my $currentClass = undef;
@@ -497,25 +497,13 @@ foreach my $line (@lines) {
 			$group->initLine($lineno);
 			$group->initialized(1);
 
-			if($groupname eq "_ungrouped") {
-				$staticClassGroup->initLine($lineno);
-				$staticClassGroup->initialized(1);
-			}
-
 			while($line =~ /\G\s*;/gc) { };
 			my $patchEnd = pos($line);
 
 			my $patch = Patch->new();
 			$patch->line($lineno);
 			$patch->range($patchStart, pos($line));
-			if($groupname eq "_ungrouped") {
-				$patch->source(["{",
-						Patch::Source::Generator->new($group, 'initializers'),
-						Patch::Source::Generator->new($staticClassGroup, 'initializers'),
-						"}"]);
-			} else {
-				$patch->source(Patch::Source::Generator->new($group, 'initializers'));
-			}
+			$patch->source(Patch::Source::Generator->new($group, 'initializers'));
 			addPatch($patch);
 
 			@lastInitPosition = ($lineno, pos($line));
@@ -596,17 +584,8 @@ if(@firstDirectivePosition) {
 	$patch->source(\@patchsource);
 	addPatch($patch);
 
-	if(@lastInitPosition) {
-		# If the static class list hasn't been initialized, glue it after the last %init directive.
-		if(!$staticClassGroup->initialized) {
-			my $patch = Patch->new();
-			$patch->line($lastInitPosition[0]);
-			$patch->range($lastInitPosition[1], $lastInitPosition[1]);
-			$patch->source(Patch::Source::Generator->new($staticClassGroup, 'initializers'));
-			$staticClassGroup->initialized(1);
-			addPatch($patch);
-		}
-	} else {
+	if(!@lastInitPosition) {
+		# If we haven't seen any %init directives, generate the default constructor.
 		my $patch = Patch->new();
 		$patch->line(scalar @lines);
 		$patch->squash(1);

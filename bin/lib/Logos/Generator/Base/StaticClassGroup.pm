@@ -1,37 +1,32 @@
 package Logos::Generator::Base::StaticClassGroup;
 use strict;
 
+sub _methodForClassWithScope {
+	my $self = shift;
+	my $class = shift;
+	my $scope = shift;
+	my $return = "";
+	my $methodname = Logos::sigil($scope eq "+" ? "static_metaclass_lookup" : "static_class_lookup").$class;
+	my $lookupMethod = $scope eq "+" ? "objc_getMetaClass" : "objc_getClass";
+	return "LOGOS_INLINE Class ".$methodname."(void) { static Class _klass; if(!_klass) { _klass = ".$lookupMethod."(\"".$class."\"); } return _klass; }";
+}
+
 sub declarations {
 	my $self = shift;
 	my $group = shift;
 	my $return = "";
 	return "" if scalar(keys %{$group->usedMetaClasses}) + scalar(keys %{$group->usedClasses}) + scalar(keys %{$group->declaredOnlyClasses}) == 0;
 	foreach(keys %{$group->usedMetaClasses}) {
-		$return .= "static Class ".Logos::sigil("static_metaclass")."$_; ";
+		$return .= $self->_methodForClassWithScope($_, "+");
 	}
-	my %coalescedClasses = ();
-	$coalescedClasses{$_}++ for(keys %{$group->usedClasses});
-	$coalescedClasses{$_}++ for(keys %{$group->declaredOnlyClasses});
-	foreach(keys %coalescedClasses) {
-		$return .= "static Class ".Logos::sigil("static_class")."$_; ";
+	foreach(keys %{$group->usedClasses}) {
+		$return .= $self->_methodForClassWithScope($_, "-");
 	}
 	return $return;
 }
 
 sub initializers {
-	my $self = shift;
-	my $group = shift;
-	my $return = "";
-	return "" if scalar(keys %{$group->usedMetaClasses}) + scalar(keys %{$group->usedClasses}) == 0;
-	$return .= "{";
-	foreach(keys %{$group->usedMetaClasses}) {
-		$return .= Logos::sigil("static_metaclass")."$_ = objc_getMetaClass(\"$_\"); ";
-	}
-	foreach(keys %{$group->usedClasses}) {
-		$return .= Logos::sigil("static_class")."$_ = objc_getClass(\"$_\"); ";
-	}
-	$return .= "}";
-	return $return;
+	return "";
 }
 
 1;
