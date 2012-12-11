@@ -32,6 +32,12 @@ sub protocols {
 	my $self = shift;
 	return $self->{PROTOCOLS};
 }
+
+sub initRequired {
+	my $self = shift;
+	return 1; # Subclasses must always be initialized.
+}
+
 ##### #
 # END #
 # #####

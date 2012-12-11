@@ -82,6 +82,11 @@ sub methods {
 	return $self->{METHODS};
 }
 
+sub initRequired {
+	my $self = shift;
+	return scalar @{$self->{METHODS}} > 0;
+}
+
 ##### #
 # END #
 # #####

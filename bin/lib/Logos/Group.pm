@@ -35,6 +35,14 @@ sub initialized {
 	return $self->{INITIALIZED};
 }
 
+sub initRequired {
+	my $self = shift;
+	for(@{$self->{CLASSES}}) {
+		return 1 if $_->initRequired;
+	}
+	return 0;
+}
+
 sub identifier {
 	my $self = shift;
 	return main::sanitize($self->{NAME});
