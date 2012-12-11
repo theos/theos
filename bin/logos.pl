@@ -271,21 +271,15 @@ foreach my $line (@lines) {
 			nestPush("group", $lineno, \@nestingstack);
 
 			$currentGroup = getGroup($1);
-			my $existed = 0;
+			my $patchSource = undef;
 			if(!defined($currentGroup)) {
 				$currentGroup = Group->new();
 				$currentGroup->name($1);
 				push(@groups, $currentGroup);
-			} else {
-				$existed = 1;
+				my $capturedGroup = $currentGroup;
+				$patchSource = Patch::Source::Generator->new($capturedGroup, 'declarations');
 			}
-
-			my $capturedGroup = $currentGroup;
-			if(!$existed) {
-				patchHere(Patch::Source::Generator->new($capturedGroup, 'declarations'));
-			} else {
-				patchHere(undef);
-			}
+			patchHere($patchSource);
 		} elsif($line =~ /\G%class\s+([+-])?([\$_\w]+)/gc) {
 			# %class [+-]<identifier>
 			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
