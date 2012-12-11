@@ -11,6 +11,8 @@ _THEOS_FALSE :=
 __theos_bool = $(if $(filter Y y YES yes 1,$(1)),$(_THEOS_TRUE),$(_THEOS_FALSE))
 ###
 
+__THEOS_COMMON_MK_VERSION := 1
+
 ifeq ($(THEOS),)
 _THEOS_RELATIVE_MAKE_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
 THEOS := $(call __clean_pwd,$(_THEOS_RELATIVE_MAKE_PATH)/..)
