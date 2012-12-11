@@ -10,7 +10,8 @@ sub findPreamble {
 }
 
 sub preamble {
-	return "#include <substrate.h>";
+	my $self = shift;
+	return join("\n", ($self->SUPER::preamble(), "#include <substrate.h>"));
 }
 
 1;

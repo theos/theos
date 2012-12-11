@@ -10,7 +10,7 @@ sub findPreamble {
 }
 
 sub preamble {
-	return ""; # Or whatever you want to plaster to the top of the file.
+	return "#include <logos/logos.h>";
 }
 
 sub generateClassList {

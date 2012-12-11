@@ -10,8 +10,8 @@ sub findPreamble {
 }
 
 sub preamble {
-	shift;
-	return "#include <objc/message.h>";
+	my $self = shift;
+	return join("\n", ($self->SUPER::preamble(), "#include <objc/message.h>"));
 }
 
 1;
