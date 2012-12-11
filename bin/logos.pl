@@ -663,21 +663,21 @@ foreach my $oline (@lines) {
 
 sub defaultConstructorSource {
 	my @return;
-	my $explicitGroups = 0;
-	foreach(@groups) {
-		$explicitGroups++ if $_->explicit;
+	my @initRequiredGroups = grep {$_->initRequired;} @groups;
+	my @explicitGroups = grep {$_->explicit;} @initRequiredGroups;
+	fileError($lineno, "Cannot generate an autoconstructor with multiple %groups. Please explicitly create a constructor.") if scalar @explicitGroups > 0;
+	if(scalar @initRequiredGroups > 0) {
+		push(@return, "static __attribute__((constructor)) void _logosLocalInit() {\n");
+		foreach(@initRequiredGroups) {
+			fileError($lineno, "re-%init of %group ".$_->name.", first initialized at ".lineDescriptionForPhysicalLine($_->initLine)) if $_->initialized;
+			push(@return, Patch::Source::Generator->new($_, 'initializers'));
+			push(@return, " ");
+			$_->initLine($lineno);
+			$_->initialized(1);
+		}
+		push(@return, "}\n");
 	}
-	fileError($lineno, "Cannot generate an autoconstructor with multiple %groups. Please explicitly create a constructor.") if $explicitGroups > 0;
-	push(@return, "static __attribute__((constructor)) void _logosLocalInit() {\n");
-	foreach(@groups) {
-		next if $_->explicit;
-		fileError($lineno, "re-%init of %group ".$_->name.", first initialized at ".lineDescriptionForPhysicalLine($_->initLine)) if $_->initialized;
-		push(@return, Patch::Source::Generator->new($_, 'initializers'));
-		push(@return, " ");
-		$_->initLine($lineno);
-	}
-	push(@return, "}\n");
-	return \@return;
+	return @return > 0 ? \@return : undef;
 }
 
 sub fileWarning {
