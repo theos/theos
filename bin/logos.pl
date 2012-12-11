@@ -616,12 +616,8 @@ if(@firstDirectivePosition) {
 
 }
 
-my @unInitGroups = ();
-foreach(@groups) {
-	push(@unInitGroups, $_->name) if !$_->initialized && $_->explicit;
-}
-my $numUnGroups = @unInitGroups;
-fileError($lineno, "non-initialized hook group".($numUnGroups == 1 ? "" : "s").": ".join(", ", @unInitGroups)) if $numUnGroups > 0;
+my @unInitGroups = map {$_->name;} (grep {!$_->initialized && $_->initRequired;} @groups);
+fileError($lineno, "non-initialized hook group".(scalar @unInitGroups == 1 ? "" : "s").": ".join(", ", @unInitGroups)) if scalar @unInitGroups > 0;
 
 my @sortedPatches = sort { ($b->line == $a->line ? ($b->start || -1) <=> ($a->start || -1) : $b->line <=> $a->line) } @patches;
 
