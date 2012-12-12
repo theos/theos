@@ -8,7 +8,9 @@ sub _methodForClassWithScope {
 	my $return = "";
 	my $methodname = Logos::sigil($scope eq "+" ? "static_metaclass_lookup" : "static_class_lookup").$class;
 	my $lookupMethod = $scope eq "+" ? "objc_getMetaClass" : "objc_getClass";
-	return "LOGOS_INLINE Class ".$methodname."(void) { static Class _klass; if(!_klass) { _klass = ".$lookupMethod."(\"".$class."\"); } return _klass; }";
+
+	# This is a dirty assumption - we believe that we will always be using a compiler that defines __GNUC__ and respects GNU C attributes.
+	return "static __inline__ __attribute__((always_inline)) Class ".$methodname."(void) { static Class _klass; if(!_klass) { _klass = ".$lookupMethod."(\"".$class."\"); } return _klass; }";
 }
 
 sub declarations {
