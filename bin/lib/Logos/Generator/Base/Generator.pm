@@ -2,11 +2,10 @@ package Logos::Generator::Base::Generator;
 use strict;
 
 sub findPreamble {
-	#shift;
-	#shift;
-	#my $aref = shift;
-	# Search for a preamble in $aref!
-	return 1;
+	my $self = shift;
+	my $aref = shift;
+	my @matches = grep(/\s*#\s*(import|include)\s*[<"]logos\/logos\.h[">]/, @$aref);
+	return @matches > 0;
 }
 
 sub preamble {
