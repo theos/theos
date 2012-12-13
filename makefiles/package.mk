@@ -16,16 +16,13 @@ install:: before-install internal-install after-install
 FAKEROOT := $(THEOS_BIN_PATH)/fakeroot.sh -p "$(THEOS_PROJECT_DIR)/.theos/fakeroot"
 export FAKEROOT
 
-ifeq ($(_THEOS_CAN_PACKAGE),$(_THEOS_TRUE))
+ifeq ($(_THEOS_CAN_PACKAGE),$(_THEOS_TRUE)) # Control file found (or layout/ found.)
 THEOS_PACKAGE_NAME := $(shell grep "^Package:" "$(_THEOS_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 THEOS_PACKAGE_ARCH := $(shell grep "^Architecture:" "$(_THEOS_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 THEOS_PACKAGE_BASE_VERSION := $(shell grep "^Version:" "$(_THEOS_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 
 THEOS_PACKAGE_VERSION = $(shell THEOS_PROJECT_DIR="$(THEOS_PROJECT_DIR)" $(THEOS_BIN_PATH)/package_version.sh -n -o -c "$(_THEOS_PACKAGE_CONTROL_PATH)" $(if $(PACKAGE_BUILDNAME),-e $(PACKAGE_BUILDNAME),))
 export THEOS_PACKAGE_NAME THEOS_PACKAGE_ARCH THEOS_PACKAGE_BASE_VERSION THEOS_PACKAGE_VERSION
-endif # _THEOS_CAN_PACKAGE
-
-ifeq ($(_THEOS_CAN_PACKAGE),$(_THEOS_TRUE)) # Control file found (or layout/ found.)
 
 THEOS_PACKAGE_FILENAME = $(THEOS_PACKAGE_NAME)_$(_THEOS_PACKAGE_LAST_VERSION)_$(THEOS_PACKAGE_ARCH)
 
