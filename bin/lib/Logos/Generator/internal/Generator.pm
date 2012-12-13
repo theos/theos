@@ -3,7 +3,7 @@ use strict;
 use parent qw(Logos::Generator::Base::Generator);
 
 sub findPreamble {
-	shift;
+	my $self = shift;
 	my $aref = shift;
 	my @matches = grep(/\s*#\s*(import|include)\s*[<"]objc\/message\.h[">]/, @$aref);
 	return $self->SUPER::findPreamble($aref) && @matches > 0;
