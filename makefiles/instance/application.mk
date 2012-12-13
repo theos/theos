@@ -7,7 +7,8 @@ endif
 ifeq ($(findstring UIKit,$($(THEOS_CURRENT_INSTANCE)_FRAMEWORKS))$(findstring AppKit,$($(THEOS_CURRENT_INSTANCE)_FRAMEWORKS)),)
 _THEOS_INTERNAL_LDFLAGS += -framework UIKit
 ifeq ($(_THEOS_APPLICATION_WARNED_IMPLICIT_UIKIT_$(THEOS_CURRENT_INSTANCE)),)
-$(shell echo "$(THEOS_CURRENT_INSTANCE): warning: Implicit UIKit linkage for application instances is deprecated. Please add \"UIKit\" to $(THEOS_CURRENT_INSTANCE)_FRAMEWORKS." >&2)
+internal-application-all_::
+	@echo "$(THEOS_CURRENT_INSTANCE): warning: Implicit UIKit linkage for application instances is deprecated. Please add \"UIKit\" to $(THEOS_CURRENT_INSTANCE)_FRAMEWORKS." >&2
 export _THEOS_APPLICATION_WARNED_IMPLICIT_UIKIT_$(THEOS_CURRENT_INSTANCE) = 1
 endif
 endif
