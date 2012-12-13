@@ -9,6 +9,8 @@ __clean_pwd = $(shell (unset CDPATH; cd "$(1)"; pwd))
 _THEOS_TRUE := 1
 _THEOS_FALSE :=
 __theos_bool = $(if $(filter Y y YES yes 1,$(1)),$(_THEOS_TRUE),$(_THEOS_FALSE))
+# Existence
+__exists = $(if $(wildcard $(1)),$(_THEOS_TRUE),$(_THEOS_FALSE))
 ###
 
 __THEOS_COMMON_MK_VERSION := 1
@@ -57,16 +59,16 @@ __schema_var_all = $(strip $(foreach sch,$(call __schema_all_var_names,$(1),$(2)
 __schema_var_last = $(strip $($(lastword $(call __schema_defined_var_names,$(1),$(2)))))
 
 # There are some packaging-related variables set here because some of the target install rules rely on them.
-ifeq ($(_THEOS_CAN_PACKAGE),)
-_THEOS_HAS_STAGING_LAYOUT := $(shell [ -d "$(THEOS_PROJECT_DIR)/layout" ] && echo 1 || echo 0)
-ifeq ($(_THEOS_HAS_STAGING_LAYOUT),1)
+ifeq ($(_THEOS_PACKAGE_CONTROL_PATH),)
+_THEOS_HAS_STAGING_LAYOUT := $(call __exists,$(THEOS_PROJECT_DIR)/layout)
+ifeq ($(_THEOS_HAS_STAGING_LAYOUT),$(_THEOS_TRUE))
 	_THEOS_PACKAGE_CONTROL_PATH := $(THEOS_PROJECT_DIR)/layout/DEBIAN/control
 else # _THEOS_HAS_STAGING_LAYOUT == 0
 	_THEOS_PACKAGE_CONTROL_PATH := $(THEOS_PROJECT_DIR)/control
 endif # _THEOS_HAS_STAGING_LAYOUT
-_THEOS_CAN_PACKAGE := $(shell [ -f "$(_THEOS_PACKAGE_CONTROL_PATH)" ] && echo 1 || echo 0)
+_THEOS_CAN_PACKAGE := $(call __exists,$(_THEOS_PACKAGE_CONTROL_PATH))
 export _THEOS_CAN_PACKAGE _THEOS_HAS_STAGING_LAYOUT _THEOS_PACKAGE_CONTROL_PATH
-endif # _THEOS_CAN_PACKAGE
+endif # _THEOS_PACKAGE_CONTROL_PATH
 
 _THEOS_PACKAGE_LAST_VERSION = $(shell THEOS_PROJECT_DIR="$(THEOS_PROJECT_DIR)" $(THEOS_BIN_PATH)/package_version.sh -k -n -o -c "$(_THEOS_PACKAGE_CONTROL_PATH)")
 
@@ -116,8 +118,8 @@ export TARGET_CC TARGET_CXX TARGET_LD TARGET_STRIP TARGET_CODESIGN_ALLOCATE TARG
 
 THEOS_TARGET_INCLUDE_PATH := $(THEOS_INCLUDE_PATH)/$(THEOS_TARGET_NAME)
 THEOS_TARGET_LIBRARY_PATH := $(THEOS_LIBRARY_PATH)/$(THEOS_TARGET_NAME)
-_THEOS_TARGET_HAS_INCLUDE_PATH := $(shell [ -d "$(THEOS_TARGET_INCLUDE_PATH)" ] && echo 1)
-_THEOS_TARGET_HAS_LIBRARY_PATH := $(shell [ -d "$(THEOS_TARGET_LIBRARY_PATH)" ] && echo 1)
+_THEOS_TARGET_HAS_INCLUDE_PATH := $(call __exists,$(THEOS_TARGET_INCLUDE_PATH))
+_THEOS_TARGET_HAS_LIBRARY_PATH := $(call __exists,$(THEOS_TARGET_LIBRARY_PATH))
 
 # ObjC/++ stuff is not here, it's in instance/rules.mk and only added if there are OBJC/OBJCC objects.
 _THEOS_INTERNAL_LDFLAGS = $(if $(_THEOS_TARGET_HAS_LIBRARY_PATH),-L$(THEOS_TARGET_LIBRARY_PATH) )-L$(THEOS_LIBRARY_PATH)
