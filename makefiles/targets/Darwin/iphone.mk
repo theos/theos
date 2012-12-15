@@ -27,16 +27,20 @@ endif
 # We have to figure out the target version here, as we need it in the calculation of the deployment version.
 _TARGET_VERSION_GE_6_0 = $(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 6.0)
 _TARGET_VERSION_GE_3_0 = $(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 3.0)
-_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION := $(or $(__THEOS_TARGET_ARG_$(word 2,$(_THEOS_TARGET_ARG_ORDER))),$(TARGET_IPHONEOS_DEPLOYMENT_VERSION),$(_SDKVERSION),$(if $(_TARGET_VERSION_GE_6_0),4.3,3.0))
+_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION := $(or $(__THEOS_TARGET_ARG_$(word 2,$(_THEOS_TARGET_ARG_ORDER))),$(TARGET_IPHONEOS_DEPLOYMENT_VERSION),$(_SDKVERSION),3.0)
 
 ifeq ($(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION),latest)
 override _THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION := $(_LATEST_SDK)
 endif
 
+_DEPLOY_VERSION_GE_3_0 = $(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION) ge 3.0)
 _DEPLOY_VERSION_LT_4_3 = $(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION) lt 4.3)
 
-ifeq ($(_TARGET_VERSION_GE_6_0)$(_DEPLOY_VERSION_LT_4_3),11)
-$(error You can not deploy to iOS versions less than 4.3 while building for 6.0)
+ifeq ($(_TARGET_VERSION_GE_6_0)$(_DEPLOY_VERSION_GE_3_0)$(_DEPLOY_VERSION_LT_4_3),111)
+ifeq ($(_THEOS_TARGET_WARNED_DEPLOY),)
+$(warning Deploying to iOS 3.0 while building for 6.0 will generate armv7-only binaries.)
+export _THEOS_TARGET_WARNED_DEPLOY := 1
+endif
 endif
 
 SYSROOT ?= $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(_THEOS_TARGET_SDK_VERSION).sdk
@@ -56,15 +60,19 @@ include $(THEOS_MAKE_PATH)/targets/_common/install_deb_remote.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_flat_bundle.mk
 
-ifeq ($(_TARGET_VERSION_GE_6_0),1)
+ifeq ($(_TARGET_VERSION_GE_6_0),1) # >= 6.0 {
+ifeq ($(_DEPLOY_VERSION_GE_3_0)$(_DEPLOY_VERSION_LT_4_3),11) # 3.0 <= Deploy < 4.3 {
+	ARCHS ?= armv7
+else # } else {
 	ARCHS ?= armv7 armv7s
-else
-ifeq ($(_TARGET_VERSION_GE_3_0),1)
+endif # }
+else # } < 6.0 {
+ifeq ($(_TARGET_VERSION_GE_3_0),1) # >= 3.0 {
 	ARCHS ?= armv6 armv7
-else
+else # } < 3.0 {
 	ARCHS ?= armv6
-endif
-endif
+endif # }
+endif # }
 
 SDKFLAGS := -isysroot "$(SYSROOT)" $(foreach ARCH,$(ARCHS),-arch $(ARCH)) -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)) -miphoneos-version-min=$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)
 _THEOS_TARGET_CFLAGS := $(SDKFLAGS)
