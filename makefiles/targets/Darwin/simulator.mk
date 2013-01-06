@@ -2,6 +2,16 @@ ifeq ($(_THEOS_TARGET_LOADED),)
 _THEOS_TARGET_LOADED := 1
 THEOS_TARGET_NAME := iphone_simulator
 
+ifeq ($(__THEOS_TARGET_ARG_1),clang)
+_THEOS_TARGET_CC := clang
+_THEOS_TARGET_CXX := clang++
+_THEOS_TARGET_ARG_ORDER := 2 3
+else
+_THEOS_TARGET_CC := gcc
+_THEOS_TARGET_CXX := g++
+_THEOS_TARGET_ARG_ORDER := 1 2
+endif
+
 # A version specified as a target argument overrides all previous definitions.
 _SDKVERSION := $(or $(firstword $(_THEOS_TARGET_ARGS)),$(SDKVERSION))
 _THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION := $(or $(word 2,$(_THEOS_TARGET_ARGS)),$(TARGET_IPHONEOS_DEPLOYMENT_VERSION),$(_SDKVERSION),3.0)
@@ -21,9 +31,9 @@ endif
 
 SYSROOT ?= $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator$(_THEOS_TARGET_SDK_VERSION).sdk
 
-TARGET_CC ?= xcrun -sdk iphonesimulator gcc
-TARGET_CXX ?= xcrun -sdk iphonesimulator g++
-TARGET_LD ?= xcrun -sdk iphonesimulator g++
+TARGET_CC ?= xcrun -sdk iphonesimulator $(_THEOS_TARGET_CC)
+TARGET_CXX ?= xcrun -sdk iphonesimulator $(_THEOS_TARGET_CXX)
+TARGET_LD ?= xcrun -sdk iphonesimulator $(_THEOS_TARGET_CXX)
 TARGET_STRIP ?= xcrun -sdk iphonesimulator strip
 TARGET_STRIP_FLAGS ?= -x
 TARGET_CODESIGN_ALLOCATE ?= "$(shell xcrun -sdk iphonesimulator -find codesign_allocate)"
