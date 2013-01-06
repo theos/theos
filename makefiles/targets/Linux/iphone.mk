@@ -5,6 +5,7 @@ THEOS_TARGET_NAME := iphone
 SDKTARGET ?= arm-apple-darwin9
 SDKBINPATH ?= /opt/iphone-sdk-3.0/prefix/bin
 SYSROOT ?= /opt/iphone-sdk-3.0/sysroot
+ISYSROOT ?= $(SYSROOT)
 
 PREFIX := $(SDKBINPATH)/$(SDKTARGET)-
 
@@ -23,7 +24,7 @@ include $(THEOS_MAKE_PATH)/targets/_common/darwin_flat_bundle.mk
 
 TARGET_PRIVATE_FRAMEWORK_PATH = $(SYSROOT)/System/Library/PrivateFrameworks
 
-SDKFLAGS := -isysroot $(SYSROOT)
-_THEOS_TARGET_CFLAGS := $(SDKFLAGS)
-_THEOS_TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress
+SDKFLAGS := 
+_THEOS_TARGET_CFLAGS := -isysroot $(ISYSROOT) $(SDKFLAGS)
+_THEOS_TARGET_LDFLAGS := -isysroot $(SYSROOT) $(SDKFLAGS) -multiply_defined suppress
 endif

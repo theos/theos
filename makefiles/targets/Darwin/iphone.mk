@@ -15,6 +15,7 @@ endif
 # A version specified as a target argument overrides all previous definitions.
 _SDKVERSION := $(or $(__THEOS_TARGET_ARG_$(word 1,$(_THEOS_TARGET_ARG_ORDER))),$(SDKVERSION))
 _THEOS_TARGET_SDK_VERSION := $(or $(_SDKVERSION),latest)
+_THEOS_TARGET_INCLUDE_SDK_VERSION := $(or $(INCLUDE_SDKVERSION),latest)
 
 _SDK_DIR := $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs
 _IOS_SDKS := $(sort $(patsubst $(_SDK_DIR)/iPhoneOS%.sdk,%,$(wildcard $(_SDK_DIR)/iPhoneOS*.sdk)))
@@ -22,6 +23,10 @@ _LATEST_SDK := $(word $(words $(_IOS_SDKS)),$(_IOS_SDKS))
 
 ifeq ($(_THEOS_TARGET_SDK_VERSION),latest)
 override _THEOS_TARGET_SDK_VERSION := $(_LATEST_SDK)
+endif
+
+ifeq ($(_THEOS_TARGET_INCLUDE_SDK_VERSION),latest)
+override _THEOS_TARGET_INCLUDE_SDK_VERSION := $(_LATEST_SDK)
 endif
 
 # We have to figure out the target version here, as we need it in the calculation of the deployment version.
@@ -43,7 +48,12 @@ export _THEOS_TARGET_WARNED_DEPLOY := 1
 endif
 endif
 
+ifeq ($(SYSROOT),)
 SYSROOT ?= $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(_THEOS_TARGET_SDK_VERSION).sdk
+ISYSROOT ?= $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(_THEOS_TARGET_INCLUDE_SDK_VERSION).sdk
+else
+ISYSROOT ?= $(SYSROOT)
+endif
 
 TARGET_CC ?= xcrun -sdk iphoneos $(_THEOS_TARGET_CC)
 TARGET_CXX ?= xcrun -sdk iphoneos $(_THEOS_TARGET_CXX)
@@ -80,7 +90,7 @@ else
 TARGET_ARCHS = $(ARCHS)
 endif
 
-SDKFLAGS := -isysroot "$(SYSROOT)" $(foreach ARCH,$(TARGET_ARCHS),-arch $(ARCH)) -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)) -miphoneos-version-min=$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)
-_THEOS_TARGET_CFLAGS := $(SDKFLAGS)
-_THEOS_TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress
+SDKFLAGS := $(foreach ARCH,$(TARGET_ARCHS),-arch $(ARCH)) -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)) -miphoneos-version-min=$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)
+_THEOS_TARGET_CFLAGS := -isysroot "$(ISYSROOT)" $(SDKFLAGS)
+_THEOS_TARGET_LDFLAGS := -isysroot "$(SYSROOT)" $(SDKFLAGS) -multiply_defined suppress
 endif
