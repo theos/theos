@@ -1,3 +1,10 @@
+__THEOS_RULES_MK_VERSION := 1
+ifneq ($(__THEOS_RULES_MK_VERSION),$(__THEOS_COMMON_MK_VERSION))
+all::
+	@echo Theos version mismatch! common.mk [version $(or $(__THEOS_COMMON_MK_VERSION),0)] loaded in tandem with rules.mk [version $(or $(__THEOS_RULES_MK_VERSION),0)] Check that \$$\(THEOS\) is set properly!
+	@exit 1
+endif
+
 .PHONY: all before-all internal-all after-all \
 	clean before-clean internal-clean after-clean update-theos
 ifeq ($(THEOS_BUILD_DIR),.)

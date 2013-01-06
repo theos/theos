@@ -1,6 +1,6 @@
 export TARGET_REMOTE := 0
 
-ifeq ($(_THEOS_CAN_PACKAGE),1)
+ifeq ($(_THEOS_CAN_PACKAGE),$(_THEOS_TRUE))
 internal-install::
 ifneq ($(FINALPACKAGE),1)
 	@if [[ "$(_THEOS_PACKAGE_LAST_VERSION)" == "none" ]]; then \

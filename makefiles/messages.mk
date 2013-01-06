@@ -1,4 +1,4 @@
-ifneq ($(messages),yes)
+ifneq ($(call __theos_bool,$(or $(messages),$(MESSAGES))),$(_THEOS_TRUE))
 	ECHO_COMPILING = @(echo " Compiling $<...";
 	ECHO_LINKING = @(echo " Linking $(_THEOS_CURRENT_TYPE) $(THEOS_CURRENT_INSTANCE)...";
 	ECHO_LINKING_WITH_STRIP = @(echo " Linking $(_THEOS_CURRENT_TYPE) $(THEOS_CURRENT_INSTANCE) (with strip)...";
@@ -12,6 +12,8 @@ ifneq ($(messages),yes)
 	STDERR_NULL_REDIRECT = 2> /dev/null
 
 	ECHO_END = )
+
+	_THEOS_VERBOSE := $(_THEOS_FALSE)
 else
 	ECHO_COMPILING =
 	ECHO_LINKING = 
@@ -24,6 +26,8 @@ else
 	ECHO_NOTHING = 
 	STDERR_NULL_REDIRECT = 
 	ECHO_END = 
+
+	_THEOS_VERBOSE := $(_THEOS_TRUE)
 endif
 
 WARNING_EMPTY_LINKING = @(echo " Warning! No files to link. Please check your Makefile! Make sure you set $(THEOS_CURRENT_INSTANCE)_FILES (or similar variables)")

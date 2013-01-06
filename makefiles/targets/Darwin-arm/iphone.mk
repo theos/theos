@@ -24,6 +24,6 @@ include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_flat_bundle.mk
 
 SDKFLAGS := -isysroot $(SYSROOT)
-TARGET_CFLAGS := $(SDKFLAGS)
-TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress
+_THEOS_TARGET_CFLAGS := $(SDKFLAGS)
+_THEOS_TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress
 endif

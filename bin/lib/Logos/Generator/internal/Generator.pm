@@ -3,15 +3,15 @@ use strict;
 use parent qw(Logos::Generator::Base::Generator);
 
 sub findPreamble {
-	shift;
+	my $self = shift;
 	my $aref = shift;
-	my @matches = grep(/\s*#\s*include\s*[<"]objc\/message\.h[">]/, @$aref);
-	return @matches > 0;
+	my @matches = grep(/\s*#\s*(import|include)\s*[<"]objc\/message\.h[">]/, @$aref);
+	return $self->SUPER::findPreamble($aref) && @matches > 0;
 }
 
 sub preamble {
-	shift;
-	return "#include <objc/message.h>";
+	my $self = shift;
+	return join("\n", ($self->SUPER::preamble(), "#include <objc/message.h>"));
 }
 
 1;

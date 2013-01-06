@@ -165,7 +165,7 @@ my $defaultGroup = Group->new();
 $defaultGroup->name("_ungrouped");
 $defaultGroup->explicit(0);
 my $staticClassGroup = StaticClassGroup->new();
-my @groups = ($defaultGroup, $staticClassGroup);
+my @groups = ($defaultGroup);
 
 my $currentGroup = $defaultGroup;
 my $currentClass = undef;
@@ -207,6 +207,7 @@ foreach my $line (@lines) {
 		$depth++ if($& eq "protocol" && substr($line, $-[0]) !~ /^protocol(\s+([_\$A-Za-z0-9]+(,\s*)?)+;|\s*\()/);
 		$depth-- if($& eq "}");
 		$depth-- if($& eq "end");
+		fileError($lineno, "fell off the face of the planet when we found a \'$&\'") if $depth < 0;
 		$depthMapping{$depthtoken} = $depth;
 		$depthsForCurrentLine{$depthtoken} = $depth;
 	}
@@ -270,24 +271,20 @@ foreach my $line (@lines) {
 			nestPush("group", $lineno, \@nestingstack);
 
 			$currentGroup = getGroup($1);
-			my $existed = 0;
+			my $patchSource = undef;
 			if(!defined($currentGroup)) {
 				$currentGroup = Group->new();
 				$currentGroup->name($1);
 				push(@groups, $currentGroup);
-			} else {
-				$existed = 1;
+				my $capturedGroup = $currentGroup;
+				$patchSource = Patch::Source::Generator->new($capturedGroup, 'declarations');
 			}
-
-			my $capturedGroup = $currentGroup;
-			if(!$existed) {
-				patchHere(Patch::Source::Generator->new($capturedGroup, 'declarations'));
-			} else {
-				patchHere(undef);
-			}
+			patchHere($patchSource);
 		} elsif($line =~ /\G%class\s+([+-])?([\$_\w]+)/gc) {
 			# %class [+-]<identifier>
 			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
+
+			fileWarning($lineno, "%class is deprecated and will be removed in the future; consider switching to inline %c()");
 
 			my $scope = $1;
 			$scope = "-" if !$scope;
@@ -496,25 +493,13 @@ foreach my $line (@lines) {
 			$group->initLine($lineno);
 			$group->initialized(1);
 
-			if($groupname eq "_ungrouped") {
-				$staticClassGroup->initLine($lineno);
-				$staticClassGroup->initialized(1);
-			}
-
 			while($line =~ /\G\s*;/gc) { };
 			my $patchEnd = pos($line);
 
 			my $patch = Patch->new();
 			$patch->line($lineno);
 			$patch->range($patchStart, pos($line));
-			if($groupname eq "_ungrouped") {
-				$patch->source(["{",
-						Patch::Source::Generator->new($group, 'initializers'),
-						Patch::Source::Generator->new($staticClassGroup, 'initializers'),
-						"}"]);
-			} else {
-				$patch->source(Patch::Source::Generator->new($group, 'initializers'));
-			}
+			$patch->source(Patch::Source::Generator->new($group, 'initializers'));
 			addPatch($patch);
 
 			@lastInitPosition = ($lineno, pos($line));
@@ -595,17 +580,8 @@ if(@firstDirectivePosition) {
 	$patch->source(\@patchsource);
 	addPatch($patch);
 
-	if(@lastInitPosition) {
-		# If the static class list hasn't been initialized, glue it after the last %init directive.
-		if(!$staticClassGroup->initialized) {
-			my $patch = Patch->new();
-			$patch->line($lastInitPosition[0]);
-			$patch->range($lastInitPosition[1], $lastInitPosition[1]);
-			$patch->source(Patch::Source::Generator->new($staticClassGroup, 'initializers'));
-			$staticClassGroup->initialized(1);
-			addPatch($patch);
-		}
-	} else {
+	if(!@lastInitPosition) {
+		# If we haven't seen any %init directives, generate the default constructor.
 		my $patch = Patch->new();
 		$patch->line(scalar @lines);
 		$patch->squash(1);
@@ -615,12 +591,8 @@ if(@firstDirectivePosition) {
 
 }
 
-my @unInitGroups = ();
-foreach(@groups) {
-	push(@unInitGroups, $_->name) if !$_->initialized && $_->explicit;
-}
-my $numUnGroups = @unInitGroups;
-fileError($lineno, "non-initialized hook group".($numUnGroups == 1 ? "" : "s").": ".join(", ", @unInitGroups)) if $numUnGroups > 0;
+my @unInitGroups = map {$_->name;} (grep {!$_->initialized && $_->initRequired;} @groups);
+fileError($lineno, "non-initialized hook group".(scalar @unInitGroups == 1 ? "" : "s").": ".join(", ", @unInitGroups)) if scalar @unInitGroups > 0;
 
 my @sortedPatches = sort { ($b->line == $a->line ? ($b->start || -1) <=> ($a->start || -1) : $b->line <=> $a->line) } @patches;
 
@@ -662,21 +634,21 @@ foreach my $oline (@lines) {
 
 sub defaultConstructorSource {
 	my @return;
-	my $explicitGroups = 0;
-	foreach(@groups) {
-		$explicitGroups++ if $_->explicit;
+	my @initRequiredGroups = grep {$_->initRequired;} @groups;
+	my @explicitGroups = grep {$_->explicit;} @initRequiredGroups;
+	fileError($lineno, "Cannot generate an autoconstructor with multiple %groups. Please explicitly create a constructor.") if scalar @explicitGroups > 0;
+	if(scalar @initRequiredGroups > 0) {
+		push(@return, "static __attribute__((constructor)) void _logosLocalInit() {\n");
+		foreach(@initRequiredGroups) {
+			fileError($lineno, "re-%init of %group ".$_->name.", first initialized at ".lineDescriptionForPhysicalLine($_->initLine)) if $_->initialized;
+			push(@return, Patch::Source::Generator->new($_, 'initializers'));
+			push(@return, " ");
+			$_->initLine($lineno);
+			$_->initialized(1);
+		}
+		push(@return, "}\n");
 	}
-	fileError($lineno, "Cannot generate an autoconstructor with multiple %groups. Please explicitly create a constructor.") if $explicitGroups > 0;
-	push(@return, "static __attribute__((constructor)) void _logosLocalInit() {\n");
-	foreach(@groups) {
-		next if $_->explicit;
-		fileError($lineno, "re-%init of %group ".$_->name.", first initialized at ".lineDescriptionForPhysicalLine($_->initLine)) if $_->initialized;
-		push(@return, Patch::Source::Generator->new($_, 'initializers'));
-		push(@return, " ");
-		$_->initLine($lineno);
-	}
-	push(@return, "}\n");
-	return \@return;
+	return @return > 0 ? \@return : undef;
 }
 
 sub fileWarning {

@@ -2,7 +2,7 @@ ifeq ($(_THEOS_TARGET_LOADED),)
 _THEOS_TARGET_LOADED := 1
 THEOS_TARGET_NAME := macosx
 
-_THEOS_TARGET_MACOSX_DEPLOYMENT_VERSION := $(firstword $(_THEOS_TARGET_ARGS))
+_THEOS_TARGET_MACOSX_DEPLOYMENT_VERSION := $(__THEOS_TARGET_ARG_1)
 TARGET_CC ?= xcrun -sdk macosx gcc
 TARGET_CXX ?= xcrun -sdk macosx g++
 TARGET_LD ?= xcrun -sdk macosx g++
@@ -26,6 +26,6 @@ TARGET_ARCHS = $(ARCHS)
 endif
 
 SDKFLAGS := $(foreach ARCH,$(TARGET_ARCHS),-arch $(ARCH)) $(if $(_THEOS_TARGET_MACOSX_DEPLOYMENT_VERSION),-mmacosx-version-min=$(_THEOS_TARGET_MACOSX_DEPLOYMENT_VERSION))
-TARGET_CFLAGS := $(SDKFLAGS)
-TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress
+_THEOS_TARGET_CFLAGS := $(SDKFLAGS)
+_THEOS_TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress
 endif

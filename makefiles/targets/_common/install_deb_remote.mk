@@ -10,7 +10,7 @@ THEOS_DEVICE_PORT ?= 22
 
 export THEOS_DEVICE_IP THEOS_DEVICE_PORT
 
-ifeq ($(_THEOS_CAN_PACKAGE),1)
+ifeq ($(_THEOS_CAN_PACKAGE),$(_THEOS_TRUE))
 internal-install::
 ifneq ($(FINALPACKAGE),1)
 	@if [[ "$(_THEOS_PACKAGE_LAST_VERSION)" == "none" ]]; then \

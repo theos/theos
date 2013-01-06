@@ -1,4 +1,6 @@
 #!/usr/bin/perl
+use File::Temp;
+
 my @o;
 for(reverse @ARGV) {
 	my $i = 0;
@@ -10,4 +12,15 @@ for(reverse @ARGV) {
 		$i++;
 	}
 }
-print join(':', @o);
+#print join(':', map { $_ eq "" ? "-" : $_ } @o);
+my $i = 0;
+my ($fh, $tempfile) = File::Temp::tempfile();
+binmode($fh, ":utf8");
+
+for(@o) {
+	print $fh "export __THEOS_TARGET_ARG_$i := $_\n";
+	++$i;
+}
+
+close($fh);
+print $tempfile,$/;
