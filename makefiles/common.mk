@@ -11,6 +11,8 @@ _THEOS_FALSE :=
 __theos_bool = $(if $(filter Y y YES yes 1,$(1)),$(_THEOS_TRUE),$(_THEOS_FALSE))
 # Existence
 __exists = $(if $(wildcard $(1)),$(_THEOS_TRUE),$(_THEOS_FALSE))
+# Static redefinition
+__simplify = $(2)$(eval $(1):=$(2))
 ###
 
 __THEOS_COMMON_MK_VERSION := 1
