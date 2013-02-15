@@ -35,6 +35,10 @@ sub for {
 
 sub use {
 	my $generatorName = shift;
+	if($generatorName =~ /^(\w+)@(.+)$/) {
+		$generatorName = $1;
+		unshift @INC, $2;
+	}
 	$GeneratorPackage = "Logos::Generator::".$generatorName;
 	::fileError(-1, "I can't find the $generatorName Generator!") if(!can_load(modules => {
 				$GeneratorPackage."::Generator" => undef
