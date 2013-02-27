@@ -13,6 +13,7 @@ TARGET_CODESIGN ?=
 TARGET_CODESIGN_FLAGS ?=
 
 TARGET_PRIVATE_FRAMEWORK_PATH = /System/Library/PrivateFrameworks
+TARGET_PRIVATE_FRAMEWORK_INCLUDE_PATH = /System/Library/PrivateFrameworks
 
 include $(THEOS_MAKE_PATH)/targets/_common/install_deb_local.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk

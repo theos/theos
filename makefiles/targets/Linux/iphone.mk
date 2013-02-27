@@ -23,6 +23,7 @@ include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_flat_bundle.mk
 
 TARGET_PRIVATE_FRAMEWORK_PATH = $(SYSROOT)/System/Library/PrivateFrameworks
+TARGET_PRIVATE_FRAMEWORK_INCLUDE_PATH = $(ISYSROOT)/System/Library/PrivateFrameworks
 
 SDKFLAGS := 
 _THEOS_TARGET_CFLAGS := -isysroot $(ISYSROOT) $(SDKFLAGS)
