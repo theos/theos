@@ -29,6 +29,8 @@ our $_templatepath = File::Spec->catdir(@_dirs);
 $#_dirs--;
 my $_theospath = File::Spec->catdir(@_dirs);
 
+exitWithError("Cowardly refusing to make a project as root") if($< eq 0 || $> eq 0);
+
 {
 	my $_abstheospath = abs_path($_theospath);
 	my $_cwd = abs_path(Cwd::getcwd());
