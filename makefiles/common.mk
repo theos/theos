@@ -15,7 +15,7 @@ __exists = $(if $(wildcard $(1)),$(_THEOS_TRUE),$(_THEOS_FALSE))
 __simplify = $(2)$(eval $(1):=$(2))
 ###
 
-__THEOS_COMMON_MK_VERSION := 1
+__THEOS_COMMON_MK_VERSION := 1r
 
 ifeq ($(_THEOS_INTERNAL_TRUE_PATH),)
 _THEOS_RELATIVE_MAKE_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
