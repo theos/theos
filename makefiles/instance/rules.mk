@@ -154,24 +154,61 @@ $(THEOS_OBJ_DIR)/%.xmi.$(_THEOS_OBJ_FILE_TAG).o: %.xmi
 	$(ECHO_COMPILING)$(TARGET_CXX) -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_CCFLAGS) $(ALL_OBJCCFLAGS) $(THEOS_OBJ_DIR)/$<.mii -o $@$(ECHO_END)
 	$(ECHO_NOTHING)rm $(THEOS_OBJ_DIR)/$<.pre $(THEOS_OBJ_DIR)/$<.mii$(ECHO_END)
 
+#$(__theos_stage_prefix)$(1): $(or $(2),$(__theos_stage_last))
+	#$(subst @,(__THEOS_STAGE_CURRENT_TARGET),3)
+define __theos_stage_define
+.INTERMEDIATE: $(__theos_stage_prefix)$(1)
+__THEOS_STAGE_DEPENDENCY_$(1) := $(or $(2),$(__theos_stage_last))
+__THEOS_STAGE_TARGET_$(1) := $(__theos_stage_prefix)$(1)
+instance-before-$(1):: THEOS_CURRENT_FILE := $(or $(2),$(__theos_stage_last))
+instance-after-$(1):: THEOS_CURRENT_FILE := $(__theos_stage_prefix)$(1)
+$(__theos_stage_prefix)$(1): $(or $(2),$(__theos_stage_last))
+	@#$(MAKE) --no-keep-going instance-before-$(1)
+	$(3)
+	@#$(MAKE) --no-keep-going instance-after-$(1)
+override __theos_stage_last := $(__theos_stage_prefix)$(1)
+endef
+
+define __theos_stage_init
+override __theos_stage_prefix := $(1)
+override __theos_stage_last :=
+endef
+
+instance-before-bootstrap instance-after-bootstrap::
+	@echo @@@@@@ $@ - Operating on file '$(THEOS_CURRENT_FILE)'
+
+instance-before-sign instance-after-sign::
+	@echo @@@@@@ $@ - Operating on file '$(THEOS_CURRENT_FILE)'
+
+instance-before-strip instance-after-strip::
+	@echo @@@@@@ $@ - Operating on file '$(THEOS_CURRENT_FILE)'
+
 define _THEOS_TEMPLATE_DEFAULT_LINKING_RULE
-ifneq ($$(TARGET_CODESIGN),)
-.INTERMEDIATE: $$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned
-$$(THEOS_OBJ_DIR)/$(1): $$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned
-	$$(ECHO_SIGNING)$$(_THEOS_CODESIGN_COMMANDLINE) "$$<"; mv "$$<" "$$@"$$(ECHO_END)
-$$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned: $$(OBJ_FILES_TO_LINK)
-else
-$$(THEOS_OBJ_DIR)/$(1): $$(OBJ_FILES_TO_LINK)
+
+$$(eval $$(call __theos_stage_init,$$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).stage.))
+
+$$(eval $$(call __theos_stage_define,bootstrap,$$$$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).linked,$$$$(ECHO_NOTHING)mv "$$$$<" "$$$$@"$$$$(ECHO_END)))
+
+ifeq ($$(findstring DEBUG,$$(THEOS_SCHEMA)),)
+$$(eval $$(call __theos_stage_define,strip,,$$$$(ECHO_STRIPPING)$$$$(TARGET_STRIP) $$$$(ALL_STRIP_FLAGS) "$$$$<"; mv "$$$$<" "$$$$@"$$$$(ECHO_END)))
 endif
+
+ifneq ($$(TARGET_CODESIGN),)
+$$(eval $$(call __theos_stage_define,sign,,$$$$(ECHO_SIGNING)$$$$(_THEOS_CODESIGN_COMMANDLINE) "$$$$<"; mv "$$$$<" "$$$$@"$$$$(ECHO_END)))
+endif
+
+$$(THEOS_OBJ_DIR)/$(1): $$(__theos_stage_last)
+	$(ECHO_NOTHING)mv "$$<" "$$@"$(ECHO_END)
+
+.INTERMEDIATE: $$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).linked
+$$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).linked: $$(OBJ_FILES_TO_LINK)
 ifneq ($(2),nowarn)
 ifeq ($$(OBJ_FILES_TO_LINK),)
 	$$(WARNING_EMPTY_LINKING)
 endif
 endif
 	$$(ECHO_LINKING)$$(TARGET_LD) $$(ALL_LDFLAGS) -o "$$@" $$^$$(ECHO_END)
-ifeq ($$(findstring DEBUG,$$(THEOS_SCHEMA)),)
-	$$(ECHO_STRIPPING)$$(TARGET_STRIP) $$(ALL_STRIP_FLAGS) "$$@"$$(ECHO_END)
-endif
+
 endef
 
 $(eval $(call __mod,instance/rules.mk))
