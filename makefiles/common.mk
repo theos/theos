@@ -63,12 +63,8 @@ __schema_var_last = $(strip $($(lastword $(call __schema_defined_var_names,$(1),
 # There are some packaging-related variables set here because some of the target install rules rely on them.
 ifeq ($(_THEOS_PACKAGE_CONTROL_PATH),)
 _THEOS_HAS_STAGING_LAYOUT := $(call __exists,$(THEOS_PROJECT_DIR)/layout)
-ifeq ($(_THEOS_HAS_STAGING_LAYOUT),$(_THEOS_TRUE))
-	_THEOS_PACKAGE_CONTROL_PATH := $(THEOS_PROJECT_DIR)/layout/DEBIAN/control
-else # _THEOS_HAS_STAGING_LAYOUT == 0
-	_THEOS_PACKAGE_CONTROL_PATH := $(THEOS_PROJECT_DIR)/control
-endif # _THEOS_HAS_STAGING_LAYOUT
-_THEOS_CAN_PACKAGE := $(call __exists,$(_THEOS_PACKAGE_CONTROL_PATH))
+_THEOS_PACKAGE_CONTROL_PATH := $(or $(wildcard $(THEOS_PROJECT_DIR)/control),$(wildcard $(THEOS_PROJECT_DIR)/layout/DEBIAN/control))
+_THEOS_CAN_PACKAGE := $(if $(_THEOS_PACKAGE_CONTROL_PATH),$(_THEOS_TRUE),$(_THEOS_FALSE))
 export _THEOS_CAN_PACKAGE _THEOS_HAS_STAGING_LAYOUT _THEOS_PACKAGE_CONTROL_PATH
 endif # _THEOS_PACKAGE_CONTROL_PATH
 
