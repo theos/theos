@@ -457,6 +457,9 @@ foreach my $line (@lines) {
 
 			my $group = getGroup($groupname);
 
+			fileError($lineno, "%init for an undefined %group $groupname") if !$group;
+			fileError($lineno, "re-%init of %group ".$group->name.", first initialized at ".lineDescriptionForPhysicalLine($group->initLine)) if $group->initialized;
+
 			foreach my $arg (@args) {
 				if($arg !~ /=/) {
 					fileWarning($lineno, "unknown argument to %init: $arg");
@@ -486,9 +489,6 @@ foreach my $line (@lines) {
 				$class->expression($expr) if $scope eq "-";
 				$class->metaexpression($expr) if $scope eq "+";
 			}
-
-			fileError($lineno, "%init for an undefined %group $groupname") if !$group;
-			fileError($lineno, "re-%init of %group ".$group->name.", first initialized at ".lineDescriptionForPhysicalLine($group->initLine)) if $group->initialized;
 
 			$group->initLine($lineno);
 			$group->initialized(1);
