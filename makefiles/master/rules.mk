@@ -33,6 +33,7 @@ internal-clean::
 	rm -rf $(THEOS_OBJ_DIR)
 ifeq ($(MAKELEVEL),0)
 	rm -rf "$(THEOS_STAGING_DIR)"
+	rm -rf $(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_NAME)_*-*_$(THEOS_PACKAGE_ARCH).deb
 endif
 
 after-clean::
