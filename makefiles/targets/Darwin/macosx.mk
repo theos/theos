@@ -30,13 +30,9 @@ include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_hierarchial_bundle.mk
 
 ARCHS ?= i386 x86_64
-ifneq ($($(THEOS_CURRENT_INSTANCE)_ARCHS),)
-TARGET_ARCHS = $($(THEOS_CURRENT_INSTANCE)_ARCHS)
-else
-TARGET_ARCHS = $(ARCHS)
-endif
+NEUTRAL_ARCH = i386
 
-SDKFLAGS := $(foreach ARCH,$(TARGET_ARCHS),-arch $(ARCH)) $(if $(_THEOS_TARGET_MACOSX_DEPLOYMENT_VERSION),-mmacosx-version-min=$(_THEOS_TARGET_MACOSX_DEPLOYMENT_VERSION))
+SDKFLAGS := $(if $(_THEOS_TARGET_MACOSX_DEPLOYMENT_VERSION),-mmacosx-version-min=$(_THEOS_TARGET_MACOSX_DEPLOYMENT_VERSION))
 _THEOS_TARGET_CFLAGS := $(SDKFLAGS)
 _THEOS_TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress
 endif
