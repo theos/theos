@@ -7,7 +7,7 @@ use parent qw(Logos::Generator::internal::Class);
 sub _initExpression {
 	my $self = shift;
 	my $class = shift;
-	return "objc_allocateClassPair(objc_getClass(\"".$class->superclass."\"), \"".$class->name."\", 0)";
+	return "objc_allocateClassPair(objc_getClass(\"".$class->superclass."\"), \"".$class->name."\", 0); objc_registerClassPair(".$self->variable($class).")";
 }
 
 sub initializers {
@@ -24,7 +24,6 @@ sub initializers {
 	foreach(keys %{$class->protocols}) {
 		$return .= "class_addProtocol(".$self->variable($class).", objc_getProtocol(\"$_\")); ";
 	}
-	$return .= "objc_registerClassPair(".$self->variable($class)."); ";
 	$return .= "}";
 	return $return;
 }
