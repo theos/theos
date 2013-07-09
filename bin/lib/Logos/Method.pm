@@ -2,6 +2,8 @@ package Logos::Method;
 use strict;
 use Logos::Util qw(matchedParenthesisSet);
 
+use Syntel::Type;
+
 sub new {
 	my $proto = shift;
 	my $class = ref($proto) || $proto;
@@ -10,8 +12,8 @@ sub new {
 	$self->{SCOPE} = undef;
 	$self->{RETURN} = undef;
 	$self->{SELECTOR_PARTS} = [];
-	$self->{ARGNAMES} = [];
-	$self->{ARGTYPES} = [];
+	$self->{ARGNAMES} = ["self", "_cmd"];
+	$self->{ARGTYPES} = [$Syntel::Type::CLASS, Syntel::Type->new("SEL")];
 	$self->{NEW} = 0;
 	$self->{TYPE} = "";
 	bless($self, $class);
@@ -29,7 +31,11 @@ sub class {
 
 sub scope {
 	my $self = shift;
-	if(@_) { $self->{SCOPE} = shift; }
+	if(@_) {
+		$self->{SCOPE} = shift;
+		$self->{ARGTYPES}->[0] = $Syntel::Type::CLASS if($self->{SCOPE} eq "+");
+		$self->{ARGTYPES}->[0] = $self->class->type if($self->{SCOPE} eq "-");
+	}
 	return $self->{SCOPE};
 }
 
@@ -88,7 +94,7 @@ sub numArgs {
 sub addArgument {
 	my $self = shift;
 	my ($type, $name) = @_;
-	push(@{$self->{ARGTYPES}}, $type);	
+	push(@{$self->{ARGTYPES}}, $type);
 	push(@{$self->{ARGNAMES}}, $name);
 }
 

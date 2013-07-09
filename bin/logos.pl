@@ -319,7 +319,7 @@ foreach my $line (@lines) {
 			$xtype = $2 if $2;
 			$newMethodTypeEncoding = $xtype;
 			patchHere(undef);
-		} elsif($currentClass && $line =~ /\G([+-])\s*\(\s*(.*?)\s*\)(?=\s*[\w:])/gc && $directiveDepth < 1) {
+		} elsif($currentClass && $line =~ /\G([+-])\s*\(\s*(.*?)\s*\)(?=\s*[\$\w:])/gc && $directiveDepth < 1) {
 			# [+-] (<return>)<[X:]>, but only when we're in a %hook.
 
 			# Gasp! We've been moved to a different group!
@@ -341,7 +341,7 @@ foreach my $line (@lines) {
 			}
 
 			$method->scope($scope);
-			$method->return($return);
+			$method->return(Syntel::Type->new($return));
 
 			if(defined $newMethodTypeEncoding) {
 				$method->setNew(1);
@@ -364,7 +364,7 @@ foreach my $line (@lines) {
 				push(@selparts, $keyword);
 
 				last if !$2;  # Exit the loop if there are no args (single keyword.)
-				$method->addArgument($3 ? $4 : "id", $5);
+				$method->addArgument($3 ? Syntel::Type->new($4) : $Syntel::Type::ID, $5);
 			}
 
 			$method->selectorParts(@selparts);

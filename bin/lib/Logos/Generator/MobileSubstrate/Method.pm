@@ -2,50 +2,49 @@ package Logos::Generator::MobileSubstrate::Method;
 use strict;
 use parent qw(Logos::Generator::Base::Method);
 
-sub _originalMethodPointerDeclaration {
+use Logos::Util qw(smartSplit);
+
+use Hash::Util::FieldHash;
+Hash::Util::FieldHash::fieldhashes \ my (%caches);
+
+use Syntel::Variable;
+use Syntel::Function;
+use Syntel::Type;
+use Syntel::Context;
+use Syntel::BlockContext;
+use Syntel::ConstantValue;
+
+use Syntel::Lib::C;
+use Syntel::Lib::ObjC;
+use Syntel::Lib::Substrate;
+
+sub _originalMethodPointerVar {
 	my $self = shift;
 	my $method = shift;
-	if(!$method->isNew) {
-		my $build = "static ";
-		my $classargtype = $method->class->type;
-		$classargtype = "Class" if $method->scope eq "+";
-		my $name = "(*".$self->originalFunctionName($method).")(".$classargtype.", SEL";
-		my $argtypelist = join(", ", @{$method->argtypes});
-		$name .= ", ".$argtypelist if $argtypelist;
-
-		$name .= ")";
-		$build .= Logos::Method::declarationForTypeWithName($method->return, $name);
-		return $build;
+	my $o = \$caches{$method}->{orig};
+	if(!$$o) {
+		if(!$method->isNew) {
+			$$o = Syntel::Variable->new($self->originalFunctionName($method), Syntel::Type::Function->new($method->return, $method->argtypes)->pointer->withStorageClass("static"));
+		}
 	}
-	return undef;
+	return $$o;
 }
 
-sub _methodPrototype {
+sub _methodFunction {
 	my $self = shift;
 	my $method = shift;
-	my $includeArgNames = 0 || shift;
-	my $build = "static ";
-	my $classargtype = $method->class->type;
-	$classargtype = "Class" if $method->scope eq "+";
-	my $arglist = "";
-	if($includeArgNames == 1) {
-		map $arglist .= ", ".Logos::Method::declarationForTypeWithName($method->argtypes->[$_], $method->argnames->[$_]), (0..$method->numArgs - 1);
-	} else {
-		my $typelist = join(", ", @{$method->argtypes});
-		$arglist = ", ".$typelist if $typelist;
+	my $o = \$caches{$method}->{func};
+	if(!$$o) {
+		$$o = Syntel::Function->new($self->newFunctionName($method), Syntel::Type::Function->new($method->return, $method->argtypes)->withStorageClass("static"), $method->argnames);
 	}
-
-	my $name = $self->newFunctionName($method)."(".$classargtype.($includeArgNames?" self":"").", SEL".($includeArgNames?" _cmd":"").$arglist.")";
-	$build .= Logos::Method::declarationForTypeWithName($method->return, $name);
-	return $build;
+	return $$o;
 }
 
 sub definition {
 	my $self = shift;
 	my $method = shift;
 	my $build = "";
-	$build .= $self->_methodPrototype($method, 1);
-	return $build;
+	return $self->_methodFunction($method)->declaration->emit();
 }
 
 sub originalCall {
@@ -54,24 +53,25 @@ sub originalCall {
 	my $customargs = shift;
 	return "" if $method->isNew;
 
-	my $build = $self->originalFunctionName($method)."(self, _cmd";
-	if(defined $customargs && $customargs ne "") {
-		$build .= ", ".$customargs;
-	} elsif($method->numArgs > 0) {
-		$build .= ", ".join(", ",@{$method->argnames});
+	my @args;
+	if($customargs) {
+		@args = (@{$method->argnames}[0,1], smartSplit(qr/\s*,\s*/, $customargs));
+	} else {
+		@args = @{$method->argnames};
 	}
-	$build .= ")";
-	return $build;
+
+	my $call = $self->_originalMethodPointerVar($method)->call(@args);
+	return $call->emit;
 }
 
 sub declarations {
 	my $self = shift;
 	my $method = shift;
-	my $build = "";
-	my $orig = $self->_originalMethodPointerDeclaration($method);
-	$build .= $orig."; " if $orig;
-	$build .= $self->_methodPrototype($method)."; ";
-	return $build;
+	my $ctx = Syntel::Context->new();
+	my $orig = $self->_originalMethodPointerVar($method);
+	$ctx->push($orig->declaration) if $orig;
+	$ctx->push($self->_methodFunction($method)->prototype);
+	return $ctx->emit;
 }
 
 sub initializers {
@@ -79,35 +79,54 @@ sub initializers {
 	my $method = shift;
 	my $cgen = Logos::Generator::for($method->class);
 	my $classvar = ($method->scope eq "+" ? $cgen->metaVariable : $cgen->variable);
+	my $emittable = undef;
 	if(!$method->isNew) {
-		return "MSHookMessageEx(".$classvar.", \@selector(".$method->selector."), (IMP)&".$self->newFunctionName($method).", (IMP*)&".$self->originalFunctionName($method).");";
+		$emittable =
+			$Syntel::Lib::Substrate::MSHookMessageEx->call(
+				$classvar,
+				$Syntel::Lib::ObjC::_selector->call($method->selector),
+				$self->_methodFunction($method)->pointer->cast($Syntel::Lib::ObjC::IMP),
+				$self->_originalMethodPointerVar($method)->pointer->cast($Syntel::Lib::ObjC::IMP->pointer)
+			);
 	} else {
-		my $r = "";
-		$r .= "{ ";
+		my $subcontext = $emittable = Syntel::BlockContext->new();
+		my $typeEncodingVar = undef;
 		if(!$method->type) {
-			$r .= "char _typeEncoding[1024]; unsigned int i = 0; ";
-			for ($method->return, "id", "SEL", @{$method->argtypes}) {
-				my $typeEncoding = Logos::Method::typeEncodingForArgType($_);
+			$typeEncodingVar = Syntel::Variable->new("_typeEncoding", $Syntel::Type::CHAR->array(1024));
+			my $i = Syntel::Variable->new("i", $Syntel::Type::INT->withQualifier("unsigned"));
+
+			$subcontext->push($typeEncodingVar->declaration);
+			$subcontext->push($i->declaration(0));
+			for ($method->return, @{$method->argtypes}) {
+				my $expr = undef;
+				my $len = undef;
+				my $decl = $_->declString;
+				my $typeEncoding = Logos::Method::typeEncodingForArgType($decl);
 				if(defined $typeEncoding) {
-					my @typeEncodingBits = split(//, $typeEncoding);
-					my $i = 0;
-					for my $char (@typeEncodingBits) {
-						$r .= "_typeEncoding[i".($i > 0 ? " + $i" : "")."] = '$char'; ";
-						$i++;
-					}
-					$r .= "i += ".(scalar @typeEncodingBits)."; ";
+					$expr = synString($typeEncoding);
+					$len = synConstant(length $typeEncoding);
 				} else {
-					$r .= "memcpy(_typeEncoding + i, \@encode($_), strlen(\@encode($_))); i += strlen(\@encode($_)); ";
+					$expr = $Syntel::Lib::ObjC::_encode->call($decl);
+					$len = $Syntel::Lib::C::strlen->call($expr);
 				}
+				$subcontext->push($Syntel::Lib::C::memcpy->call($typeEncodingVar->binaryOp("+", $i), $expr, $len));
+				$subcontext->push($i->binaryOp("+=", $len));
 			}
-			$r .= "_typeEncoding[i] = '\\0'; ";
+			$subcontext->push($typeEncodingVar->index($i)->assign(synCharSequence("\\0")));
 		} else {
-			$r .= "const char *_typeEncoding = \"".$method->type."\"; ";
+			$typeEncodingVar = Syntel::Variable->new("_typeEncoding", $Syntel::Type::CHAR->array((length $method->type) + 1));
+			$subcontext->push($typeEncodingVar->declaration(synString($method->type)));
 		}
-		$r .= "class_addMethod(".$classvar.", \@selector(".$method->selector."), (IMP)&".$self->newFunctionName($method).", _typeEncoding); ";
-		$r .= "}";
-		return $r;
+		$subcontext->push(
+			$Syntel::Lib::ObjC::class_addMethod->call(
+				$classvar,
+				$Syntel::Lib::ObjC::_selector->call($method->selector),
+				$self->_methodFunction($method)->pointer->cast($Syntel::Lib::ObjC::IMP),
+				$typeEncodingVar
+			)
+		);
 	}
+	return $emittable->emit;
 }
 
 1;
