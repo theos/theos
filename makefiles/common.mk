@@ -1,5 +1,9 @@
 all::
 
+ifeq ($(notdir $(firstword $(SUDO_COMMAND))),make)
+$(error Do not use 'sudo make')
+endif
+
 THEOS_PROJECT_DIR ?= $(shell pwd)
 
 ### Functions
