@@ -12,7 +12,7 @@ export THEOS_DEVICE_IP THEOS_DEVICE_PORT
 
 ifeq ($(_THEOS_CAN_PACKAGE),$(_THEOS_TRUE))
 internal-install::
-	@if [ "$(_THEOS_PACKAGE_LAST_VERSION)" = "none" ]]; then \
+	@if [ "$(_THEOS_PACKAGE_LAST_VERSION)" = "none" ]; then \
 		echo "$(MAKE) install requires that you build a package before you try to install it." >&2; \
 		exit 1; \
 	fi
