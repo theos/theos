@@ -12,7 +12,7 @@ internal-all:: $(TWEAK_NAME:=.all.tweak.variables);
 internal-stage:: $(TWEAK_NAME:=.stage.tweak.variables);
 
 internal-after-install::
-ifeq ($(DISABLE_RESPRING_ON_INSTALL),)
+ifeq ($(DISABLE_RESPRING),)
 	install.exec "killall -9 SpringBoard"
 endif
 
