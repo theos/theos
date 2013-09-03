@@ -12,7 +12,9 @@ internal-all:: $(TWEAK_NAME:=.all.tweak.variables);
 internal-stage:: $(TWEAK_NAME:=.stage.tweak.variables);
 
 internal-after-install::
+ifeq ($(DISABLE_RESPRING_ON_INSTALL),)
 	install.exec "killall -9 SpringBoard"
+endif
 
 TWEAKS_WITH_SUBPROJECTS = $(strip $(foreach tweak,$(TWEAK_NAME),$(patsubst %,$(tweak),$(call __schema_var_all,$(tweak)_,SUBPROJECTS))))
 ifneq ($(TWEAKS_WITH_SUBPROJECTS),)
