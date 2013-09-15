@@ -18,7 +18,7 @@ export FAKEROOT
 
 ifeq ($(_THEOS_CAN_PACKAGE),$(_THEOS_TRUE)) # Control file found (or layout/ found.)
 THEOS_PACKAGE_NAME := $(shell grep -i "^Package:" "$(_THEOS_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
-THEOS_PACKAGE_ARCH := $(shell grep -i "^Architecture:" "$(_THEOS_PACKAGE_CONTROL_PATH)" | cut -d' ' -f3-)
+THEOS_PACKAGE_ARCH := $(shell grep -i "^Architecture:" "$(_THEOS_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 THEOS_PACKAGE_BASE_VERSION := $(shell grep -i "^Version:" "$(_THEOS_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 
 THEOS_PACKAGE_VERSION = $(shell THEOS_PROJECT_DIR="$(THEOS_PROJECT_DIR)" $(THEOS_BIN_PATH)/package_version.sh -n -o -c "$(_THEOS_PACKAGE_CONTROL_PATH)" $(if $(PACKAGE_BUILDNAME),-e $(PACKAGE_BUILDNAME),))
