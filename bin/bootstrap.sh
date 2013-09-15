@@ -169,7 +169,7 @@ function bootstrapSubstrate {
 }
 
 if ! checkWritability; then
-	echo "$THEOSDIR is not writable. Please run $ARGV0 $@ manually, with privileges." 1>&2
+	echo "$THEOSDIR is not writable. Please run \`$ARGV0 $@\` manually, with privileges." 1>&2
 	exit 1
 fi
 
