@@ -44,8 +44,8 @@ if [[ ! -d "${THEOS_PROJECT_DIR}/.theos/packages" ]]; then
 	fi
 fi
 
-package=$(grep "^Package:" "$CONTROL" | cut -d' ' -f2-)
-version=$(grep "^Version:" "$CONTROL" | cut -d' ' -f2-)
+package=$(grep -i "^Package:" "$CONTROL" | cut -d' ' -f2-)
+version=$(grep -i "^Version:" "$CONTROL" | cut -d' ' -f2-)
 versionfile="${THEOS_PROJECT_DIR}/.theos/packages/$package-$version"
 build_number=0
 
