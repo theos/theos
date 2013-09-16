@@ -56,7 +56,6 @@ TARGET_CODESIGN_FLAGS ?= -S
 
 TARGET_PRIVATE_FRAMEWORK_PATH = $(SYSROOT)/System/Library/PrivateFrameworks
 
-include $(THEOS_MAKE_PATH)/targets/_common/install_deb_remote.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_flat_bundle.mk
 
@@ -77,4 +76,7 @@ endif # }
 SDKFLAGS := -isysroot "$(SYSROOT)" $(foreach ARCH,$(ARCHS),-arch $(ARCH)) -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)) -miphoneos-version-min=$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)
 _THEOS_TARGET_CFLAGS := $(SDKFLAGS)
 _THEOS_TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress
+
+TARGET_INSTALL_REMOTE := $(_THEOS_TRUE)
+_THEOS_TARGET_DEFAULT_PACKAGE_FORMAT := deb
 endif
