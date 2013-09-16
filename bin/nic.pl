@@ -135,8 +135,10 @@ if($CONFIG{'link_theos'} != 0 && !$NIC->variableIgnored("THEOS")) {
 	$NIC->variable("THEOS") = "theos";
 	$NIC->variable("THEOS_PATH") = $theosLinkPath;
 } else {
-	# Trust that the user knows what he's doing and set @@THEOS@@ to $(THEOS).
-	$NIC->variable("THEOS") = '$(THEOS)';
+	# Trust that the user knows what he's doing and set @@THEOS@@ to $(THEOS). (or whatever the user prefers)
+	my $theosLocalName = '$(THEOS)';
+	$theosLocalName = $CONFIG{"theos_local_name"} if $CONFIG{"theos_local_name"};
+	$NIC->variable("THEOS") = $theosLocalName;
 }
 
 # Execute control script.
