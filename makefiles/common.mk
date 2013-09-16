@@ -23,6 +23,11 @@ __simplify = $(2)$(eval $(1):=$(2))
 
 __THEOS_COMMON_MK_VERSION := 1
 
+ifeq ($(_THEOS_PROJECT_MAKEFILE_NAME),)
+_THEOS_STATIC_MAKEFILE_LIST := $(filter-out $(lastword $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
+export _THEOS_PROJECT_MAKEFILE_NAME := $(notdir $(lastword $(_THEOS_STATIC_MAKEFILE_LIST)))
+endif
+
 ifeq ($(_THEOS_INTERNAL_TRUE_PATH),)
 _THEOS_RELATIVE_MAKE_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
 _THEOS_INTERNAL_TRUE_PATH := $(call __clean_pwd,$(_THEOS_RELATIVE_MAKE_PATH)/..)

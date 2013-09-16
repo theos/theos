@@ -14,6 +14,6 @@ internal-clean:: $(FRAMEWORKS_WITH_SUBPROJECTS:=.clean.framework.subprojects)
 endif
 
 $(FRAMEWORK_NAME):
-	@$(MAKE) --no-print-directory --no-keep-going $@.all.framework.variables
+	@$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going $@.all.framework.variables
 
 $(eval $(call __mod,master/framework.mk))

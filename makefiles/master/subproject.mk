@@ -14,6 +14,6 @@ internal-clean:: $(SUBPROJECTS_WITH_SUBPROJECTS:=.clean.subproject.subprojects)
 endif
 
 $(SUBPROJECT_NAME):
-	@$(MAKE) --no-print-directory --no-keep-going $@.all.subproject.variables
+	@$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going $@.all.subproject.variables
 
 $(eval $(call __mod,master/subproject.mk))
