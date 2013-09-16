@@ -7,7 +7,8 @@ use parent qw(Logos::Generator::MobileSubstrate::Class);
 sub _initExpression {
 	my $self = shift;
 	my $class = shift;
-	return "objc_allocateClassPair(objc_getClass(\"".$class->superclass."\"), \"".$class->name."\", 0)";
+	my $cgen = Logos::Generator::for($class->superclass);
+	return "objc_allocateClassPair(".$cgen->variable.", \"".$class->name."\", 0)";
 }
 
 sub initializers {

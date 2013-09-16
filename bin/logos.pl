@@ -245,9 +245,11 @@ foreach my $line (@lines) {
 
 			my $classname = $1;
 			my $superclassname = $2;
+			my $superclass = $currentGroup->addClassNamed($superclassname);
+			$superclass->required(1);
 			$currentClass = Subclass->new();
 			$currentClass->name($classname);
-			$currentClass->superclass($superclassname);
+			$currentClass->superclass($superclass);
 			if(defined($3) && defined($4)) {
 				my @protocols = split(/\s*,\s*/, $4);
 				foreach(@protocols) {

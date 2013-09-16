@@ -12,6 +12,7 @@ sub new {
 	$self->{META} = 0;
 	$self->{INST} = 0;
 	$self->{OVERRIDDEN} = 0;
+	$self->{REQUIRED} = 1;
 	$self->{METHODS} = [];
 	$self->{NUM_METHODS} = 0;
 	$self->{GROUP} = undef;
@@ -70,6 +71,12 @@ sub group {
 	my $self = shift;
 	if(@_) { $self->{GROUP} = shift; }
 	return $self->{GROUP};
+}
+
+sub required {
+	my $self = shift;
+	if(@_) { $self->{REQUIRED} = shift; }
+	return $self->{REQUIRED};
 }
 
 sub overridden {
