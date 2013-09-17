@@ -29,22 +29,16 @@ endif # _THEOS_HAS_STAGING_LAYOUT
 
 before-package:: $(_THEOS_ESCAPED_STAGING_DIR)/DEBIAN/control
 
-internal-package:: THEOS_PACKAGE_FILENAME = $(THEOS_PACKAGE_NAME)_$(_THEOS_PACKAGE_VERSION)_$(THEOS_PACKAGE_ARCH)
+_THEOS_DEB_PACKAGE_FILENAME = $(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_NAME)_$(_THEOS_PACKAGE_VERSION)_$(THEOS_PACKAGE_ARCH).deb
 internal-package::
-	$(ECHO_NOTHING)COPYFILE_DISABLE=1 $(FAKEROOT) -r dpkg-deb -b "$(THEOS_STAGING_DIR)" "$(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_FILENAME).deb" $(STDERR_NULL_REDIRECT)$(ECHO_END)
-	@echo "$(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_FILENAME).deb" > "$(_THEOS_LOCAL_DATA_DIR)/last_package"
+	$(ECHO_NOTHING)COPYFILE_DISABLE=1 $(FAKEROOT) -r dpkg-deb -b "$(THEOS_STAGING_DIR)" "$(_THEOS_DEB_PACKAGE_FILENAME)" $(STDERR_NULL_REDIRECT)$(ECHO_END)
+
+# This variable is used in package.mk
+after-package:: __THEOS_LAST_PACKAGE_FILENAME = $(_THEOS_DEB_PACKAGE_FILENAME)
 
 else # _THEOS_DEB_CAN_PACKAGE == 0
 internal-package::
 	@echo "$(MAKE) package requires you to have a layout/ directory in the project root, containing the basic package structure, or a control file in the project root describing the package."; exit 1
 
 endif # _THEOS_DEB_CAN_PACKAGE
-
-before-package::
-after-package::
-
-before-install::
-after-install:: internal-after-install
-internal-after-install::
-
 endif # _THEOS_PACKAGE_FORMAT_LOADED
