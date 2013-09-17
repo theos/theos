@@ -196,5 +196,6 @@ ifeq ($(THEOS_CURRENT_INSTANCE),)
 	include $(THEOS_MAKE_PATH)/stage.mk
 	include $(THEOS_MAKE_PATH)/package.mk
 endif
+THEOS_PACKAGE_VERSION = $(call __simplify,THEOS_PACKAGE_VERSION,$(THEOS_PACKAGE_BASE_VERSION)$(warning THEOS_PACKAGE_VERSION is deprecated. Please migrate to THEOS_PACKAGE_BASE_VERSION.))
 
 $(eval $(call __mod,common.mk))

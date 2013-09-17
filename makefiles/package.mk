@@ -13,12 +13,34 @@ internal-package::
 after-package::
 	@echo "$(__THEOS_LAST_PACKAGE_FILENAME)" > "$(_THEOS_LOCAL_DATA_DIR)/last_package"
 
+THEOS_PACKAGE_NAME :=
+THEOS_PACKAGE_ARCH :=
+THEOS_PACKAGE_BASE_VERSION :=
+# THEOS_PACKAGE_VERSION is set in common.mk (to give its warning.)
+
 -include $(THEOS_MAKE_PATH)/package/$(_THEOS_PACKAGE_FORMAT).mk
 $(eval $(call __mod,package/$(_THEOS_PACKAGE_FORMAT).mk))
 
 ifeq ($(_THEOS_PACKAGE_FORMAT_LOADED),)
 $(error I simply cannot figure out how to create $(_THEOS_PACKAGE_FORMAT)-format packages.)
 endif
+
+export THEOS_PACKAGE_NAME THEOS_PACKAGE_ARCH THEOS_PACKAGE_BASE_VERSION
+
+# These are here to be used by the package makefile included above.
+# We want them after the package makefile so that we can use variables set within it.
+#
+# eval PACKAGE_VERSION *now* (to clear out references to THEOS_PACKAGE_INC_BUILD_NUMBER)
+THEOS_PACKAGE_INC_BUILD_NUMBER := X
+__USERVER_FOR_BUILDNUM := $(PACKAGE_VERSION)
+__BASEVER_FOR_BUILDNUM = $(or $(__USERVER_FOR_BUILDNUM),$(THEOS_PACKAGE_BASE_VERSION))
+
+# THEOS_PACKAGE_INC_BUILD_NUMBER is meant to be used in user PACKAGE_VERSIONs.
+# We simplify the version vars so that they are evaluated only when completely necessary.
+THEOS_PACKAGE_INC_BUILD_NUMBER = $(shell THEOS_PROJECT_DIR="$(THEOS_PROJECT_DIR)" "$(THEOS_BIN_PATH)/package_version.sh" -N "$(THEOS_PACKAGE_NAME)" -V "$(__BASEVER_FOR_BUILDNUM)")
+_THEOS_PACKAGE_DEFAULT_VERSION_FORMAT = $(THEOS_PACKAGE_BASE_VERSION)-$(THEOS_PACKAGE_INC_BUILD_NUMBER)
+_PACKAGE_VERSION = $(call __schema_var_last,,PACKAGE_VERSION)
+_THEOS_INTERNAL_PACKAGE_VERSION = $(call __simplify,_THEOS_INTERNAL_PACKAGE_VERSION,$(or $(_PACKAGE_VERSION),$(_THEOS_PACKAGE_DEFAULT_VERSION_FORMAT),1))
 
 ## Installation Core Rules
 install:: before-install internal-install after-install
