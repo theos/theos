@@ -192,4 +192,9 @@ export FAKEROOT
 
 _THEOS_MAKE_PARALLEL_BUILDING ?= yes
 
+ifeq ($(THEOS_CURRENT_INSTANCE),)
+	include $(THEOS_MAKE_PATH)/stage.mk
+	include $(THEOS_MAKE_PATH)/package.mk
+endif
+
 $(eval $(call __mod,common.mk))
