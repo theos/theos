@@ -8,7 +8,10 @@ package:: internal-package-check stage before-package internal-package after-pac
 internal-package-check::
 before-package:: $(THEOS_PACKAGE_DIR)
 internal-package::
+
+# __THEOS_LAST_PACKAGE_FILENAME is to be set by a rule variable in the package format makefile.
 after-package::
+	@echo "$(__THEOS_LAST_PACKAGE_FILENAME)" > "$(_THEOS_LOCAL_DATA_DIR)/last_package"
 
 -include $(THEOS_MAKE_PATH)/package/$(_THEOS_PACKAGE_FORMAT).mk
 $(eval $(call __mod,package/$(_THEOS_PACKAGE_FORMAT).mk))
