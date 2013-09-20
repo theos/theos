@@ -5,9 +5,9 @@ _THEOS_PACKAGE_RULES_LOADED := 1
 .PHONY: package internal-package-check before-package internal-package after-package
 
 package:: internal-package-check stage before-package internal-package after-package
-internal-package-check::
 before-package:: $(THEOS_PACKAGE_DIR)
-internal-package::
+internal-package internal-package-check::
+	@:
 
 # __THEOS_LAST_PACKAGE_FILENAME is to be set by a rule variable in the package format makefile.
 after-package::
@@ -36,10 +36,9 @@ THEOS_DEVICE_PORT ?= 22
 export THEOS_DEVICE_IP THEOS_DEVICE_PORT
 endif # TARGET_INSTALL_REMOTE == true
 
-before-install::
-internal-install::
 after-install:: internal-after-install
-internal-after-install::
+before-install internal-install internal-after-install::
+	@:
 
 -include $(THEOS_MAKE_PATH)/install/$(_THEOS_PACKAGE_FORMAT)_$(_THEOS_INSTALL_TYPE).mk
 $(eval $(call __mod,install/$(_THEOS_PACKAGE_FORMAT)_$(_THEOS_INSTALL_TYPE).mk))

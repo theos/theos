@@ -76,17 +76,17 @@ override _THEOS_OBJ_FILE_TAG := dummy
 endif
 endif
 
-before-$(THEOS_CURRENT_INSTANCE)-all::
-
-after-$(THEOS_CURRENT_INSTANCE)-all::
+before-$(THEOS_CURRENT_INSTANCE)-all after-$(THEOS_CURRENT_INSTANCE)-all::
+	@:
 
 internal-$(_THEOS_CURRENT_TYPE)-all:: before-$(THEOS_CURRENT_INSTANCE)-all internal-$(_THEOS_CURRENT_TYPE)-all_ after-$(THEOS_CURRENT_INSTANCE)-all
+	@:
 
-before-$(THEOS_CURRENT_INSTANCE)-stage::
-
-after-$(THEOS_CURRENT_INSTANCE)-stage::
+before-$(THEOS_CURRENT_INSTANCE)-stage after-$(THEOS_CURRENT_INSTANCE)-stage::
+	@:
 
 internal-$(_THEOS_CURRENT_TYPE)-stage:: before-$(THEOS_CURRENT_INSTANCE)-stage internal-$(_THEOS_CURRENT_TYPE)-stage_ after-$(THEOS_CURRENT_INSTANCE)-stage
+	@:
 
 .SUFFIXES:
 
