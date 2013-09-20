@@ -1,10 +1,5 @@
 #!/bin/bash
 
-UPDATE=1
-SKIPONE=0
-JUST_ECHO_VERSION=0
-KEEP_LAST=0
-
 function build_num_from_file {
 	version=$(< "$1")
 	version=${version##*-}
@@ -13,7 +8,7 @@ function build_num_from_file {
 	echo -n "$version"
 }
 
-while getopts ":e:1c:nok" flag; do
+while getopts ":N:V:" flag; do
 	case "$flag" in
 		:)	echo "$0: Option -$OPTARG requires an argument." 1>&2
 			exit 1
@@ -21,19 +16,10 @@ while getopts ":e:1c:nok" flag; do
 		\?)	echo "$0: What're you talking about?" 1>&2
 			exit 1
 			;;
-		e)	EXTRAVERS="$OPTARG" ;;
-		c)	CONTROL="$OPTARG" ;;
-		1)	SKIPONE=1 ;;
-		n)	UPDATE=0 ;;
-		o)	JUST_ECHO_VERSION=1 ;;
-		k)	KEEP_LAST=1 ;;
+		N)	package="$OPTARG" ;;
+		V)	version="$OPTARG" ;;
 	esac
 done
-
-if [[ -z "$CONTROL" || ! -f "$CONTROL" ]]; then
-	echo "$0: Please specify a control file with -c." 1>&2
-	exit 1;
-fi
 
 if [[ ! -d "${THEOS_PROJECT_DIR}/.theos/packages" ]]; then
 	if [[ -d "${THEOS_PROJECT_DIR}/.debmake" ]]; then
@@ -44,8 +30,6 @@ if [[ ! -d "${THEOS_PROJECT_DIR}/.theos/packages" ]]; then
 	fi
 fi
 
-package=$(grep -i "^Package:" "$CONTROL" | cut -d' ' -f2-)
-version=$(grep -i "^Version:" "$CONTROL" | cut -d' ' -f2-)
 versionfile="${THEOS_PROJECT_DIR}/.theos/packages/$package-$version"
 build_number=0
 
@@ -56,31 +40,5 @@ else
 	let build_number++
 fi
 
-buildno_part="-$build_number"
-if [[ $SKIPONE -eq 1 && $build_number -eq 1 ]]; then
-	buildno_part=""
-fi
-
-extra_part=""
-if [[ ! -z "$EXTRAVERS" ]]; then
-	extra_part="+$EXTRAVERS"
-fi
-
-full_version="$version$buildno_part$extra_part"
-if [[ $KEEP_LAST -eq 1 ]]; then
-	if [[ -e "$versionfile" ]]; then
-		full_version=$(< "$versionfile")
-	else
-		full_version="none"
-	fi
-fi
-
-if [[ $UPDATE -eq 1 && $KEEP_LAST -eq 0 ]]; then
-	echo -n "$full_version" > "$versionfile"
-fi
-
-if [[ $JUST_ECHO_VERSION -eq 1 ]]; then
-	echo "$full_version"
-else
-	sed -e "s/^Version: \(.*\)/Version: $full_version/g" $CONTROL
-fi
+echo -n "$build_number" > "$versionfile"
+echo "$build_number"

@@ -69,6 +69,7 @@ endif
 __schema_all_var_names = $(foreach sch,$(THEOS_SCHEMA),$(subst DEFAULT.,,$(sch).)$(1)$(2))
 __schema_defined_var_names = $(foreach tuple,$(filter-out undefined:%,$(foreach schvar,$(call __schema_all_var_names,$(1),$(2)),$(origin $(schvar)):$(schvar))),$(lastword $(subst :, ,$(tuple))))
 __schema_var_all = $(strip $(foreach sch,$(call __schema_all_var_names,$(1),$(2)),$($(sch))))
+__schema_var_name_last = $(strip $(lastword $(call __schema_defined_var_names,$(1),$(2))))
 __schema_var_last = $(strip $($(lastword $(call __schema_defined_var_names,$(1),$(2)))))
 
 ifeq ($(_THEOS_HAS_STAGING_LAYOUT),)
@@ -196,5 +197,6 @@ ifeq ($(THEOS_CURRENT_INSTANCE),)
 	include $(THEOS_MAKE_PATH)/stage.mk
 	include $(THEOS_MAKE_PATH)/package.mk
 endif
+THEOS_PACKAGE_VERSION = $(call __simplify,THEOS_PACKAGE_VERSION,$(THEOS_PACKAGE_BASE_VERSION)$(warning THEOS_PACKAGE_VERSION is deprecated. Please migrate to THEOS_PACKAGE_BASE_VERSION.))
 
 $(eval $(call __mod,common.mk))
