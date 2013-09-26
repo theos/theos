@@ -25,7 +25,6 @@ TARGET_CODESIGN_FLAGS ?=
 TARGET_PRIVATE_FRAMEWORK_PATH = /System/Library/PrivateFrameworks
 TARGET_PRIVATE_FRAMEWORK_INCLUDE_PATH = /System/Library/PrivateFrameworks
 
-include $(THEOS_MAKE_PATH)/targets/_common/install_deb_local.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_hierarchial_bundle.mk
 
@@ -35,4 +34,7 @@ NEUTRAL_ARCH = i386
 SDKFLAGS := $(if $(_THEOS_TARGET_MACOSX_DEPLOYMENT_VERSION),-mmacosx-version-min=$(_THEOS_TARGET_MACOSX_DEPLOYMENT_VERSION))
 _THEOS_TARGET_CFLAGS := $(SDKFLAGS)
 _THEOS_TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress
+
+export TARGET_INSTALL_REMOTE := $(_THEOS_FALSE)
+export _THEOS_TARGET_DEFAULT_PACKAGE_FORMAT := deb
 endif

@@ -14,6 +14,6 @@ internal-clean:: $(LIBRARYS_WITH_SUBPROJECTS:=.clean.library.subprojects)
 endif
 
 $(LIBRARY_NAME):
-	@$(MAKE) --no-print-directory --no-keep-going $@.all.library.variables
+	@$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going $@.all.library.variables
 
 $(eval $(call __mod,master/library.mk))

@@ -6,7 +6,7 @@ sub initializers {
 	my $self = shift;
 	my $class = shift;
 	my $return = "";
-	if($class->overridden || $class->hasinstancehooks || $class->hasmetahooks) {
+	if($class->required || $class->overridden || $class->hasinstancehooks || $class->hasmetahooks) {
 		$return .= "Class ".$self->variable($class)." = ".$self->_initExpression($class)."; ";
 	}
 	if($class->hasmetahooks) {

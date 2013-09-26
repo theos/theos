@@ -38,9 +38,6 @@ endif
 
 after-clean::
 
-include $(THEOS_MAKE_PATH)/stage.mk
-include $(THEOS_MAKE_PATH)/package.mk
-
 ifeq ($(MAKELEVEL),0)
 ifneq ($(THEOS_BUILD_DIR),.)
 _THEOS_ABSOLUTE_BUILD_DIR = $(call __clean_pwd,$(THEOS_BUILD_DIR))
@@ -69,7 +66,7 @@ if [ "$(__SUBPROJECTS)" != "" ]; then \
     else \
       lbuilddir="$${abs_build_dir}/$$d"; \
     fi; \
-    if $(MAKE) -C $$d $(_THEOS_NO_PRINT_DIRECTORY_FLAG) --no-keep-going $(_OPERATION) \
+    if $(MAKE) -C $$d -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_NO_PRINT_DIRECTORY_FLAG) --no-keep-going $(_OPERATION) \
         THEOS_BUILD_DIR="$$lbuilddir" \
        ; then\
        :; \
@@ -78,7 +75,7 @@ if [ "$(__SUBPROJECTS)" != "" ]; then \
   done; \
  fi; \
 echo Making $(_OPERATION) for $(_TYPE) $(_INSTANCE)...; \
-$(MAKE) --no-print-directory --no-keep-going \
+$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going \
 	internal-$(_TYPE)-$(_OPERATION) \
 	_THEOS_CURRENT_TYPE="$(_TYPE)" \
 	THEOS_CURRENT_INSTANCE="$(_INSTANCE)" \
@@ -101,7 +98,7 @@ if [ "$(__SUBPROJECTS)" != "" ]; then \
     else \
       lbuilddir="$${abs_build_dir}/$$d"; \
     fi; \
-    if $(MAKE) -C $$d $(_THEOS_NO_PRINT_DIRECTORY_FLAG) --no-keep-going $(_OPERATION) \
+    if $(MAKE) -C $$d -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_NO_PRINT_DIRECTORY_FLAG) --no-keep-going $(_OPERATION) \
         THEOS_BUILD_DIR="$$lbuilddir" \
        ; then\
        :; \

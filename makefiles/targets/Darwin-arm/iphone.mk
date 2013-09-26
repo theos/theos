@@ -21,11 +21,13 @@ TARGET_CODESIGN_FLAGS ?= -S
 TARGET_PRIVATE_FRAMEWORK_PATH = $(SYSROOT)/System/Library/PrivateFrameworks
 TARGET_PRIVATE_FRAMEWORK_INCLUDE_PATH = $(ISYSROOT)/System/Library/PrivateFrameworks
 
-include $(THEOS_MAKE_PATH)/targets/_common/install_deb_local.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_flat_bundle.mk
 
 SDKFLAGS :=
 _THEOS_TARGET_CFLAGS := -isysroot $(ISYSROOT) $(SDKFLAGS)
 _THEOS_TARGET_LDFLAGS := -isysroot $(SYSROOT) $(SDKFLAGS) -multiply_defined suppress
+
+TARGET_INSTALL_REMOTE := $(_THEOS_FALSE)
+_THEOS_TARGET_DEFAULT_PACKAGE_FORMAT := deb
 endif

@@ -10,7 +10,8 @@ OBJ_FILES = $(strip $(patsubst %,%.$(_THEOS_OBJ_FILE_TAG).o,$(_FILES)))
 _OBJC_FILE_COUNT = $(words $(filter %.m %.mm %.x %.xm %.xi %.xmi,$(_FILES)))
 _OBJCC_FILE_COUNT = $(words $(filter %.mm %.xm %.xmi,$(_FILES)))
 
-_SUBPROJECTS = $(strip $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,SUBPROJECTS))
+# This is := because it would otherwise be evaluated immediately afterwards.
+_SUBPROJECTS := $(strip $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,SUBPROJECTS))
 ifneq ($(_SUBPROJECTS),)
 SUBPROJECT_OBJ_FILES = $(foreach d, $(_SUBPROJECTS), $(THEOS_BUILD_DIR)/$(firstword $(subst :, ,$(d)))/$(THEOS_OBJ_DIR_NAME)/$(or $(word 2,$(subst :, ,$(d))),*).$(THEOS_SUBPROJECT_PRODUCT))
 #SUBPROJECT_OBJ_FILES = $(addsuffix /$(THEOS_OBJ_DIR_NAME)/$(THEOS_SUBPROJECT_PRODUCT), $(addprefix $(THEOS_BUILD_DIR)/,$($(THEOS_CURRENT_INSTANCE)_SUBPROJECTS)))
@@ -73,33 +74,26 @@ endif
 
 ALL_STRIP_FLAGS = $(or $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,STRIP_FLAGS),$(TARGET_STRIP_FLAGS))
 
-_THEOS_FLAG_HASH_TEMP = $(shell echo "$(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_CCFLAGS) $(ALL_OBJCCFLAGS) $(ALL_LOGOSFLAGS)" | $(_THEOS_PLATFORM_MD5SUM) | cut -c1-8)
-_THEOS_OUTFILE_FLAG_HASH_TEMP = $(shell echo "$(ALL_STRIP_FLAGS) $(_THEOS_CODESIGN_COMMANDLINE)" | $(_THEOS_PLATFORM_MD5SUM) | cut -c1-8)
+_THEOS_OBJ_FILE_TAG = $(call __simplify,_THEOS_OBJ_FILE_TAG,$(shell echo "$(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_CCFLAGS) $(ALL_OBJCCFLAGS) $(ALL_LOGOSFLAGS)" | $(_THEOS_PLATFORM_MD5SUM) | cut -c1-8))
+_THEOS_OUT_FILE_TAG = $(call __simplify,_THEOS_OUT_FILE_TAG,$(shell echo "$(ALL_STRIP_FLAGS) $(_THEOS_CODESIGN_COMMANDLINE)" | $(_THEOS_PLATFORM_MD5SUM) | cut -c1-8))
 
-ifeq ($(_THEOS_MAKE_PARALLEL_BUILDING)$(_THEOS_MAKE_PARALLEL),yesyes)
-# We're in the last stage of building.
-_THEOS_OBJ_FILE_TAG := $(_THEOS_FLAG_HASH_TEMP)
-_THEOS_OUT_FILE_TAG := $(_THEOS_OUTFILE_FLAG_HASH_TEMP)
-else
-ifeq ($(_THEOS_MAKE_PARALLEL_BUILDING),no)
-_THEOS_OBJ_FILE_TAG := $(_THEOS_FLAG_HASH_TEMP)
-_THEOS_OUT_FILE_TAG := $(_THEOS_OUTFILE_FLAG_HASH_TEMP)
-else
-_THEOS_OBJ_FILE_TAG := dummy
+ifneq ($(_THEOS_MAKE_PARALLEL_BUILDING)$(_THEOS_MAKE_PARALLEL),yesyes)
+ifneq ($(_THEOS_MAKE_PARALLEL_BUILDING),no)
+override _THEOS_OBJ_FILE_TAG := dummy
 endif
 endif
 
-before-$(THEOS_CURRENT_INSTANCE)-all::
-
-after-$(THEOS_CURRENT_INSTANCE)-all::
+before-$(THEOS_CURRENT_INSTANCE)-all after-$(THEOS_CURRENT_INSTANCE)-all::
+	@:
 
 internal-$(_THEOS_CURRENT_TYPE)-all:: before-$(THEOS_CURRENT_INSTANCE)-all internal-$(_THEOS_CURRENT_TYPE)-all_ after-$(THEOS_CURRENT_INSTANCE)-all
+	@:
 
-before-$(THEOS_CURRENT_INSTANCE)-stage::
-
-after-$(THEOS_CURRENT_INSTANCE)-stage::
+before-$(THEOS_CURRENT_INSTANCE)-stage after-$(THEOS_CURRENT_INSTANCE)-stage::
+	@:
 
 internal-$(_THEOS_CURRENT_TYPE)-stage:: before-$(THEOS_CURRENT_INSTANCE)-stage internal-$(_THEOS_CURRENT_TYPE)-stage_ after-$(THEOS_CURRENT_INSTANCE)-stage
+	@:
 
 .SUFFIXES:
 

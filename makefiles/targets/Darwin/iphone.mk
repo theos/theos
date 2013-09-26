@@ -42,7 +42,7 @@ _DEPLOY_VERSION_GE_3_0 = $(call __simplify,_DEPLOY_VERSION_GE_3_0,$(shell $(THEO
 _DEPLOY_VERSION_LT_4_3 = $(call __simplify,_DEPLOY_VERSION_LT_4_3,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION) lt 4.3))
 
 ifeq ($(_TARGET_VERSION_GE_6_0)$(_DEPLOY_VERSION_GE_3_0)$(_DEPLOY_VERSION_LT_4_3),111)
-ifeq ($(_THEOS_TARGET_WARNED_DEPLOY),)
+ifeq ($(ARCHS)$(_THEOS_TARGET_WARNED_DEPLOY),)
 $(warning Deploying to iOS 3.0 while building for 6.0 will generate armv7-only binaries.)
 export _THEOS_TARGET_WARNED_DEPLOY := 1
 endif
@@ -67,7 +67,6 @@ TARGET_CODESIGN_FLAGS ?= -S
 TARGET_PRIVATE_FRAMEWORK_PATH = $(SYSROOT)/System/Library/PrivateFrameworks
 TARGET_PRIVATE_FRAMEWORK_INCLUDE_PATH = $(ISYSROOT)/System/Library/PrivateFrameworks
 
-include $(THEOS_MAKE_PATH)/targets/_common/install_deb_remote.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_flat_bundle.mk
 
@@ -89,4 +88,7 @@ NEUTRAL_ARCH = armv7
 SDKFLAGS := -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)) -miphoneos-version-min=$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)
 _THEOS_TARGET_CFLAGS := -isysroot "$(ISYSROOT)" $(SDKFLAGS)
 _THEOS_TARGET_LDFLAGS := -isysroot "$(SYSROOT)" $(SDKFLAGS) -multiply_defined suppress
+
+TARGET_INSTALL_REMOTE := $(_THEOS_TRUE)
+_THEOS_TARGET_DEFAULT_PACKAGE_FORMAT := deb
 endif

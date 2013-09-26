@@ -19,11 +19,13 @@ before-stage::
 	$(ECHO_NOTHING)mkdir -p "$(THEOS_STAGING_DIR)"$(ECHO_END)
 else # _THEOS_TOP_INVOCATION_DONE
 before-stage::
+	@:
 endif # _THEOS_TOP_INVOCATION_DONE
 
 internal-stage::
 	$(ECHO_NOTHING)[ -d layout ] && rsync -a "layout/" "$(THEOS_STAGING_DIR)" --exclude "DEBIAN" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE) || true$(ECHO_END)
 
 after-stage::
+	@:
 
 endif # _THEOS_STAGING_RULES_LOADED

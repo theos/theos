@@ -18,6 +18,6 @@ internal-clean:: $(APPLICATIONS_WITH_SUBPROJECTS:=.clean.application.subprojects
 endif
 
 $(APPLICATION_NAME):
-	@$(MAKE) --no-print-directory --no-keep-going $@.all.application.variables
+	@$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going $@.all.application.variables
 
 $(eval $(call __mod,master/application.mk))

@@ -8,7 +8,7 @@ ifeq ($(_THEOS_MAKE_PARALLEL_BUILDING), no)
 internal-subproject-all_:: $(_OBJ_DIR_STAMPS) $(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE).$(THEOS_SUBPROJECT_PRODUCT)
 else
 internal-subproject-all_:: $(_OBJ_DIR_STAMPS)
-	$(ECHO_NOTHING)$(MAKE) --no-print-directory --no-keep-going \
+	$(ECHO_NOTHING)$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going \
 		internal-subproject-compile \
 		_THEOS_CURRENT_TYPE=$(_THEOS_CURRENT_TYPE) THEOS_CURRENT_INSTANCE=$(THEOS_CURRENT_INSTANCE) _THEOS_CURRENT_OPERATION=compile \
 		THEOS_BUILD_DIR="$(THEOS_BUILD_DIR)" _THEOS_MAKE_PARALLEL=yes$(ECHO_END)

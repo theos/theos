@@ -168,6 +168,7 @@ sub formatCharForArgType {
 	# Objects
 	return "%@" if /^id$/; # id is an objc_object.
 	return "%@" if /^\w+\s*\*$/; # try to treat *any* other pointer as an objc_object.
+	return "%@" if /^\w+Ref$/; # *Ref can be printed with %@.
 
 	# Floating-Point Types
 	return "%f" if /^(double|float|CGFloat|CGDouble|NSTimeInterval)$/;

@@ -1,6 +1,6 @@
 #!/bin/bash
-if [[ TARGET_REMOTE -eq 1 ]]; then
-	ssh -p $THEOS_DEVICE_PORT root@$THEOS_DEVICE_IP "$*"
+if [[ TARGET_INSTALL_REMOTE -eq 1 ]]; then
+	ssh -p $THEOS_DEVICE_PORT $THEOS_DEVICE_USER@$THEOS_DEVICE_IP "$@"
 else
-	$*
+	"$@"
 fi
