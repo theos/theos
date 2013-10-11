@@ -65,8 +65,12 @@ endif
 endif
 endif
 
-#ALL_ARCHFLAGS = $(foreach ARCH,$(TARGET_ARCHS),-arch $(THEOS_CURRENT_ARCH))
+ifeq ($(_THEOS_PLATFORM_LIPO),)
+ALL_ARCHFLAGS = $(foreach ARCH,$(TARGET_ARCHS),-arch $(ARCH))
+THEOS_CURRENT_ARCH = $(TARGET_ARCHS)
+else
 ALL_ARCHFLAGS = -arch $(THEOS_CURRENT_ARCH)
+endif
 
 ALL_PFLAGS = $(_THEOS_INTERNAL_CFLAGS) $(_THEOS_TARGET_CFLAGS) $(ADDITIONAL_CFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,CFLAGS) $(call __schema_var_all,,CFLAGS)
 ALL_CFLAGS = $(ALL_PFLAGS) $(ALL_ARCHFLAGS)
@@ -174,6 +178,25 @@ $(THEOS_OBJ_DIR)/%.xmi.$(_THEOS_OBJ_FILE_TAG).o: %.xmi
 	$(ECHO_NOTHING)rm $(THEOS_OBJ_DIR)/$<.pre $(THEOS_OBJ_DIR)/$<.mii$(ECHO_END)
 
 define _THEOS_TEMPLATE_DEFAULT_LINKING_RULE
+ifeq ($(_THEOS_PLATFORM_LIPO),)
+ifneq ($$(TARGET_CODESIGN),)
+.INTERMEDIATE: $$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned
+$$(THEOS_OBJ_DIR)/$(1): $$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned
+	$$(ECHO_SIGNING)$$(_THEOS_CODESIGN_COMMANDLINE) "$$<"; mv "$$<" "$$@"$$(ECHO_END)
+$$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned: $$(OBJ_FILES_TO_LINK)
+else
+$$(THEOS_OBJ_DIR)/$(1): $$(OBJ_FILES_TO_LINK)
+endif
+ifneq ($(2),nowarn)
+ifeq ($$(OBJ_FILES_TO_LINK),)
+	$$(WARNING_EMPTY_LINKING)
+endif
+endif
+	$$(ECHO_LINKING)$$(TARGET_LD) $$(ALL_LDFLAGS) -o "$$@" $$^$$(ECHO_END)
+ifeq ($$(findstring DEBUG,$$(THEOS_SCHEMA)),)
+	$$(ECHO_STRIPPING)$$(TARGET_STRIP) $$(ALL_STRIP_FLAGS) "$$@"$$(ECHO_END)
+endif
+else
 ifeq ($(THEOS_CURRENT_ARCH),)
 
 ifneq ($$(TARGET_CODESIGN),)
@@ -196,7 +219,7 @@ $(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned: $$(ARCH_FILES_TO_LINK)
 else
 $(THEOS_OBJ_DIR)/$(1): $(ARCH_FILES_TO_LINK)
 endif
-	$(ECHO_MERGING)xcrun lipo $(foreach ARCH,$(TARGET_ARCHS),-arch $(ARCH) $(THEOS_OBJ_DIR)/$(ARCH)/$(1)) -create -output "$$@"$(ECHO_END)
+	$(ECHO_MERGING)$(_THEOS_PLATFORM_LIPO) $(foreach ARCH,$(TARGET_ARCHS),-arch $(ARCH) $(THEOS_OBJ_DIR)/$(ARCH)/$(1)) -create -output "$$@"$(ECHO_END)
 
 else
 $$(THEOS_OBJ_DIR)/$(1): $$(OBJ_FILES_TO_LINK)
@@ -209,6 +232,7 @@ endif
 	$$(ECHO_LINKING)$$(TARGET_LD) $$(ALL_LDFLAGS) -o "$$@" $$^$$(ECHO_END)
 ifeq ($$(findstring DEBUG,$$(THEOS_SCHEMA)),)
 	$$(ECHO_STRIPPING)$$(TARGET_STRIP) $$(ALL_STRIP_FLAGS) "$$@"$$(ECHO_END)
+endif
 endif
 endif
 
