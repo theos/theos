@@ -42,7 +42,7 @@ _DEPLOY_VERSION_GE_3_0 = $(call __simplify,_DEPLOY_VERSION_GE_3_0,$(shell $(THEO
 _DEPLOY_VERSION_LT_4_3 = $(call __simplify,_DEPLOY_VERSION_LT_4_3,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION) lt 4.3))
 
 ifeq ($(_TARGET_VERSION_GE_6_0)$(_DEPLOY_VERSION_GE_3_0)$(_DEPLOY_VERSION_LT_4_3),111)
-ifeq ($(ARCHS)$(_THEOS_TARGET_WARNED_DEPLOY),)
+ifeq ($(ARCHS)$(IPHONE_ARCHS)$(_THEOS_TARGET_WARNED_DEPLOY),)
 $(warning Deploying to iOS 3.0 while building for 6.0 will generate armv7-only binaries.)
 export _THEOS_TARGET_WARNED_DEPLOY := 1
 endif
