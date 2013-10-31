@@ -612,6 +612,8 @@ if(exists $main::CONFIG{"dump"}) {
 		print STDERR YAML::Syck::Dump($dumphref);
 	} elsif($main::CONFIG{"dump"} eq "perl") {
 		load 'Data::Dumper';
+		# lol, perl
+		$Data::Dumper::Purity = 0;
 		$Data::Dumper::Purity = 1;
 
 		my @k; my @v;
