@@ -6,10 +6,12 @@ ifeq ($(__THEOS_TARGET_ARG_1),clang)
 _THEOS_TARGET_CC := clang
 _THEOS_TARGET_CXX := clang++
 _THEOS_TARGET_ARG_ORDER := 2 3
+_THEOS_TARGET_CC_CFLAGS :=
 else
 _THEOS_TARGET_CC := gcc
 _THEOS_TARGET_CXX := g++
 _THEOS_TARGET_ARG_ORDER := 1 2
+_THEOS_TARGET_CC_CFLAGS := -Dweak=assign
 endif
 
 # A version specified as a target argument overrides all previous definitions.
@@ -86,7 +88,7 @@ endif # }
 NEUTRAL_ARCH = armv7
 
 SDKFLAGS := -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)) -miphoneos-version-min=$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)
-_THEOS_TARGET_CFLAGS := -isysroot "$(ISYSROOT)" $(SDKFLAGS)
+_THEOS_TARGET_CFLAGS := -isysroot "$(ISYSROOT)" $(SDKFLAGS) $(_THEOS_TARGET_CC_CFLAGS)
 _THEOS_TARGET_LDFLAGS := -isysroot "$(SYSROOT)" $(SDKFLAGS) -multiply_defined suppress
 
 TARGET_INSTALL_REMOTE := $(_THEOS_TRUE)
