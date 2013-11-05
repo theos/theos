@@ -199,8 +199,8 @@ endif
 else
 ifeq ($(THEOS_CURRENT_ARCH),)
 
-ifneq ($$(TARGET_CODESIGN),)
 ARCH_FILES_TO_LINK := $(addsuffix /$(1),$(addprefix $(THEOS_OBJ_DIR)/,$(TARGET_ARCHS)))
+ifneq ($$(TARGET_CODESIGN),)
 $$(THEOS_OBJ_DIR)/%/$(1): $(__ALL_FILES)
 	@ \
 	mkdir -p $(THEOS_OBJ_DIR)/$$*; \
@@ -217,7 +217,7 @@ $(THEOS_OBJ_DIR)/$(1): $$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned
 	$$(ECHO_SIGNING)$$(_THEOS_CODESIGN_COMMANDLINE) "$$<"; mv "$$<" "$$@"$$(ECHO_END)
 $(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned: $$(ARCH_FILES_TO_LINK)
 else
-$(THEOS_OBJ_DIR)/$(1): $(ARCH_FILES_TO_LINK)
+$(THEOS_OBJ_DIR)/$(1): $$(ARCH_FILES_TO_LINK)
 endif
 	$(ECHO_MERGING)$(_THEOS_PLATFORM_LIPO) $(foreach ARCH,$(TARGET_ARCHS),-arch $(ARCH) $(THEOS_OBJ_DIR)/$(ARCH)/$(1)) -create -output "$$@"$(ECHO_END)
 
