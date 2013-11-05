@@ -13,6 +13,8 @@ include $(THEOS_MAKE_PATH)/instance/library.mk
 
 internal-tweak-all_:: internal-library-all_
 
+internal-tweak-compile: internal-library-compile
+
 ifneq ($(strip $($(THEOS_CURRENT_INSTANCE)_BUNDLE_RESOURCE_DIRS) $($(THEOS_CURRENT_INSTANCE)_BUNDLE_RESOURCE_FILES)),)
 _LOCAL_BUNDLE_INSTALL_PATH = $(or $($(THEOS_CURRENT_INSTANCE)_BUNDLE_INSTALL_PATH),/Library/Application Support/$(THEOS_CURRENT_INSTANCE))
 _LOCAL_BUNDLE_NAME = $(or $($(THEOS_CURRENT_INSTANCE)_BUNDLE_NAME),$(THEOS_CURRENT_INSTANCE))
