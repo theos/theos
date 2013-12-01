@@ -1,1 +1,0 @@
-Cygwin.mk
