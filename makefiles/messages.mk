@@ -8,6 +8,7 @@ ifneq ($(call __theos_bool,$(or $(messages),$(MESSAGES))),$(_THEOS_TRUE))
 	ECHO_PREPROCESSING = @(echo " Preprocessing $<...";
 	ECHO_COPYING_RESOURCE_FILES = @(echo " Copying resource files into the $(_THEOS_CURRENT_TYPE) wrapper...";
 	ECHO_COPYING_RESOURCE_DIRS = @(echo " Copying resource directories into the $(_THEOS_CURRENT_TYPE) wrapper...";
+	ECHO_CLEANING = @(echo "Cleaning...";
 	ECHO_NOTHING = @(
 
 	STDERR_NULL_REDIRECT = 2> /dev/null
@@ -25,6 +26,7 @@ else
 	ECHO_PREPROCESSING = 
 	ECHO_COPYING_RESOURCE_FILES =
 	ECHO_COPYING_RESOURCE_DIRS =
+	ECHO_CLEANING =
 	ECHO_NOTHING = 
 	STDERR_NULL_REDIRECT = 
 	ECHO_END = 
