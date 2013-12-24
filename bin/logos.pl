@@ -610,13 +610,6 @@ if(exists $main::CONFIG{"dump"}) {
 	if($main::CONFIG{"dump"} eq "yaml") {
 		load 'YAML::Syck';
 		print STDERR YAML::Syck::Dump($dumphref);
-	} elsif($main::CONFIG{"dump"} eq "perl") {
-		load 'Data::Dumper';
-		$Data::Dumper::Purity = 1;
-
-		my @k; my @v;
-		map {push(@k,$_); push(@v, $dumphref->{$_});} keys %$dumphref;
-		print STDERR Data::Dumper->Dump(\@v, \@k);
 	}
 	#print STDERR Data::Dumper->Dump([\@groups, \@patches, \@lines, \%::CONFIG], [qw(groups patches lines config)]);
 }
