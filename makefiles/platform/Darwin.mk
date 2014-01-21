@@ -5,6 +5,6 @@ THEOS_PLATFORM_NAME := macosx
 THEOS_PLATFORM_SDK_ROOT ?= $(shell xcode-select -print-path)
 
 _THEOS_PLATFORM_DEFAULT_TARGET := iphone
-_THEOS_PLATFORM_DU_EXCLUDE := -I
+_THEOS_PLATFORM_DU_EXCLUDE := --exclude
 _THEOS_PLATFORM_MD5SUM := md5
 endif
