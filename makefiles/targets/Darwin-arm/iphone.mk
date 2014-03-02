@@ -2,15 +2,16 @@ ifeq ($(_THEOS_TARGET_LOADED),)
 _THEOS_TARGET_LOADED := 1
 THEOS_TARGET_NAME := iphone
 
+_THEOS_TARGET_CC := arm-apple-darwin9-gcc
+_THEOS_TARGET_CXX := arm-apple-darwin9-g++
+_THEOS_TARGET_ARG_ORDER := 1 2
 ifeq ($(__THEOS_TARGET_ARG_1),clang)
 _THEOS_TARGET_CC := clang
 _THEOS_TARGET_CXX := clang++
 _THEOS_TARGET_ARG_ORDER := 2 3
+else ifeq ($(__THEOS_TARGET_ARG_1),gcc)
+_THEOS_TARGET_ARG_ORDER := 2 3
 else
-_THEOS_TARGET_CC := arm-apple-darwin9-gcc
-_THEOS_TARGET_CXX := arm-apple-darwin9-g++
-_THEOS_TARGET_ARG_ORDER := 1 2
-endif
 
 _SDKVERSION := $(or $(__THEOS_TARGET_ARG_$(word 1,$(_THEOS_TARGET_ARG_ORDER))),$(SDKVERSION))
 _THEOS_TARGET_SDK_VERSION := $(or $(_SDKVERSION),latest)
