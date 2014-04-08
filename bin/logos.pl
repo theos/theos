@@ -521,7 +521,7 @@ foreach my $line (@lines) {
 		} elsif($line =~ /\G%config\s*\(\s*(\w+)\s*=\s*(.*?)\s*\)/gc) {
 			$main::CONFIG{$1} = $2;
 			patchHere(undef);
-		} elsif($line =~ /\G%property\s*(?:\((\s*\w+\s*(?:,\s*(?:\w|\=)+\s*)*)\))?\s*((?:\w+\s+\*?)+)(\w+)\s*;/gc){
+		} elsif($line =~ /\G%property\s*(?:\((\s*\w+\s*(?:,\s*(?:\w|\=|:)+\s*)*)\))?\s*((?:\w+\s+\**)+)(\w+)\s*;/gc){
             nestingMustContain($lineno, "%property", \@nestingstack, "hook", "subclass");
 
             # check property attribute validity

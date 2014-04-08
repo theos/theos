@@ -58,8 +58,10 @@ sub setter {
         $_ =~ s/^([a-z])/\u$1/;
 
         $name = "set" . $_;
-
     }
+
+    # Remove semicolon
+    $name =~ s/://;
 
     my $build = "static void _logos_method\$" . $property->group . "\$" . $property->class . "\$" . $name . "\$" . "(" . $property->class . "* self, SEL _cmd, " . $property->type . " arg){ ";
 
@@ -157,6 +159,7 @@ sub initializers {
             $getter = $1;
         }elsif($attr =~ /setter=(\w+:)/){
             $setter = $1;
+            $setter =~ s/://;
         }
     }
 
