@@ -137,8 +137,8 @@ sub getters_setters {
     my $setter_func = $self->setter($property, $setter, $policy, $key);
 
     $build .= $build . "static char " . $key . ";";
-    $build .= $getter_func . "";
-    $build .= $setter_func . "";
+    $build .= $getter_func;
+    $build .= $setter_func;
 
 
     return $build;
