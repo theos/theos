@@ -185,13 +185,13 @@ sub initializers {
     $build .= "class_addMethod(";
 
     $build .= "_logos_class\$" . $property->group . "\$" . $property->class . ", ";
-    $build .= "\@selector(" . $getter . "), " . "(IMP)&" . "_logos_method\$" . $property->group . "\$" . $property->class . "\$" . $getter . "\$, \"@@\:\");";
+    $build .= "\@selector(" . $getter . "), " . "(IMP)&" . "_logos_method\$" . $property->group . "\$" . $property->class . "\$" . $getter . "\$, [[NSString stringWithFormat:\@\"%s\@:\", \@encode(".$property->type.")] UTF8String]);";
 
     # Setter
     $build .= "class_addMethod(";
     $build .= "_logos_class\$" . $property->group . "\$" . $property->class . ", ";
 
-    $build .= "\@selector(" . $setter . ":), " . "(IMP)&" . "_logos_method\$" . $property->group . "\$" . $property->class . "\$" . $setter . "\$, \"v@\:@\");";
+    $build .= "\@selector(" . $setter . ":), " . "(IMP)&" . "_logos_method\$" . $property->group . "\$" . $property->class . "\$" . $setter . "\$, [[NSString stringWithFormat:\@\"v\@:%s\", \@encode(".$property->type.")] UTF8String]);";
 
     $build .= "} ";
 
