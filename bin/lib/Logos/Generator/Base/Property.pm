@@ -139,23 +139,6 @@ sub getters_setters {
     $build .= $build . "static char " . $key . ";";
     $build .= $getter_func . "";
     $build .= $setter_func . "";
-    
-    # Declare property
-    # TODO: Put this where it's really supposed to go
-
-    $build .= "\@interface " . $property->class . " () \@property (";
-
-    for(my $i = 0; $i < $property->numattr; $i++){
-        my $attr = $property->attributes->[$i];
-
-        if($i != 0){
-            $build .= ", ";
-        }
-
-        $build .= $attr;
-    }
-
-    $build .= ") " . $property->type . " " . $property->name . "; \@end";
 
 
     return $build;
