@@ -22,11 +22,25 @@ sub getter {
         $name = $property->name;
     }
 
-    my $build = "static " . $property->type . " _logos_method\$" . $property->group . "\$" . $property->class . "\$" . $name . "\$" . "(" . $property->class . "* self, SEL _cmd)";
+    # Build function start
+    my $build = "static " . $property->type . " _logos_method\$" . $property->group . "\$" . $property->class . "\$" . $name . "\$" . "(" . $property->class . "* self, SEL _cmd){";
 
-    $build .= "{ return objc_getAssociatedObject(self, &" . $key . "); ";
+    # Build function body
 
-    $build .= "}";
+    $build .= " return ";
+
+
+    if ($property->type =~ /BOOL/){
+        $build .= "[";
+    }
+
+    $build .= "objc_getAssociatedObject(self, &" . $key . ")";
+
+    if ($property->type =~ /BOOL/){
+        $build .= " boolValue]";
+    }
+
+    $build .= "; }";
 
     return $build;
 }
@@ -47,11 +61,24 @@ sub setter {
 
     }
 
-    my $build = "static void _logos_method\$" . $property->group . "\$" . $property->class . "\$" . $name . "\$" . "(" . $property->class . "* self, SEL _cmd, " . $property->type . " arg)";
+    my $build = "static void _logos_method\$" . $property->group . "\$" . $property->class . "\$" . $name . "\$" . "(" . $property->class . "* self, SEL _cmd, " . $property->type . " arg){ ";
 
-    $build .= "{ objc_setAssociatedObject(self, &" . $key . ", arg, " . $policy . "); ";
 
-    $build .= "}";
+    $build .= "objc_setAssociatedObject(self, &" . $key . ", ";
+
+    if ($property->type =~ /BOOL/){
+        $build .= "[NSNumber numberWithBool:";
+    }
+
+    $build .= "arg";
+
+    if ($property->type =~ /BOOL/){
+        $build .= "]";
+    }
+
+    $build .= ", ".$policy.")";
+
+    $build .= "; }";
 
     return $build;
 }
