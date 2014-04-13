@@ -8,7 +8,7 @@ sub _initExpression {
 	my $self = shift;
 	my $class = shift;
 	my $cgen = Logos::Generator::for($class->superclass);
-	return "objc_allocateClassPair(".$cgen->variable.", \"".$class->name."\", 0); objc_registerClassPair(".$self->variable($class).")";
+	return "objc_allocateClassPair(".$cgen->variable.", \"".$class->name."\", 0)";
 }
 
 sub initializers {
@@ -22,6 +22,7 @@ sub initializers {
 		$return .= Logos::Generator::for($_)->initializers;
 	}
 	# </ivars>
+	$return .= "objc_registerClassPair(".$self->variable($class)."); ";
 	foreach(keys %{$class->protocols}) {
 		$return .= "class_addProtocol(".$self->variable($class).", objc_getProtocol(\"$_\")); ";
 	}
