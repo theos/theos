@@ -32,6 +32,7 @@ override _THEOS_TARGET_INCLUDE_SDK_VERSION := $(_LATEST_SDK)
 endif
 
 # We have to figure out the target version here, as we need it in the calculation of the deployment version.
+_TARGET_VERSION_GE_7_0 = $(call __simplify,_TARGET_VERSION_GE_7_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 7.0))
 _TARGET_VERSION_GE_6_0 = $(call __simplify,_TARGET_VERSION_GE_6_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 6.0))
 _TARGET_VERSION_GE_3_0 = $(call __simplify,_TARGET_VERSION_GE_3_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 3.0))
 _THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION := $(or $(__THEOS_TARGET_ARG_$(word 2,$(_THEOS_TARGET_ARG_ORDER))),$(TARGET_IPHONEOS_DEPLOYMENT_VERSION_$(THEOS_CURRENT_ARCH)),$(TARGET_IPHONEOS_DEPLOYMENT_VERSION),$(_SDKVERSION),3.0)
@@ -72,6 +73,9 @@ TARGET_PRIVATE_FRAMEWORK_INCLUDE_PATH = $(ISYSROOT)/System/Library/PrivateFramew
 include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_flat_bundle.mk
 
+ifeq ($(_TARGET_VERSION_GE_7_0),1) # >= 7.0 {
+	ARCHS ?= armv7 armv7s arm64
+else # } < 7.0 {
 ifeq ($(_TARGET_VERSION_GE_6_0),1) # >= 6.0 {
 ifeq ($(_DEPLOY_VERSION_GE_3_0)$(_DEPLOY_VERSION_LT_4_3),11) # 3.0 <= Deploy < 4.3 {
 	ARCHS ?= armv7
@@ -83,6 +87,7 @@ ifeq ($(_TARGET_VERSION_GE_3_0),1) # >= 3.0 {
 	ARCHS ?= armv6 armv7
 else # } < 3.0 {
 	ARCHS ?= armv6
+endif # }
 endif # }
 endif # }
 NEUTRAL_ARCH = armv7
