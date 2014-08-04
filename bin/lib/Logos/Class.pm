@@ -12,7 +12,7 @@ sub new {
 	$self->{META} = 0;
 	$self->{INST} = 0;
 	$self->{OVERRIDDEN} = 0;
-	$self->{REQUIRED} = 1;
+	$self->{REQUIRED} = 0;
 	$self->{METHODS} = [];
 	$self->{NUM_METHODS} = 0;
 	$self->{GROUP} = undef;
@@ -91,7 +91,7 @@ sub methods {
 
 sub initRequired {
 	my $self = shift;
-	return scalar @{$self->{METHODS}} > 0;
+	return $self->required || scalar @{$self->{METHODS}} > 0;
 }
 
 ##### #

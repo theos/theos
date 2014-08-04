@@ -2,19 +2,16 @@ ifeq ($(_THEOS_TARGET_LOADED),)
 _THEOS_TARGET_LOADED := 1
 THEOS_TARGET_NAME := iphone
 
+_THEOS_TARGET_CC := arm-apple-darwin9-gcc
+_THEOS_TARGET_CXX := arm-apple-darwin9-g++
+_THEOS_TARGET_ARG_ORDER := 1 2
 ifeq ($(__THEOS_TARGET_ARG_1),clang)
 _THEOS_TARGET_CC := clang
 _THEOS_TARGET_CXX := clang++
 _THEOS_TARGET_ARG_ORDER := 2 3
-else
-_THEOS_TARGET_CC := arm-apple-darwin9-gcc
-_THEOS_TARGET_CXX := arm-apple-darwin9-g++
-_THEOS_TARGET_ARG_ORDER := 1 2
+else ifeq ($(__THEOS_TARGET_ARG_1),gcc)
+_THEOS_TARGET_ARG_ORDER := 2 3
 endif
-
-# A version specified as a target argument overrides all previous definitions.
-SDKTARGET ?= arm-apple-darwin11
-SDKBINPATH ?= theos/toolchain/$(THEOS_TARGET_NAME)/bin
 
 _SDKVERSION := $(or $(__THEOS_TARGET_ARG_$(word 1,$(_THEOS_TARGET_ARG_ORDER))),$(SDKVERSION))
 _THEOS_TARGET_SDK_VERSION := $(or $(_SDKVERSION),latest)
@@ -46,8 +43,8 @@ ifeq ($(_THEOS_TARGET_WARNED_TARGETGCC),)
 $(warning Targeting iOS 4.0 and higher is not supported with iphone-gcc. Forcing clang.)
 export _THEOS_TARGET_WARNED_TARGETGCC := 1
 endif
-_THEOS_TARGET_CC := clang
-_THEOS_TARGET_CXX := clang++
+override _THEOS_TARGET_CC := clang
+override _THEOS_TARGET_CXX := clang++
 endif
 endif
 
@@ -58,9 +55,7 @@ export _THEOS_TARGET_WARNED_DEPLOY := 1
 endif
 endif
 
-SYSROOT ?= $(THEOS)/sdks/iPhoneOS$(_THEOS_TARGET_SDK_VERSION).sdk
-
-PREFIX := $(SDKBINPATH)/$(SDKTARGET)-
+SYSROOT ?= $(_SDK_DIR)/iPhoneOS$(_THEOS_TARGET_SDK_VERSION).sdk
 
 TARGET_CC ?= $(_THEOS_TARGET_CC)
 TARGET_CXX ?= $(_THEOS_TARGET_CXX)
@@ -90,7 +85,7 @@ else # } < 3.0 {
 endif # }
 endif # }
 
-SDKFLAGS := -isysroot "$(SYSROOT)" $(foreach ARCH,$(ARCHS),-arch $(ARCH)) -miphoneos-version-min=$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)
+SDKFLAGS := -isysroot "$(SYSROOT)" $(foreach ARCH,$(ARCHS),-arch $(ARCH)) -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)) -miphoneos-version-min=$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)
 _THEOS_TARGET_CFLAGS := $(SDKFLAGS)
 _THEOS_TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress
 

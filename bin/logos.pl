@@ -319,7 +319,7 @@ foreach my $line (@lines) {
 			$xtype = $2 if $2;
 			$newMethodTypeEncoding = $xtype;
 			patchHere(undef);
-		} elsif($currentClass && $line =~ /\G([+-])\s*\(\s*(.*?)\s*\)(?=\s*[\w:])/gc && $directiveDepth < 1) {
+		} elsif($currentClass && $line =~ /\G([+-])\s*\(\s*(.*?)\s*\)(?=\s*[\$\w:])/gc && $directiveDepth < 1) {
 			# [+-] (<return>)<[X:]>, but only when we're in a %hook.
 
 			# Gasp! We've been moved to a different group!
@@ -379,6 +379,8 @@ foreach my $line (@lines) {
 		} elsif($line =~ /\G%orig\b/gc) {
 			# %orig, with optional following parens.
 			nestingMustContain($lineno, "%orig", \@nestingstack, "hook", "subclass");
+			fileError($lineno, "%orig does not make sense outside a method") if(!defined($currentMethod));
+			fileError($lineno, "%orig does not make sense outside a block") if($directiveDepth < 1);
 			fileWarning($lineno, "%orig in new method ".prettyPrintMethod($currentMethod)." will be non-operative.") if $currentMethod->isNew;
 
 			my $patchStart = $-[0];
@@ -401,6 +403,8 @@ foreach my $line (@lines) {
 		} elsif($line =~ /\G&\s*%orig\b/gc) {
 			# &%orig, at a word boundary
 			nestingMustContain($lineno, "%orig", \@nestingstack, "hook", "subclass");
+			fileError($lineno, "%orig does not make sense outside a method") if(!defined($currentMethod));
+			fileError($lineno, "%orig does not make sense outside a block") if($directiveDepth < 1);
 			fileError($lineno, "no original method pointer for &%orig in new method ".prettyPrintMethod($currentMethod).".") if $currentMethod->isNew;
 
 			my $capturedMethod = $currentMethod;
@@ -610,13 +614,6 @@ if(exists $main::CONFIG{"dump"}) {
 	if($main::CONFIG{"dump"} eq "yaml") {
 		load 'YAML::Syck';
 		print STDERR YAML::Syck::Dump($dumphref);
-	} elsif($main::CONFIG{"dump"} eq "perl") {
-		load 'Data::Dumper';
-		$Data::Dumper::Purity = 1;
-
-		my @k; my @v;
-		map {push(@k,$_); push(@v, $dumphref->{$_});} keys %$dumphref;
-		print STDERR Data::Dumper->Dump(\@v, \@k);
 	}
 	#print STDERR Data::Dumper->Dump([\@groups, \@patches, \@lines, \%::CONFIG], [qw(groups patches lines config)]);
 }

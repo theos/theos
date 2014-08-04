@@ -6,7 +6,7 @@ sub declarations {
 	my $group = shift;
 	my $return = "";
 	foreach(@{$group->classes}) {
-		$return .= Logos::Generator::for($_)->declarations;
+		$return .= Logos::Generator::for($_)->declarations if $_->initRequired;
 	}
 	return $return;
 }
@@ -16,7 +16,7 @@ sub initializers {
 	my $group = shift;
 	my $return = "{";
 	foreach(@{$group->classes}) {
-		$return .= Logos::Generator::for($_)->initializers;
+		$return .= Logos::Generator::for($_)->initializers if $_->initRequired;
 	}
 	$return .= "}";
 	return $return;
