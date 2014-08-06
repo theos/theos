@@ -10,6 +10,7 @@ sub new {
 	$self->{INITIALIZED} = 0;
 	$self->{INITLINE} = -1;
 	$self->{CLASSES} = [];
+	$self->{FUNCTIONS} = [];
 	bless($self, $class);
 	return $self;
 }
@@ -58,6 +59,11 @@ sub classes {
 	my $self = shift;
 	return $self->{CLASSES};
 }
+
+sub functions {
+	my $self = shift;
+	return $self->{FUNCTIONS};
+}
 ##### #
 # END #
 # #####
@@ -89,6 +95,19 @@ sub getClassNamed {
 		return $_ if $_->name eq $name;
 	}
 	return undef;
+}
+
+sub addFunction {
+	my $self = shift;
+	my $functionRetval = shift;
+	my $functionName = shift;
+	my $functionArgs = shift;
+	my $function = ::Function()->new();
+	$function->retval($functionRetval);
+	$function->name($functionName);
+	$function->args($functionArgs);
+	$function->group($self);
+	push(@{$self->{FUNCTIONS}}, $function);
 }
 
 1;

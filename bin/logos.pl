@@ -25,6 +25,7 @@ use aliased 'Logos::Method';
 use aliased 'Logos::Class';
 use aliased 'Logos::Subclass';
 use aliased 'Logos::StaticClassGroup' ;
+use aliased 'Logos::Function';
 
 use Logos::Generator;
 
@@ -171,6 +172,7 @@ my $currentGroup = $defaultGroup;
 my $currentClass = undef;
 my $currentMethod = undef;
 my $newMethodTypeEncoding = undef;
+my $currentFunction = undef;
 
 my %classes = ();
 
@@ -524,6 +526,24 @@ foreach my $line (@lines) {
 		} elsif($line =~ /\G%config\s*\(\s*(\w+)\s*=\s*(.*?)\s*\)/gc) {
 			$main::CONFIG{$1} = $2;
 			patchHere(undef);
+		} elsif($line =~ /\G%hookf\b/gc) {
+			#%MSHook
+			fileError($lineno, "%MSHook does not make sense inside a block") if($directiveDepth >= 1);
+			nestingMustNotContain($lineno, "%MSHook", \@nestingstack, "hook", "subclass");
+
+			my ($functionRetval, $functionName, $functionArgs) = mshookParse($line);
+			$currentGroup->addFunction($functionRetval, $functionName, $functionArgs);
+			$currentFunction = $functionName;
+
+			my $patch = "";
+			$patch .= "_disused static ".$functionRetval." _logos_orig_function\$".$currentGroup->name."\$_".$functionName."(".$functionArgs.");";
+			$patch .= "static ".$functionRetval." _logos_function\$".$currentGroup->name."\$_".$functionName."(".$functionArgs.") {";
+			$line = "";
+			patchHere($patch);
+		} elsif($line =~ /\G%origf\b/gc) {
+			my $patch = "";
+			$patch .= "_logos_orig_function\$".$currentGroup->name."\$_".$currentFunction;
+			patchHere($patch);
 		}
 	}
 
@@ -629,6 +649,32 @@ for(@sortedPatches) {
 splice(@lines, 0, 0, generateLineDirectiveForPhysicalLine(0)) if !$preprocessed;
 foreach my $oline (@lines) {
 	print $oline."\n" if defined($oline);
+}
+
+sub mshookParse {
+	my $line = shift;
+	my $functionRetval = mshookGetFunctionRetval($line);
+	my $functionName = mshookGetFunctionName($line);
+	my $functionArgs = mshookGetFunctionArgs($line);
+	return ($functionRetval, $functionName, $functionArgs);
+}
+
+sub mshookGetFunctionRetval {
+	my $line = shift;
+	$line =~ /\(\s*(\w+),/; my $val = $1;
+	return $val;
+}
+
+sub mshookGetFunctionName {
+	my $line = shift;
+	$line =~ /,\s*(\w+),/; my $val = $1;
+	return $val;
+}
+
+sub mshookGetFunctionArgs {
+	my $line = shift;
+	$line =~ /,.*,\s*([^)]*)/; my $val = $1;
+	return $val;
 }
 
 sub defaultConstructorSource {
