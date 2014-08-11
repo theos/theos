@@ -39,9 +39,10 @@ sub matchedParenthesisSet {
 	my $in = shift;
 	my $atstart = shift;
 	$atstart = 1 if !defined $atstart;
+	my $untilend = shift;
+	$untilend = 0 if !defined $untilend;
 
-	my $opening = -1;
-	my $closing = -1;
+	my @parens;
 	if(!$atstart || $in =~ /^\s*\(/) {
 		# If we encounter a ) that puts us back at zero, we found a (
 		# and have reached its closing ).
@@ -52,18 +53,19 @@ sub matchedParenthesisSet {
 			next if fallsBetween($-[0], @pquotes);
 
 			if($& eq "(") {
-				if($pdepth == 0) { $opening = $+[0]; }
+				if($pdepth == 0) { push(@parens, $+[0]); }
 				$pdepth++;
 			} elsif($& eq ")") {
 				$pdepth--;
-				if($pdepth == 0) { $closing = $+[0]; last; }
+				if($pdepth == 0) { push(@parens, $+[0]); last if(!$untilend); }
 			}
 		}
 	}
 
-	return undef if $opening == -1;
-	&$errorhandler("missing closing parenthesis") if $closing == -1;
-	return ($opening, $closing);
+	return undef if scalar @parens == 0;
+	# Odd number of parens means a closing paren was left off!
+	&$errorhandler("missing closing parenthesis") if scalar @parens % 2 == 1;
+	return @parens;
 }
 
 sub nestedParenString {
@@ -88,7 +90,9 @@ sub smartSplit {
 	$limit = 0 if !defined $limit;
 
 	my @quotes = quotes($in);
-	my @parens = matchedParenthesisSet($in, 0);
+	# We pass 1 for arg 3 to catch all matching parentheses until the end of the string
+	# as smartSplit only operates on a substring.
+	my @parens = matchedParenthesisSet($in, 0, 1);
 
 	my $lstart = 0;
 	my @pieces = ();
