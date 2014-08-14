@@ -43,4 +43,10 @@ sub group {
 # END #
 # #####
 
+sub addArg {
+	my $self = shift;
+	my $arg = shift;
+	push(@{$self->{ARGS}}, $arg);
+}
+
 1;

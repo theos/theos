@@ -1,13 +1,25 @@
 package Logos::Generator::Base::Function;
-use Logos::Generator;
 use strict;
+use Logos::Generator;
+
+sub originalFunctionName {
+	::fileError(-1, "Base::Function does not implement originalFunctionName");
+}
+
+sub newFunctionName {
+	::fileError(-1, "Base::Function does not implement newFunctionName");
+}
+
+sub originalFunctionCall {
+	::fileError(-1, "Base::Function does not implement originalFunctionCall");
+}
+
+sub declaration {
+	::fileError(-1, "Base::Function does not implement declaration");
+}
 
 sub initializers {
-	my $self = shift;
-	my $function = shift;
-	my $return = "";
-	$return .= "MSHookFunction(".$function->name.", &_logos_function\$".$function->group->name."\$_".$function->name.", &_logos_orig_function\$".$function->group->name."\$_".$function->name.")); ";
-	return $return;
+	::fileError(-1, "Base::Function does not implement initializers");
 }
 
 1;

@@ -380,6 +380,25 @@ foreach my $line (@lines) {
 			addPatch($patch);
 		} elsif($line =~ /\G%orig\b/gc) {
 			# %orig, with optional following parens.
+if (!defined $currentClass) {
+			fileError($lineno, "%orig does not make sense outside a function") if(!defined($currentFunction));
+			my $patchStart = $-[0];
+
+			my $remaining = substr($line, pos($line));
+			my $orig_args = undef;
+
+			my ($popen, $pclose) = matchedParenthesisSet($remaining);
+			if(defined $popen) {
+				$orig_args = substr($remaining, $popen, $pclose-$popen-1);;
+				pos($line) = pos($line) + $pclose;
+			}
+
+			my $patch = Patch->new();
+			$patch->line($lineno);
+			$patch->range($patchStart, pos($line));
+			$patch->source(Patch::Source::Generator->new($currentFunction, 'originalFunctionCall', $orig_args));
+			addPatch($patch);
+} else {
 			nestingMustContain($lineno, "%orig", \@nestingstack, "hook", "subclass");
 			fileError($lineno, "%orig does not make sense outside a method") if(!defined($currentMethod));
 			fileError($lineno, "%orig does not make sense outside a block") if($directiveDepth < 1);
@@ -402,8 +421,19 @@ foreach my $line (@lines) {
 			$patch->range($patchStart, pos($line));
 			$patch->source(Patch::Source::Generator->new($capturedMethod, 'originalCall', $orig_args));
 			addPatch($patch);
+}
 		} elsif($line =~ /\G&\s*%orig\b/gc) {
 			# &%orig, at a word boundary
+if (!defined $currentClass) {
+			fileError($lineno, "%orig does not make sense outside a function") if(!defined($currentFunction));
+			my $patchStart = $-[0];
+			my $patchEnd = $patchStart + 6;
+			my $patch = Patch->new();
+			$patch->line($lineno);
+			$patch->range($patchStart, $patchEnd);
+			$patch->source(Patch::Source::Generator->new($currentFunction, 'originalFunctionName'));
+			addPatch($patch);
+} else {
 			nestingMustContain($lineno, "%orig", \@nestingstack, "hook", "subclass");
 			fileError($lineno, "%orig does not make sense outside a method") if(!defined($currentMethod));
 			fileError($lineno, "%orig does not make sense outside a block") if($directiveDepth < 1);
@@ -411,6 +441,7 @@ foreach my $line (@lines) {
 
 			my $capturedMethod = $currentMethod;
 			patchHere(Patch::Source::Generator->new($capturedMethod, 'originalFunctionName'));
+}
 		} elsif($line =~ /\G%log\b/gc) {
 			# %log
 			nestingMustContain($lineno, "%log", \@nestingstack, "hook", "subclass");
@@ -531,19 +562,26 @@ foreach my $line (@lines) {
 			fileError($lineno, "%MSHook does not make sense inside a block") if($directiveDepth >= 1);
 			nestingMustNotContain($lineno, "%MSHook", \@nestingstack, "hook", "subclass");
 
-			my ($functionRetval, $functionName, $functionArgs) = mshookParse($line);
-			$currentGroup->addFunction($functionRetval, $functionName, $functionArgs);
-			$currentFunction = $functionName;
+			my $patchStart = $-[0];
 
-			my $patch = "";
-			$patch .= "_disused static ".$functionRetval." _logos_orig_function\$".$currentGroup->name."\$_".$functionName."(".$functionArgs.");";
-			$patch .= "static ".$functionRetval." _logos_function\$".$currentGroup->name."\$_".$functionName."(".$functionArgs.") {";
-			$line = "";
-			patchHere($patch);
-		} elsif($line =~ /\G%origf\b/gc) {
-			my $patch = "";
-			$patch .= "_logos_orig_function\$".$currentGroup->name."\$_".$currentFunction;
-			patchHere($patch);
+			my $remaining = substr($line, pos($line));
+			my $argumentString = undef;
+			my $args = [];
+			
+			my ($popen, $pclose) = matchedParenthesisSet($remaining);
+			if(defined $popen) {
+				$argumentString = substr($remaining, $popen, $pclose-$popen-1);
+				pos($line) = pos($line) + $pclose;
+				@$args = Logos::Util::smartSplit(qr/\s*,\s*/, $argumentString);
+			}
+
+			$currentFunction = $currentGroup->addFunction($args);
+
+			my $patch = Patch->new();
+			$patch->line($lineno);
+			$patch->range($patchStart, pos($line));
+			$patch->source(Patch::Source::Generator->new($currentFunction, 'declaration'));
+			addPatch($patch);
 		}
 	}
 
@@ -649,32 +687,6 @@ for(@sortedPatches) {
 splice(@lines, 0, 0, generateLineDirectiveForPhysicalLine(0)) if !$preprocessed;
 foreach my $oline (@lines) {
 	print $oline."\n" if defined($oline);
-}
-
-sub mshookParse {
-	my $line = shift;
-	my $functionRetval = mshookGetFunctionRetval($line);
-	my $functionName = mshookGetFunctionName($line);
-	my $functionArgs = mshookGetFunctionArgs($line);
-	return ($functionRetval, $functionName, $functionArgs);
-}
-
-sub mshookGetFunctionRetval {
-	my $line = shift;
-	$line =~ /\(\s*(\w+),/; my $val = $1;
-	return $val;
-}
-
-sub mshookGetFunctionName {
-	my $line = shift;
-	$line =~ /,\s*(\w+),/; my $val = $1;
-	return $val;
-}
-
-sub mshookGetFunctionArgs {
-	my $line = shift;
-	$line =~ /,.*,\s*([^)]*)/; my $val = $1;
-	return $val;
 }
 
 sub defaultConstructorSource {

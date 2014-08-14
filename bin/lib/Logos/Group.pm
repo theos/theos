@@ -99,15 +99,35 @@ sub getClassNamed {
 
 sub addFunction {
 	my $self = shift;
-	my $functionRetval = shift;
-	my $functionName = shift;
-	my $functionArgs = shift;
+	my $args = shift;
+
+	my $functionRetval = undef;
+	my $functionName = undef;
+	my $functionArgs = [];
+
+	my $argIdx = 0;
+	for (@$args) {
+		if ($argIdx == 0) {
+			$argIdx++;
+			$functionRetval = $_;
+		} elsif ($argIdx == 1) {
+			$argIdx++;
+			$functionName = $_;
+		} else {
+			push(@$functionArgs, $_);
+		}
+	}
+	
 	my $function = ::Function()->new();
 	$function->retval($functionRetval);
 	$function->name($functionName);
-	$function->args($functionArgs);
+	for(@$functionArgs) {
+		$function->addArg($_);
+	}
 	$function->group($self);
 	push(@{$self->{FUNCTIONS}}, $function);
+
+	return $function;
 }
 
 1;
