@@ -1,7 +1,7 @@
 theos-jailed
 ============
 
-This fork of Theos is designed to work with apps on non-jailbroken iOS devices.
+This fork of Theos is designed to work with apps on non-jailbroken iOS devices. You MUST have an Apple iOS Developer account in order to use this (for code-signing purposes).
 
 * You use it just as you would for a jailbroken device tweak (edit Tweak.xm then "make")
 * It integrates CydiaSubstrate
