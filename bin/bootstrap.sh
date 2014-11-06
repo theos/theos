@@ -19,8 +19,8 @@ endif
 include theos/makefiles/common.mk
 FRAMEWORK_NAME = CydiaSubstrate
 CydiaSubstrate_FILES = Hooker.cc
-CydiaSubstrate_INSTALL_PATH = /Library/Frameworks
-CydiaSubstrate_LDFLAGS = -dynamiclib -install_name /Library/Frameworks/CydiaSubstrate.framework/CydiaSubstrate
+CydiaSubstrate_INSTALL_PATH = ./
+CydiaSubstrate_LDFLAGS = -dynamiclib -install_name "@executable_path/CydiaSubstrate"
 ifeq (\$(THEOS_CURRENT_INSTANCE),CydiaSubstrate)
 override AUXILIARY_LDFLAGS:=
 endif

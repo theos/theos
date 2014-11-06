@@ -6,7 +6,7 @@ endif
 
 LOCAL_INSTALL_PATH ?= $(strip $($(THEOS_CURRENT_INSTANCE)_INSTALL_PATH))
 ifeq ($(LOCAL_INSTALL_PATH),)
-	LOCAL_INSTALL_PATH = /Library/MobileSubstrate/DynamicLibraries
+	LOCAL_INSTALL_PATH = "@executable_path"
 endif
 
 _THEOS_INTERNAL_LDFLAGS += -lsubstrate

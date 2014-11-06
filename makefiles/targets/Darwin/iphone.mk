@@ -51,8 +51,8 @@ TARGET_LD ?= xcrun -sdk iphoneos $(_THEOS_TARGET_CXX)
 TARGET_STRIP ?= xcrun -sdk iphoneos strip
 TARGET_STRIP_FLAGS ?= -x
 TARGET_CODESIGN_ALLOCATE ?= "$(shell xcrun -sdk iphoneos -find codesign_allocate)"
-TARGET_CODESIGN ?= ldid
-TARGET_CODESIGN_FLAGS ?= -S
+TARGET_CODESIGN ?= codesign
+TARGET_CODESIGN_FLAGS ?= -fs "iPhone Developer" 
 
 TARGET_PRIVATE_FRAMEWORK_PATH = $(SYSROOT)/System/Library/PrivateFrameworks
 
