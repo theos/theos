@@ -73,7 +73,13 @@ _THEOS_OUT_FILE_TAG = $(call __simplify,_THEOS_OUT_FILE_TAG,$(shell echo "$(ALL_
 ifneq ($(_THEOS_MAKE_PARALLEL_BUILDING)$(_THEOS_MAKE_PARALLEL),yesyes)
 ifneq ($(_THEOS_MAKE_PARALLEL_BUILDING),no)
 override _THEOS_OBJ_FILE_TAG := dummy
+_NO_MAKEDEP := $(_THEOS_TRUE)
 endif
+endif
+
+ifneq ($(_NO_MAKEDEP),$(_THEOS_TRUE))
+MAKEDEP_FILES = $(addprefix $(THEOS_OBJ_DIR)/,$(strip $(patsubst %,%.$(_THEOS_OBJ_FILE_TAG).md,$(_FILES))))
+-include $(MAKEDEP_FILES)
 endif
 
 before-$(THEOS_CURRENT_INSTANCE)-all after-$(THEOS_CURRENT_INSTANCE)-all::
@@ -92,8 +98,12 @@ internal-$(_THEOS_CURRENT_TYPE)-stage:: before-$(THEOS_CURRENT_INSTANCE)-stage i
 
 .SUFFIXES: .m .mm .c .cc .cpp .xm
 
+MDFLAGS = -MP -MT "$@ $(subst .md,.o,$@)" -MM
 $(THEOS_OBJ_DIR)/%.m.$(_THEOS_OBJ_FILE_TAG).o: %.m
 	$(ECHO_COMPILING)$(TARGET_CXX) -x objective-c -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(_THEOS_TARGET_ONLY_OBJCFLAGS) $< -o $@$(ECHO_END)
+
+$(THEOS_OBJ_DIR)/%.m.$(_THEOS_OBJ_FILE_TAG).md: %.m
+	$(ECHO_NOTHING)$(TARGET_CXX) -x c -c $(filter-out -arch_%,$(subst arch ,arch_,$(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(_THEOS_TARGET_ONLY_OBJCFLAGS))) $< $(MDFLAGS) -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.mi.$(_THEOS_OBJ_FILE_TAG).o: %.mi
 	$(ECHO_COMPILING)$(TARGET_CXX) -x objective-c-cpp-output -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(_THEOS_TARGET_ONLY_OBJCFLAGS) $< -o $@$(ECHO_END)
@@ -101,11 +111,17 @@ $(THEOS_OBJ_DIR)/%.mi.$(_THEOS_OBJ_FILE_TAG).o: %.mi
 $(THEOS_OBJ_DIR)/%.mm.$(_THEOS_OBJ_FILE_TAG).o: %.mm
 	$(ECHO_COMPILING)$(TARGET_CXX) -x objective-c++ -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_CCFLAGS) $(ALL_OBJCCFLAGS) $< -o $@$(ECHO_END)
 
+$(THEOS_OBJ_DIR)/%.mm.$(_THEOS_OBJ_FILE_TAG).md: %.mm
+	$(ECHO_NOTHING)$(TARGET_CXX) -x c -c $(filter-out -arch_%,$(subst arch ,arch_,$(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_CCFLAGS) $(ALL_OBJCCFLAGS))) $< $(MDFLAGS) -o $@$(ECHO_END)
+
 $(THEOS_OBJ_DIR)/%.mii.$(_THEOS_OBJ_FILE_TAG).o: %.mii
 	$(ECHO_COMPILING)$(TARGET_CXX) -x objective-c++-cpp-output -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(_THEOS_TARGET_ONLY_OBJCFLAGS) $< -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.c.$(_THEOS_OBJ_FILE_TAG).o: %.c
 	$(ECHO_COMPILING)$(TARGET_CXX) -x c -c $(ALL_CFLAGS) $< -o $@$(ECHO_END)
+
+$(THEOS_OBJ_DIR)/%.c.$(_THEOS_OBJ_FILE_TAG).md: %.c
+	$(ECHO_NOTHING)$(TARGET_CXX) -x c -c $(filter-out -arch_%,$(subst arch ,arch_,$(ALL_CFLAGS))) $< $(MDFLAGS) -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.i.$(_THEOS_OBJ_FILE_TAG).o: %.i
 	$(ECHO_COMPILING)$(TARGET_CXX) -x c-cpp-output -c $(ALL_CFLAGS) $< -o $@$(ECHO_END)
@@ -116,20 +132,38 @@ $(THEOS_OBJ_DIR)/%.s.$(_THEOS_OBJ_FILE_TAG).o: %.s
 $(THEOS_OBJ_DIR)/%.S.$(_THEOS_OBJ_FILE_TAG).o: %.S
 	$(ECHO_COMPILING)$(TARGET_CXX) -x assembler-with-cpp -c $(ALL_CFLAGS) $< -o $@$(ECHO_END)
 
+$(THEOS_OBJ_DIR)/%.S.$(_THEOS_OBJ_FILE_TAG).md: %.S
+	$(ECHO_NOTHING)$(TARGET_CXX) -x assembler-with-cpp -c $(filter-out -arch_%,$(subst arch ,arch_,$(ALL_CFLAGS))) $< $(MDFLAGS) -o $@$(ECHO_END)
+
 $(THEOS_OBJ_DIR)/%.cc.$(_THEOS_OBJ_FILE_TAG).o: %.cc
 	$(ECHO_COMPILING)$(TARGET_CXX) -x c++ -c $(ALL_CFLAGS) $(ALL_CCFLAGS) $< -o $@$(ECHO_END)
+
+$(THEOS_OBJ_DIR)/%.cc.$(_THEOS_OBJ_FILE_TAG).md: %.cc
+	$(ECHO_NOTHING)$(TARGET_CXX) -x c++ -c $(filter-out -arch_%,$(subst arch ,arch_,$(ALL_CFLAGS) $(ALL_CCFLAGS))) $< $(MDFLAGS) -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.cp.$(_THEOS_OBJ_FILE_TAG).o: %.cp
 	$(ECHO_COMPILING)$(TARGET_CXX) -x c++ -c $(ALL_CFLAGS) $(ALL_CCFLAGS) $< -o $@$(ECHO_END)
 
+$(THEOS_OBJ_DIR)/%.cp.$(_THEOS_OBJ_FILE_TAG).md: %.cp
+	$(ECHO_NOTHING)$(TARGET_CXX) -x c++ -c $(filter-out -arch_%,$(subst arch ,arch_,$(ALL_CFLAGS) $(ALL_CCFLAGS))) $< $(MDFLAGS) -o $@$(ECHO_END)
+
 $(THEOS_OBJ_DIR)/%.cxx.$(_THEOS_OBJ_FILE_TAG).o: %.cxx
 	$(ECHO_COMPILING)$(TARGET_CXX) -x c++ -c $(ALL_CFLAGS) $(ALL_CCFLAGS) $< -o $@$(ECHO_END)
+
+$(THEOS_OBJ_DIR)/%.cxx.$(_THEOS_OBJ_FILE_TAG).md: %.cxx
+	$(ECHO_NOTHING)$(TARGET_CXX) -x c++ -c $(filter-out -arch_%,$(subst arch ,arch_,$(ALL_CFLAGS) $(ALL_CCFLAGS))) $< $(MDFLAGS) -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.cpp.$(_THEOS_OBJ_FILE_TAG).o: %.cpp
 	$(ECHO_COMPILING)$(TARGET_CXX) -x c++ -c $(ALL_CFLAGS) $(ALL_CCFLAGS) $< -o $@$(ECHO_END)
 
+$(THEOS_OBJ_DIR)/%.cpp.$(_THEOS_OBJ_FILE_TAG).md: %.cpp
+	$(ECHO_NOTHING)$(TARGET_CXX) -x c++ -c $(filter-out -arch_%,$(subst arch ,arch_,$(ALL_CFLAGS) $(ALL_CCFLAGS))) $< $(MDFLAGS) -o $@$(ECHO_END)
+
 $(THEOS_OBJ_DIR)/%.c++.$(_THEOS_OBJ_FILE_TAG).o: %.c++
 	$(ECHO_COMPILING)$(TARGET_CXX) -x c++ -c $(ALL_CFLAGS) $(ALL_CCFLAGS) $< -o $@$(ECHO_END)
+
+$(THEOS_OBJ_DIR)/%.c++.$(_THEOS_OBJ_FILE_TAG).md: %.c++
+	$(ECHO_NOTHING)$(TARGET_CXX) -x c++ -c $(filter-out -arch_%,$(subst arch ,arch_,$(ALL_CFLAGS) $(ALL_CCFLAGS))) $< $(MDFLAGS) -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.ii.$(_THEOS_OBJ_FILE_TAG).o: %.ii
 	$(ECHO_COMPILING)$(TARGET_CXX) -x c++-cpp-output -c $(ALL_CFLAGS) $< -o $@$(ECHO_END)
