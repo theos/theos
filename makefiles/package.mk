@@ -6,7 +6,12 @@ _THEOS_PACKAGE_RULES_LOADED := 1
 
 package:: internal-package-check stage before-package internal-package after-package
 before-package:: $(THEOS_PACKAGE_DIR)
-internal-package internal-package-check::
+internal-package::
+ifeq ($(FOR_RELEASE),1)
+	find $(THEOS_STAGING_DIR) -name \*.png -exec pincrush -i {} \;
+	find $(THEOS_STAGING_DIR) \( -name \*.plist -or -name \*.strings \) -exec plutil -convert binary1 {} \;
+endif
+internal-package-check::
 	@:
 
 # __THEOS_LAST_PACKAGE_FILENAME is to be set by a rule variable in the package format makefile.
@@ -45,9 +50,15 @@ __BASEVER_FOR_BUILDNUM = $(or $(__USERVER_FOR_BUILDNUM),$(THEOS_PACKAGE_BASE_VER
 # that offering these via an easy-to-use interface makes more sense than hiding them behind
 # a really stupidly long name.
 # VERSION.* are meant to be used in user PACKAGE_VERSIONs.
-VERSION.INC_BUILD_NUMBER = $(shell THEOS_PROJECT_DIR="$(THEOS_PROJECT_DIR)" "$(THEOS_BIN_PATH)/package_version.sh" -N "$(THEOS_PACKAGE_NAME)" -V "$(__BASEVER_FOR_BUILDNUM)")
 VERSION.EXTRAVERSION = $(if $(PACKAGE_BUILDNAME),+$(PACKAGE_BUILDNAME))
+
+ifeq ($(FOR_RELEASE),1)
+VERSION.EXTRAVERSION = $(if $(PACKAGE_BUILDNAME),+$(PACKAGE_BUILDNAME))
+_THEOS_PACKAGE_DEFAULT_VERSION_FORMAT = $(THEOS_PACKAGE_BASE_VERSION)$(VERSION.EXTRAVERSION)
+else
+VERSION.INC_BUILD_NUMBER = $(shell THEOS_PROJECT_DIR="$(THEOS_PROJECT_DIR)" "$(THEOS_BIN_PATH)/package_version.sh" -N "$(THEOS_PACKAGE_NAME)" -V "$(__BASEVER_FOR_BUILDNUM)")
 _THEOS_PACKAGE_DEFAULT_VERSION_FORMAT = $(THEOS_PACKAGE_BASE_VERSION)-$(VERSION.INC_BUILD_NUMBER)$(VERSION.EXTRAVERSION)
+endif
 
 # Copy the actual value of PACKAGE_VERSION to __PACKAGE_VERSION and replace PACKAGE_VERSION with
 # a mere reference (to a simplified copy.)
