@@ -147,7 +147,7 @@ ifneq ($(GO_EASY_ON_ME),1)
 	_THEOS_INTERNAL_CFLAGS += -Werror
 endif
 
-THEOS_BUILD_DIR ?= debs
+THEOS_BUILD_DIR ?= .
 
 ifneq ($(_THEOS_CLEANED_SCHEMA_SET),)
 	_THEOS_OBJ_DIR_EXTENSION = /$(_THEOS_CLEANED_SCHEMA_SET)
@@ -165,11 +165,8 @@ _SPACE :=
 _SPACE += 
 _THEOS_ESCAPED_STAGING_DIR = $(subst $(_SPACE),\ ,$(THEOS_STAGING_DIR))
 
-ifeq ($(THEOS_PACKAGE_DIR_NAME),)
-THEOS_PACKAGE_DIR = $(THEOS_BUILD_DIR)
-else
+THEOS_PACKAGE_DIR_NAME ?= debs
 THEOS_PACKAGE_DIR = $(THEOS_BUILD_DIR)/$(THEOS_PACKAGE_DIR_NAME)
-endif
 
 # $(warning ...) expands to the empty string, so the contents of THEOS_STAGING_DIR are not damaged in this copy.
 FW_PACKAGE_STAGING_DIR = $(THEOS_STAGING_DIR)$(warning FW_PACKAGE_STAGING_DIR is deprecated; please use THEOS_STAGING_DIR)
