@@ -4,6 +4,8 @@ use warnings;
 use FindBin;
 use lib "$FindBin::Bin/lib";
 
+use NIC::NICBase;
+
 use Module::Load::Conditional 'can_load';
 
 $nicfile = $ARGV[0] if($ARGV[0]);
@@ -18,13 +20,20 @@ my $line = <$nichandle>;
 my $nicversion = 1;
 if($line =~ /^nic (\w+)$/) {
 	$nicversion = $1;
+} elsif($nicfile =~ /\.tar$/) {
+	$nicversion = "Tar";
 }
 seek($nichandle, 0, 0);
 
 my $NICPackage = "NIC$nicversion";
 exitWithError("I don't understand NIC version $nicversion!") if(!can_load(modules => {"NIC::Formats::$NICPackage" => undef}));
-my $NIC = "NIC::Formats::$NICPackage"->new();
-$NIC->load($nichandle);
+
+{
+	no warnings 'redefine';
+	sub NIC::NICBase::_meetsConstraints { return 1; }
+}
+
+my $NIC = "NIC::Formats::$NICPackage"->new($nichandle);
 $NIC->addConstraint("package");
 close($nichandle);
 ### YAY! ###

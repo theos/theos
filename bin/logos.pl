@@ -379,6 +379,8 @@ foreach my $line (@lines) {
 		} elsif($line =~ /\G%orig\b/gc) {
 			# %orig, with optional following parens.
 			nestingMustContain($lineno, "%orig", \@nestingstack, "hook", "subclass");
+			fileError($lineno, "%orig does not make sense outside a method") if(!defined($currentMethod));
+			fileError($lineno, "%orig does not make sense outside a block") if($directiveDepth < 1);
 			fileWarning($lineno, "%orig in new method ".prettyPrintMethod($currentMethod)." will be non-operative.") if $currentMethod->isNew;
 
 			my $patchStart = $-[0];
@@ -401,6 +403,8 @@ foreach my $line (@lines) {
 		} elsif($line =~ /\G&\s*%orig\b/gc) {
 			# &%orig, at a word boundary
 			nestingMustContain($lineno, "%orig", \@nestingstack, "hook", "subclass");
+			fileError($lineno, "%orig does not make sense outside a method") if(!defined($currentMethod));
+			fileError($lineno, "%orig does not make sense outside a block") if($directiveDepth < 1);
 			fileError($lineno, "no original method pointer for &%orig in new method ".prettyPrintMethod($currentMethod).".") if $currentMethod->isNew;
 
 			my $capturedMethod = $currentMethod;
