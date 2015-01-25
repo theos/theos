@@ -436,6 +436,12 @@ foreach my $line (@lines) {
 			nestingMustNotContain($lineno, "%ctor", \@nestingstack, "hook", "subclass");
 			my $replacement = "static __attribute__((constructor)) void _logosLocalCtor_".substr(md5_hex($`.$lineno.$'), 0, 8)."()";
 			patchHere($replacement);
+		} elsif($line =~ /\G%ctor\b/gc) {
+			# %dtor
+			fileError($lineno, "%dtor does not make sense inside a block") if($directiveDepth >= 1);
+			nestingMustNotContain($lineno, "%dtor", \@nestingstack, "hook", "subclass");
+			my $replacement = "static __attribute__((destructor)) void _logosLocalDtor_".substr(md5_hex($`.$lineno.$'), 0, 8)."()";
+			patchHere($replacement);
 		} elsif($line =~ /\G%init\b/gc) {
 			# %init, with optional following parens
 			fileError($lineno, "%init does not make sense outside a block") if($directiveDepth < 1);
