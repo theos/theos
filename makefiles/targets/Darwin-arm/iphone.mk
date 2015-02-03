@@ -18,11 +18,10 @@ _THEOS_TARGET_SDK_VERSION := $(or $(_SDKVERSION),latest)
 
 _SDK_DIR := $(THEOS)/sdks
 _IOS_SDKS := $(sort $(patsubst $(_SDK_DIR)/iPhoneOS%.sdk,%,$(wildcard $(_SDK_DIR)/iPhoneOS*.sdk)))
-_IOS_SDK_COUNT := $(words $(_IOS_SDKS))
-ifeq ($(_IOS_SDK_COUNT),0)
+ifeq ($(words $(_IOS_SDKS)),0)
 $(error You do not have an SDK in $(_SDK_DIR))
 endif
-_LATEST_SDK := $(word $(_IOS_SDK_COUNT),$(_IOS_SDKS))
+_LATEST_SDK := $(lastword $(_IOS_SDKS))
 
 ifeq ($(_THEOS_TARGET_SDK_VERSION),latest)
 override _THEOS_TARGET_SDK_VERSION := $(_LATEST_SDK)
