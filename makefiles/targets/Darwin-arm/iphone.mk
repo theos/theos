@@ -74,7 +74,7 @@ include $(THEOS_MAKE_PATH)/targets/_common/darwin_flat_bundle.mk
 ifeq ($(_TARGET_VERSION_GE_6_0),1) # >= 6.0 {
 	ARCHS ?= armv7
 else # } < 6.0 {
-ifeq ($(_TARGET_VERSION_GE_3_0,1) # >= 3.0 {
+ifeq ($(_TARGET_VERSION_GE_3_0),1) # >= 3.0 {
 ifeq ($(_THEOS_TARGET_CC),arm-apple-darwin9-gcc) # iphone-gcc doesn't support armv7
 	ARCHS ?= armv6
 else
