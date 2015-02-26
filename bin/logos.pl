@@ -564,9 +564,9 @@ if (!defined $currentClass) {
 			$main::CONFIG{$1} = $2;
 			patchHere(undef);
 		} elsif($line =~ /\G%hookf\b/gc) {
-			#%MSHook
-			fileError($lineno, "%MSHook does not make sense inside a block") if($directiveDepth >= 1);
-			nestingMustNotContain($lineno, "%MSHook", \@nestingstack, "hook", "subclass");
+			#%hookf
+			fileError($lineno, "%hookf does not make sense inside a block") if($directiveDepth >= 1);
+			nestingMustNotContain($lineno, "%hookf", \@nestingstack, "hook", "subclass");
 
 			my $patchStart = $-[0];
 
