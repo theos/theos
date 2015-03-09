@@ -149,7 +149,6 @@ ifneq ($(GO_EASY_ON_ME),1)
 	_THEOS_INTERNAL_LOGOSFLAGS += -c warnings=error
 	_THEOS_INTERNAL_CFLAGS += -Werror
 endif
-_THEOS_INTERNAL_LOGOSFLAGS += -c generator=internal
 
 THEOS_BUILD_DIR ?= .
 
