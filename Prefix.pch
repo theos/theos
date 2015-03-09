@@ -1,31 +1,31 @@
 #ifdef __OBJC__
-#import <Foundation/Foundation.h>
+	#import <Foundation/Foundation.h>
 
-#if TARGET_IPHONE || TARGET_IPHONE_SIMULATOR
-#import <UIKit/UIKit.h>
-#endif
+	#if TARGET_IPHONE || TARGET_IPHONE_SIMULATOR
+		#import <UIKit/UIKit.h>
+	#endif
 
-#if TARGET_MACOSX
-#import <Cocoa/Cocoa.h>
-#import <AppKit/AppKit.h>
-#endif
+	#if TARGET_MACOSX
+		#import <Cocoa/Cocoa.h>
+		#import <AppKit/AppKit.h>
+	#endif
 
-#ifdef DEBUG
-#define __DEBUG__
-#endif
+	#ifdef DEBUG
+		#define __DEBUG__
+	#endif
 
-#ifdef __DEBUG__
-#define NSLog(...) NSLog(@"\e[0;31m[\e[m\e[0;32m%s\e[m\e[0;31m | \e[m\e[0;36m%d\e[m\e[0;31m]\e[m %@", __FILE__, __LINE__, [NSString stringWithFormat:__VA_ARGS__])
-#define STACK HBStack();
-#else
-#define NSLog(...)
-#define STACK NSLog(@"%@", [NSThread callStackSymbols]);
-#endif
+	#ifdef __DEBUG__
+		#define NSLog(...) NSLog(@"\e[0;31m[\e[m\e[0;32m%s\e[m\e[0;31m | \e[m\e[0;36m%d\e[m\e[0;31m]\e[m %@", __FILE__, __LINE__, [NSString stringWithFormat:__VA_ARGS__])
+		#define STACK HBStack();
+	#else
+		#define NSLog(...)
+		#define STACK NSLog(@"%@", [NSThread callStackSymbols]);
+	#endif
 
-#define IS_IPAD ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad)
-#define IN_SPRINGBOARD ([[NSBundle mainBundle].bundleIdentifier isEqualToString:@"com.apple.springboard"])
+	#define IS_IPAD ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad)
+	#define IN_SPRINGBOARD ([[NSBundle mainBundle].bundleIdentifier isEqualToString:@"com.apple.springboard"])
 
-#define GET_BOOL(key, default) (prefs[key] ? ((NSNumber *)prefs[key]).boolValue : default)
-#define GET_INT(key, default) (prefs[key] ? ((NSNumber *)prefs[key]).integerValue : default)
-#define GET_FLOAT(key, default) (prefs[key] ? ((NSNumber *)prefs[key]).floatValue : default)
+	#define GET_BOOL(key, default) (prefs[key] ? ((NSNumber *)prefs[key]).boolValue : default)
+	#define GET_INT(key, default) (prefs[key] ? ((NSNumber *)prefs[key]).integerValue : default)
+	#define GET_FLOAT(key, default) (prefs[key] ? ((NSNumber *)prefs[key]).floatValue : default)
 #endif
