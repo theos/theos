@@ -1,11 +1,19 @@
 #ifdef __OBJC__
-	#import <Foundation/Foundation.h>
 	#define CLASS(cls) objc_getClass(#cls)
 
 	#ifdef DEBUG
 		#define __DEBUG__
 	#endif
 	
+	#ifndef __clang__
+		#define weak assign
+		#define strong retain
+		#define __has_feature(feature) 0
+		#define instancetype id
+	#endif
+
+	#import <Foundation/Foundation.h>
+
 	#ifdef __DEBUG__
 		#define CMLog(format, ...) NSLog(@"(%s) in [%s:%d] ::: %@", __PRETTY_FUNCTION__, __FILE__, __LINE__, [NSString stringWithFormat:format, ## __VA_ARGS__])
 		#define MARK	CMLog(@"%s", __PRETTY_FUNCTION__);
@@ -26,13 +34,6 @@
 	#import <Availability.h>
 	#undef NS_AVAILABLE
 	#define NS_AVAILABLE(osx, ios)
-	#endif
-
-	#ifndef __clang__
-		#define weak assign
-		#define strong retain
-		#define __has_feature(feature) 0
-		#define instancetype id
 	#endif
 
 #endif
