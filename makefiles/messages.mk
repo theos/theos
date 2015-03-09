@@ -12,6 +12,7 @@ ifneq ($(call __theos_bool,$(or $(messages),$(MESSAGES))),$(_THEOS_TRUE))
 	ECHO_NOTHING = @(
 
 	STDERR_NULL_REDIRECT = 2> /dev/null
+	STDOUT_NULL_REDIRECT = > /dev/null
 
 	ECHO_END = )
 
@@ -29,6 +30,7 @@ else
 	ECHO_CLEANING =
 	ECHO_NOTHING = 
 	STDERR_NULL_REDIRECT = 
+	STDOUT_NULL_REDIRECT =
 	ECHO_END = 
 
 	_THEOS_VERBOSE := $(_THEOS_TRUE)
