@@ -74,17 +74,13 @@ include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_flat_bundle.mk
 
 ifeq ($(_TARGET_VERSION_GE_7_0),1) # >= 7.0 {
-	ARCHS ?= armv7 armv7s arm64
+	ARCHS ?= armv7 arm64
 else # } < 7.0 {
 ifeq ($(_TARGET_VERSION_GE_6_0),1) # >= 6.0 {
 ifeq ($(_TARGET_VERSION_GE_7_0)$(_DEPLOY_VERSION_GE_5_0),11) # >= 7.0, Deploy >= 5.0 {
 	ARCHS ?= armv7 arm64
 else # } else {
-ifeq ($(_DEPLOY_VERSION_GE_3_0)$(_DEPLOY_VERSION_LT_4_3),11) # 3.0 <= Deploy < 4.3 {
 	ARCHS ?= armv7
-else # } else {
-	ARCHS ?= armv7 armv7s
-endif # }
 endif # }
 else # } < 6.0 {
 ifeq ($(_TARGET_VERSION_GE_3_0),1) # >= 3.0 {
