@@ -7,4 +7,4 @@ internal-install::
 		echo "Could not find \"$(_THEOS_PACKAGE_LAST_FILENAME)\" to install. Aborting." >&2; \
 		exit 1; \
 	fi
-	install.exec "$(THEOS_SUDO_COMMAND) rpm -i \"$(_THEOS_PACKAGE_LAST_FILENAME)\""
+	install.exec "$(THEOS_SUDO_COMMAND) rpm -U --replacepkgs \"$(_THEOS_PACKAGE_LAST_FILENAME)\""
