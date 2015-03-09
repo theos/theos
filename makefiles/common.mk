@@ -21,7 +21,7 @@ __executable = $(if $(shell PATH="$(THEOS_BIN_PATH):$$PATH" type "$(1)" > /dev/n
 __simplify = $(2)$(eval $(1):=$(2))
 ###
 
-__THEOS_COMMON_MK_VERSION := 1r
+__THEOS_COMMON_MK_VERSION := 1k
 
 ifeq ($(_THEOS_PROJECT_MAKEFILE_NAME),)
 _THEOS_STATIC_MAKEFILE_LIST := $(filter-out $(lastword $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
