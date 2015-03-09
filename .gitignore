@@ -1,2 +1,5 @@
 .bootstrap
 lib/*.dylib
+.DS_Store
+._*
+.bootstrap

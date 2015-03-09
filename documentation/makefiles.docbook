@@ -196,7 +196,7 @@ include $(THEOS_MAKE_PATH)/tweak.mk</programlisting>
 
           <listitem>
             <para>Output file directory name. Defaults to
-            <filename>obj</filename>.</para>
+            <filename>.theos/obj</filename>.</para>
           </listitem>
         </varlistentry>
 

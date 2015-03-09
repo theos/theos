@@ -85,7 +85,8 @@ internal-install::
 	@exit 1
 endif # THEOS_DEVICE_IP == ""
 THEOS_DEVICE_PORT ?= 22
-export THEOS_DEVICE_IP THEOS_DEVICE_PORT
+THEOS_DEVICE_USER ?= root
+export THEOS_DEVICE_IP THEOS_DEVICE_PORT THEOS_DEVICE_USER
 endif # TARGET_INSTALL_REMOTE == true
 
 after-install:: internal-after-install

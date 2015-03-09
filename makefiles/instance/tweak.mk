@@ -9,11 +9,11 @@ ifeq ($(LOCAL_INSTALL_PATH),)
 	LOCAL_INSTALL_PATH = /Library/MobileSubstrate/DynamicLibraries
 endif
 
-_THEOS_INTERNAL_LDFLAGS += -lsubstrate
-
 include $(THEOS_MAKE_PATH)/instance/library.mk
 
 internal-tweak-all_:: internal-library-all_
+
+internal-tweak-compile: internal-library-compile
 
 ifneq ($(strip $($(THEOS_CURRENT_INSTANCE)_BUNDLE_RESOURCE_DIRS) $($(THEOS_CURRENT_INSTANCE)_BUNDLE_RESOURCE_FILES)),)
 _LOCAL_BUNDLE_INSTALL_PATH = $(or $($(THEOS_CURRENT_INSTANCE)_BUNDLE_INSTALL_PATH),/Library/Application Support/$(THEOS_CURRENT_INSTANCE))

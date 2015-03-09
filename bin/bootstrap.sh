@@ -11,26 +11,20 @@ function makeSubstrateStub() {
 	ln -s "$THEOSDIR" theos
 
 	cat > Makefile << __EOF
-override TARGET_CODESIGN:=
-ifneq (\$(target),native)
-override ARCHS=arm
+TARGET_IPHONEOS_DEPLOYMENT_VERSION = 2.0
+IPHONE_ARCHS=armv7 armv7s arm64
+SDKVERSION_armv6 = 5.1
+ifneq (\$(THEOS_PLATFORM_SDK_ROOT_armv6),)
+IPHONE_ARCHS += armv6
 endif
 
 include theos/makefiles/common.mk
-FRAMEWORK_NAME = CydiaSubstrate
-CydiaSubstrate_FILES = Hooker.cc
-CydiaSubstrate_INSTALL_PATH = /Library/Frameworks
-CydiaSubstrate_LDFLAGS = -dynamiclib -install_name /Library/Frameworks/CydiaSubstrate.framework/CydiaSubstrate
-ifeq (\$(THEOS_CURRENT_INSTANCE),CydiaSubstrate)
-override AUXILIARY_LDFLAGS:=
-endif
 LIBRARY_NAME = libsubstrate
 libsubstrate_FILES = Hooker.cc
 libsubstrate_INSTALL_PATH = /usr/lib
 ifeq (\$(THEOS_PLATFORM_NAME),macosx)
 libsubstrate_LDFLAGS = -Wl,-allow_sub_type_mismatches
 endif
-include \$(THEOS_MAKE_PATH)/framework.mk
 include \$(THEOS_MAKE_PATH)/library.mk
 
 after-libsubstrate-all::
@@ -38,10 +32,6 @@ after-libsubstrate-all::
 	@mkdir -p \$(THEOS_PROJECT_DIR)/_out
 	@cp \$(THEOS_OBJ_DIR)/libsubstrate.dylib \$(THEOS_PROJECT_DIR)/_out/libsubstrate.dylib
 
-after-CydiaSubstrate-all::
-	@\$(TARGET_STRIP) -x -c \$(THEOS_SHARED_BUNDLE_BINARY_PATH)/CydiaSubstrate
-	@mkdir -p \$(THEOS_PROJECT_DIR)/_out
-	@cp \$(THEOS_SHARED_BUNDLE_BINARY_PATH)/CydiaSubstrate \$(THEOS_PROJECT_DIR)/_out/CydiaSubstrate
 __EOF
 
 	cat > Hooker.cc << __EOF
@@ -75,10 +65,10 @@ __EOF
 		echo -n " failed, what?"
 	echo
 
-	if [[ "$(uname -s)" == "Darwin" && "$(uname -p)" != "arm" ]]; then
-		echo " Compiling native CydiaSubstrate stub..."
-		make CydiaSubstrate target=native > /dev/null
-	fi
+	#if [[ "$(uname -s)" == "Darwin" && "$(uname -p)" != "arm" ]]; then
+	#	echo " Compiling native CydiaSubstrate stub..."
+	#	make CydiaSubstrate target=native > /dev/null
+	#fi
 
 	files=(_out/*)
 	if [[ ${#files[*]} -eq 0 ]]; then
