@@ -31,12 +31,10 @@ before-clean::
 
 internal-clean::
 ifeq ($(MAKELEVEL),0)
-	$(ECHO_CLEANING)rm -rf $(THEOS_OBJ_DIR)$(ECHO_END)
+	$(ECHO_CLEANING)rm -rf "$(THEOS_OBJ_DIR)"$(ECHO_END)
 	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)"$(ECHO_END)
-	$(ECHO_NOTHING)rm -rf $(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_NAME)_*-*_$(THEOS_PACKAGE_ARCH).deb$(ECHO_END)
-	$(ECHO_NOTHING)rm -rf $(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_NAME)-*-*.$(THEOS_PACKAGE_ARCH).rpm$(ECHO_END)
 else
-	$(ECHO_NOTHING)rm -rf $(THEOS_OBJ_DIR)$(ECHO_END)
+	$(ECHO_NOTHING)rm -rf "$(THEOS_OBJ_DIR)"$(ECHO_END)
 endif
 
 after-clean::
@@ -50,6 +48,16 @@ endif
 else
 _THEOS_ABSOLUTE_BUILD_DIR = $(strip $(THEOS_BUILD_DIR))
 endif
+
+clean-packages:: before-clean-packages internal-clean-packages after-clean-packages
+
+before-clean-packages::
+
+internal-clean-packages::
+	$(ECHO_NOTHING)rm -rf $(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_NAME)_*-*_$(THEOS_PACKAGE_ARCH).deb$(ECHO_END)
+	$(ECHO_NOTHING)rm -rf $(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_NAME)-*-*.$(THEOS_PACKAGE_ARCH).rpm$(ECHO_END)
+
+after-clean-packages::
 
 .PRECIOUS: %.variables %.subprojects
 
