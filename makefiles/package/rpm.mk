@@ -17,10 +17,11 @@ THEOS_PACKAGE_NAME := $(shell grep -i "^Name:" "$(_THEOS_RPM_PACKAGE_SPEC_PATH)"
 THEOS_PACKAGE_ARCH := $(shell grep -i "^BuildArch:" "$(_THEOS_RPM_PACKAGE_SPEC_PATH)" | cut -d':' -f2- | xargs)
 THEOS_PACKAGE_RPM_VERSION := $(shell grep -i "^Version:" "$(_THEOS_RPM_PACKAGE_SPEC_PATH)" | cut -d':' -f2- | xargs)
 ifeq ($(FINALPACKAGE),1)
-THEOS_PACKAGE_BASE_VERSION := $(shell grep -i "^Release:" "$(_THEOS_RPM_PACKAGE_SPEC_PATH)" | cut -d':' -f2- | xargs)
+THEOS_PACKAGE_RELEASE_VERSION ?= $(shell grep -i "^Release:" "$(_THEOS_RPM_PACKAGE_SPEC_PATH)" | cut -d':' -f2- | xargs)
 else
-THEOS_PACKAGE_BASE_VERSION := 
+THEOS_PACKAGE_RELEASE_VERSION ?= 
 endif
+THEOS_PACKAGE_BASE_VERSION := $(THEOS_PACKAGE_RELEASE_VERSION)
 
 before-package::
 	$(ECHO_NOTHING)sed -e 's/[Rr]elease:.*/Release:	$(_THEOS_INTERNAL_PACKAGE_VERSION)/g' -e '/^[Ss]ource0:/d' "$(_THEOS_RPM_PACKAGE_SPEC_PATH)" > "$(THEOS_OBJ_DIR)/package.spec"$(ECHO_END)
