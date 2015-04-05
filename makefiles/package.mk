@@ -1,13 +1,15 @@
 ifeq ($(_THEOS_PACKAGE_RULES_LOADED),)
 _THEOS_PACKAGE_RULES_LOADED := 1
 
+FINALPACKAGE ?= $(FOR_RELEASE)
+
 ## Packaging Core Rules
 .PHONY: package internal-package-check before-package internal-package after-package
 
 package:: internal-package-check stage before-package internal-package after-package
 before-package:: $(THEOS_PACKAGE_DIR)
 internal-package::
-ifeq ($(FOR_RELEASE),1)
+ifeq ($(FINALPACKAGE),1)
 	find $(THEOS_STAGING_DIR) -name \*.png -exec pincrush -i {} \;
 	find $(THEOS_STAGING_DIR) \( -name \*.plist -or -name \*.strings \) -exec plutil -convert binary1 {} \;
 endif
@@ -52,7 +54,7 @@ __BASEVER_FOR_BUILDNUM = $(or $(__USERVER_FOR_BUILDNUM),$(THEOS_PACKAGE_BASE_VER
 # VERSION.* are meant to be used in user PACKAGE_VERSIONs.
 VERSION.EXTRAVERSION = $(if $(PACKAGE_BUILDNAME),+$(PACKAGE_BUILDNAME))
 
-ifeq ($(FOR_RELEASE),1)
+ifeq ($(FINALPACKAGE),1)
 VERSION.EXTRAVERSION = $(if $(PACKAGE_BUILDNAME),+$(PACKAGE_BUILDNAME))
 _THEOS_PACKAGE_DEFAULT_VERSION_FORMAT = $(THEOS_PACKAGE_BASE_VERSION)$(VERSION.EXTRAVERSION)
 else
