@@ -133,8 +133,8 @@ _THEOS_PACKAGE_LAST_FILENAME = $(call __simplify,_THEOS_PACKAGE_LAST_FILENAME,$(
 # ObjC/++ stuff is not here, it's in instance/rules.mk and only added if there are OBJC/OBJCC objects.
 _THEOS_INTERNAL_LDFLAGS = $(if $(_THEOS_TARGET_HAS_LIBRARY_PATH),-L$(THEOS_TARGET_LIBRARY_PATH) )-L$(THEOS_LIBRARY_PATH)
 
-STRIP := $(call __theos_bool,$(or $(strip),$(STRIP)))
-ifeq ($(STRIP),$(_THEOS_TRUE))
+SHOULD_STRIP := $(call __theos_bool,$(or $(strip),$(STRIP),1))
+ifeq ($(SHOULD_STRIP),$(_THEOS_TRUE))
 OPTFLAG ?= -O2
 else
 OPTFLAG ?= -ggdb -O2
