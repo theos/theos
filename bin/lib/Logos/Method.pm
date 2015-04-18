@@ -125,8 +125,8 @@ sub printArgForArgType {
 	return "$argname.origin.x, $argname.origin.y, $argname.size.width, $argname.size.height" if $argtype =~ /^(CG|NS)Rect$/;
 	return "$argname.x, $argname.y" if $argtype =~ /^(CG|NS)Point$/;
 	return "$argname.width, $argname.height" if $argtype =~ /^(CG|NS)Size$/;
-	return "(long)$argname" if /^NS(Integer|SocketNativeHandle|StringEncoding|SortOptions|ComparisonResult|EnumerationOptions|(Hash|Map)TableOptions|SearchPath(Directory|DomainMask))$/i;
-	return "(unsigned long)$argname" if /^NSUInteger$/i;
+	return "(long)$argname" if $argtype =~ /^NS(Integer|SocketNativeHandle|StringEncoding|SortOptions|ComparisonResult|EnumerationOptions|(Hash|Map)TableOptions|SearchPath(Directory|DomainMask))$/i;
+	return "(unsigned long)$argname" if $argtype =~ /^NSUInteger$/i;
 
 	return ($fallthrough ? "(unsigned int)" : "").$argname;
 }
