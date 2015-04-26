@@ -36,6 +36,12 @@ ifneq ($(_OBJCC_FILE_COUNT),0)
 	_THEOS_INTERNAL_LDFLAGS += -ObjC++ -fobjc-exceptions -fobjc-call-cxx-cdtors
 endif
 
+# If we have any Swift objects, add Swift libraries to the linker search path.
+# Also tell the linker to find these libraries in /usr/lib/libswift/<version>.
+ifneq ($(_SWIFT_FILE_COUNT),0)
+	_THEOS_INTERNAL_LDFLAGS += -L$(_THEOS_TARGET_SWIFT_LDPATH) -rpath /usr/lib/libswift/$(_THEOS_TARGET_SWIFT_VERSION)
+endif
+
 # Add all frameworks from the type and instance.
 _THEOS_INTERNAL_LDFLAGS += $(foreach framework,$($(_THEOS_CURRENT_TYPE)_FRAMEWORKS),-framework $(framework))
 _THEOS_INTERNAL_LDFLAGS += $(foreach framework,$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,FRAMEWORKS),-framework $(framework))
