@@ -27,6 +27,9 @@ endif
 %.m: %.xm
 	$(THEOS_BIN_PATH)/logos.pl $< > $@
 
+%.swift: %.xswift
+	$(THEOS_BIN_PATH)/logos.pl $< > $@
+
 ifneq ($(THEOS_BUILD_DIR),.)
 $(THEOS_BUILD_DIR):
 	@mkdir -p $(THEOS_BUILD_DIR)
