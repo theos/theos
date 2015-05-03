@@ -222,7 +222,6 @@ else
 ifeq ($(THEOS_CURRENT_ARCH),)
 
 ARCH_FILES_TO_LINK := $(addsuffix /$(1),$(addprefix $(THEOS_OBJ_DIR)/,$(TARGET_ARCHS)))
-ifneq ($$(TARGET_CODESIGN),)
 $$(THEOS_OBJ_DIR)/%/$(1): $(__ALL_FILES)
 	@ \
 	mkdir -p $(THEOS_OBJ_DIR)/$$*; \
@@ -234,6 +233,7 @@ $$(THEOS_OBJ_DIR)/%/$(1): $(__ALL_FILES)
 		THEOS_BUILD_DIR="$(THEOS_BUILD_DIR)" \
 		THEOS_CURRENT_ARCH="$$*"
 
+ifneq ($$(TARGET_CODESIGN),)
 .INTERMEDIATE: $$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned
 $(THEOS_OBJ_DIR)/$(1): $$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned
 	$$(ECHO_SIGNING)$$(_THEOS_CODESIGN_COMMANDLINE) "$$<"; mv "$$<" "$$@"$$(ECHO_END)
