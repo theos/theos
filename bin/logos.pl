@@ -25,6 +25,7 @@ use aliased 'Logos::Method';
 use aliased 'Logos::Class';
 use aliased 'Logos::Subclass';
 use aliased 'Logos::StaticClassGroup' ;
+use aliased 'Logos::Property';
 
 use Logos::Generator;
 
@@ -524,7 +525,80 @@ foreach my $line (@lines) {
 		} elsif($line =~ /\G%config\s*\(\s*(\w+)\s*=\s*(.*?)\s*\)/gc) {
 			$main::CONFIG{$1} = $2;
 			patchHere(undef);
-		}
+		} elsif($line =~ /\G%property\s*(?:\((\s*\w+\s*(?:,\s*(?:\w|\=|:)+\s*)*)\))?\s*((?:\w+\s+\**)+)(\w+)\s*;/gc){
+            nestingMustContain($lineno, "%property", \@nestingstack, "hook", "subclass");
+
+            # check property attribute validity
+		    my @attributes = split/\(?\s*,\s*\)?/, $1;
+            my ($assign, $retain, $copy, $nonatomic, $getter, $setter);
+            my $numattr = 0;
+
+            foreach(@attributes){
+            	$numattr++;
+
+            	if($_ =~ /assign/){
+            		$assign = 1;
+            	}elsif($_ =~ /retain/){
+            		$retain = 1;
+            	}elsif($_ =~ /copy/){
+            		$copy = 1;
+            	}elsif($_ =~ /nonatomic/){
+            		$nonatomic = 1;
+            	}elsif($_ =~ /getter=(\w+)/){
+            		$getter = $1;
+            	}elsif($_ =~ /setter=(\w+:)/){
+            		$setter = $1;
+            	}elsif($_ =~ /readwrite|readonly/){
+            		fileError($lineno, "property attribute '".$_."' not supported.");
+            	}else{
+            		fileError($lineno, "unknown property attribute '".$_."'.");
+            	}
+            }
+
+            if(!$assign && !$retain && !$copy){
+            	fileWarning($lineno, "no 'assign', 'retain', or 'copy' attribute is specified - 'assign' is assumed");
+            	push(@attributes, "assign");
+            	$numattr++;
+            }
+
+            if($assign && $retain){
+            	fileError($lineno, "property attributes 'assign' and 'retain' are mutually exclusive.");
+            }
+
+            if($assign && $copy){
+            	fileError($lineno, "property attributes 'assign' and 'copy' are mutually exclusive.");
+            }
+
+            if($copy && $retain){
+            	fileError($lineno, "property attributes 'copy' and 'retain' are mutually exclusive.");
+            }
+
+            my $property = Property->new();
+
+
+            $property->class($currentClass->name);
+
+            if($currentGroup){
+            	$property->group($currentGroup->name);
+            }else{
+            	$property->group("_ungrouped");
+            }
+           
+            $property->numattr($numattr);
+            $property->attributes(@attributes);
+            $property->type($2);
+            $property->name($3);
+
+            $currentClass->addProperty($property);
+
+            my $patchStart = $-[0];
+            my $patch = Patch->new();
+			$patch->line($lineno);
+			$patch->range($patchStart, pos($line));
+			$patch->source(Patch::Source::Generator->new($property, 'getters_setters'));
+			addPatch($patch);
+
+        }
 	}
 
 	$lineno++;
