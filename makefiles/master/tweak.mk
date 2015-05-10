@@ -13,7 +13,7 @@ internal-stage:: $(TWEAK_NAME:=.stage.tweak.variables);
 
 ifneq ($(TWEAK_TARGET_PROCESS),)
 internal-after-install::
-	install.exec "killall -9 $(TWEAK_TARGET_PROCESS)"
+	install.exec "killall -9 $(TWEAK_TARGET_PROCESS) || true"
 endif
 
 TWEAKS_WITH_SUBPROJECTS = $(strip $(foreach tweak,$(TWEAK_NAME),$(patsubst %,$(tweak),$(call __schema_var_all,$(tweak)_,SUBPROJECTS))))
