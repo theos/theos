@@ -30,14 +30,44 @@ sub getter {
 	$build .= " return ";
 
 
-	if ($property->type =~ /BOOL/){
+	if ($property->type =~ /^(BOOL|(unsigned )?char|double|float|CGFloat|(unsigned )?int|NSInteger|unsigned|NSUInteger|(unsigned )?long (long)?|(unsigned )?short|NSRange|CGPoint|CGVector|CGSize|CGRect|CGAffineTransform|UIEdgeInsets|UIOffset|CATransform3D|CMTime(Range|Mapping)?|MKCoordinate(Span)?|SCNVector[34]|SCNMatrix4)$/){
 		$build .= "[";
 	}
 
 	$build .= "objc_getAssociatedObject(self, &" . $key . ")";
 
-	if ($property->type =~ /BOOL/){
+	if ($property->type == "BOOL"){
 		$build .= " boolValue]";
+	} elsif ($property->type == "char"){
+		$build .= " charValue]";
+	} elsif ($property->type == "unsigned char"){
+		$build .= " unsignedCharValue]";
+	} elsif ($property->type == "double"){
+		$build .= " doubleValue]";
+	} elsif ($property->type =~ /^(float|CGFloat)$/){
+		$build .= " floatValue]";
+	} elsif ($property->type == "int"){
+		$build .= " intValue]";
+	} elsif ($property->type == "NSInteger"){
+		$build .= " integerValue]";
+	} elsif ($property->type =~ /^unsigned( int)?$/){
+		$build .= " unsignedIntValue]";
+	} elsif ($property->type == "NSUInteger"){
+		$build .= " unsignedIntegerValue]";
+	} elsif ($property->type == "long"){
+		$build .= " longValue]";
+	} elsif ($property->type == "unsigned long"){
+		$build .= " unsignedLongValue]";
+	} elsif ($property->type == "long long"){
+		$build .= " longLongValue]";
+	} elsif ($property->type == "unsigned long long"){
+		$build .= " unsignedLongLongValue]";
+	} elsif ($property->type == "short"){
+		$build .= " shortValue]";
+	} elsif ($property->type == "unsigned short"){
+		$build .= " unsignedShortValue]";
+	} elsif ($property->type =~ /^(NSRange|CGPoint|CGVector|CGSize|CGRect|CGAffineTransform|UIEdgeInsets|UIOffset|CATransform3D|CMTime(Range|Mapping)?|MKCoordinate(Span)?|SCNVector[34]|SCNMatrix4)$/){
+		$build .= " " . $property->type . "Value]";
 	}
 
 	$build .= "; }";
@@ -68,13 +98,47 @@ sub setter {
 
 	$build .= "objc_setAssociatedObject(self, &" . $key . ", ";
 
-	if ($property->type =~ /BOOL/){
+	my $hasOpening = true;
+
+	if ($property->type == "BOOL"){
 		$build .= "[NSNumber numberWithBool:";
+	} elsif ($property->type == "char"){
+		$build .= "[NSNumber numberWithChar:";
+	} elsif ($property->type == "unsigned char"){
+		$build .= "[NSNumber numberWithUnsignedChar:";
+	} elsif ($property->type == "double"){
+		$build .= "[NSNumber numberWithDouble:";
+	} elsif ($property->type =~ /^(float|CGFloat)$/){
+		$build .= "[NSNumber numberWithFloat:";
+	} elsif ($property->type == "int"){
+		$build .= "[NSNumber numberWithInt:";
+	} elsif ($property->type == "NSInteger"){
+		$build .= "[NSNumber numberWithInteger:";
+	} elsif ($property->type =~ /^unsigned( int)?$/){
+		$build .= "[NSNumber numberWithUnsignedInt:";
+	} elsif ($property->type == "NSUInteger"){
+		$build .= "[NSNumber numberWithUnsignedInteger:";
+	} elsif ($property->type == "long"){
+		$build .= "[NSNumber numberWithLong:";
+	} elsif ($property->type == "unsigned long"){
+		$build .= "[NSNumber numberWithUnsignedLong:";
+	} elsif ($property->type == "long long"){
+		$build .= "[NSNumber numberWithLongLong:";
+	} elsif ($property->type == "unsigned long long"){
+		$build .= "[NSNumber numberWithUnsignedLongLong:";
+	} elsif ($property->type == "short"){
+		$build .= "[NSNumber numberWithShort:";
+	} elsif ($property->type == "unsigned short"){
+		$build .= "[NSNumber numberWithUnsignedShort:";
+	} elsif ($property->type =~ /^(NSRange|CGPoint|CGVector|CGSize|CGRect|CGAffineTransform|UIEdgeInsets|UIOffset|CATransform3D|CMTime(Range|Mapping)?|MKCoordinate(Span)?|SCNVector[34]|SCNMatrix4)$/){
+		$build .= "[NSValue valueWith " . $property->type . ":";
+	} else {
+		$hasOpening = false;
 	}
 
 	$build .= "arg";
 
-	if ($property->type =~ /BOOL/){
+	if ($hasOpening){
 		$build .= "]";
 	}
 
