@@ -94,7 +94,7 @@ READLOOP: while(my $line = <FILE>) {
 		$line = $`.$';
 		redo READLOOP;
 	}
-	
+
 	# Start of a multi-line /* comment.
 	while($line =~ /\/\*.*$/g) {
 		next if fallsBetween($-[0], @quotes);
@@ -526,79 +526,79 @@ foreach my $line (@lines) {
 			$main::CONFIG{$1} = $2;
 			patchHere(undef);
 		} elsif($line =~ /\G%property\s*(?:\((\s*\w+\s*(?:,\s*(?:\w|\=|:)+\s*)*)\))?\s*((?:\w+\s+\**)+)(\w+)\s*;/gc){
-            nestingMustContain($lineno, "%property", \@nestingstack, "hook", "subclass");
+			nestingMustContain($lineno, "%property", \@nestingstack, "hook", "subclass");
 
-            # check property attribute validity
-		    my @attributes = split/\(?\s*,\s*\)?/, $1;
-            my ($assign, $retain, $copy, $nonatomic, $getter, $setter);
-            my $numattr = 0;
+			# check property attribute validity
+			my @attributes = split/\(?\s*,\s*\)?/, $1;
+			my ($assign, $retain, $copy, $nonatomic, $getter, $setter);
+			my $numattr = 0;
 
-            foreach(@attributes){
-            	$numattr++;
+			foreach(@attributes){
+				$numattr++;
 
-            	if($_ =~ /assign/){
-            		$assign = 1;
-            	}elsif($_ =~ /retain/){
-            		$retain = 1;
-            	}elsif($_ =~ /copy/){
-            		$copy = 1;
-            	}elsif($_ =~ /nonatomic/){
-            		$nonatomic = 1;
-            	}elsif($_ =~ /getter=(\w+)/){
-            		$getter = $1;
-            	}elsif($_ =~ /setter=(\w+:)/){
-            		$setter = $1;
-            	}elsif($_ =~ /readwrite|readonly/){
-            		fileError($lineno, "property attribute '".$_."' not supported.");
-            	}else{
-            		fileError($lineno, "unknown property attribute '".$_."'.");
-            	}
-            }
+				if($_ =~ /assign/){
+					$assign = 1;
+				}elsif($_ =~ /retain/){
+					$retain = 1;
+				}elsif($_ =~ /copy/){
+					$copy = 1;
+				}elsif($_ =~ /nonatomic/){
+					$nonatomic = 1;
+				}elsif($_ =~ /getter=(\w+)/){
+					$getter = $1;
+				}elsif($_ =~ /setter=(\w+:)/){
+					$setter = $1;
+				}elsif($_ =~ /readwrite|readonly/){
+					fileError($lineno, "property attribute '".$_."' not supported.");
+				}else{
+					fileError($lineno, "unknown property attribute '".$_."'.");
+				}
+			}
 
-            if(!$assign && !$retain && !$copy){
-            	fileWarning($lineno, "no 'assign', 'retain', or 'copy' attribute is specified - 'assign' is assumed");
-            	push(@attributes, "assign");
-            	$numattr++;
-            }
+			if(!$assign && !$retain && !$copy){
+				fileWarning($lineno, "no 'assign', 'retain', or 'copy' attribute is specified - 'assign' is assumed");
+				push(@attributes, "assign");
+				$numattr++;
+			}
 
-            if($assign && $retain){
-            	fileError($lineno, "property attributes 'assign' and 'retain' are mutually exclusive.");
-            }
+			if($assign && $retain){
+				fileError($lineno, "property attributes 'assign' and 'retain' are mutually exclusive.");
+			}
 
-            if($assign && $copy){
-            	fileError($lineno, "property attributes 'assign' and 'copy' are mutually exclusive.");
-            }
+			if($assign && $copy){
+				fileError($lineno, "property attributes 'assign' and 'copy' are mutually exclusive.");
+			}
 
-            if($copy && $retain){
-            	fileError($lineno, "property attributes 'copy' and 'retain' are mutually exclusive.");
-            }
+			if($copy && $retain){
+				fileError($lineno, "property attributes 'copy' and 'retain' are mutually exclusive.");
+			}
 
-            my $property = Property->new();
+			my $property = Property->new();
 
 
-            $property->class($currentClass->name);
+			$property->class($currentClass->name);
 
-            if($currentGroup){
-            	$property->group($currentGroup->name);
-            }else{
-            	$property->group("_ungrouped");
-            }
-           
-            $property->numattr($numattr);
-            $property->attributes(@attributes);
-            $property->type($2);
-            $property->name($3);
+			if($currentGroup){
+				$property->group($currentGroup->name);
+			}else{
+				$property->group("_ungrouped");
+			}
 
-            $currentClass->addProperty($property);
+			$property->numattr($numattr);
+			$property->attributes(@attributes);
+			$property->type($2);
+			$property->name($3);
 
-            my $patchStart = $-[0];
-            my $patch = Patch->new();
+			$currentClass->addProperty($property);
+
+			my $patchStart = $-[0];
+			my $patch = Patch->new();
 			$patch->line($lineno);
 			$patch->range($patchStart, pos($line));
 			$patch->source(Patch::Source::Generator->new($property, 'getters_setters'));
 			addPatch($patch);
 
-        }
+		}
 	}
 
 	$lineno++;
@@ -684,7 +684,7 @@ if(exists $main::CONFIG{"dump"}) {
 			patches=>\@patches,
 			lines=>\@lines,
 			config=>\%::CONFIG
-		       };
+			   };
 	if($main::CONFIG{"dump"} eq "yaml") {
 		load 'YAML::Syck';
 		print STDERR YAML::Syck::Dump($dumphref);

@@ -15,8 +15,8 @@ sub new {
 	$self->{REQUIRED} = 0;
 	$self->{METHODS} = [];
 	$self->{NUM_METHODS} = 0;
-    $self->{PROPERTIES} = [];
-    $self->{NUM_PROPERTIES} = 0;
+	$self->{PROPERTIES} = [];
+	$self->{NUM_PROPERTIES} = 0;
 	$self->{GROUP} = undef;
 	bless($self, $class);
 	return $self;
@@ -113,10 +113,10 @@ sub addMethod {
 }
 
 sub addProperty {
-    my $self = shift;
-    my $property = shift;
-    push(@{$self->{PROPERTIES}}, $property);
-    $self->{NUM_PROPERTIES}++;
+	my $self = shift;
+	my $property = shift;
+	push(@{$self->{PROPERTIES}}, $property);
+	$self->{NUM_PROPERTIES}++;
 }
 
 1;
