@@ -40,7 +40,7 @@ sub declaration {
 	my $function = shift;
 	my $return = "";
 	$return .= "_disused static ".$function->retval." ".$self->newFunctionName($function)."(".join(", ", @{$function->args}).");";
-	$return .= "static ".$function->retval." ".$self->newFunctionName($function)."(".join(", ", @{$function->args}).");";
+	$return .= "static ".$function->retval." ".$self->newFunctionName($function)."(".join(", ", @{$function->args}).")";
 	return $return;
 }
 

@@ -674,7 +674,7 @@ if(exists $main::CONFIG{"dump"}) {
 			patches=>\@patches,
 			lines=>\@lines,
 			config=>\%::CONFIG
-		       };
+		};
 	if($main::CONFIG{"dump"} eq "yaml") {
 		load 'YAML::Syck';
 		print STDERR YAML::Syck::Dump($dumphref);
