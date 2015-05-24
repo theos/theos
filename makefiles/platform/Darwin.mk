@@ -12,7 +12,15 @@ THEOS_PLATFORM_SDK_ROOT ?= $(shell xcode-select -print-path)
 export DEVELOPER_DIR = $(THEOS_PLATFORM_SDK_ROOT)
 
 _THEOS_PLATFORM_DEFAULT_TARGET := iphone
+
+ifeq ($(call __executable,gdu),$(_THEOS_TRUE))
+_THEOS_PLATFORM_DU := gdu
 _THEOS_PLATFORM_DU_EXCLUDE := --exclude
+else
+_THEOS_PLATFORM_DU := du
+_THEOS_PLATFORM_DU_EXCLUDE := -I
+endif
+
 _THEOS_PLATFORM_MD5SUM := md5
 _THEOS_PLATFORM_LIPO = xcrun lipo
 endif
