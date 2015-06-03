@@ -26,6 +26,7 @@ use aliased 'Logos::Class';
 use aliased 'Logos::Subclass';
 use aliased 'Logos::StaticClassGroup' ;
 use aliased 'Logos::Property';
+use aliased 'Logos::Function';
 
 use Logos::Generator;
 
@@ -172,6 +173,7 @@ my $currentGroup = $defaultGroup;
 my $currentClass = undef;
 my $currentMethod = undef;
 my $newMethodTypeEncoding = undef;
+my $currentFunction = undef;
 
 my %classes = ();
 
@@ -379,6 +381,25 @@ foreach my $line (@lines) {
 			addPatch($patch);
 		} elsif($line =~ /\G%orig\b/gc) {
 			# %orig, with optional following parens.
+if (!defined $currentClass) {
+			fileError($lineno, "%orig does not make sense outside a function") if(!defined($currentFunction));
+			my $patchStart = $-[0];
+
+			my $remaining = substr($line, pos($line));
+			my $orig_args = undef;
+
+			my ($popen, $pclose) = matchedParenthesisSet($remaining);
+			if(defined $popen) {
+				$orig_args = substr($remaining, $popen, $pclose-$popen-1);;
+				pos($line) = pos($line) + $pclose;
+			}
+
+			my $patch = Patch->new();
+			$patch->line($lineno);
+			$patch->range($patchStart, pos($line));
+			$patch->source(Patch::Source::Generator->new($currentFunction, 'originalFunctionCall', $orig_args));
+			addPatch($patch);
+} else {
 			nestingMustContain($lineno, "%orig", \@nestingstack, "hook", "subclass");
 			fileError($lineno, "%orig does not make sense outside a method") if(!defined($currentMethod));
 			fileError($lineno, "%orig does not make sense outside a block") if($directiveDepth < 1);
@@ -401,8 +422,19 @@ foreach my $line (@lines) {
 			$patch->range($patchStart, pos($line));
 			$patch->source(Patch::Source::Generator->new($capturedMethod, 'originalCall', $orig_args));
 			addPatch($patch);
+}
 		} elsif($line =~ /\G&\s*%orig\b/gc) {
 			# &%orig, at a word boundary
+if (!defined $currentClass) {
+			fileError($lineno, "%orig does not make sense outside a function") if(!defined($currentFunction));
+			my $patchStart = $-[0];
+			my $patchEnd = $patchStart + 6;
+			my $patch = Patch->new();
+			$patch->line($lineno);
+			$patch->range($patchStart, $patchEnd);
+			$patch->source(Patch::Source::Generator->new($currentFunction, 'originalFunctionName'));
+			addPatch($patch);
+} else {
 			nestingMustContain($lineno, "%orig", \@nestingstack, "hook", "subclass");
 			fileError($lineno, "%orig does not make sense outside a method") if(!defined($currentMethod));
 			fileError($lineno, "%orig does not make sense outside a block") if($directiveDepth < 1);
@@ -410,6 +442,7 @@ foreach my $line (@lines) {
 
 			my $capturedMethod = $currentMethod;
 			patchHere(Patch::Source::Generator->new($capturedMethod, 'originalFunctionName'));
+}
 		} elsif($line =~ /\G%log\b/gc) {
 			# %log
 			nestingMustContain($lineno, "%log", \@nestingstack, "hook", "subclass");
@@ -436,6 +469,12 @@ foreach my $line (@lines) {
 			fileError($lineno, "%ctor does not make sense inside a block") if($directiveDepth >= 1);
 			nestingMustNotContain($lineno, "%ctor", \@nestingstack, "hook", "subclass");
 			my $replacement = "static __attribute__((constructor)) void _logosLocalCtor_".substr(md5_hex($`.$lineno.$'), 0, 8)."()";
+			patchHere($replacement);
+		} elsif($line =~ /\G%dtor\b/gc) {
+			# %dtor
+			fileError($lineno, "%dtor does not make sense inside a block") if($directiveDepth >= 1);
+			nestingMustNotContain($lineno, "%dtor", \@nestingstack, "hook", "subclass");
+			my $replacement = "static __attribute__((destructor)) void _logosLocalDtor_".substr(md5_hex($`.$lineno.$'), 0, 8)."()";
 			patchHere($replacement);
 		} elsif($line =~ /\G%init\b/gc) {
 			# %init, with optional following parens
@@ -597,7 +636,31 @@ foreach my $line (@lines) {
 			$patch->range($patchStart, pos($line));
 			$patch->source(Patch::Source::Generator->new($property, 'getters_setters'));
 			addPatch($patch);
+		} elsif($line =~ /\G%hookf\b/gc) {
+			#%hookf
+			fileError($lineno, "%hookf does not make sense inside a block") if($directiveDepth >= 1);
+			nestingMustNotContain($lineno, "%hookf", \@nestingstack, "hook", "subclass");
 
+			my $patchStart = $-[0];
+
+			my $remaining = substr($line, pos($line));
+			my $argumentString = undef;
+			my $args = [];
+
+			my ($popen, $pclose) = matchedParenthesisSet($remaining);
+			if(defined $popen) {
+				$argumentString = substr($remaining, $popen, $pclose-$popen-1);
+				pos($line) = pos($line) + $pclose;
+				@$args = Logos::Util::smartSplit(qr/\s*,\s*/, $argumentString);
+			}
+
+			$currentFunction = $currentGroup->addFunction($args);
+
+			my $patch = Patch->new();
+			$patch->line($lineno);
+			$patch->range($patchStart, pos($line));
+			$patch->source(Patch::Source::Generator->new($currentFunction, 'declaration'));
+			addPatch($patch);
 		}
 	}
 
@@ -684,7 +747,7 @@ if(exists $main::CONFIG{"dump"}) {
 			patches=>\@patches,
 			lines=>\@lines,
 			config=>\%::CONFIG
-			   };
+		};
 	if($main::CONFIG{"dump"} eq "yaml") {
 		load 'YAML::Syck';
 		print STDERR YAML::Syck::Dump($dumphref);

@@ -18,7 +18,10 @@ _THEOS_TARGET_SDK_VERSION := $(or $(_SDKVERSION),latest)
 
 _SDK_DIR := $(THEOS)/sdks
 _IOS_SDKS := $(sort $(patsubst $(_SDK_DIR)/iPhoneOS%.sdk,%,$(wildcard $(_SDK_DIR)/iPhoneOS*.sdk)))
-_LATEST_SDK := $(word $(words $(_IOS_SDKS)),$(_IOS_SDKS))
+ifeq ($(words $(_IOS_SDKS)),0)
+$(error You do not have an SDK in $(_SDK_DIR))
+endif
+_LATEST_SDK := $(lastword $(_IOS_SDKS))
 
 ifeq ($(_THEOS_TARGET_SDK_VERSION),latest)
 override _THEOS_TARGET_SDK_VERSION := $(_LATEST_SDK)
@@ -75,7 +78,7 @@ include $(THEOS_MAKE_PATH)/targets/_common/darwin_flat_bundle.mk
 ifeq ($(_TARGET_VERSION_GE_6_0),1) # >= 6.0 {
 	ARCHS ?= armv7
 else # } < 6.0 {
-ifeq ($(_TARGET_VERSION_GE_3_0,1) # >= 3.0 {
+ifeq ($(_TARGET_VERSION_GE_3_0),1) # >= 3.0 {
 ifeq ($(_THEOS_TARGET_CC),arm-apple-darwin9-gcc) # iphone-gcc doesn't support armv7
 	ARCHS ?= armv6
 else
