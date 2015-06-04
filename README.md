@@ -40,5 +40,6 @@ In a kinda-chronological order of the date the feature was added:
 * Deprecates `NSLog` in favor of more detailed log macros, `HBLogDebug`, `HBLogInfo`, `HBLogWarn`, and `HBLogError`. (kirb)
 * Makes debug builds the default. Use `make DEBUG=0` or `FORRELEASE=1` to build without debug. (kirb)
 * Bumps default deployment target to iOS 4.3 when using iOS SDK 6.0 and iOS 5.0 when using iOS SDK 7.0. (kirb)
+* Includes NIC templates from [DHowett, conradev, WillFour20](https://github.com/DHowett/theos-nic-templates); [uroboro](https://github.com/uroboro/nicTemplates); and [bensge, kirb](https://github.com/sharedInstance/iOS-7-Notification-Center-Widget-Template).
 
 TL;DR it's pretty awesome, you should use it
