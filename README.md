@@ -1,5 +1,5 @@
 # Theos
-Unified cross-platform iPhone Makefile system. Learn more at the [iPhone Development Wiki](http://iphonedevwiki.net/index.php/Theos).
+Unified cross-platform iPhone Makefile system. Learn more at the [iPhone Development Wiki](http://iphonedevwiki.net/index.php/Theos). *"kirb’s amalgamation of all the things"* –rpetrich
 
 See [LICENSE](LICENSE) for licensing information.
 
@@ -30,7 +30,7 @@ In a kinda-chronological order of the date the feature was added:
 * Adds modern app and preference bundle templates. (kirb)
 * Adds `%dtor { ... }` directive to run code when the process is deconstructing. (uroboro)
 * Improves error handling when an SDK isn't found. (uroboro)
-* Adds `%hookf` for hooking functions. [Example](https://github.com/DHowett/theos/pull/106#issuecomment-51284735) (uroboro)
+* Adds `%hookf` for hooking functions. [Example](https://github.com/DHowett/theos/pull/106#issuecomment-52142951) (uroboro)
 * Supports building rpm packages. (rpetrich)
 * Adds `STRIP=0` to not strip on release builds. (rpetrich)
 * Adds a stub `libsubstrate.dylib` binary so you don't need to get one yourself. (kirb)
@@ -43,3 +43,7 @@ In a kinda-chronological order of the date the feature was added:
 * Includes NIC templates from [DHowett, conradev, WillFour20](https://github.com/DHowett/theos-nic-templates); [uroboro](https://github.com/uroboro/nicTemplates); and [bensge, kirb](https://github.com/sharedInstance/iOS-7-Notification-Center-Widget-Template).
 
 TL;DR it's pretty awesome, you should use it
+
+## FAQ
+
+### Fork of Theos? Why? Didn't saurik say those are [bad]()?
