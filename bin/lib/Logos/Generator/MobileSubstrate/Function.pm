@@ -39,7 +39,7 @@ sub declaration {
 	my $self = shift;
 	my $function = shift;
 	my $return = "";
-	$return .= "_disused static ".$function->retval." (*".$self->originalFunctionName($function).")(".join(", ", @{$function->args}).");";
+	$return .= "_disused static ".$function->retval." (*".$self->originalFunctionName($function).")(".join(", ", @{$function->args})."); ";
 	$return .= "static ".$function->retval." ".$self->newFunctionName($function)."(".join(", ", @{$function->args}).")";
 	return $return;
 }
@@ -49,7 +49,7 @@ sub initializers {
 	my $function = shift;
 
 	my $return = "";
-	$return .= "MSHookFunction(".$function->name;
+	$return .= " MSHookFunction(".$function->name;
 	$return .= ", (void *)&".$self->newFunctionName($function);
 	$return .= ", (void **)&".$self->originalFunctionName($function);
 	$return .= ");";

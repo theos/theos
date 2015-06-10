@@ -9,6 +9,7 @@ sub new {
 	$self->{RETVAL} = undef;
 	$self->{ARGS} = [];
 	$self->{GROUP} = undef;
+	$self->{REQUIRED} = 0;
 	bless($self, $function);
 	return $self;
 }
@@ -37,6 +38,17 @@ sub group {
 	my $self = shift;
 	if(@_) { $self->{GROUP} = shift; }
 	return $self->{GROUP};
+}
+
+sub required {
+	my $self = shift;
+	if(@_) { $self->{REQUIRED} = shift; }
+	return $self->{REQUIRED};
+}
+
+sub initRequired {
+	my $self = shift;
+	return 1;
 }
 
 ##### #

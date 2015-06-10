@@ -568,6 +568,8 @@ if (!defined $currentClass) {
 			fileError($lineno, "%hookf does not make sense inside a block") if($directiveDepth >= 1);
 			nestingMustNotContain($lineno, "%hookf", \@nestingstack, "hook", "subclass");
 
+			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
+
 			my $patchStart = $-[0];
 
 			my $remaining = substr($line, pos($line));
