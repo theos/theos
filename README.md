@@ -41,9 +41,98 @@ In a kinda-chronological order of the date the feature was added:
 * Makes debug builds the default. Use `make DEBUG=0` or `FORRELEASE=1` to build without debug. (kirb)
 * Bumps default deployment target to iOS 4.3 when using iOS SDK 6.0 and iOS 5.0 when using iOS SDK 7.0. (kirb)
 * Includes NIC templates from [DHowett, conradev, WillFour20](https://github.com/DHowett/theos-nic-templates); [uroboro](https://github.com/uroboro/nicTemplates); and [bensge, kirb](https://github.com/sharedInstance/iOS-7-Notification-Center-Widget-Template).
+* Supports building for iOS on Windows. (coolstar)
 
 TL;DR it's pretty awesome, you should use it
 
 ## FAQ
+### Fork of Theos? Why? Didn't saurik say those are bad™?
+There has been a lack of development on Theos recently, there were already a few patches I made and left uncommitted for a few years, and some fixes were critically needed for new SDKs and for dependencies such as dpkg-deb to continue to work with Telesphoreo's horribly outdated dpkg. From there it grew to other features I desired, and wanted to see more of the community taking advantage of, such as debug builds by default, optimisation of particular file types in release builds, and Swift compilation. The fork has significantly matured to the point that it would be hard to merge it back into the original Theos repo, and it also pulls in commits from [rpetrich's Theos fork](https://github.com/rpetrich/theos) which was created when Theos was still in its early days and moving away from its original name of "iphone-framework".
 
-### Fork of Theos? Why? Didn't saurik say those are [bad]()?
+And besides, why would it be bad to give back so many improvements to the community?
+
+Moving along…
+
+### How do I switch to this Theos fork?
+Hopefully you set up Theos by cloning the Git repository. First – please be sure to move the `include` directory in your existing Theos to elsewhere for now. Since this directory is a Git submodule pointing at the [hbang/headers](https://github.com/hbang/headers) repo, Git will complain about a merge conflict. You can move your headers back there if you want afterwards.
+
+Now, simply change the remote repo and pull:
+
+```shell
+git remote set-url origin git@github.com:kirb/theos.git
+git pull origin master
+```
+
+Then grab the `include` submodule like so:
+
+```shell
+git submodule update --init --remote
+```
+
+### All of my package versions contain `+debug` now! How do I stop this?
+This fork is attempting to encourage using debug builds by default, rather than release builds. Building as a debug build provides more ease in using debuggers on the code, enables debug logging with `HBLogDebug()`, and makes syslog output colored so it's easier to find in a sea of other log messages.
+
+To disable debug mode, pass `DEBUG=0` as part of your command line to `make`. When you make a release build with `FOR_RELEASE=1` or `FINALPACKAGE=1`, debug will also be disabled (and the build number is also removed so your version number is cleaner).
+
+### NSLog() is deprecated? What? How do I log now?
+Like the above situation, this fork also aims to encourage developers to specify a "level" along with their logs. The levels are:
+
+* <span style="color: #13b6e5;">HBLogDebug</span> – used to log data that is useful during development, but not useful in a released package.
+* <span style="color: #55bc2d;">HBLogInfo</span> – used to log informational messages that do not indicate a problem.
+* <span style="color: #eccc00;">HBLogWarn</span> – used to indicate a problem that can be recovered from
+* <span style="color: #e2070a;">HBLogError</span> – used to indicate a problem that can not be recovered from.
+
+All of these macros are used exactly the same way as NSLog – all that changes is the *name* of the function you call.
+
+Here's a practical example of all of these in use:
+
+```objc
+- (UIImage *)iconForBundleIdentifier:(NSString *)bundleIdentifier {
+    HBLogInfo(@"looking up icon for %@", bundleIdentifier);
+
+    SBApplication *app = [[%c(SBApplicationController) sharedInstance] applicationForBundleIdentifier:bundleIdentifier];
+
+    if (!app) {
+        HBLogError(@"could not retrieve app instance for %@", bundleIdentifier);
+        return nil;
+    }
+
+    HBLogDebug(@"app for %@ is %@", bundleIdentifier, app);
+
+    SBApplicationIcon *appIcon = [[[%c(SBApplicationIcon) alloc] initWithApplication:app] autorelease];
+    UIImage *icon = [appIcon getIconImage:SBApplicationIconFormatSpotlight];
+
+    if (icon) {
+        return icon;
+    } else {
+        HBLogWarn(@"no spotlight icon was found. falling back to default icon");
+
+        icon = [appIcon getIconImage:SBApplicationIconFormatDefault];
+
+        if (!icon) {
+            HBLogError(@"couldn't get a default icon - giving up");
+        }
+
+        return icon;
+    }
+}
+```
+
+It is hoped that this will encourage more carefully considered logging that is convenient to both the developer and users reading their syslogs. Not logging at all only makes it harder for you to track down issues – please consider using this!
+
+### I built a package using Swift, but it crashes on my phone. Why?
+This fork is ready in terms of supporting *building* Swift packages; however, the Swift runtime is not available in Cydia. The reasoning for this is that many of us have been unable to find a definitive license detailing distribution of these libraries and thus it is best to stay away from releasing them.
+
+There *is* good news, however. Swift 2.0 is to be released as an open source product, and so that means packages using Swift 2.0 (once it's released, and not in beta), runtime libraries will begin to become available in Cydia.
+
+Until then, you can play around with Swift by copying the libraries to your device manually:
+
+```shell
+ssh device "mkdir -p /usr/lib/libswift/1.2"
+rsync -rav "$(xcode-select -print-path)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos" device:/usr/lib/libswift/1.2
+```
+
+This assumes you're using Xcode 6.3, which includes Swift 1.2. Change the version in the path if not. You can find out what version your copy of Xcode has with `swift --version`.
+
+### Windows support? Whoa. How do I use that?
+Refer to [the sharedInstance post](http://sharedinstance.net/2013/12/build-on-windows/) on setting this up.
