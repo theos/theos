@@ -11,6 +11,7 @@ function makeSubstrateStub() {
 	ln -s "$THEOSDIR" theos
 
 	cat > Makefile << __EOF
+include theos/makefiles/common.mk
 TARGET_IPHONEOS_DEPLOYMENT_VERSION = 2.0
 IPHONE_ARCHS=armv7 armv7s arm64
 SDKVERSION_armv6 = 5.1
@@ -18,7 +19,21 @@ ifneq (\$(THEOS_PLATFORM_SDK_ROOT_armv6),)
 IPHONE_ARCHS += armv6
 endif
 
-include theos/makefiles/common.mk
+override TARGET_CODESIGN:=
+ifneq (\$(target),native)
+ifneq (\$(THEOS_PLATFORM_NAME),windows)
+override ARCHS=arm
+endif
+endif
+
+FRAMEWORK_NAME = CydiaSubstrate
+CydiaSubstrate_FILES = Hooker.cc
+CydiaSubstrate_INSTALL_PATH = /Library/Frameworks
+CydiaSubstrate_LDFLAGS = -dynamiclib -install_name /Library/Frameworks/CydiaSubstrate.framework/CydiaSubstrate
+ifeq (\$(THEOS_CURRENT_INSTANCE),CydiaSubstrate)
+override AUXILIARY_LDFLAGS:=
+endif
+
 LIBRARY_NAME = libsubstrate
 libsubstrate_FILES = Hooker.cc
 libsubstrate_INSTALL_PATH = /usr/lib
