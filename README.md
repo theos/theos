@@ -79,12 +79,10 @@ To disable debug mode, pass `DEBUG=0` as part of your command line to `make`. Wh
 ### NSLog() is deprecated? What? How do I log now?
 Like the above situation, this fork also aims to encourage developers to specify a "level" along with their logs. The levels are:
 
-```ansi
-[1;36mHBLogDebug[m – used to log data that is useful during development, but not useful in a released package.
-[1;32mHBLogInfo[m – used to log informational messages that do not indicate a problem.
-[1;33mHBLogWarn[m – used to indicate a problem that can be recovered from
-[1;31mHBLogError[m – used to indicate a problem that can not be recovered from.
-```
+**HBLogDebug** – used to log data that is useful during development, but not useful in a released package.
+**HBLogInfo** – used to log informational messages that do not indicate a problem.
+**HBLogWarn** – used to indicate a problem that can be recovered from
+**HBLogError** – used to indicate a problem that can not be recovered from.
 
 All of these macros are used exactly the same way as NSLog – all that changes is the *name* of the function you call.
 
