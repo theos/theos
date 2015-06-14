@@ -69,6 +69,8 @@ Then grab the `include` submodule like so:
 git submodule update --init --remote
 ```
 
+Alternatively, on OS X, you can grab Theos from Homebrew. Just `brew install hbang/repo/theos`, and it'll be installed to `/usr/local/theos` (or equivalent for your Homebrew prefix).
+
 ### All of my package versions contain `+debug` now! How do I stop this?
 This fork is attempting to encourage using debug builds by default, rather than release builds. Building as a debug build provides more ease in using debuggers on the code, enables debug logging with `HBLogDebug()`, and makes syslog output colored so it's easier to find in a sea of other log messages.
 
@@ -77,16 +79,18 @@ To disable debug mode, pass `DEBUG=0` as part of your command line to `make`. Wh
 ### NSLog() is deprecated? What? How do I log now?
 Like the above situation, this fork also aims to encourage developers to specify a "level" along with their logs. The levels are:
 
-* <span style="color: #13b6e5;">HBLogDebug</span> – used to log data that is useful during development, but not useful in a released package.
-* <span style="color: #55bc2d;">HBLogInfo</span> – used to log informational messages that do not indicate a problem.
-* <span style="color: #eccc00;">HBLogWarn</span> – used to indicate a problem that can be recovered from
-* <span style="color: #e2070a;">HBLogError</span> – used to indicate a problem that can not be recovered from.
+```ansi
+[1;36mHBLogDebug[m – used to log data that is useful during development, but not useful in a released package.
+[1;32mHBLogInfo[m – used to log informational messages that do not indicate a problem.
+[1;33mHBLogWarn[m – used to indicate a problem that can be recovered from
+[1;31mHBLogError[m – used to indicate a problem that can not be recovered from.
+```
 
 All of these macros are used exactly the same way as NSLog – all that changes is the *name* of the function you call.
 
 Here's a practical example of all of these in use:
 
-```objc
+```logos
 - (UIImage *)iconForBundleIdentifier:(NSString *)bundleIdentifier {
     HBLogInfo(@"looking up icon for %@", bundleIdentifier);
 
