@@ -83,8 +83,24 @@ export THEOS_DEVICE_IP THEOS_DEVICE_PORT THEOS_DEVICE_USER
 endif # TARGET_INSTALL_REMOTE == true
 
 after-install:: internal-after-install
-before-install internal-install internal-after-install::
+INSTALL_TARGET_PROCESSES ?=
+before-install::
+ifneq ($(PREINSTALL_TARGET_PROCESSES),)
+	$(ECHO_PRE_UNLOADING)install.exec "killall -9 $(PREINSTALL_TARGET_PROCESSES) || true" $(STDERR_NULL_REDIRECT)$(ECHO_END)
+else
 	@:
+endif
+
+internal-install::
+	@:
+
+INSTALL_TARGET_PROCESSES ?=
+internal-after-install::
+ifneq ($(INSTALL_TARGET_PROCESSES),)
+	$(ECHO_UNLOADING)install.exec "killall -9 $(INSTALL_TARGET_PROCESSES) || true" $(STDERR_NULL_REDIRECT)$(ECHO_END)
+else
+	@:
+endif
 
 -include $(THEOS_MAKE_PATH)/install/$(_THEOS_PACKAGE_FORMAT)_$(_THEOS_INSTALL_TYPE).mk
 $(eval $(call __mod,install/$(_THEOS_PACKAGE_FORMAT)_$(_THEOS_INSTALL_TYPE).mk))
