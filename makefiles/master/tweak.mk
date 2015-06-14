@@ -4,9 +4,6 @@ ifeq ($(_THEOS_RULES_LOADED),)
 include $(THEOS_MAKE_PATH)/rules.mk
 endif
 
-before-all::
-	@[ -f "$(THEOS_LIBRARY_PATH)/libsubstrate.dylib" ] || bootstrap.sh substrate
-
 internal-all:: $(TWEAK_NAME:=.all.tweak.variables);
 
 internal-stage:: $(TWEAK_NAME:=.stage.tweak.variables);
