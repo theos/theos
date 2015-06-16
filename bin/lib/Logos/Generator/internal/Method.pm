@@ -2,12 +2,6 @@ package Logos::Generator::internal::Method;
 use strict;
 use parent qw(Logos::Generator::Base::Method);
 
-sub superFunctionName {
-	my $self = shift;
-	my $method = shift;
-	return Logos::sigil(($method->scope eq "+" ? "meta_" : "")."super").$method->groupIdentifier."\$".$method->class->name."\$".$method->_new_selector;
-}
-
 sub originalCallParams {
 	my $self = shift;
 	my $method = shift;
@@ -41,18 +35,6 @@ sub definition {
 	my $arglist = "";
 	map $arglist .= ", ".Logos::Method::declarationForTypeWithName($method->argtypes->[$_], $method->argnames->[$_]), (0..$method->numArgs - 1);
 	my $parameters = "(".$classargtype." self, SEL _cmd".$arglist.")";
-	if(!$method->isNew) {
-		my $argtypelist = join(", ", @{$method->argtypes});
-
-		$build .= "static ".Logos::Method::declarationForTypeWithName($method->return, $self->superFunctionName($method).$parameters)." {";
-		my $pointerType = "(*)(".$classargtype.", SEL";
-		$pointerType .=       ", ".$argtypelist if $argtypelist;
-		$pointerType .=   ")";
-		$build .=     "return ((".Logos::Method::declarationForTypeWithName($method->return, $pointerType).")class_getMethodImplementation(".$classref.", \@selector(".$method->selector.")))";
-		$build .=         $self->originalCallParams($method).";";
-		$build .= "}";
-	
-	}
 	$build .= "static ".Logos::Method::declarationForTypeWithName($method->return, $self->newFunctionName($method).$parameters);
 	return $build;
 }
@@ -61,7 +43,21 @@ sub originalCall {
 	my $self = shift;
 	my $method = shift;
 	my $customargs = shift;
-	return $self->originalFunctionName($method).$self->originalCallParams($method, $customargs);
+	my $classargtype = "";
+	my $classref = "";
+	my $cgen = Logos::Generator::for($method->class);
+	if($method->scope eq "+") {
+		$classargtype = "Class";
+		$classref = $cgen->superMetaVariable;
+	} else {
+		$classargtype = $method->class->type;
+		$classref = $cgen->superVariable;
+	}
+	my $argtypelist = join(", ", @{$method->argtypes});
+	my $pointerType = "(*)(".$classargtype.", SEL";
+	$pointerType .=       ", ".$argtypelist if $argtypelist;
+	$pointerType .=   ")";
+	return "(".$self->originalFunctionName($method)." ? ".$self->originalFunctionName($method)." : (".Logos::Method::declarationForTypeWithName($method->return, $pointerType).")class_getMethodImplementation(".$classref.", \@selector(".$method->selector.")))".$self->originalCallParams($method, $customargs);
 }
 
 sub declarations {
@@ -107,7 +103,6 @@ sub initializers {
 		$r .= "Class _class = ".$classvar.";";
 		$r .= "Method _method = class_getInstanceMethod(_class, \@selector(".$method->selector."));";
 		$r .= "if (_method) {";
-		$r .=     $self->originalFunctionName($method)." = ".$self->superFunctionName($method).";";
 		$r .=     "if (!class_addMethod(_class, \@selector(".$method->selector."), (IMP)&".$self->newFunctionName($method).", method_getTypeEncoding(_method))) {";
 		$r .=         $self->originalFunctionName($method)." = (".$pointertype.")method_getImplementation(_method);";
 		$r .=         $self->originalFunctionName($method)." = (".$pointertype.")method_setImplementation(_method, (IMP)&".$self->newFunctionName($method).");";
