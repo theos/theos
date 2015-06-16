@@ -1,6 +1,3 @@
 .bootstrap
 .DS_Store
 ._*
-
-lib/*.dylib
-!lib/libsubstrate.dylib
