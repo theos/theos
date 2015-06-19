@@ -89,6 +89,11 @@ ifneq ($(_THEOS_PLATFORM_CALCULATED),1)
 uname_s := $(shell uname -s)
 uname_p := $(shell uname -p)
 uname_o := $(shell uname -o 2>/dev/null)
+
+ifeq ($(uname_s)-$(uname_p),Darwin-arm64)
+uname_p = arm
+endif
+
 export _THEOS_PLATFORM_ARCH = $(uname_s)-$(uname_p)
 export _THEOS_PLATFORM = $(uname_s)
 export _THEOS_OS = $(uname_o)
