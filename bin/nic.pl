@@ -37,7 +37,7 @@ my $_theospath = File::Spec->catdir(@_dirs);
 	exitWithError("Cowardly refusing to make a project inside \$THEOS ($_abstheospath)") if($_cwd =~ /^$_abstheospath/);
 }
 
-my %CONFIG = (link_theos => 1);
+my %CONFIG = (link_theos => 0);
 loadConfig();
 
 my $clean_project_name = "";
