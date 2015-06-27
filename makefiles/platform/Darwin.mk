@@ -23,4 +23,5 @@ endif
 
 _THEOS_PLATFORM_MD5SUM := md5
 _THEOS_PLATFORM_LIPO = xcrun lipo
+THEOS_SUDO_COMMAND ?= sudo
 endif
