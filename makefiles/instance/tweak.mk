@@ -9,7 +9,12 @@ ifeq ($(LOCAL_INSTALL_PATH),)
 	LOCAL_INSTALL_PATH = /Library/MobileSubstrate/DynamicLibraries
 endif
 
+_LOCAL_USE_SUBSTRATE = $(or $($(THEOS_CURRENT_INSTANCE)_USE_SUBSTRATE),$(_THEOS_TRUE))
+ifeq ($(call __theos_bool,$(_LOCAL_USE_SUBSTRATE)),$(_THEOS_TRUE))
 _THEOS_INTERNAL_LDFLAGS += -lsubstrate
+else
+_THEOS_INTERNAL_LOGOSFLAGS += -c generator=internal
+endif
 
 include $(THEOS_MAKE_PATH)/instance/library.mk
 
