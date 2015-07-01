@@ -3,6 +3,9 @@ Unified cross-platform iPhone Makefile system. Learn more at the [iPhone Develop
 
 See [LICENSE](LICENSE) for licensing information.
 
+## Environment
+Please note that Theos symlinks are not made by default by this Theos fork in new projects created by NIC. You must set and export the `$THEOS` variable in your environment. [See below](#wheres-the-theos-symlink) for details.
+
 ## Features of this fork
 First off - it's important to note that GitHub says this repo is a fork of DHowett/theos. Since forking, [rpetrich's fork](https://github.com/rpetrich/theos) has also been merged, as well as some others here and there.
 
@@ -42,6 +45,8 @@ In a kinda-chronological order of the date the feature was added:
 * Bumps default deployment target to iOS 4.3 when using iOS SDK 6.0 and iOS 5.0 when using iOS SDK 7.0. (kirb)
 * Includes NIC templates from [DHowett, conradev, WillFour20](https://github.com/DHowett/theos-nic-templates); [uroboro](https://github.com/uroboro/nicTemplates); and [bensge, kirb](https://github.com/sharedInstance/iOS-7-Notification-Center-Widget-Template).
 * Supports building for iOS on Windows. (coolstar)
+* Theos symlinks are no longer made within projects. The `$THEOS` environment variable is used instead. (kirb)
+* `target_USE_SUBSTRATE = 0` can be used to switch tweaks to the internal generator and not link against Substrate. (kirb)
 
 TL;DR it's pretty awesome, you should use it
 
@@ -125,7 +130,7 @@ It is hoped that this will encourage more carefully considered logging that is c
 ### I built a package using Swift, but it crashes on my phone. Why?
 This fork is ready in terms of supporting *building* Swift packages; however, the Swift runtime is not available in Cydia. The reasoning for this is that many of us have been unable to find a definitive license detailing distribution of these libraries and thus it is best to stay away from releasing them.
 
-There *is* good news, however. Swift 2.0 is to be released as an open source product, and so that means packages using Swift 2.0 (once it's released, and not in beta), runtime libraries will begin to become available in Cydia.
+There *is* good news, however. Swift 2.0 is to be released as an open source product, and so that means once Swift 2.0 is released (and not in beta), runtime libraries will begin to become available in Cydia.
 
 Until then, you can play around with Swift by copying the libraries to your device manually:
 
@@ -138,3 +143,12 @@ This assumes you're using Xcode 6.3, which includes Swift 1.2. Change the versio
 
 ### Windows support? Whoa. How do I use that?
 Refer to [the sharedInstance post](http://sharedinstance.net/2013/12/build-on-windows/) on setting this up.
+
+### Where's the `theos` symlink?
+This fork has opted to not use this symlink any longer because of a few reasons. First, there are a fair few "noisy" files dropped in the root of a project by standard Theos; this fork prefers to have as few of those as possile (and you may have noticed some are now stashed into the `.theos` directory). Second, this feels like a hack, and it can be very different between developers and even between each of a developer's devices as Theos can be located anywhere. It's also easy to unintentionally commit this symlink to source control or not know that this shouldn't be committed to source control.
+
+Of course, this does mean you must set and export `$THEOS` in your environment. Do this in your shell's profile or environment script (for instance `~/.bash_profile` or `~/.zshrc`) to ensure it's always set and you don't have to worry about it. It might look like this:
+
+```shell
+export THEOS=/usr/local/theos
+```
