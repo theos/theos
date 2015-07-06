@@ -47,6 +47,8 @@ In a kinda-chronological order of the date the feature was added:
 * Supports building for iOS on Windows. (coolstar)
 * Theos symlinks are no longer made within projects. The `$THEOS` environment variable is used instead. (kirb)
 * `target_USE_SUBSTRATE = 0` can be used to switch tweaks to the internal generator and not link against Substrate. (kirb)
+* Default rules, variables, etc. can be set in `~/.theosrc` (a makefile). (kirb)
+* `make show` opens the operating system's file manager and highlights the latest package. (kirb)
 
 TL;DR it's pretty awesome, you should use it
 
