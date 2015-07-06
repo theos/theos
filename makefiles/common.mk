@@ -51,10 +51,16 @@ export PATH := $(THEOS_BIN_PATH):$(PATH)
 
 -include ~/.theosrc
 
+_THEOS_FINAL_PACKAGE := $(_THEOS_FALSE)
+
+ifeq ($(call __theos_bool,$(or $(FOR_RELEASE),$(FINALPACKAGE))),$(_THEOS_TRUE))
+_THEOS_FINAL_PACKAGE := $(_THEOS_TRUE)
+endif
+
 ifeq ($(THEOS_SCHEMA),)
 _THEOS_SCHEMA := $(shell echo "$(strip $(schema) $(SCHEMA))" | tr 'a-z' 'A-Z')
 _THEOS_ON_SCHEMA := DEFAULT $(filter-out -%,$(_THEOS_SCHEMA))
-ifeq ($(or $(debug),$(DEBUG)),)
+ifeq ($(or $(debug),$(DEBUG))$(_THEOS_FINAL_PACKAGE),$(_THEOS_FALSE))
 	DEBUG := 1
 endif
 ifeq ($(call __theos_bool,$(or $(debug),$(DEBUG))),$(_THEOS_TRUE))
