@@ -79,7 +79,7 @@ install:: before-install internal-install after-install
 
 internal-install-check::
 	@if [ -z "$(_THEOS_PACKAGE_LAST_FILENAME)" ]; then \
-		echo "$(MAKE) install or show requires that you build a package before you try to install it." >&2; \
+		echo "$(MAKE) install and show require that you build a package before you try to install it." >&2; \
 		exit 1; \
 	fi
 	@if [ ! -f "$(_THEOS_PACKAGE_LAST_FILENAME)" ]; then \
