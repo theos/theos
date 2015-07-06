@@ -1,4 +1,4 @@
-internal-install::
+internal-install:: internal-install-check
 	@if [ -z "$(_THEOS_PACKAGE_LAST_FILENAME)" ]; then \
 		echo "$(MAKE) install requires that you build a package before you try to install it." >&2; \
 		exit 1; \

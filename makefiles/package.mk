@@ -77,6 +77,16 @@ _THEOS_INTERNAL_PACKAGE_VERSION = $(call __simplify,_THEOS_INTERNAL_PACKAGE_VERS
 ## Installation Core Rules
 install:: before-install internal-install after-install
 
+internal-install-check::
+	@if [ -z "$(_THEOS_PACKAGE_LAST_FILENAME)" ]; then \
+		echo "$(MAKE) install or show requires that you build a package before you try to install it." >&2; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(_THEOS_PACKAGE_LAST_FILENAME)" ]; then \
+		echo "Could not find \"$(_THEOS_PACKAGE_LAST_FILENAME)\" to install. Aborting." >&2; \
+		exit 1; \
+	fi
+
 export TARGET_INSTALL_REMOTE
 _THEOS_INSTALL_TYPE := local
 ifeq ($(TARGET_INSTALL_REMOTE),$(_THEOS_TRUE))
@@ -99,3 +109,10 @@ before-install internal-install internal-after-install::
 $(eval $(call __mod,install/$(_THEOS_PACKAGE_FORMAT)_$(_THEOS_INSTALL_TYPE).mk))
 
 endif # _THEOS_PACKAGE_RULES_LOADED
+
+show:: internal-install-check
+ifeq ($(_THEOS_PLATFORM_SHOW_IN_FILE_MANAGER),)
+	$(warning It is not known how to open the file manager on this platform)
+else
+	$(_THEOS_PLATFORM_SHOW_IN_FILE_MANAGER) "$(shell cat "$(_THEOS_LOCAL_DATA_DIR)/last_package")"
+endif
