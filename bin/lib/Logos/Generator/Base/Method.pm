@@ -27,7 +27,7 @@ sub buildLogCall {
 	my $method = shift;
 	my $args = shift;
 	# Log preamble
-	my $build = "NSLog(\@\"".$method->scope."[<".$method->class->name.": %p>";
+	my $build = "HBLogDebug(\@\"".$method->scope."[<".$method->class->name.": %p>";
 	my $argnamelist = "";
 	if($method->numArgs > 0) {
 		# For each argument, add its keyword and a format char to the log string.
