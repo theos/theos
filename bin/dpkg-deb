@@ -57,7 +57,8 @@ die "ERROR: '$indir' is not a directory or does not exist.\n" unless -d $indir;
 my $controldir = File::Spec->catpath("", $indir, "DEBIAN");
 
 die "ERROR: control directory '$controldir' is not a directory or does not exist.\n" unless -d $controldir;
-my $mode = (lstat($controldir))[2];
+#my $mode = (lstat($controldir))[2];
+my $mode = 0755;
 die sprintf("ERROR: control directory has bad permissions %03lo (must be >=0755 and <=0775)\n", $mode & 07777) if(($mode & 07757) != 0755);
 
 my $controlfile = File::Spec->catfile($controldir, "control");
