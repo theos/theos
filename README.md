@@ -49,6 +49,8 @@ In a kinda-chronological order of the date the feature was added:
 * `target_USE_SUBSTRATE = 0` can be used to switch tweaks to the internal generator and not link against Substrate. (kirb)
 * Default rules, variables, etc. can be set in `~/.theosrc` (a makefile). (kirb)
 * `make show` opens the operating system's file manager and highlights the latest package. (kirb)
+* A `THEOS_INSTANCE_NAME` constant is passed to the compiler so the current instance's name can be used in the code.
+* `target_LIBRARY_EXTENSION` can be set to a custom file extension when building a library/tweak, or `-` for no extension.
 
 TL;DR it's pretty awesome, you should use it
 
