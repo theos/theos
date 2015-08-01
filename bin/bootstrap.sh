@@ -11,12 +11,14 @@ function makeSubstrateStub() {
 	ln -s "$THEOSDIR" theos
 
 	cat > Makefile << __EOF
+include theos/makefiles/common.mk
 override TARGET_CODESIGN:=
 ifneq (\$(target),native)
+ifneq (\$(THEOS_PLATFORM_NAME),windows)
 override ARCHS=arm
 endif
+endif
 
-include theos/makefiles/common.mk
 FRAMEWORK_NAME = CydiaSubstrate
 CydiaSubstrate_FILES = Hooker.cc
 CydiaSubstrate_INSTALL_PATH = /Library/Frameworks
