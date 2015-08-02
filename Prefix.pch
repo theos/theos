@@ -26,7 +26,7 @@
 	#endif
 
 	#define NSLog(...) { \
-		_Pragma("message(\"Don't use NSLog. Try HBLogInfo, HBLogWarn, and HBLogError.\")"); \
+		_Pragma("message(\"NSLog is deprecated. Try HBLogDebug, HBLogInfo, and HBLogError.\")"); \
 		NSLog(__VA_ARGS__); \
 	}
 
