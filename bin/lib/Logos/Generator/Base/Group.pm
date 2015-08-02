@@ -19,7 +19,7 @@ sub initializers {
 		$return .= Logos::Generator::for($_)->initializers if $_->initRequired;
 	}
 	foreach(@{$group->functions}) {
-		$return .= Logos::Generator::for($_)->initializers;
+		$return .= Logos::Generator::for($_)->initializers if $_->initRequired;
 	}
 	$return .= "}";
 	return $return;

@@ -41,6 +41,9 @@ sub initRequired {
 	for(@{$self->{CLASSES}}) {
 		return 1 if $_->initRequired;
 	}
+	for(@{$self->{FUNCTIONS}}) {
+		return 1 if $_->initRequired;
+	}
 	return 0;
 }
 
