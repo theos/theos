@@ -16,6 +16,9 @@ sub getter {
 	my $property = shift;
 	my $name = shift;
 	my $key = shift;
+	my $type = $property->type;
+
+	$type =~ s/\s+$//;
 
 	if(!$name){
 		# Use property name if no getter specified
@@ -23,51 +26,51 @@ sub getter {
 	}
 
 	# Build function start
-	my $build = "static " . $property->type . " _logos_method\$" . $property->group . "\$" . $property->class . "\$" . $name . "\$" . "(" . $property->class . "* self, SEL _cmd){";
+	my $build = "static " . $type . " _logos_method\$" . $property->group . "\$" . $property->class . "\$" . $name . "\$" . "(" . $property->class . "* self, SEL _cmd){";
 
 	# Build function body
 
 	$build .= " return ";
 
 
-	if ($property->type =~ /^(BOOL|(unsigned )?char|double|float|CGFloat|(unsigned )?int|NSInteger|unsigned|NSUInteger|(unsigned )?long (long)?|(unsigned )?short|NSRange|CGPoint|CGVector|CGSize|CGRect|CGAffineTransform|UIEdgeInsets|UIOffset|CATransform3D|CMTime(Range|Mapping)?|MKCoordinate(Span)?|SCNVector[34]|SCNMatrix4)$/){
+	if ($type =~ /^(BOOL|(unsigned )?char|double|float|CGFloat|(unsigned )?int|NSInteger|unsigned|NSUInteger|(unsigned )?long (long)?|(unsigned )?short|NSRange|CGPoint|CGVector|CGSize|CGRect|CGAffineTransform|UIEdgeInsets|UIOffset|CATransform3D|CMTime(Range|Mapping)?|MKCoordinate(Span)?|SCNVector[34]|SCNMatrix4)$/){
 		$build .= "[";
 	}
 
 	$build .= "objc_getAssociatedObject(self, &" . $key . ")";
 
-	if ($property->type eq "BOOL"){
+	if ($type eq "BOOL"){
 		$build .= " boolValue]";
-	} elsif ($property->type eq "char"){
+	} elsif ($type eq "char"){
 		$build .= " charValue]";
-	} elsif ($property->type eq "unsigned char"){
+	} elsif ($type eq "unsigned char"){
 		$build .= " unsignedCharValue]";
-	} elsif ($property->type eq "double"){
+	} elsif ($type eq "double"){
 		$build .= " doubleValue]";
-	} elsif ($property->type =~ /^(float|CGFloat)$/){
+	} elsif ($type =~ /^(float|CGFloat)$/){
 		$build .= " floatValue]";
-	} elsif ($property->type eq "int"){
+	} elsif ($type eq "int"){
 		$build .= " intValue]";
-	} elsif ($property->type eq "NSInteger"){
+	} elsif ($type eq "NSInteger"){
 		$build .= " integerValue]";
-	} elsif ($property->type =~ /^unsigned( int)?$/){
+	} elsif ($type =~ /^unsigned( int)?$/){
 		$build .= " unsignedIntValue]";
-	} elsif ($property->type eq "NSUInteger"){
+	} elsif ($type eq "NSUInteger"){
 		$build .= " unsignedIntegerValue]";
-	} elsif ($property->type eq "long"){
+	} elsif ($type eq "long"){
 		$build .= " longValue]";
-	} elsif ($property->type eq "unsigned long"){
+	} elsif ($type eq "unsigned long"){
 		$build .= " unsignedLongValue]";
-	} elsif ($property->type eq "long long"){
+	} elsif ($type eq "long long"){
 		$build .= " longLongValue]";
-	} elsif ($property->type eq "unsigned long long"){
+	} elsif ($type eq "unsigned long long"){
 		$build .= " unsignedLongLongValue]";
-	} elsif ($property->type eq "short"){
+	} elsif ($type eq "short"){
 		$build .= " shortValue]";
-	} elsif ($property->type eq "unsigned short"){
+	} elsif ($type eq "unsigned short"){
 		$build .= " unsignedShortValue]";
-	} elsif ($property->type =~ /^(NSRange|CGPoint|CGVector|CGSize|CGRect|CGAffineTransform|UIEdgeInsets|UIOffset|CATransform3D|CMTime(Range|Mapping)?|MKCoordinate(Span)?|SCNVector[34]|SCNMatrix4)$/){
-		$build .= " " . $property->type . "Value]";
+	} elsif ($type =~ /^(NSRange|CGPoint|CGVector|CGSize|CGRect|CGAffineTransform|UIEdgeInsets|UIOffset|CATransform3D|CMTime(Range|Mapping)?|MKCoordinate(Span)?|SCNVector[34]|SCNMatrix4)$/){
+		$build .= " " . $type . "Value]";
 	}
 
 	$build .= "; }";
@@ -81,6 +84,9 @@ sub setter {
 	my $name = shift;
 	my $policy = shift;
 	my $key = shift;
+	my $type = $property->type;
+
+	$type =~ s/\s+$//;
 
 	if(!$name){
 		# Capitalize first letter
@@ -93,45 +99,45 @@ sub setter {
 	# Remove semicolon
 	$name =~ s/://;
 
-	my $build = "static void _logos_method\$" . $property->group . "\$" . $property->class . "\$" . $name . "\$" . "(" . $property->class . "* self, SEL _cmd, " . $property->type . " arg){ ";
+	my $build = "static void _logos_method\$" . $property->group . "\$" . $property->class . "\$" . $name . "\$" . "(" . $property->class . "* self, SEL _cmd, " . $type . " arg){ ";
 
 
 	$build .= "objc_setAssociatedObject(self, &" . $key . ", ";
 
 	my $hasOpening = 1;
 
-	if ($property->type eq "BOOL"){
+	if ($type eq "BOOL"){
 		$build .= "[NSNumber numberWithBool:";
-	} elsif ($property->type eq "char"){
+	} elsif ($type eq "char"){
 		$build .= "[NSNumber numberWithChar:";
-	} elsif ($property->type eq "unsigned char"){
+	} elsif ($type eq "unsigned char"){
 		$build .= "[NSNumber numberWithUnsignedChar:";
-	} elsif ($property->type eq "double"){
+	} elsif ($type eq "double"){
 		$build .= "[NSNumber numberWithDouble:";
-	} elsif ($property->type =~ /^(float|CGFloat)$/){
+	} elsif ($type =~ /^(float|CGFloat)$/){
 		$build .= "[NSNumber numberWithFloat:";
-	} elsif ($property->type eq "int"){
+	} elsif ($type eq "int"){
 		$build .= "[NSNumber numberWithInt:";
-	} elsif ($property->type eq "NSInteger"){
+	} elsif ($type eq "NSInteger"){
 		$build .= "[NSNumber numberWithInteger:";
-	} elsif ($property->type =~ /^unsigned( int)?$/){
+	} elsif ($type =~ /^unsigned( int)?$/){
 		$build .= "[NSNumber numberWithUnsignedInt:";
-	} elsif ($property->type eq "NSUInteger"){
+	} elsif ($type eq "NSUInteger"){
 		$build .= "[NSNumber numberWithUnsignedInteger:";
-	} elsif ($property->type eq "long"){
+	} elsif ($type eq "long"){
 		$build .= "[NSNumber numberWithLong:";
-	} elsif ($property->type eq "unsigned long"){
+	} elsif ($type eq "unsigned long"){
 		$build .= "[NSNumber numberWithUnsignedLong:";
-	} elsif ($property->type eq "long long"){
+	} elsif ($type eq "long long"){
 		$build .= "[NSNumber numberWithLongLong:";
-	} elsif ($property->type eq "unsigned long long"){
+	} elsif ($type eq "unsigned long long"){
 		$build .= "[NSNumber numberWithUnsignedLongLong:";
-	} elsif ($property->type eq "short"){
+	} elsif ($type eq "short"){
 		$build .= "[NSNumber numberWithShort:";
-	} elsif ($property->type eq "unsigned short"){
+	} elsif ($type eq "unsigned short"){
 		$build .= "[NSNumber numberWithUnsignedShort:";
-	} elsif ($property->type =~ /^(NSRange|CGPoint|CGVector|CGSize|CGRect|CGAffineTransform|UIEdgeInsets|UIOffset|CATransform3D|CMTime(Range|Mapping)?|MKCoordinate(Span)?|SCNVector[34]|SCNMatrix4)$/){
-		$build .= "[NSValue valueWith " . $property->type . ":";
+	} elsif ($type =~ /^(NSRange|CGPoint|CGVector|CGSize|CGRect|CGAffineTransform|UIEdgeInsets|UIOffset|CATransform3D|CMTime(Range|Mapping)?|MKCoordinate(Span)?|SCNVector[34]|SCNMatrix4)$/){
+		$build .= "[NSValue valueWith " . $type . ":";
 	} else {
 		$hasOpening = 0;
 	}
