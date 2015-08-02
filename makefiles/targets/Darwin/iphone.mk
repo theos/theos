@@ -11,7 +11,6 @@ _THEOS_TARGET_CC := gcc
 _THEOS_TARGET_CXX := g++
 _THEOS_TARGET_ARG_ORDER := 1 2
 endif
-_THEOS_TARGET_CC_CFLAGS :=
 
 # A version specified as a target argument overrides all previous definitions.
 _SDKVERSION := $(or $(__THEOS_TARGET_ARG_$(word 1,$(_THEOS_TARGET_ARG_ORDER))),$(SDKVERSION_$(THEOS_CURRENT_ARCH)),$(SDKVERSION))
@@ -121,4 +120,5 @@ _THEOS_TARGET_LDFLAGS := -isysroot "$(SYSROOT)" $(SDKFLAGS) $(VERSIONFLAGS) -mul
 
 TARGET_INSTALL_REMOTE := $(_THEOS_TRUE)
 _THEOS_TARGET_DEFAULT_PACKAGE_FORMAT := deb
+PREINSTALL_TARGET_PROCESSES ?= MobileCydia
 endif
