@@ -1,19 +1,13 @@
-#include <sys/syslog.h>
+#ifdef DEBUG
+	#define __DEBUG__
+#endif
 
 #ifdef __OBJC__
 	#import <Foundation/Foundation.h>
 
 	#if TARGET_IPHONE || TARGET_IPHONE_SIMULATOR
 		#import <UIKit/UIKit.h>
-
-		#undef NS_AVAILABLE_MAC
-		#undef NS_CLASS_AVAILABLE_MAC
-		#define NS_AVAILABLE_MAC(...)
-		#define NS_CLASS_AVAILABLE_MAC(...)
-
-		#define NSRect CGRect
-		#define NSPoint CGPoint
-		#define NSSize CGSize
+		#import <_Prefix/IOSWebKitCompatHacks.h>
 	#endif
 
 	#if TARGET_MACOSX
@@ -21,55 +15,6 @@
 		#import <AppKit/AppKit.h>
 	#endif
 
-	#ifdef DEBUG
-		#define __DEBUG__
-	#endif
-
-	#ifndef __clang__
-		#define weak assign
-		#define strong retain
-	#endif
-
-	#ifndef __has_feature
-		#define __has_feature(feature) 0
-	#endif
-
-	#ifndef __clang__
-		// Fix old GCC versions not identifying the correct response type on [[NSDictionary alloc] initWithContentsOfFile:...] and other similar calls
-		#define THEOS_WORKAROUND_ALLOC(type) @interface type() + (type *)alloc; @end
-		THEOS_WORKAROUND_ALLOC(NSDictionary);
-		THEOS_WORKAROUND_ALLOC(NSMutableDictionary);
-		THEOS_WORKAROUND_ALLOC(NSArray);
-		THEOS_WORKAROUND_ALLOC(NSMutableArray);
-		#undef THEOS_WORKAROUND_ALLOC
-		// Workaround NS_AVAILABLE being used in enums, by disabling entirely :(
-		#undef NS_AVAILABLE
-		#define NS_AVAILABLE(osx, ios)
-	#endif
-
-	#define NSLog(...) { \
-		_Pragma("message(\"NSLog is deprecated. Try HBLogDebug, HBLogInfo, and HBLogError.\")"); \
-		NSLog(__VA_ARGS__); \
-	}
-
-	#ifdef __DEBUG__
-		#define HB_LOG_FORMAT(color) "\e[1;3" #color "m[%s] %s:\e[m\e[0;3" #color "m%d\e[m \e[0;30;4" #color "m%s:\e[m %s"
-	#else
-		#define HB_LOG_FORMAT(color) "[%s: %s:%d] %s: %s"
-	#endif
-
-	#define HB_LOG_INTERNAL(color, level, type, ...) syslog(level, HB_LOG_FORMAT(color), THEOS_INSTANCE_NAME, __FILE__, __LINE__, type, [NSString stringWithFormat:__VA_ARGS__].UTF8String);
-
-	#ifdef __DEBUG__
-		#define HBLogDebug(...) HB_LOG_INTERNAL(6, LOG_NOTICE, "DEBUG", __VA_ARGS__)
-	#else
-		#define HBLogDebug(...)
-	#endif
-
-	#define HBLogInfo(...) HB_LOG_INTERNAL(2, LOG_NOTICE, "INFO", __VA_ARGS__)
-	#define HBLogWarn(...) HB_LOG_INTERNAL(3, LOG_WARNING, "WARN", __VA_ARGS__)
-	#define HBLogError(...) HB_LOG_INTERNAL(1, LOG_ERR, "ERROR", __VA_ARGS__)
-
-	#define IS_IPAD ([UIDevice currentDevice].userInterfaceIdiom == UIUserInterfaceIdiomPad)
-	#define IN_SPRINGBOARD ([[NSBundle mainBundle].bundleIdentifier isEqualToString:@"com.apple.springboard"])
+	#import <_Prefix/HBLog.h>
+	#import <_Prefix/IOSMacros.h>
 #endif
