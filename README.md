@@ -15,6 +15,7 @@ In a kinda-chronological order of the date the feature was added:
 * `make package FINALPACKAGE=1` will optimise assets (runs [pincrush](https://github.com/DHowett/pincrush) on PNG images, and converts plists to binary format) and generate a package with a "clean" version (ie, no build number). Recommended when building a package you're about to release. (rpetrich/kirb)
 * `TWEAK_TARGET_PROCESSES = Preferences MobileMail` is a shortcut for killing a process. (rpetrich)
 * Unlike rpetrich's fork, the internal generator (using Objective-C runtime functions directly) is changed back to the Substrate generator (using Substrate's wrappers around the runtime functions to assure future compatibility).
+* `make do` is a shortcut for `make package install`. (rpetrich)
 * Each architecture is compiled separately. (rpetrich)
 * Different SDKs can be used for different architectures, making it possible to for instance use Xcode 4.4 for armv6 compilation alongside a newer Xcode for armv7/arm64. (rpetrich)
 * All generated files are stored in `.theos`, rather than many different directories in the root of the project. (rpetrich)
