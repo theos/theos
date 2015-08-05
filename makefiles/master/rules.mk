@@ -16,11 +16,10 @@ endif
 clean:: before-clean internal-clean after-clean
 
 do:: package install
-	respring
 
 before-all::
 ifneq ($(SYSROOT),)
-	@[ -d "$(SYSROOT)" ] || { echo "Your current SYSROOT, \"$(SYSROOT)\", appears to be missing."; exit 1; }
+	@[ -d "$(SYSROOT)" ] || { echo "Your current SYSROOT, \"$(SYSROOT)\", appears to be missing." >&2; exit 1; }
 endif
 
 internal-all::
