@@ -4,7 +4,7 @@ THEOS_TARGET_NAME := iphone
 
 # A version specified as a target argument overrides all previous definitions.
 SDKTARGET ?= armv7-apple-darwin11
-SDKBINPATH ?= theos/toolchain/$(THEOS_PLATFORM_NAME)/$(THEOS_TARGET_NAME)/bin
+SDKBINPATH ?= $(THEOS)/toolchain/$(THEOS_PLATFORM_NAME)/$(THEOS_TARGET_NAME)/bin
 
 _THEOS_TARGET_CC := clang
 _THEOS_TARGET_CXX := clang++
