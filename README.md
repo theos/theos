@@ -47,11 +47,14 @@ In a kinda-chronological order of the date the feature was added:
 * Includes NIC templates from [DHowett, conradev, WillFour20](https://github.com/DHowett/theos-nic-templates); [uroboro](https://github.com/uroboro/nicTemplates); and [bensge, kirb](https://github.com/sharedInstance/iOS-7-Notification-Center-Widget-Template).
 * Supports building for iOS on Windows. (coolstar)
 * Theos symlinks are no longer made within projects. The `$THEOS` environment variable is used instead. (kirb)
-* `target_USE_SUBSTRATE = 0` can be used to switch tweaks to the internal generator and not link against Substrate. (kirb)
+* `instance_USE_SUBSTRATE = 0` can be used to switch tweaks to the internal generator and not link against Substrate. (kirb)
 * Default rules, variables, etc. can be set in `~/.theosrc` (a makefile). (kirb)
 * `make show` opens the operating system's file manager and highlights the latest package. (kirb)
-* A `THEOS_INSTANCE_NAME` constant is passed to the compiler so the current instance's name can be used in the code.
-* `target_LIBRARY_EXTENSION` can be set to a custom file extension when building a library/tweak, or `-` for no extension.
+* A `THEOS_INSTANCE_NAME` constant is passed to the compiler so the current instance's name can be used in the code. (kirb)
+* `PREINSTALL_TARGET_PROCESSES` and `INSTALL_TARGET_PROCESSES` can be set to a list of processes to kill before and after installation respectively. (rpetrich)
+* `instance_LIBRARY_EXTENSION` can be set to a custom file extension when building a library/tweak, or `-` for no extension. (kirb)
+* Output is colored so it's easier to read at a glance. (kirb)
+* `instance_WEAK_FRAMEWORKS` and `instance_WEAK_LIBRARIES` allow you to [weak link](https://developer.apple.com/library/ios/documentation/MacOSX/Conceptual/BPFrameworks/Concepts/WeakLinking.html#//apple_ref/doc/uid/20002378-107026) against frameworks/libraries. (kirb)
 
 TL;DR it's pretty awesome, you should use it
 
