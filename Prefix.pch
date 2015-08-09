@@ -3,16 +3,16 @@
 #endif
 
 #ifdef __OBJC__
-	#import <Foundation/Foundation.h>
+	@import Foundation;
 
 	#if TARGET_IPHONE || TARGET_IPHONE_SIMULATOR
-		#import <UIKit/UIKit.h>
+		@import UIKit;
 		#import <_Prefix/IOSWebKitCompatHacks.h>
 	#endif
 
 	#if TARGET_MACOSX
-		#import <Cocoa/Cocoa.h>
-		#import <AppKit/AppKit.h>
+		@import Cocoa;
+		@import AppKit;
 	#endif
 
 	#import <_Prefix/HBLog.h>
