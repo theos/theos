@@ -58,7 +58,7 @@ include $(THEOS_MAKE_PATH)/targets/_common/darwin_flat_bundle.mk
 
 ifeq ($(IPHONE_SIMULATOR_ROOT),)
 internal-install::
-	$(info $(MAKE) install for the simulator requires that you set IPHONE_SIMULATOR_ROOT to the root directory of the simulated OS.)
+	@$(PRINT_FORMAT_ERROR) "$(MAKE) install for the simulator requires that you set IPHONE_SIMULATOR_ROOT to the root directory of the simulated OS." >&2
 	@exit 1
 else
 internal-install:: stage

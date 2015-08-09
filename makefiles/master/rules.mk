@@ -1,7 +1,7 @@
 __THEOS_RULES_MK_VERSION := 1k
 ifneq ($(__THEOS_RULES_MK_VERSION),$(__THEOS_COMMON_MK_VERSION))
 all::
-	@echo Theos version mismatch! common.mk [version $(or $(__THEOS_COMMON_MK_VERSION),0)] loaded in tandem with rules.mk [version $(or $(__THEOS_RULES_MK_VERSION),0)] Check that \$$\(THEOS\) is set properly!
+	@$(PRINT_FORMAT_ERROR) "Theos version mismatch! common.mk [version $(or $(__THEOS_COMMON_MK_VERSION),0)] loaded in tandem with rules.mk [version $(or $(__THEOS_RULES_MK_VERSION),0)] Check that \$$\(THEOS\) is set properly!" >&2
 	@exit 1
 endif
 
@@ -19,7 +19,7 @@ do:: package install
 
 before-all::
 ifneq ($(SYSROOT),)
-	@[ -d "$(SYSROOT)" ] || { echo "Your current SYSROOT, \"$(SYSROOT)\", appears to be missing." >&2; exit 1; }
+	@[ -d "$(SYSROOT)" ] || { $(PRINT_FORMAT_ERROR) "Your current SYSROOT, \"$(SYSROOT)\", appears to be missing." >&2; exit 1; }
 endif
 
 internal-all::
@@ -33,7 +33,7 @@ ifeq ($(MAKELEVEL),0)
 	$(ECHO_CLEANING)rm -rf "$(THEOS_OBJ_DIR)"$(ECHO_END)
 	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)"$(ECHO_END)
 else
-	$(ECHO_NOTHING)rm -rf "$(THEOS_OBJ_DIR)"$(ECHO_END)
+	$(ECHO_CLEANING)rm -rf "$(THEOS_OBJ_DIR)"$(ECHO_END)
 endif
 
 after-clean::
@@ -68,7 +68,7 @@ after-clean-packages::
 	@ \
 abs_build_dir=$(_THEOS_ABSOLUTE_BUILD_DIR); \
 if [ "$(__SUBPROJECTS)" != "" ]; then \
-  echo Making $(_OPERATION) in subprojects of $(_TYPE) $(_INSTANCE)...; \
+  $(PRINT_FORMAT_MAKING) "Making $(_OPERATION) in subprojects of $(_TYPE) $(_INSTANCE)"; \
   for d in $(__SUBPROJECTS); do \
     d="$${d%:*}"; \
     if [ "$${abs_build_dir}" = "." ]; then \
@@ -84,7 +84,7 @@ if [ "$(__SUBPROJECTS)" != "" ]; then \
     fi; \
   done; \
  fi; \
-echo Making $(_OPERATION) for $(_TYPE) $(_INSTANCE)...; \
+$(PRINT_FORMAT_MAKING) "Making $(_OPERATION) for $(_TYPE) $(_INSTANCE)"; \
 $(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going \
 	internal-$(_TYPE)-$(_OPERATION) \
 	_THEOS_CURRENT_TYPE="$(_TYPE)" \
@@ -100,7 +100,7 @@ $(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going 
 	@ \
 abs_build_dir=$(_THEOS_ABSOLUTE_BUILD_DIR); \
 if [ "$(__SUBPROJECTS)" != "" ]; then \
-  echo Making $(_OPERATION) in subprojects of $(_TYPE) $(_INSTANCE)...; \
+  $(PRINT_FORMAT_MAKING) "Making $(_OPERATION) in subprojects of $(_TYPE) $(_INSTANCE)"; \
   for d in $(__SUBPROJECTS); do \
     d="$${d%:*}"; \
     if [ "$${abs_build_dir}" = "." ]; then \

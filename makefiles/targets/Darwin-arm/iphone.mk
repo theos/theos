@@ -19,7 +19,7 @@ _THEOS_TARGET_SDK_VERSION := $(or $(_SDKVERSION),latest)
 _SDK_DIR := $(THEOS)/sdks
 _IOS_SDKS := $(sort $(patsubst $(_SDK_DIR)/iPhoneOS%.sdk,%,$(wildcard $(_SDK_DIR)/iPhoneOS*.sdk)))
 ifeq ($(words $(_IOS_SDKS)),0)
-$(error You do not have an SDK in $(_SDK_DIR))
+@$(PRINT_FORMAT_ERROR) "You do not have an SDK in $(_SDK_DIR)." >&2
 endif
 _LATEST_SDK := $(lastword $(_IOS_SDKS))
 
@@ -54,7 +54,7 @@ _DEPLOY_VERSION_LT_4_3 = $(call __simplify,_DEPLOY_VERSION_LT_4_3,$(shell $(THEO
 ifeq ($(_TARGET_VERSION_GE_4_0),1)
 ifeq ($(_THEOS_TARGET_CC),arm-apple-darwin9-gcc)
 ifeq ($(_THEOS_TARGET_WARNED_TARGETGCC),)
-$(warning Targeting iOS 4.0 and higher is not supported with iphone-gcc. Forcing clang.)
+@$(PRINT_FORMAT_WARNING) "Targeting iOS 4.0 and higher is not supported with iphone-gcc. Forcing clang." >&2
 export _THEOS_TARGET_WARNED_TARGETGCC := 1
 endif
 override _THEOS_TARGET_CC := clang
@@ -64,7 +64,7 @@ endif
 
 ifeq ($(_TARGET_VERSION_GE_6_0)$(_DEPLOY_VERSION_GE_3_0)$(_DEPLOY_VERSION_LT_4_3),111)
 ifeq ($(_THEOS_TARGET_WARNED_DEPLOY),)
-$(warning Deploying to iOS 3.0 while building for 6.0 will generate armv7-only binaries.)
+@$(PRINT_FORMAT_WARNING) "Deploying to iOS 3.0 while building for 6.0 will generate armv7-only binaries." >&2
 export _THEOS_TARGET_WARNED_DEPLOY := 1
 endif
 endif

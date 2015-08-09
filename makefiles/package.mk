@@ -77,11 +77,11 @@ install:: before-install internal-install after-install
 
 internal-install-check::
 	@if [ -z "$(_THEOS_PACKAGE_LAST_FILENAME)" ]; then \
-		echo "$(MAKE) install and show require that you build a package before you try to install it." >&2; \
+		$(PRINT_FORMAT_ERROR) "$(MAKE) install and show require that you build a package before you try to install it." >&2; \
 		exit 1; \
 	fi
 	@if [ ! -f "$(_THEOS_PACKAGE_LAST_FILENAME)" ]; then \
-		echo "Could not find \"$(_THEOS_PACKAGE_LAST_FILENAME)\" to install. Aborting." >&2; \
+		$(PRINT_FORMAT_ERROR) "Could not find \"$(_THEOS_PACKAGE_LAST_FILENAME)\" to install. Aborting." >&2; \
 		exit 1; \
 	fi
 
@@ -91,7 +91,8 @@ ifeq ($(TARGET_INSTALL_REMOTE),$(_THEOS_TRUE))
 _THEOS_INSTALL_TYPE := remote
 ifeq ($(THEOS_DEVICE_IP),)
 internal-install::
-	$(info $(MAKE) install requires that you set THEOS_DEVICE_IP in your environment. It is also recommended that you have public-key authentication set up for root over SSH, or you will be entering your password a lot.)
+	@$(PRINT_FORMAT_ERROR) "$(MAKE) install requires that you set THEOS_DEVICE_IP in your environment." >&2
+	@$(PRINT_FORMAT) "It is also recommended that you have public-key authentication set up for root over SSH, or you will be entering your password a lot." >&2
 	@exit 1
 endif # THEOS_DEVICE_IP == ""
 THEOS_DEVICE_PORT ?= 22
@@ -103,7 +104,7 @@ after-install:: internal-after-install
 
 before-install::
 ifneq ($(PREINSTALL_TARGET_PROCESSES),)
-	$(ECHO_PRE_UNLOADING)install.exec "killall -9 $(PREINSTALL_TARGET_PROCESSES) || true" $(STDERR_NULL_REDIRECT)$(ECHO_END)
+	$(ECHO_PRE_UNLOADING)install.exec "killall $(PREINSTALL_TARGET_PROCESSES) 2>/dev/null || true"$(ECHO_END)
 else
 	@:
 endif
@@ -113,7 +114,7 @@ internal-install::
 
 internal-after-install::
 ifneq ($(INSTALL_TARGET_PROCESSES),)
-	$(ECHO_UNLOADING)install.exec "killall -9 $(INSTALL_TARGET_PROCESSES) || true" $(STDERR_NULL_REDIRECT)$(ECHO_END)
+	$(ECHO_UNLOADING)install.exec "killall $(INSTALL_TARGET_PROCESSES) 2>/dev/null || true"$(ECHO_END)
 else
 	@:
 endif
@@ -125,7 +126,7 @@ endif # _THEOS_PACKAGE_RULES_LOADED
 
 show:: internal-install-check
 ifeq ($(_THEOS_PLATFORM_SHOW_IN_FILE_MANAGER),)
-	$(warning It is not known how to open the file manager on this platform)
+	@$(PRINT_FORMAT_ERROR) "It is not known how to open the file manager on this platform." >&2
 else
 	$(_THEOS_PLATFORM_SHOW_IN_FILE_MANAGER) "$(shell cat "$(_THEOS_LOCAL_DATA_DIR)/last_package")"
 endif

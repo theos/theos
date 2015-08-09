@@ -38,7 +38,7 @@ ifneq ($(_RESOURCE_FILES),)
 		if [ -f "$$f" -o -d "$$f" ]; then \
 			rsync -a "$$f" "$(_THEOS_SHARED_BUNDLE_BUILD_PATH)$(_THEOS_TARGET_BUNDLE_RESOURCE_SUBDIRECTORY)/" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE); \
 		else \
-			echo "Warning: ignoring missing bundle resource $$f."; \
+			$(PRINT_FORMAT_WARNING) "Warning: ignoring missing bundle resource $$f." >&2; \
 		fi; \
 	done$(ECHO_END)
 endif
@@ -47,7 +47,7 @@ ifneq ($(_RESOURCE_DIRS),)
 		if [ -d "$$d" ]; then \
 			rsync -a "$$d/" "$(_THEOS_SHARED_BUNDLE_BUILD_PATH)$(_THEOS_TARGET_BUNDLE_RESOURCE_SUBDIRECTORY)/" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE); \
 		else \
-			echo "Warning: ignoring missing bundle resource directory $$d."; \
+			$(PRINT_FORMAT_WARNING) "Warning: ignoring missing bundle resource directory $$d." >&2; \
 		fi; \
 	done$(ECHO_END)
 endif

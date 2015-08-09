@@ -11,7 +11,7 @@ internal-all internal-clean internal-stage internal-after-install:: _OPERATION_N
 internal-all internal-clean internal-stage internal-after-install::
 	@abs_build_dir=$(_THEOS_ABSOLUTE_BUILD_DIR); \
 	for d in $(SUBPROJECTS); do \
-	  echo "Making $(_OPERATION_NAME) in $$d..."; \
+	  $(PRINT_FORMAT_MAKING) "Making $(_OPERATION_NAME) in $$d"; \
 	  if [ "$${abs_build_dir}" = "." ]; then \
 	    lbuilddir="."; \
 	  else \
