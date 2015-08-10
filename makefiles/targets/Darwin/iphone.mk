@@ -35,6 +35,7 @@ override _THEOS_TARGET_INCLUDE_SDK_VERSION := $(_LATEST_SDK)
 endif
 
 # We have to figure out the target version here, as we need it in the calculation of the deployment version.
+_TARGET_VERSION_GE_8_4 = $(call __simplify,_TARGET_VERSION_GE_8_4,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 8.4))
 _TARGET_VERSION_GE_7_0 = $(call __simplify,_TARGET_VERSION_GE_7_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 7.0))
 _TARGET_VERSION_GE_6_0 = $(call __simplify,_TARGET_VERSION_GE_6_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 6.0))
 _TARGET_VERSION_GE_3_0 = $(call __simplify,_TARGET_VERSION_GE_3_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 3.0))
@@ -108,9 +109,15 @@ endif # }
 endif # }
 NEUTRAL_ARCH = armv7
 
+ifeq ($(_TARGET_VERSION_GE_8_4),1)
+MODULESFLAGS := -fmodules -fcxx-modules -fmodule-name=$(THEOS_CURRENT_INSTANCE)
+else
+MODULESFLAGS :=
+endif
+
 SDKFLAGS := -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION))
 VERSIONFLAGS := -miphoneos-version-min=$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)
-_THEOS_TARGET_CFLAGS := -isysroot "$(ISYSROOT)" $(SDKFLAGS) $(VERSIONFLAGS) $(_THEOS_TARGET_CC_CFLAGS)
+_THEOS_TARGET_CFLAGS := -isysroot "$(ISYSROOT)" $(SDKFLAGS) $(VERSIONFLAGS) $(_THEOS_TARGET_CC_CFLAGS) $(MODULESFLAGS)
 _THEOS_TARGET_SWIFTFLAGS := -sdk "$(ISYSROOT)" $(SDKFLAGS) $(_THEOS_TARGET_CC_SWIFTFLAGS)
 _THEOS_TARGET_SWIFT_TARGET := apple-ios$(_THEOS_TARGET_SDK_VERSION)
 _THEOS_TARGET_SWIFT_LDPATH := $(THEOS_PLATFORM_SDK_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos
