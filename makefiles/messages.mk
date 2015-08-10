@@ -27,7 +27,7 @@ else
 	STDOUT_NULL_REDIRECT = > /dev/null
 endif
 
-	PRINT_FORMAT = printf "\e[0;36m==> \e[1;36m%s…\e[m\n"
+	PRINT_FORMAT = printf "\e[0;36m==> \e[1;36m%s\e[m\n"
 	PRINT_FORMAT_MAKING = printf "\e[1;31m> \e[1;3;39m%s…\e[m\n"
 	PRINT_FORMAT_STAGE = printf "\e[0;3%im==> \e[1;39m%s…\e[m\n"
 	PRINT_FORMAT_WARNING = printf "\e[0;33m==> \e[1;33m%s\e[m\n"
