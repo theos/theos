@@ -3,7 +3,7 @@
 #endif
 
 #ifdef __OBJC__
-	#import <_Prefix/NullabilityCompatibility.h>
+	#import <_Prefix/NullabilityCompat.h>
 
 	#if __has_feature(modules)
 		@import Foundation;
