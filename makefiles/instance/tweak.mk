@@ -35,7 +35,9 @@ internal-tweak-all_:: shared-instance-bundle-all
 internal-tweak-stage_:: shared-instance-bundle-stage
 endif
 
+ifneq ($($(THEOS_CURRENT_INSTANCE)_INSTALL),0)
 internal-tweak-stage_:: $(_EXTRA_TARGET) internal-library-stage_
 	$(ECHO_NOTHING)if [ -f $(THEOS_CURRENT_INSTANCE).plist ]; then cp $(THEOS_CURRENT_INSTANCE).plist "$(THEOS_STAGING_DIR)$(LOCAL_INSTALL_PATH)/"; fi$(ECHO_END)
+endif
 
 $(eval $(call __mod,instance/tweak.mk))
