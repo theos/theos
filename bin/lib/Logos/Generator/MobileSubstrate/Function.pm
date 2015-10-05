@@ -49,7 +49,7 @@ sub initializers {
 	my $function = shift;
 
 	my $return = "";
-	$return .= " MSHookFunction(".$function->name;
+	$return .= " MSHookFunction((void *)".$function->name;
 	$return .= ", (void *)&".$self->newFunctionName($function);
 	$return .= ", (void **)&".$self->originalFunctionName($function);
 	$return .= ");";
