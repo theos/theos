@@ -80,7 +80,16 @@ sub initializers {
 	my $cgen = Logos::Generator::for($method->class);
 	my $classvar = ($method->scope eq "+" ? $cgen->metaVariable : $cgen->variable);
 	if(!$method->isNew) {
-		return "MSHookMessageEx(".$classvar.", \@selector(".$method->selector."), (IMP)&".$self->newFunctionName($method).", (IMP*)&".$self->originalFunctionName($method).");";
+		my $r = "";
+		$r .= "if (".$classvar.") {";
+		$r .=   "if (class_getInstanceMethod(_class, \@selector(".$method->selector."))) {";
+		$r .=     "MSHookMessageEx(".$classvar.", \@selector(".$method->selector."), (IMP)&".$self->newFunctionName($method).", (IMP*)&".$self->originalFunctionName($method).");";
+		$r .=   "} else {";
+		$r .=     "HBLogError(@\"logos: message not found [%s %s]\", \"".$method->class->name."\", \"".$method->selector."\");";
+		$r .=   "}";
+		$r .= "} else {";
+		$r .=   "HBLogError(@\"logos: nil class %s\", \"".$method->class->name."\");";
+		$r .= "}";
 	} else {
 		my $r = "";
 		$r .= "{ ";

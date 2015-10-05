@@ -51,7 +51,7 @@ sub definition {
 		$build .=     "return ((".Logos::Method::declarationForTypeWithName($method->return, $pointerType).")class_getMethodImplementation(".$classref.", \@selector(".$method->selector.")))";
 		$build .=         $self->originalCallParams($method).";";
 		$build .= "}";
-	
+
 	}
 	$build .= "static ".Logos::Method::declarationForTypeWithName($method->return, $self->newFunctionName($method).$parameters);
 	return $build;
@@ -106,12 +106,18 @@ sub initializers {
 		my $pointertype = Logos::Method::declarationForTypeWithName($method->return, $_pointertype);
 		$r .= "Class _class = ".$classvar.";";
 		$r .= "Method _method = class_getInstanceMethod(_class, \@selector(".$method->selector."));";
-		$r .= "if (_method) {";
+		$r .= "if (_class) {";
+		$r .=   "if (_method) {";
 		$r .=     $self->originalFunctionName($method)." = ".$self->superFunctionName($method).";";
 		$r .=     "if (!class_addMethod(_class, \@selector(".$method->selector."), (IMP)&".$self->newFunctionName($method).", method_getTypeEncoding(_method))) {";
-		$r .=         $self->originalFunctionName($method)." = (".$pointertype.")method_getImplementation(_method);";
-		$r .=         $self->originalFunctionName($method)." = (".$pointertype.")method_setImplementation(_method, (IMP)&".$self->newFunctionName($method).");";
+		$r .=       $self->originalFunctionName($method)." = (".$pointertype.")method_getImplementation(_method);";
+		$r .=       $self->originalFunctionName($method)." = (".$pointertype.")method_setImplementation(_method, (IMP)&".$self->newFunctionName($method).");";
 		$r .=     "}";
+		$r .=   "} else {";
+		$r .=     "HBLogError(@\"logos: message not found [%s %s]\", \"".$method->class->name."\", \"".$method->selector."\");";
+		$r .=   "}";
+		$r .= "} else {";
+		$r .=   "HBLogError(@\"logos: nil class %s\", \"".$method->class->name."\");";
 		$r .= "}";
 	} else {
 		if(!$method->type) {
