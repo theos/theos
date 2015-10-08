@@ -118,9 +118,10 @@ if [ "$(__SUBPROJECTS)" != "" ]; then \
  fi
 
 update-theos::
-	@[[ ! -d "$(THEOS)/.git" ]] && \
-		$(PRINT_FORMAT_ERROR) "$(THEOS) is not a Git repository. For more information, refer to https://github.com/kirb/theos/wiki/Installation#updating." >&2 && \
-		exit 1
+	@if [ ! -d "$(THEOS)/.git" ]; then \
+		$(PRINT_FORMAT_ERROR) "$(THEOS) is not a Git repository. For more information, refer to https://github.com/kirb/theos/wiki/Installation#updating." >&2; \
+		exit 1; \
+	fi
 
 	@cd $(THEOS) && git pull origin master && ./git-submodule-recur.sh init
 
