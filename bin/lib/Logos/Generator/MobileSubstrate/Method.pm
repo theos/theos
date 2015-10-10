@@ -82,7 +82,7 @@ sub initializers {
 	if(!$method->isNew) {
 		my $r = "";
 		$r .= "if (".$classvar.") {";
-		$r .=   "if (class_getInstanceMethod(_class, \@selector(".$method->selector."))) {";
+		$r .=   "if (class_getInstanceMethod(".$classvar.", \@selector(".$method->selector."))) {";
 		$r .=     "MSHookMessageEx(".$classvar.", \@selector(".$method->selector."), (IMP)&".$self->newFunctionName($method).", (IMP*)&".$self->originalFunctionName($method).");";
 		$r .=   "} else {";
 		$r .=     "HBLogError(@\"logos: message not found [%s %s]\", \"".$method->class->name."\", \"".$method->selector."\");";
