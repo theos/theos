@@ -115,15 +115,26 @@ else
 MODULESFLAGS :=
 endif
 
+# “iOS 9 changed the 32-bit pagesize on 64-bit CPUs from 4096 bytes to 16384:
+# all 32-bit binaries must now be compiled with -Wl,-segalign,4000.”
+# https://twitter.com/saurik/status/654198997024796672
+
+ifneq ($(THEOS_CURRENT_ARCH),arm64)
+LEGACYFLAGS := -Wl,-segalign,4000
+else
+LEGACYFLAGS :=
+endif
+
 SDKFLAGS := -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION))
 VERSIONFLAGS := -miphoneos-version-min=$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)
+
 _THEOS_TARGET_CFLAGS := -isysroot "$(ISYSROOT)" $(SDKFLAGS) $(VERSIONFLAGS) $(_THEOS_TARGET_CC_CFLAGS) $(MODULESFLAGS)
 _THEOS_TARGET_SWIFTFLAGS := -sdk "$(ISYSROOT)" $(SDKFLAGS) $(_THEOS_TARGET_CC_SWIFTFLAGS)
 _THEOS_TARGET_SWIFT_TARGET := apple-ios$(_THEOS_TARGET_SDK_VERSION)
 _THEOS_TARGET_SWIFT_LDPATH := $(THEOS_PLATFORM_SDK_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos
 _THEOS_TARGET_SWIFT_OBJPATH := $(THEOS_PLATFORM_SDK_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift_static/iphoneos
 _THEOS_TARGET_SWIFT_VERSION := $(shell $(TARGET_SWIFT) --version | head -1 | cut -d' ' -f4)
-_THEOS_TARGET_LDFLAGS := -isysroot "$(SYSROOT)" $(SDKFLAGS) $(VERSIONFLAGS) -multiply_defined suppress
+_THEOS_TARGET_LDFLAGS := -isysroot "$(SYSROOT)" $(SDKFLAGS) $(VERSIONFLAGS) $(LEGACYFLAGS) -multiply_defined suppress
 
 TARGET_INSTALL_REMOTE := $(_THEOS_TRUE)
 _THEOS_TARGET_DEFAULT_PACKAGE_FORMAT := deb

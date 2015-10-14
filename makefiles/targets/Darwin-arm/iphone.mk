@@ -100,9 +100,15 @@ else # } < 3.0 {
 endif # }
 endif # }
 
+ifneq ($(THEOS_CURRENT_ARCH),arm64)
+LEGACYFLAGS := -Wl,-segalign,4000
+else
+LEGACYFLAGS :=
+endif
+
 SDKFLAGS := -isysroot "$(SYSROOT)" $(foreach ARCH,$(ARCHS),-arch $(ARCH)) -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)) -miphoneos-version-min=$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)
 _THEOS_TARGET_CFLAGS := $(SDKFLAGS)
-_THEOS_TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress
+_THEOS_TARGET_LDFLAGS := $(SDKFLAGS) $(LEGACYFLAGS) -multiply_defined suppress
 
 TARGET_INSTALL_REMOTE := $(_THEOS_FALSE)
 _THEOS_TARGET_DEFAULT_PACKAGE_FORMAT := deb
