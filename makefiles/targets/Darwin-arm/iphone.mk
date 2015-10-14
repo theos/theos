@@ -100,10 +100,10 @@ else # } < 3.0 {
 endif # }
 endif # }
 
-ifneq ($(THEOS_CURRENT_ARCH),arm64)
-LEGACYFLAGS := -Wl,-segalign,4000
-else
+ifeq ($(THEOS_CURRENT_ARCH),arm64)
 LEGACYFLAGS :=
+else
+LEGACYFLAGS := -Wl,-segalign,4000
 endif
 
 SDKFLAGS := -isysroot "$(SYSROOT)" $(foreach ARCH,$(ARCHS),-arch $(ARCH)) -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)) -miphoneos-version-min=$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)

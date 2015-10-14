@@ -119,10 +119,10 @@ endif
 # all 32-bit binaries must now be compiled with -Wl,-segalign,4000.”
 # https://twitter.com/saurik/status/654198997024796672
 
-ifneq ($(THEOS_CURRENT_ARCH),arm64)
-LEGACYFLAGS := -Wl,-segalign,4000
-else
+ifeq ($(THEOS_CURRENT_ARCH),arm64)
 LEGACYFLAGS :=
+else
+LEGACYFLAGS := -Wl,-segalign,4000
 endif
 
 SDKFLAGS := -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION))
