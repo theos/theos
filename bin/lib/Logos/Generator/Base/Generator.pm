@@ -9,7 +9,7 @@ sub findPreamble {
 }
 
 sub preamble {
-	return "#include <logos/logos.h>";
+	return "";
 }
 
 sub generateClassList {
