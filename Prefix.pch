@@ -1,3 +1,10 @@
+#ifndef __has_feature
+	#define __has_feature(feature) (0)
+#endif
+#ifndef __has_extension
+	#define __has_extension(extension) (0)
+#endif
+
 #ifdef __OBJC__
 	#define CLASS(cls) objc_getClass(#cls)
 
@@ -8,10 +15,6 @@
 	#ifndef __clang__
 		#define weak assign
 		#define strong retain
-	#endif
-
-	#ifndef __has_feature
-		#define __has_feature(feature) 0
 	#endif
 
 	#import <Foundation/Foundation.h>
@@ -45,10 +48,14 @@
 	#define NB [NSBundle mainBundle]
 	#define UD [NSUserDefaults standardUserDefaults]
 	#define FM [NSFileManager defaultManager]
-	#ifndef __clang__
-	#import <Availability.h>
-	#undef NS_AVAILABLE
-	#define NS_AVAILABLE(osx, ios)
-	#endif
 
+#endif
+
+#ifndef __clang__
+#import <Availability.h>
+#undef NS_AVAILABLE
+#define NS_AVAILABLE(osx, ios)
+#undef __OSX_AVAILABLE_STARTING
+#define __OSX_AVAILABLE_STARTING(osx, ios)
+#include <stdbool.h>
 #endif
