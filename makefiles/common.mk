@@ -4,6 +4,10 @@ ifeq ($(notdir $(firstword $(SUDO_COMMAND))),make)
 $(error Do not use 'sudo make')
 endif
 
+ifeq ($(SHELL),/bin/sh)
+export SHELL=/bin/bash
+endif
+
 THEOS_PROJECT_DIR ?= $(shell pwd)
 _THEOS_LOCAL_DATA_DIR := $(THEOS_PROJECT_DIR)/.theos
 
