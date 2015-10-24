@@ -187,6 +187,11 @@ ifneq ($(GO_EASY_ON_ME),1)
 	_THEOS_INTERNAL_CFLAGS += -Werror
 endif
 
+ifeq ($(call __theos_bool,$(or $(FORCE_COLOR),$(_THEOS_FALSE))),$(_THEOS_TRUE))
+	_THEOS_INTERNAL_CFLAGS += -fcolor-diagnostics
+	_THEOS_INTERNAL_LDFLAGS += -fcolor-diagnostics
+endif
+
 THEOS_BUILD_DIR ?= .
 
 ifneq ($(_THEOS_CLEANED_SCHEMA_SET),)
