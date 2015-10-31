@@ -100,6 +100,12 @@ THEOS_DEVICE_USER ?= root
 export THEOS_DEVICE_IP THEOS_DEVICE_PORT THEOS_DEVICE_USER
 endif # TARGET_INSTALL_REMOTE == true
 
+_THEOS_SUDO_COMMAND ?= $(THEOS_SUDO_COMMAND)
+
+ifeq ($(THEOS_DEVICE_USER),root)
+_THEOS_SUDO_COMMAND =
+endif
+
 after-install:: internal-after-install
 
 before-install::
