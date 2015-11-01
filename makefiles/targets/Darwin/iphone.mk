@@ -110,7 +110,7 @@ endif # }
 NEUTRAL_ARCH = armv7
 
 ifeq ($(_TARGET_VERSION_GE_8_4),1)
-MODULESFLAGS := -fmodules -fcxx-modules -fmodule-name=$(THEOS_CURRENT_INSTANCE)
+MODULESFLAGS := -fmodules -fcxx-modules -fmodule-name=$(THEOS_CURRENT_INSTANCE) -fbuild-session-file=$(_THEOS_BUILD_SESSION_FILE) -fmodules-prune-after=345600 -fmodules-prune-interval=86400 -fmodules-validate-once-per-build-session
 else
 MODULESFLAGS :=
 endif

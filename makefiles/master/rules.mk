@@ -22,6 +22,12 @@ ifneq ($(SYSROOT),)
 	@[ -d "$(SYSROOT)" ] || { $(PRINT_FORMAT_ERROR) "Your current SYSROOT, \"$(SYSROOT)\", appears to be missing." >&2; exit 1; }
 endif
 
+	@mkdir -p $(_THEOS_LOCAL_DATA_DIR)
+
+ifeq ($(shell [ -f "$(_THEOS_BUILD_SESSION_FILE)" ] || echo 0),0)
+	@touch $(_THEOS_BUILD_SESSION_FILE)
+endif
+
 internal-all::
 
 after-all::
@@ -29,11 +35,11 @@ after-all::
 before-clean::
 
 internal-clean::
+	$(ECHO_CLEANING)rm -rf "$(THEOS_OBJ_DIR)"$(ECHO_END)
+	$(ECHO_NOTHING)rm "$(_THEOS_BUILD_SESSION_FILE)"$(ECHO_END)
+
 ifeq ($(MAKELEVEL),0)
-	$(ECHO_CLEANING)rm -rf "$(THEOS_OBJ_DIR)"$(ECHO_END)
 	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)"$(ECHO_END)
-else
-	$(ECHO_CLEANING)rm -rf "$(THEOS_OBJ_DIR)"$(ECHO_END)
 endif
 
 after-clean::
