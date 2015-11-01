@@ -27,11 +27,11 @@ else
 	STDOUT_NULL_REDIRECT = > /dev/null
 endif
 
-	PRINT_FORMAT = printf "\e[0;36m==> \e[1;36m%s\e[m\n"
+	PRINT_FORMAT = printf "\e[0;36m==> \e[1;36mNotice:\e[m %s\n"
 	PRINT_FORMAT_MAKING = printf "\e[1;31m> \e[1;3;39m%s…\e[m\n"
 	PRINT_FORMAT_STAGE = printf "\e[0;3%im==> \e[1;39m%s…\e[m\n"
-	PRINT_FORMAT_WARNING = printf "\e[0;33m==> \e[1;33m%s\e[m\n"
-	PRINT_FORMAT_ERROR = printf "\e[0;31m==> \e[1;31m%s\e[m\n"
+	PRINT_FORMAT_WARNING = printf "\e[0;33m==> \e[1;33mWarning:\e[m %s\n"
+	PRINT_FORMAT_ERROR = printf "\e[0;31m==> \e[1;31mError:\e[m %s\n"
 
 	ECHO_PREPROCESSING = $(ECHO_BEGIN)$(PRINT_FORMAT_STAGE) 1 "Preprocessing $<"$(ECHO_END); $(ECHO_PIPEFAIL) (
 
@@ -56,9 +56,9 @@ endif
 	ECHO_UNLOADING = $(ECHO_BEGIN)$(PRINT_FORMAT_STAGE) 6 "Unloading $(INSTALL_TARGET_PROCESSES)"$(ECHO_END); $(ECHO_PIPEFAIL) (
 	ECHO_CLEANING = $(ECHO_BEGIN)$(PRINT_FORMAT_STAGE) 6 "Cleaning"$(ECHO_END); $(ECHO_PIPEFAIL) (
 
-WARNING_EMPTY_LINKING = @$(PRINT_FORMAT_WARNING) "Warning! No files to link. Please check your Makefile! Make sure you set $(THEOS_CURRENT_INSTANCE)_FILES (or similar variables)"
+WARNING_EMPTY_LINKING = @$(PRINT_FORMAT_WARNING) "No files to link. Please check your Makefile! Make sure you set $(THEOS_CURRENT_INSTANCE)_FILES (or similar variables)"
 
 # (bundle)
-NOTICE_EMPTY_LINKING = @$(PRINT_FORMAT_WARNING) "Notice: No files to link - creating a bundle containing only resources"
+NOTICE_EMPTY_LINKING = @$(PRINT_FORMAT_WARNING) "No files to link - creating a bundle containing only resources"
 
 $(eval $(call __mod,messages.mk))
