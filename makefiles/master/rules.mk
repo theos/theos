@@ -8,24 +8,18 @@ endif
 .PHONY: all before-all internal-all after-all \
 	clean before-clean internal-clean after-clean update-theos
 ifeq ($(THEOS_BUILD_DIR),.)
-all:: before-all internal-all after-all
+all:: $(_THEOS_BUILD_SESSION_FILE) before-all internal-all after-all
 else
-all:: $(THEOS_BUILD_DIR) before-all internal-all after-all
+all:: $(THEOS_BUILD_DIR) $(_THEOS_BUILD_SESSION_FILE) before-all internal-all after-all
 endif
 
 clean:: before-clean internal-clean after-clean
 
-do:: package install
+do:: all package install
 
 before-all::
 ifneq ($(SYSROOT),)
 	@[ -d "$(SYSROOT)" ] || { $(PRINT_FORMAT_ERROR) "Your current SYSROOT, \"$(SYSROOT)\", appears to be missing." >&2; exit 1; }
-endif
-
-	@mkdir -p $(_THEOS_LOCAL_DATA_DIR)
-
-ifeq ($(shell [ -f "$(_THEOS_BUILD_SESSION_FILE)" ] || echo 0),0)
-	@touch $(_THEOS_BUILD_SESSION_FILE)
 endif
 
 internal-all::
@@ -36,7 +30,10 @@ before-clean::
 
 internal-clean::
 	$(ECHO_CLEANING)rm -rf "$(THEOS_OBJ_DIR)"$(ECHO_END)
+
+ifeq ($(shell [ -f "$(_THEOS_BUILD_SESSION_FILE)" ] && echo 1),1)
 	$(ECHO_NOTHING)rm "$(_THEOS_BUILD_SESSION_FILE)"$(ECHO_END)
+endif
 
 ifeq ($(MAKELEVEL),0)
 	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)"$(ECHO_END)
@@ -63,6 +60,13 @@ internal-clean-packages::
 	$(ECHO_NOTHING)rm -rf $(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_NAME)-*-*.$(THEOS_PACKAGE_ARCH).rpm$(ECHO_END)
 
 after-clean-packages::
+
+$(_THEOS_BUILD_SESSION_FILE):
+	@mkdir -p $(_THEOS_LOCAL_DATA_DIR)
+
+ifeq ($(shell [ -f "$(_THEOS_BUILD_SESSION_FILE)" ] || echo 0),0)
+	@touch $(_THEOS_BUILD_SESSION_FILE)
+endif
 
 .PRECIOUS: %.variables %.subprojects
 
