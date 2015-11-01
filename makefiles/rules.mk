@@ -39,7 +39,7 @@ $(THEOS_OBJ_DIR):
 	@cd $(THEOS_BUILD_DIR); mkdir -p $(THEOS_OBJ_DIR_NAME)
 
 $(THEOS_OBJ_DIR)/.stamp: $(THEOS_OBJ_DIR)
-	@touch $@
+	@mkdir -p $(dir $@); touch $@
 
 $(THEOS_OBJ_DIR)/%/.stamp: $(THEOS_OBJ_DIR)
 	@mkdir -p $(dir $@); touch $@
