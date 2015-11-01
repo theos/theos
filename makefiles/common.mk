@@ -10,7 +10,7 @@ endif
 
 THEOS_PROJECT_DIR ?= $(shell pwd)
 _THEOS_LOCAL_DATA_DIR := $(THEOS_PROJECT_DIR)/.theos
-_THEOS_BUILD_SESSION_FILE = $(_THEOS_LOCAL_DATA_DIR)/.theos
+_THEOS_BUILD_SESSION_FILE = $(_THEOS_LOCAL_DATA_DIR)/build_session
 
 ### Functions
 # Function for getting a clean absolute path from cd.
