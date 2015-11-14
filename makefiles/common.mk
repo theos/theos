@@ -131,7 +131,7 @@ export _THEOS_TARGET := $(__THEOS_TARGET_ARG_0)
 ifeq ($(_THEOS_TARGET),)
 $(error You did not specify a target, and the "$(THEOS_PLATFORM_NAME)" platform does not define a default target)
 endif
-export _THEOS_TARGET_CALCULATED := 1
+_THEOS_TARGET_CALCULATED := 1
 endif
 
 -include $(THEOS_MAKE_PATH)/targets/$(_THEOS_PLATFORM_ARCH)/$(_THEOS_TARGET).mk
