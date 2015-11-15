@@ -88,7 +88,7 @@ sub numArgs {
 sub addArgument {
 	my $self = shift;
 	my ($type, $name) = @_;
-	push(@{$self->{ARGTYPES}}, $type);	
+	push(@{$self->{ARGTYPES}}, $type);
 	push(@{$self->{ARGNAMES}}, $name);
 }
 
@@ -121,6 +121,7 @@ sub printArgForArgType {
 	$argtype =~ s/\s+$//g;
 
 	return "NSStringFromSelector($argname)" if $argtype =~ /^SEL$/;
+	return "$argname" if $argtype =~ /^Class$/;
 	return "$argname.location, $argname.length" if $argtype =~ /^NSRange$/;
 	return "$argname.origin.x, $argname.origin.y, $argname.size.width, $argname.size.height" if $argtype =~ /^(CG|NS)Rect$/;
 	return "$argname.x, $argname.y" if $argtype =~ /^(CG|NS)Point$/;
@@ -174,9 +175,10 @@ sub formatCharForArgType {
 
 	# Floating-Point Types
 	return "%f" if /^(double|float|CGFloat|CGDouble|NSTimeInterval)$/;
-	
+
 	# Special Types (should also have an entry in printArgForArgType
 	return "%@" if /^SEL$/;
+	return "%@" if /^Class$/;
 
 	# Even-more-special expanded types
 	return "(%d:%d)" if /^NSRange$/;
