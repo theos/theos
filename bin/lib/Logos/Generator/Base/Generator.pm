@@ -12,6 +12,11 @@ sub preamble {
 	return "";
 }
 
+sub staticDeclarations {
+	my $self = shift;
+	return "";
+}
+
 sub generateClassList {
 	my $self = shift;
 	my $return = "";

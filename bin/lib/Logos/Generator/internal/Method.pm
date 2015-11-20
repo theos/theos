@@ -100,14 +100,7 @@ sub initializers {
 		$_pointertype .= ", ".$argtypelist if $argtypelist;
 		$_pointertype .= ")";
 		my $pointertype = Logos::Method::declarationForTypeWithName($method->return, $_pointertype);
-		$r .= "Class _class = ".$classvar.";";
-		$r .= "Method _method = class_getInstanceMethod(_class, \@selector(".$method->selector."));";
-		$r .= "if (_method) {";
-		$r .=     "if (!class_addMethod(_class, \@selector(".$method->selector."), (IMP)&".$self->newFunctionName($method).", method_getTypeEncoding(_method))) {";
-		$r .=         $self->originalFunctionName($method)." = (".$pointertype.")method_getImplementation(_method);";
-		$r .=         $self->originalFunctionName($method)." = (".$pointertype.")method_setImplementation(_method, (IMP)&".$self->newFunctionName($method).");";
-		$r .=     "}";
-		$r .= "}";
+		$r .= Logos::sigil("register_hook") . "(" . $classvar . ", \@selector(".$method->selector."), (IMP)&".$self->newFunctionName($method).", (IMP *)&" . $self->originalFunctionName($method) . ");";
 	} else {
 		if(!$method->type) {
 			$r .= "char _typeEncoding[1024]; unsigned int i = 0; ";
