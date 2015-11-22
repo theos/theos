@@ -4,7 +4,9 @@ endif
 
 .PHONY: internal-bundle-all_ internal-bundle-stage_ internal-bundle-compile
 
+ifeq ($(call __theos_bool,$(or $($(THEOS_CURRENT_INSTANCE)_DYNAMIC_LIBRARY),$(_THEOS_TRUE))),$(_THEOS_TRUE))
 _THEOS_INTERNAL_LDFLAGS += -dynamiclib
+endif
 
 # Bundle Setup
 LOCAL_BUNDLE_NAME = $(or $($(THEOS_CURRENT_INSTANCE)_BUNDLE_NAME),$(THEOS_CURRENT_INSTANCE))
