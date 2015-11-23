@@ -23,7 +23,7 @@ sub staticDeclarations {
 		"unsigned int _count, _i;",
 		"Class _searchedClass = _class;",
 		"Method *_methods;",
-		"while (_searchedClass != Nil) {",
+		"while (_searchedClass) {",
 			"_methods = class_copyMethodList(_searchedClass, &_count);",
 			"for (_i = 0; _i < _count; _i++) {",
 				"if (method_getName(_methods[_i]) == _cmd) {",
