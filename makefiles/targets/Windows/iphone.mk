@@ -22,8 +22,6 @@ endif
 
 # We have to figure out the target version here, as we need it in the calculation of the deployment version.
 _TARGET_VERSION_GE_6_0 = $(call __simplify,_TARGET_VERSION_GE_6_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 6.0))
-_TARGET_VERSION_GE_3_0 = $(call __simplify,_TARGET_VERSION_GE_3_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 3.0))
-_TARGET_VERSION_GE_4_0 = $(call __simplify,_TARGET_VERSION_GE_4_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 4.0))
 _THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION := $(or $(__THEOS_TARGET_ARG_$(word 2,$(_THEOS_TARGET_ARG_ORDER))),$(TARGET_IPHONEOS_DEPLOYMENT_VERSION),$(_SDKVERSION),3.0)
 
 ifeq ($(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION),latest)
@@ -35,7 +33,8 @@ _DEPLOY_VERSION_LT_4_3 = $(call __simplify,_DEPLOY_VERSION_LT_4_3,$(shell $(THEO
 
 ifeq ($(_TARGET_VERSION_GE_6_0)$(_DEPLOY_VERSION_GE_3_0)$(_DEPLOY_VERSION_LT_4_3),111)
 ifeq ($(_THEOS_TARGET_WARNED_DEPLOY),)
-@$(PRINT_FORMAT_WARNING) "Deploying to iOS 3.0 while building for 6.0 will generate armv7-only binaries." >&2
+before-all::
+	@$(PRINT_FORMAT_WARNING) "Deploying to iOS 3.0 while building for 6.0 will generate armv7-only binaries." >&2
 export _THEOS_TARGET_WARNED_DEPLOY := 1
 endif
 endif
@@ -60,15 +59,24 @@ include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_flat_bundle.mk
 
 ifeq ($(_TARGET_VERSION_GE_6_0),1) # >= 6.0 {
-	ARCHS ?= armv7
+	ARCHS ?= armv7 arm64
 else # } < 6.0 {
 	ARCHS ?= armv6 armv7
 endif # }
 
 SDKFLAGS := -isysroot "$(SYSROOT)" $(foreach ARCH,$(ARCHS),-arch $(ARCH)) -miphoneos-version-min=$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)
+
+# “iOS 9 changed the 32-bit pagesize on 64-bit CPUs from 4096 bytes to 16384:
+# all 32-bit binaries must now be compiled with -Wl,-segalign,4000.”
+# https://twitter.com/saurik/status/654198997024796672
+
+ifneq ($(THEOS_CURRENT_ARCH),arm64)
+LEGACYFLAGS := -Wl,-segalign,4000
+endif
+
 _THEOS_TARGET_CFLAGS := $(SDKFLAGS)
-_THEOS_TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress
-#stupid llvm configuring the linker version incorrectly
+_THEOS_TARGET_LDFLAGS := $(SDKFLAGS) $(LEGACYFLAGS) -multiply_defined suppress
+# stupid llvm configuring the linker version incorrectly
 _THEOS_TARGET_LDFLAGS := $(_THEOS_TARGET_LDFLAGS) -mlinker-version=128.2
 
 TARGET_INSTALL_REMOTE := $(_THEOS_TRUE)
