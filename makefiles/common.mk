@@ -163,20 +163,24 @@ _THEOS_PACKAGE_LAST_FILENAME = $(call __simplify,_THEOS_PACKAGE_LAST_FILENAME,$(
 # ObjC/++ stuff is not here, it's in instance/rules.mk and only added if there are OBJC/OBJCC objects.
 _THEOS_INTERNAL_LDFLAGS = $(if $(_THEOS_TARGET_HAS_LIBRARY_PATH),-L$(THEOS_TARGET_LIBRARY_PATH) )-L$(THEOS_LIBRARY_PATH)
 
-SHOULD_STRIP := $(call __theos_bool,$(or $(strip),$(STRIP),1))
-ifeq ($(SHOULD_STRIP),$(_THEOS_TRUE))
-OPTFLAG ?= -O2
-SWIFT_OPTFLAG ?= -O
-else
-OPTFLAG ?= -ggdb -O2
-endif
 DEBUGFLAG ?= -ggdb
 DEBUG.CFLAGS = -DDEBUG $(DEBUGFLAG) -O0
 DEBUG.SWIFTFLAGS = -DDEBUG -Onone
 DEBUG.LDFLAGS = $(DEBUGFLAG) -O0
-ifneq ($(findstring DEBUG,$(THEOS_SCHEMA)),)
+
+ifeq ($(findstring DEBUG,$(THEOS_SCHEMA)),)
+SHOULD_STRIP := $(call __theos_bool,$(or $(strip),$(STRIP),1))
+else
+SHOULD_STRIP := $(_THEOS_FALSE)
 TARGET_STRIP = :
 PACKAGE_BUILDNAME ?= debug
+endif
+
+ifeq ($(SHOULD_STRIP),$(_THEOS_TRUE))
+OPTFLAG ?= -Os
+SWIFT_OPTFLAG ?= -O
+else
+OPTFLAG ?= -O0
 endif
 
 CFLAGS += -I$(THEOS_FALLBACK_INCLUDE_PATH)
