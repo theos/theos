@@ -141,7 +141,12 @@ MAKEDEP_FILES = $(addprefix $(THEOS_OBJ_DIR)/,$(strip $(patsubst %,%.$(_THEOS_OB
 endif
 
 before-$(THEOS_CURRENT_INSTANCE)-all after-$(THEOS_CURRENT_INSTANCE)-all::
-	@:
+	@for i in $(_FILES); do \
+	    if [ ! -f "$$i" ]; then \
+	        $(PRINT_FORMAT_ERROR) "File $$i does not exist." 2>&1; \
+	        exit 1; \
+	    fi; \
+	done
 
 internal-$(_THEOS_CURRENT_TYPE)-all:: before-$(THEOS_CURRENT_INSTANCE)-all internal-$(_THEOS_CURRENT_TYPE)-all_ after-$(THEOS_CURRENT_INSTANCE)-all
 	@:
