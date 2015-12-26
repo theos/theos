@@ -31,6 +31,42 @@ sub selectorRef {
 	return "\@selector(".$selector.")";
 }
 
+sub selfTypeForMethod {
+	my $self = shift;
+	my $method = shift;
+	if($method->scope eq "+") {
+		return "_THEOS_SELF_TYPE_NORMAL Class _THEOS_SELF_CONST";
+	}
+	if($method->selector =~ /^init/) {
+		return "_THEOS_SELF_TYPE_INIT ".$method->class->type;
+	}
+	return "_THEOS_SELF_TYPE_NORMAL ".$method->class->type." _THEOS_SELF_CONST";
+}
+
+sub returnTypeForMethod {
+	my $self = shift;
+	my $method = shift;
+	if($method->scope ne "+") {
+		if($method->selector =~ /^init/) {
+			return $method->class->type;
+		}
+	}
+	my $result = $method->return;
+	if ($result eq "instancetype") {
+		return $method->class->type;
+	}
+	return $result;
+}
+
+sub functionAttributesForMethod {
+	my $self = shift;
+	my $method = shift;
+	if($method->selector =~ /^init/) {
+		return " _THEOS_RETURN_RETAINED";
+	}
+	return "";
+}
+
 sub buildLogCall {
 	my $self = shift;
 	my $method = shift;

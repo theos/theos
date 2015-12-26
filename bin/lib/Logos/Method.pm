@@ -220,6 +220,7 @@ sub typeEncodingForArgType {
 	return "*" if /^char\s*\*$/;
 
 	return "@" if /^id$/;
+	return "@" if /^instancetype$/;
 	return "#" if /^Class$/;
 	return ":" if /^SEL$/;
 
