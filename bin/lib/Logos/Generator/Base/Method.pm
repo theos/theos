@@ -22,6 +22,15 @@ sub originalCall {
 	::fileError(-1, "generator does not implement Method::originalCall");
 }
 
+sub selectorRef {
+	my $self = shift;
+	my $selector = shift;
+	if ($selector eq "dealloc") {
+		return "sel_registerName(\"".$selector."\")";
+	}
+	return "\@selector(".$selector.")";
+}
+
 sub buildLogCall {
 	my $self = shift;
 	my $method = shift;

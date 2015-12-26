@@ -48,7 +48,7 @@ sub definition {
 		my $pointerType = "(*)(".$classargtype.", SEL";
 		$pointerType .=       ", ".$argtypelist if $argtypelist;
 		$pointerType .=   ")";
-		$build .=     "return ((".Logos::Method::declarationForTypeWithName($method->return, $pointerType).")class_getMethodImplementation(".$classref.", \@selector(".$method->selector.")))";
+		$build .=     "return ((".Logos::Method::declarationForTypeWithName($method->return, $pointerType).")class_getMethodImplementation(".$classref.",".$self->selectorRef($method->selector)."))";
 		$build .=         $self->originalCallParams($method).";";
 		$build .= "}";
 	
@@ -105,10 +105,10 @@ sub initializers {
 		$_pointertype .= ")";
 		my $pointertype = Logos::Method::declarationForTypeWithName($method->return, $_pointertype);
 		$r .= "Class _class = ".$classvar.";";
-		$r .= "Method _method = class_getInstanceMethod(_class, \@selector(".$method->selector."));";
+		$r .= "Method _method = class_getInstanceMethod(_class,".$self->selectorRef($method->selector).");";
 		$r .= "if (_method) {";
 		$r .=     $self->originalFunctionName($method)." = ".$self->superFunctionName($method).";";
-		$r .=     "if (!class_addMethod(_class, \@selector(".$method->selector."), (IMP)&".$self->newFunctionName($method).", method_getTypeEncoding(_method))) {";
+		$r .=     "if (!class_addMethod(_class,".$self->selectorRef($method->selector).", (IMP)&".$self->newFunctionName($method).", method_getTypeEncoding(_method))) {";
 		$r .=         $self->originalFunctionName($method)." = (".$pointertype.")method_getImplementation(_method);";
 		$r .=         $self->originalFunctionName($method)." = (".$pointertype.")method_setImplementation(_method, (IMP)&".$self->newFunctionName($method).");";
 		$r .=     "}";
@@ -134,7 +134,7 @@ sub initializers {
 		} else {
 			$r .= "const char *_typeEncoding = \"".$method->type."\"; ";
 		}
-		$r .= "class_addMethod(".$classvar.", \@selector(".$method->selector."), (IMP)&".$self->newFunctionName($method).", _typeEncoding); ";
+		$r .= "class_addMethod(".$classvar.", ".$self->selectorRef($method->selector).", (IMP)&".$self->newFunctionName($method).", _typeEncoding); ";
 	}
 	$r .= "}";
 	return $r;

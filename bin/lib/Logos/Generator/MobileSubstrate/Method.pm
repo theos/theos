@@ -80,7 +80,7 @@ sub initializers {
 	my $cgen = Logos::Generator::for($method->class);
 	my $classvar = ($method->scope eq "+" ? $cgen->metaVariable : $cgen->variable);
 	if(!$method->isNew) {
-		return "MSHookMessageEx(".$classvar.", \@selector(".$method->selector."), (IMP)&".$self->newFunctionName($method).", (IMP*)&".$self->originalFunctionName($method).");";
+		return "MSHookMessageEx(".$classvar.", ".$self->selectorRef($method->selector).", (IMP)&".$self->newFunctionName($method).", (IMP*)&".$self->originalFunctionName($method).");";
 	} else {
 		my $r = "";
 		$r .= "{ ";
@@ -104,7 +104,7 @@ sub initializers {
 		} else {
 			$r .= "const char *_typeEncoding = \"".$method->type."\"; ";
 		}
-		$r .= "class_addMethod(".$classvar.", \@selector(".$method->selector."), (IMP)&".$self->newFunctionName($method).", _typeEncoding); ";
+		$r .= "class_addMethod(".$classvar.", ".$self->selectorRef($method->selector).", (IMP)&".$self->newFunctionName($method).", _typeEncoding); ";
 		$r .= "}";
 		return $r;
 	}
