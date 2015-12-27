@@ -35,12 +35,12 @@ sub selfTypeForMethod {
 	my $self = shift;
 	my $method = shift;
 	if($method->scope eq "+") {
-		return "_THEOS_SELF_TYPE_NORMAL Class _THEOS_SELF_CONST";
+		return "_LOGOS_SELF_TYPE_NORMAL Class _LOGOS_SELF_CONST";
 	}
 	if($method->methodFamily eq "init") {
-		return "_THEOS_SELF_TYPE_INIT ".$method->class->type;
+		return "_LOGOS_SELF_TYPE_INIT ".$method->class->type;
 	}
-	return "_THEOS_SELF_TYPE_NORMAL ".$method->class->type." _THEOS_SELF_CONST";
+	return "_LOGOS_SELF_TYPE_NORMAL ".$method->class->type." _LOGOS_SELF_CONST";
 }
 
 sub returnTypeForMethod {
@@ -60,7 +60,7 @@ sub functionAttributesForMethod {
 	my $self = shift;
 	my $method = shift;
 	if($method->methodFamily ne "") {
-		return " _THEOS_RETURN_RETAINED";
+		return " _LOGOS_RETURN_RETAINED";
 	}
 	return "";
 }
