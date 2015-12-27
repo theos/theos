@@ -10,12 +10,12 @@ sub findPreamble {
 
 sub preamble {
 	return <<END;
-#if defined(__clang)
+#if defined(__clang__)
 #if __has_feature(objc_arc)
 #define _THEOS_SELF_TYPE_NORMAL __unsafe_unretained
 #define _THEOS_SELF_TYPE_INIT __attribute__((ns_consumed))
 #define _THEOS_SELF_CONST const
-#define _THEOS_RETURN_RETAINED __attribute((ns_returns_retained))
+#define _THEOS_RETURN_RETAINED __attribute__((ns_returns_retained))
 #else
 #define _THEOS_SELF_TYPE_NORMAL
 #define _THEOS_SELF_TYPE_INIT

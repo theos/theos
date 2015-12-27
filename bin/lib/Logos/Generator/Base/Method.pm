@@ -37,7 +37,7 @@ sub selfTypeForMethod {
 	if($method->scope eq "+") {
 		return "_THEOS_SELF_TYPE_NORMAL Class _THEOS_SELF_CONST";
 	}
-	if($method->selector =~ /^init/) {
+	if($method->methodFamily eq "init") {
 		return "_THEOS_SELF_TYPE_INIT ".$method->class->type;
 	}
 	return "_THEOS_SELF_TYPE_NORMAL ".$method->class->type." _THEOS_SELF_CONST";
@@ -46,10 +46,8 @@ sub selfTypeForMethod {
 sub returnTypeForMethod {
 	my $self = shift;
 	my $method = shift;
-	if($method->scope ne "+") {
-		if($method->selector =~ /^init/) {
-			return $method->class->type;
-		}
+ 	if($method->methodFamily ne "") {
+		return $method->class->type;
 	}
 	my $result = $method->return;
 	if ($result eq "instancetype") {
@@ -61,7 +59,7 @@ sub returnTypeForMethod {
 sub functionAttributesForMethod {
 	my $self = shift;
 	my $method = shift;
-	if($method->selector =~ /^init/) {
+	if($method->methodFamily ne "") {
 		return " _THEOS_RETURN_RETAINED";
 	}
 	return "";
