@@ -77,7 +77,7 @@ sub declarations {
 		my $argtypelist = join(", ", @{$method->argtypes});
 		$name .= ", ".$argtypelist if $argtypelist;
 		$name .= ")";
-		$build .= Logos::Method::declarationForTypeWithName($method->return, $name);
+		$build .= Logos::Method::declarationForTypeWithName($self->returnTypeForMethod($method), $name);
 		$build .= ";";
 	}
 	return $build;
