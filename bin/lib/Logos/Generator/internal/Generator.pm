@@ -19,7 +19,8 @@ sub preamble {
 
 sub staticDeclarations {
 	my $self = shift;
-	return join("\n", ("__attribute__((unused)) static void ".Logos::sigil("register_hook")."(Class _class, SEL _cmd, IMP _new, IMP *_old) {",
+	return join("\n", ($self->SUPER::staticDeclarations(),
+		"__attribute__((unused)) static void ".Logos::sigil("register_hook")."(Class _class, SEL _cmd, IMP _new, IMP *_old) {",
 		"unsigned int _count, _i;",
 		"Class _searchedClass = _class;",
 		"Method *_methods;",
