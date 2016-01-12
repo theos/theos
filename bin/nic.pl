@@ -149,6 +149,8 @@ my $dirname = lc($clean_project_name);
 $NIC->build($dirname);
 chdir($cwd);
 
+system("rm $dirname/theos; ln -s " . abs_path($_theospath) . " $dirname/theos");
+
 my @makefiles = ("GNUmakefile", "makefile", "Makefile");
 my $makefile;
 map { $makefile = $_ if -e $_; } @makefiles;
