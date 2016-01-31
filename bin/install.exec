@@ -1,6 +1,19 @@
 #!/bin/bash
 if [[ TARGET_INSTALL_REMOTE -eq 1 ]]; then
-	exec ssh -p $THEOS_DEVICE_PORT $THEOS_DEVICE_USER@$THEOS_DEVICE_IP "$@"
+	args=(ssh)
+
+	if [[ ! -z "$THEOS_DEVICE_PORT" ]]; then
+		args+=(-p "$THEOS_DEVICE_PORT")
+	fi
+
+	if [[ ! -z "$THEOS_DEVICE_USER" ]]; then
+		args+=(-l "$THEOS_DEVICE_USER")
+	fi
+
+	args+=($THEOS_DEVICE_IP)
+	args+=("$@")
+
+	exec ${args[@]}
 else
 	exec sh -c "$@"
 fi

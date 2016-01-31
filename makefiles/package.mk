@@ -95,7 +95,6 @@ internal-install::
 	@$(PRINT_FORMAT) "It is also recommended that you have public-key authentication set up for root over SSH, or you will be entering your password a lot." >&2
 	@exit 1
 endif # THEOS_DEVICE_IP == ""
-THEOS_DEVICE_PORT ?= 22
 THEOS_DEVICE_USER ?= root
 export THEOS_DEVICE_IP THEOS_DEVICE_PORT THEOS_DEVICE_USER
 endif # TARGET_INSTALL_REMOTE == true
