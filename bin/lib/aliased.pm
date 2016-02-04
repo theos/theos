@@ -1,4 +1,5 @@
 package aliased;
+no warnings 'deprecated';
 
 our $VERSION = '0.30_01';
 $VERSION = eval $VERSION;
