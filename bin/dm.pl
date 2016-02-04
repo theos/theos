@@ -64,7 +64,7 @@ my $controlfile = File::Spec->catfile($controldir, "control");
 die "ERROR: control file '$controlfile' is not a plain file\n" unless -f $controlfile;
 my %control_data = read_control_file($controlfile);
 
-die "ERROR: package name has characters that aren't lowercase alphanums or '-+.'.\n" if($control_data{"package"} =~ m/[^a-z0-9+-.]/);
+die "ERROR: package name has characters that aren't alphanumueric or '-+.'.\n" if($control_data{"package"} =~ m/[^a-zA-Z0-9+-.]/);
 die "ERROR: package version ".$control_data{"version"}." doesn't contain any digits.\n" if($control_data{"version"} !~ m/[0-9]/);
 
 foreach my $m ("preinst", "postinst", "prerm", "postrm", "extrainst_") {
