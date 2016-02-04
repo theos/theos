@@ -13,7 +13,7 @@ __clean_pwd = $(shell (unset CDPATH; cd "$(1)"; pwd))
 # Truthiness
 _THEOS_TRUE := 1
 _THEOS_FALSE :=
-__theos_bool = $(if $(filter Y y YES yes 1,$(1)),$(_THEOS_TRUE),$(_THEOS_FALSE))
+__theos_bool = $(if $(filter Y y YES yes TRUE true 1,$(1)),$(_THEOS_TRUE),$(_THEOS_FALSE))
 # Existence
 __exists = $(if $(wildcard $(1)),$(_THEOS_TRUE),$(_THEOS_FALSE))
 __executable = $(if $(shell PATH="$(THEOS_BIN_PATH):$$PATH" type "$(1)" > /dev/null 2>&1 && echo 1),$(_THEOS_TRUE),$(_THEOS_FALSE))
