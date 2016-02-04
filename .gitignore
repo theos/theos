@@ -2,7 +2,7 @@
 .DS_Store
 ._*
 
-sdks/*.sdk
+sdks/*
 toolchain/*
 
 include/*
