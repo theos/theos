@@ -15,5 +15,5 @@ if [[ TARGET_INSTALL_REMOTE -eq 1 ]]; then
 
 	exec ${args[@]}
 else
-	exec sh -c "$@"
+	exec su -c "$@"
 fi
