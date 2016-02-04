@@ -124,7 +124,7 @@ _THEOS_OUT_FILE_TAG = $(call __simplify,_THEOS_OUT_FILE_TAG,$(shell echo "$(ALL_
 
 _THEOS_USE_MAKEDEPS := $(_THEOS_FALSE)
 
-ifeq ($(call __theos_bool,$(or $(USE_MAKEDEPS),$(_THEOS_TRUE))),$(_THEOS_TRUE))
+ifeq ($(call __theos_bool,$(USE_MAKEDEPS)),$(_THEOS_TRUE))
 _THEOS_USE_MAKEDEPS := $(_THEOS_TRUE)
 endif
 
