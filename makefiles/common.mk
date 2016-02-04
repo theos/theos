@@ -120,12 +120,12 @@ endif
 export _THEOS_PLATFORM_CALCULATED := 1
 endif
 
--include $(THEOS_MAKE_PATH)/platform/$(_THEOS_OS).mk
 -include $(THEOS_MAKE_PATH)/platform/$(_THEOS_PLATFORM_ARCH).mk
 -include $(THEOS_MAKE_PATH)/platform/$(_THEOS_PLATFORM).mk
-$(eval $(call __mod,platform/$(_THEOS_OS).mk))
+-include $(THEOS_MAKE_PATH)/platform/$(_THEOS_OS).mk
 $(eval $(call __mod,platform/$(_THEOS_PLATFORM_ARCH).mk))
 $(eval $(call __mod,platform/$(_THEOS_PLATFORM).mk))
+$(eval $(call __mod,platform/$(_THEOS_OS).mk))
 
 ifneq ($(_THEOS_TARGET_CALCULATED),1)
 __TARGET_MAKEFILE := $(shell $(THEOS_BIN_PATH)/target.pl "$(target)" "$(call __schema_var_last,,TARGET)" "$(_THEOS_PLATFORM_DEFAULT_TARGET)")
