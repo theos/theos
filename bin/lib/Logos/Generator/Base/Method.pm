@@ -22,6 +22,49 @@ sub originalCall {
 	::fileError(-1, "generator does not implement Method::originalCall");
 }
 
+sub selectorRef {
+	my $self = shift;
+	my $selector = shift;
+	if ($selector eq "dealloc") {
+		return "sel_registerName(\"".$selector."\")";
+	}
+	return "\@selector(".$selector.")";
+}
+
+sub selfTypeForMethod {
+	my $self = shift;
+	my $method = shift;
+	if($method->scope eq "+") {
+		return "_LOGOS_SELF_TYPE_NORMAL Class _LOGOS_SELF_CONST";
+	}
+	if($method->methodFamily eq "init") {
+		return "_LOGOS_SELF_TYPE_INIT ".$method->class->type;
+	}
+	return "_LOGOS_SELF_TYPE_NORMAL ".$method->class->type." _LOGOS_SELF_CONST";
+}
+
+sub returnTypeForMethod {
+	my $self = shift;
+	my $method = shift;
+ 	if($method->methodFamily ne "") {
+		return $method->class->type;
+	}
+	my $result = $method->return;
+	if ($result eq "instancetype") {
+		return $method->class->type;
+	}
+	return $result;
+}
+
+sub functionAttributesForMethod {
+	my $self = shift;
+	my $method = shift;
+	if($method->methodFamily ne "") {
+		return " _LOGOS_RETURN_RETAINED";
+	}
+	return "";
+}
+
 sub buildLogCall {
 	my $self = shift;
 	my $method = shift;

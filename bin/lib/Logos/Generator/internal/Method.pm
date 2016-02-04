@@ -28,32 +28,32 @@ sub definition {
 	my $self = shift;
 	my $method = shift;
 	my $build = "";
-	my $classargtype = "";
+	my $selftype = $self->selfTypeForMethod($method);
 	my $classref = "";
 	my $cgen = Logos::Generator::for($method->class);
 	if($method->scope eq "+") {
-		$classargtype = "Class";
 		$classref = $cgen->superMetaVariable;
 	} else {
-		$classargtype = $method->class->type;
 		$classref = $cgen->superVariable;
 	}
 	my $arglist = "";
 	map $arglist .= ", ".Logos::Method::declarationForTypeWithName($method->argtypes->[$_], $method->argnames->[$_]), (0..$method->numArgs - 1);
-	my $parameters = "(".$classargtype." self, SEL _cmd".$arglist.")";
+	my $parameters = "(".$selftype." self, SEL _cmd".$arglist.")";
+	my $return = $self->returnTypeForMethod($method);
+	my $functionAttributes = $self->functionAttributesForMethod($method);
 	if(!$method->isNew) {
 		my $argtypelist = join(", ", @{$method->argtypes});
 
-		$build .= "static ".Logos::Method::declarationForTypeWithName($method->return, $self->superFunctionName($method).$parameters)." {";
-		my $pointerType = "(*)(".$classargtype.", SEL";
+		$build .= "static ".Logos::Method::declarationForTypeWithName($return, $self->superFunctionName($method).$parameters).$functionAttributes." {";
+		my $pointerType = "(*)(".$selftype.", SEL";
 		$pointerType .=       ", ".$argtypelist if $argtypelist;
 		$pointerType .=   ")";
-		$build .=     "return ((".Logos::Method::declarationForTypeWithName($method->return, $pointerType).")class_getMethodImplementation(".$classref.", \@selector(".$method->selector.")))";
+		$build .=     "return ((".$functionAttributes." ".Logos::Method::declarationForTypeWithName($return, $pointerType).")class_getMethodImplementation(".$classref.",".$self->selectorRef($method->selector)."))";
 		$build .=         $self->originalCallParams($method).";";
 		$build .= "}";
 
 	}
-	$build .= "static ".Logos::Method::declarationForTypeWithName($method->return, $self->newFunctionName($method).$parameters);
+	$build .= "static ".Logos::Method::declarationForTypeWithName($return, $self->newFunctionName($method).$parameters).$functionAttributes;
 	return $build;
 }
 
@@ -69,19 +69,16 @@ sub declarations {
 	my $method = shift;
 	my $build = "";
 	if(!$method->isNew) {
-		my $classargtype = "";
-		if($method->scope eq "+") {
-			$classargtype = "Class";
-		} else {
-			$classargtype = $method->class->type;
-		}
+		my $selftype = $self->selfTypeForMethod($method);
+		my $functionAttributes = $self->functionAttributesForMethod($method);
 		$build .= "static ";
 		my $name = "";
-		$name .= "(*".$self->originalFunctionName($method).")(".$classargtype.", SEL";
+		$name .= $functionAttributes."(*".$self->originalFunctionName($method).")(".$selftype.", SEL";
 		my $argtypelist = join(", ", @{$method->argtypes});
 		$name .= ", ".$argtypelist if $argtypelist;
 		$name .= ")";
-		$build .= Logos::Method::declarationForTypeWithName($method->return, $name).";";
+		$build .= Logos::Method::declarationForTypeWithName($self->returnTypeForMethod($method), $name);
+		$build .= ";";
 	}
 	return $build;
 }
@@ -99,17 +96,12 @@ sub initializers {
 		} else {
 			$classargtype = $method->class->type;
 		}
-		my $_pointertype = "(*)(".$classargtype.", SEL";
-		my $argtypelist = join(", ", @{$method->argtypes});
-		$_pointertype .= ", ".$argtypelist if $argtypelist;
-		$_pointertype .= ")";
-		my $pointertype = Logos::Method::declarationForTypeWithName($method->return, $_pointertype);
 		$r .= "Class _class = ".$classvar.";";
-		$r .= "Method _method = class_getInstanceMethod(_class, \@selector(".$method->selector."));";
+		$r .= "Method _method = class_getInstanceMethod(_class, ".$self->selectorRef($method->selector)."));";
 		$r .= "if (_class) {";
 		$r .=   "if (_method) {";
 		$r .=     $self->originalFunctionName($method)." = ".$self->superFunctionName($method).";";
-		$r .=     "if (!class_addMethod(_class, \@selector(".$method->selector."), (IMP)&".$self->newFunctionName($method).", method_getTypeEncoding(_method))) {";
+		$r .=     "if (!class_addMethod(_class, ".$self->selectorRef($method->selector)."), (IMP)&".$self->newFunctionName($method).", method_getTypeEncoding(_method))) {";
 		$r .=       $self->originalFunctionName($method)." = (".$pointertype.")method_getImplementation(_method);";
 		$r .=       $self->originalFunctionName($method)." = (".$pointertype.")method_setImplementation(_method, (IMP)&".$self->newFunctionName($method).");";
 		$r .=     "}";
@@ -140,7 +132,7 @@ sub initializers {
 		} else {
 			$r .= "const char *_typeEncoding = \"".$method->type."\"; ";
 		}
-		$r .= "class_addMethod(".$classvar.", \@selector(".$method->selector."), (IMP)&".$self->newFunctionName($method).", _typeEncoding); ";
+		$r .= "class_addMethod(".$classvar.", ".$self->selectorRef($method->selector).", (IMP)&".$self->newFunctionName($method).", _typeEncoding); ";
 	}
 	$r .= "}";
 	return $r;

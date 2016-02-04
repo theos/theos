@@ -7,14 +7,14 @@ sub _originalMethodPointerDeclaration {
 	my $method = shift;
 	if(!$method->isNew) {
 		my $build = "static ";
-		my $classargtype = $method->class->type;
-		$classargtype = "Class" if $method->scope eq "+";
+		my $classargtype = $self->selfTypeForMethod($method);
 		my $name = "(*".$self->originalFunctionName($method).")(".$classargtype.", SEL";
 		my $argtypelist = join(", ", @{$method->argtypes});
 		$name .= ", ".$argtypelist if $argtypelist;
 
 		$name .= ")";
-		$build .= Logos::Method::declarationForTypeWithName($method->return, $name);
+		$build .= Logos::Method::declarationForTypeWithName($self->returnTypeForMethod($method), $name);
+		$build .= $self->functionAttributesForMethod($method);
 		return $build;
 	}
 	return undef;
@@ -25,8 +25,7 @@ sub _methodPrototype {
 	my $method = shift;
 	my $includeArgNames = 0 || shift;
 	my $build = "static ";
-	my $classargtype = $method->class->type;
-	$classargtype = "Class" if $method->scope eq "+";
+	my $classargtype = $self->selfTypeForMethod($method);
 	my $arglist = "";
 	if($includeArgNames == 1) {
 		map $arglist .= ", ".Logos::Method::declarationForTypeWithName($method->argtypes->[$_], $method->argnames->[$_]), (0..$method->numArgs - 1);
@@ -36,7 +35,8 @@ sub _methodPrototype {
 	}
 
 	my $name = $self->newFunctionName($method)."(".$classargtype.($includeArgNames?" self":"").", SEL".($includeArgNames?" _cmd":"").$arglist.")";
-	$build .= Logos::Method::declarationForTypeWithName($method->return, $name);
+	$build .= Logos::Method::declarationForTypeWithName($self->returnTypeForMethod($method), $name);
+	$build .= $self->functionAttributesForMethod($method);
 	return $build;
 }
 
@@ -82,8 +82,8 @@ sub initializers {
 	if(!$method->isNew) {
 		my $r = "";
 		$r .= "if (".$classvar.") {";
-		$r .=   "if (class_getInstanceMethod(".$classvar.", \@selector(".$method->selector."))) {";
-		$r .=     "MSHookMessageEx(".$classvar.", \@selector(".$method->selector."), (IMP)&".$self->newFunctionName($method).", (IMP*)&".$self->originalFunctionName($method).");";
+		$r .=   "if (class_getInstanceMethod(".$classvar.", ".$self->selectorRef($method->selector).")) {";
+		$r .=     "MSHookMessageEx(".$classvar.", ".$self->selectorRef($method->selector).", (IMP)&".$self->newFunctionName($method).", (IMP*)&".$self->originalFunctionName($method).");";
 		$r .=   "} else {";
 		$r .=     "HBLogError(@\"logos: message not found [%s %s]\", \"".$method->class->name."\", \"".$method->selector."\");";
 		$r .=   "}";
@@ -113,7 +113,7 @@ sub initializers {
 		} else {
 			$r .= "const char *_typeEncoding = \"".$method->type."\"; ";
 		}
-		$r .= "class_addMethod(".$classvar.", \@selector(".$method->selector."), (IMP)&".$self->newFunctionName($method).", _typeEncoding); ";
+		$r .= "class_addMethod(".$classvar.", ".$self->selectorRef($method->selector).", (IMP)&".$self->newFunctionName($method).", _typeEncoding); ";
 		$r .= "}";
 		return $r;
 	}

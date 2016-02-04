@@ -110,6 +110,30 @@ sub _new_selector {
 	}
 }
 
+sub methodFamily {
+	my $self = shift;
+	my $selector = $self->selector;
+	if ($self->scope eq "+") {
+		if ($selector =~ /^alloc($|[A-Z,:])/) {
+			return "alloc" if $self->return eq "id" || $self->return eq "instancetype";
+		}
+		if ($selector eq "new") {
+			return "new" if $self->return eq "id" || $self->return eq "instancetype";
+		}
+	} else {
+		if ($selector =~ /^init($|[A-Z,:])/) {
+			return "init" if $self->return eq "id" || $self->return eq "instancetype";
+		}
+		if (($selector eq "copy") || ($selector eq "copyWithZone:")) {
+			return "copy";
+		}
+		if (($selector eq "mutableCopy") || ($selector eq "mutableCopyWithZone:")) {
+			return "mutableCopy";
+		}
+	}
+	return "";
+}
+
 sub printArgForArgType {
 	my $argtype = shift;
 	my $argname = shift;
@@ -222,6 +246,7 @@ sub typeEncodingForArgType {
 	return "*" if /^char\s*\*$/;
 
 	return "@" if /^id$/;
+	return "@" if /^instancetype$/;
 	return "#" if /^Class$/;
 	return ":" if /^SEL$/;
 

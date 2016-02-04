@@ -40,3 +40,12 @@
 	#import <_Prefix/HBLog.h>
 	#import <_Prefix/IOSMacros.h>
 #endif
+
+#ifndef __clang__
+#import <Availability.h>
+#undef NS_AVAILABLE
+#define NS_AVAILABLE(osx, ios)
+#undef __OSX_AVAILABLE_STARTING
+#define __OSX_AVAILABLE_STARTING(osx, ios)
+#include <stdbool.h>
+#endif
