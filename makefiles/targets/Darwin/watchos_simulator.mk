@@ -17,7 +17,7 @@ _IOS_SDKS := $(sort $(patsubst $(_SDK_DIR)/WatchSimulator%.sdk,%,$(wildcard $(_S
 
 ifeq ($(words $(_IOS_SDKS)),0)
 before-all::
-	@$(PRINT_FORMAT_ERROR) "You do not have an SDK in $(_SDK_DIR)." >&2
+	@$(PRINT_FORMAT_ERROR) "You do not have an SDK in $(_SDK_DIR)." >&2; exit 1
 endif
 _LATEST_SDK := $(lastword $(_IOS_SDKS))
 

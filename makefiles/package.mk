@@ -131,7 +131,7 @@ endif # _THEOS_PACKAGE_RULES_LOADED
 
 show:: internal-install-check
 ifeq ($(_THEOS_PLATFORM_SHOW_IN_FILE_MANAGER),)
-	@$(PRINT_FORMAT_ERROR) "It is not known how to open the file manager on this platform." >&2
+	@$(PRINT_FORMAT_ERROR) "It is not known how to open the file manager on this platform." >&2; exit 1
 else
 	$(_THEOS_PLATFORM_SHOW_IN_FILE_MANAGER) "$(shell cat "$(_THEOS_LOCAL_DATA_DIR)/last_package")"
 endif
