@@ -15,9 +15,9 @@ _THEOS_TARGET_INCLUDE_SDK_VERSION := $(or $(INCLUDE_SDKVERSION),$(INCLUDE_SDKVER
 _IOS_SDKS := $(sort $(patsubst $(_SDK_DIR)/WatchOS%.sdk,%,$(wildcard $(_SDK_DIR)/WatchOS*.sdk)))
 
 ifeq ($(words $(_IOS_SDKS)),0)
-$(error You do not have an SDK in $(_SDK_DIR))
+before-all::
+	@$(PRINT_FORMAT_ERROR) "You do not have an SDK in $(_SDK_DIR)." >&2
 endif
-
 _LATEST_SDK := $(lastword $(_IOS_SDKS))
 
 ifeq ($(_THEOS_TARGET_SDK_VERSION),latest)

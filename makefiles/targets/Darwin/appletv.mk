@@ -5,19 +5,18 @@ THEOS_TARGET_NAME := appletv
 _THEOS_TARGET_CC := clang
 _THEOS_TARGET_CXX := clang++
 
-_SDK_DIR := $(THEOS_PLATFORM_SDK_ROOT)/Platforms/AppleTVOS.platform/Developer/SDKs
-
 # A version specified as a target argument overrides all previous definitions.
 _SDKVERSION := $(or $(__THEOS_TARGET_ARG_$(word 1,$(_THEOS_TARGET_ARG_ORDER))),$(SDKVERSION_$(THEOS_CURRENT_ARCH)),$(SDKVERSION))
 _THEOS_TARGET_SDK_VERSION := $(or $(_SDKVERSION),latest)
 _THEOS_TARGET_INCLUDE_SDK_VERSION := $(or $(INCLUDE_SDKVERSION),$(INCLUDE_SDKVERSION_$(THEOS_CURRENT_ARCH)),latest)
 
+_SDK_DIR := $(THEOS_PLATFORM_SDK_ROOT)/Platforms/AppleTVOS.platform/Developer/SDKs
 _IOS_SDKS := $(sort $(patsubst $(_SDK_DIR)/AppleTVOS%.sdk,%,$(wildcard $(_SDK_DIR)/AppleTVOS*.sdk)))
 
 ifeq ($(words $(_IOS_SDKS)),0)
-$(error You do not have an SDK in $(_SDK_DIR))
+before-all::
+	@$(PRINT_FORMAT_ERROR) "You do not have an SDK in $(_SDK_DIR)." >&2
 endif
-
 _LATEST_SDK := $(lastword $(_IOS_SDKS))
 
 ifeq ($(_THEOS_TARGET_SDK_VERSION),latest)
@@ -70,6 +69,7 @@ VERSIONFLAGS := -mtvos-version-min=$(_THEOS_TARGET_APPLETVOS_DEPLOYMENT_VERSION)
 
 _THEOS_TARGET_CFLAGS += -isysroot "$(ISYSROOT)" $(SDKFLAGS) $(VERSIONFLAGS) $(MODULESFLAGS)
 _THEOS_TARGET_LDFLAGS += -isysroot "$(SYSROOT)" $(SDKFLAGS) $(VERSIONFLAGS) $(LEGACYFLAGS) -multiply_defined suppress
+
 _THEOS_TARGET_SWIFTFLAGS := -sdk "$(ISYSROOT)" $(SDKFLAGS)
 _THEOS_TARGET_SWIFT_TARGET := apple-tvos$(_THEOS_TARGET_SDK_VERSION)
 _THEOS_TARGET_SWIFT_LDPATH := $(THEOS_PLATFORM_SDK_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/appletvos
@@ -79,6 +79,5 @@ _THEOS_TARGET_IBFLAGS = --auto-activate-custom-fonts --minimum-deployment-target
 
 _THEOS_TARGET_DEFAULT_PACKAGE_FORMAT := deb
 PREINSTALL_TARGET_PROCESSES ?= Cydia
-
 TARGET_INSTALL_REMOTE := $(_THEOS_TRUE)
 endif

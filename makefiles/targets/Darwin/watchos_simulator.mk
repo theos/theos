@@ -2,15 +2,9 @@ ifeq ($(_THEOS_TARGET_LOADED),)
 _THEOS_TARGET_LOADED := 1
 THEOS_TARGET_NAME := watchos_simulator
 
-ifeq ($(__THEOS_TARGET_ARG_1),clang)
 _THEOS_TARGET_CC := clang
 _THEOS_TARGET_CXX := clang++
 _THEOS_TARGET_ARG_ORDER := 2 3
-else
-_THEOS_TARGET_CC := gcc
-_THEOS_TARGET_CXX := g++
-_THEOS_TARGET_ARG_ORDER := 1 2
-endif
 
 # A version specified as a target argument overrides all previous definitions.
 _SDKVERSION := $(or $(__THEOS_TARGET_ARG_$(word 1,$(_THEOS_TARGET_ARG_ORDER))),$(SDKVERSION))
@@ -20,7 +14,12 @@ _THEOS_TARGET_INCLUDE_SDK_VERSION := $(or $(INCLUDE_SDKVERSION),latest)
 
 _SDK_DIR := $(THEOS_PLATFORM_SDK_ROOT)/Platforms/WatchSimulator.platform/Developer/SDKs
 _IOS_SDKS := $(sort $(patsubst $(_SDK_DIR)/WatchSimulator%.sdk,%,$(wildcard $(_SDK_DIR)/WatchSimulator*.sdk)))
-_LATEST_SDK := $(word $(words $(_IOS_SDKS)),$(_IOS_SDKS))
+
+ifeq ($(words $(_IOS_SDKS)),0)
+before-all::
+	@$(PRINT_FORMAT_ERROR) "You do not have an SDK in $(_SDK_DIR)." >&2
+endif
+_LATEST_SDK := $(lastword $(_IOS_SDKS))
 
 ifeq ($(_THEOS_TARGET_SDK_VERSION),latest)
 override _THEOS_TARGET_SDK_VERSION := $(_LATEST_SDK)

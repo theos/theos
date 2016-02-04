@@ -2,14 +2,13 @@ ifeq ($(_THEOS_TARGET_LOADED),)
 _THEOS_TARGET_LOADED := 1
 THEOS_TARGET_NAME := iphone
 
-ifeq ($(__THEOS_TARGET_ARG_1),clang)
 _THEOS_TARGET_CC := clang
 _THEOS_TARGET_CXX := clang++
-_THEOS_TARGET_ARG_ORDER := 2 3
-else
-_THEOS_TARGET_CC := gcc
-_THEOS_TARGET_CXX := g++
 _THEOS_TARGET_ARG_ORDER := 1 2
+ifeq ($(__THEOS_TARGET_ARG_1),clang)
+_THEOS_TARGET_ARG_ORDER := 2 3
+else ifeq ($(__THEOS_TARGET_ARG_1),gcc)
+_THEOS_TARGET_ARG_ORDER := 2 3
 endif
 
 # A version specified as a target argument overrides all previous definitions.
@@ -21,9 +20,9 @@ _SDK_DIR := $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneOS.platform/Developer/SDK
 _IOS_SDKS := $(sort $(patsubst $(_SDK_DIR)/iPhoneOS%.sdk,%,$(wildcard $(_SDK_DIR)/iPhoneOS*.sdk)))
 
 ifeq ($(words $(_IOS_SDKS)),0)
-$(error You do not have an SDK in $(_SDK_DIR))
+before-all::
+	@$(PRINT_FORMAT_ERROR) "You do not have an SDK in $(_SDK_DIR)." >&2
 endif
-
 _LATEST_SDK := $(lastword $(_IOS_SDKS))
 
 ifeq ($(_THEOS_TARGET_SDK_VERSION),latest)
@@ -38,6 +37,7 @@ endif
 _TARGET_VERSION_GE_8_4 = $(call __simplify,_TARGET_VERSION_GE_8_4,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 8.4))
 _TARGET_VERSION_GE_7_0 = $(call __simplify,_TARGET_VERSION_GE_7_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 7.0))
 _TARGET_VERSION_GE_6_0 = $(call __simplify,_TARGET_VERSION_GE_6_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 6.0))
+_TARGET_VERSION_GE_4_0 = $(call __simplify,_TARGET_VERSION_GE_4_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 4.0))
 _TARGET_VERSION_GE_3_0 = $(call __simplify,_TARGET_VERSION_GE_3_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 3.0))
 
 ifeq ($(_TARGET_VERSION_GE_7_0),1)
@@ -62,7 +62,8 @@ _DEPLOY_VERSION_LT_4_3 = $(call __simplify,_DEPLOY_VERSION_LT_4_3,$(shell $(THEO
 
 ifeq ($(_TARGET_VERSION_GE_6_0)$(_DEPLOY_VERSION_GE_3_0)$(_DEPLOY_VERSION_LT_4_3),111)
 ifeq ($(ARCHS)$(IPHONE_ARCHS)$(_THEOS_TARGET_WARNED_DEPLOY),)
-@$(PRINT_FORMAT_WARNING) "Deploying to iOS 3.0 while building for 6.0 will generate armv7-only binaries." >&2
+before-all::
+	@$(PRINT_FORMAT_WARNING) "Deploying to iOS 3.0 while building for 6.0 will generate armv7-only binaries." >&2
 export _THEOS_TARGET_WARNED_DEPLOY := 1
 endif
 endif
@@ -129,12 +130,13 @@ SDKFLAGS := -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_$(subst .,_,$(_THEOS_TAR
 VERSIONFLAGS := -miphoneos-version-min=$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION)
 
 _THEOS_TARGET_CFLAGS := -isysroot "$(ISYSROOT)" $(SDKFLAGS) $(VERSIONFLAGS) $(_THEOS_TARGET_CC_CFLAGS) $(MODULESFLAGS)
+_THEOS_TARGET_LDFLAGS := -isysroot "$(SYSROOT)" $(SDKFLAGS) $(VERSIONFLAGS) $(LEGACYFLAGS) -multiply_defined suppress
+
 _THEOS_TARGET_SWIFTFLAGS := -sdk "$(ISYSROOT)" $(SDKFLAGS) $(_THEOS_TARGET_CC_SWIFTFLAGS)
 _THEOS_TARGET_SWIFT_TARGET := apple-ios$(_THEOS_TARGET_SDK_VERSION)
 _THEOS_TARGET_SWIFT_LDPATH := $(THEOS_PLATFORM_SDK_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos
 _THEOS_TARGET_SWIFT_OBJPATH := $(THEOS_PLATFORM_SDK_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift_static/iphoneos
 _THEOS_TARGET_SWIFT_VERSION := $(shell $(TARGET_SWIFT) --version | head -1 | cut -d' ' -f4)
-_THEOS_TARGET_LDFLAGS := -isysroot "$(SYSROOT)" $(SDKFLAGS) $(VERSIONFLAGS) $(LEGACYFLAGS) -multiply_defined suppress
 
 TARGET_INSTALL_REMOTE := $(_THEOS_TRUE)
 _THEOS_TARGET_DEFAULT_PACKAGE_FORMAT := deb
