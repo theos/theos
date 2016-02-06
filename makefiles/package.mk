@@ -108,20 +108,20 @@ endif
 after-install:: internal-after-install
 
 before-install::
-ifneq ($(PREINSTALL_TARGET_PROCESSES),)
-	$(ECHO_PRE_UNLOADING)install.exec "killall $(PREINSTALL_TARGET_PROCESSES) 2>/dev/null || true"$(ECHO_END)
-else
+ifeq ($(PREINSTALL_TARGET_PROCESSES),)
 	@:
+else
+	$(ECHO_PRE_UNLOADING)install.exec "killall $(PREINSTALL_TARGET_PROCESSES) 2>/dev/null || true"$(ECHO_END)
 endif
 
 internal-install::
 	@:
 
 internal-after-install::
-ifneq ($(INSTALL_TARGET_PROCESSES),)
-	$(ECHO_UNLOADING)install.exec "killall $(INSTALL_TARGET_PROCESSES) 2>/dev/null || true"$(ECHO_END)
-else
+ifeq ($(INSTALL_TARGET_PROCESSES),)
 	@:
+else
+	$(ECHO_UNLOADING)install.exec "killall $(INSTALL_TARGET_PROCESSES) 2>/dev/null || true"$(ECHO_END)
 endif
 
 -include $(THEOS_MAKE_PATH)/install/$(_THEOS_PACKAGE_FORMAT)_$(_THEOS_INSTALL_TYPE).mk
