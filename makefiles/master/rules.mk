@@ -129,22 +129,22 @@ if [ "$(__SUBPROJECTS)" != "" ]; then \
 
 update-theos::
 	@if [ ! -d "$(THEOS)/.git" ]; then \
-		$(PRINT_FORMAT_ERROR) "$(THEOS) is not a Git repository. For more information, refer to https://github.com/kirb/theos/wiki/Installation#updating." >&2; \
+		$(PRINT_FORMAT_ERROR) "$(THEOS) is not a Git repository. For more information, refer to https://github.com/theos/theos/wiki/Installation#updating." >&2; \
 		exit 1; \
 	fi
 
 	@cd $(THEOS) && git pull origin master && ./git-submodule-recur.sh init
 
 troubleshoot::
-	@$(PRINT_FORMAT) "Be sure to check the troubleshooting page at https://github.com/kirb/theos/wiki/Troubleshooting first."
-	@$(PRINT_FORMAT) "For support with build errors, ask on IRC: http://iphonedevwiki.net/index.php/IRC. If you think you've found a bug in Theos, check the issue tracker at https://github.com/kirb/theos/issues."
+	@$(PRINT_FORMAT) "Be sure to check the troubleshooting page at https://github.com/theos/theos/wiki/Troubleshooting first."
+	@$(PRINT_FORMAT) "For support with build errors, ask on IRC: http://iphonedevwiki.net/index.php/IRC. If you think you've found a bug in Theos, check the issue tracker at https://github.com/theos/theos/issues."
 	@echo
 
 ifeq ($(call __executable,ghost),$(_THEOS_TRUE))
 	@$(PRINT_FORMAT) "Creating a Ghostbin containing the output of \`make clean all messages=yes\`…"
-	$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going clean all messages=yes FORCE_COLOR=yes 2>&1 | ghost -x 336h - ansi
+	$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going clean all messages=yes FORCE_COLOR=yes 2>&1 | ghost -x 2w - ansi
 else
-	@$(PRINT_FORMAT_ERROR) "You don't have ghost installed. For more information, refer to https://github.com/kirb/theos/wiki/Installation#prerequisites." >&2; exit 1
+	@$(PRINT_FORMAT_ERROR) "You don't have ghost installed. For more information, refer to https://github.com/theos/theos/wiki/Installation#prerequisites." >&2; exit 1
 endif
 
 $(eval $(call __mod,master/rules.mk))
