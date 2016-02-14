@@ -1,5 +1,2 @@
-# Theos: *Unified cross-platform Makefile system.*
-
-Please note: Theos has undergone a number of changes recently. To learn more, visit [**the wiki**](https://github.com/theos/theos/wiki).
-
-See [LICENSE.md](LICENSE.md) for licensing information.
+# Theos has moved!
+This repo is retained purely to not break older setups. Please go to [**theos/theos**](https://github.com/theos/theos) instead!
