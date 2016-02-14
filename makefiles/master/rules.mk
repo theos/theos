@@ -22,8 +22,6 @@ ifneq ($(SYSROOT),)
 	@[ -d "$(SYSROOT)" ] || { $(PRINT_FORMAT_ERROR) "Your current SYSROOT, \"$(SYSROOT)\", appears to be missing." >&2; exit 1; }
 endif
 
-	@$(PRINT_FORMAT) "You’re using kirb/theos. This fork was recently moved to theos/theos, and all future development will happen there. Please run \`make update-theos\` when you have an opportunity!"
-
 internal-all::
 
 after-all::
@@ -135,12 +133,7 @@ update-theos::
 		exit 1; \
 	fi
 
-	@cd $(THEOS) && \
-		$(PRINT_FORMAT) "Changing the Git origin from $$(git config remote.origin.url) to $$(git config remote.origin.url | sed s-'kirb/theos'-'theos/theos'-)." && \
-		git remote set-url origin "$$(git config remote.origin.url | sed s-'kirb/theos'-'theos/theos'-)" && \
-		\
-		git pull origin master && \
-		./git-submodule-recur.sh init
+	@cd $(THEOS) && git pull origin master && ./git-submodule-recur.sh init
 
 troubleshoot::
 	@$(PRINT_FORMAT) "Be sure to check the troubleshooting page at https://github.com/theos/theos/wiki/Troubleshooting first."
