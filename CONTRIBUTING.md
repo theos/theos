@@ -2,6 +2,7 @@
 * Have you setup your envoirment variables?
 * Do you have an SDK and toolchain installed (Toolchain if on linux)
 * Did you do ``git clone --recursive https://github.com/theos/theos.git`` instead of ``git clone https://github.com/theos/theos.git``
+* Is this a personal issue? If so please **do not** make an issue, instead go find help on sites such as reddit or #theos
 
 # Reporting
 * Report with OS, Device, SDK version 
