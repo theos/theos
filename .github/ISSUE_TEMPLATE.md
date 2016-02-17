@@ -14,6 +14,15 @@ What were you expecting to happen?
 ----------------------------------
 …
 
+Any logs, error output, etc?
+----------------------------
+(If it’s long, please paste to https://ghostbin.com/ and insert the link here.)
+
+
+Any other comments?
+-------------------
+…
+
 What versions of software are you using?
 ----------------------------------------
 **Operating System:** …
@@ -21,12 +30,3 @@ What versions of software are you using?
 **Toolchain Version:** …
 
 **SDK Version:** …
-
-Any logs, error output, etc?
-----------------------------
-(Please paste to https://ghostbin.com/ and insert the link here.)
-
-Any other comments?
--------------------
-…
-
