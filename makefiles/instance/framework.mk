@@ -33,5 +33,6 @@ endif
 $(eval $(call _THEOS_TEMPLATE_DEFAULT_LINKING_RULE,$(_LOCAL_INSTANCE_TARGET)))
 
 internal-framework-stage_:: shared-instance-bundle-stage
+	$(ECHO_COPYING_FRAMEWORK)rsync -ra "$(_THEOS_SHARED_BUNDLE_BUILD_PATH)" "$(THEOS_LIBRARY_PATH)"$(ECHO_END)
 
 $(eval $(call __mod,instance/framework.mk))
