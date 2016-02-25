@@ -19,7 +19,6 @@ $Logos::Util::errorhandler = \&utilErrorHandler;
 
 use aliased 'Logos::Patch';
 use aliased 'Logos::Patch::Source::Generator' => 'Patch::Source::Generator';
-use aliased 'Logos::Patch';
 use aliased 'Logos::Group';
 use aliased 'Logos::Method';
 use aliased 'Logos::Class';
