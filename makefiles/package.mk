@@ -76,12 +76,12 @@ _THEOS_INTERNAL_PACKAGE_VERSION = $(call __simplify,_THEOS_INTERNAL_PACKAGE_VERS
 install:: before-install internal-install after-install
 
 internal-install-check::
-	@if [ -z "$(_THEOS_PACKAGE_LAST_FILENAME)" ]; then \
+	@if [[ -z "$(_THEOS_PACKAGE_LAST_FILENAME)" ]]; then \
 		$(PRINT_FORMAT_ERROR) "$(MAKE) install and show require that you build a package before you try to install it." >&2; \
 		exit 1; \
 	fi
-	@if [ ! -f "$(_THEOS_PACKAGE_LAST_FILENAME)" ]; then \
-		$(PRINT_FORMAT_ERROR) "Could not find \"$(_THEOS_PACKAGE_LAST_FILENAME)\" to install. Aborting." >&2; \
+	@if [[ ! -f "$(_THEOS_PACKAGE_LAST_FILENAME)" ]]; then \
+		$(PRINT_FORMAT_ERROR) "Could not find “$(_THEOS_PACKAGE_LAST_FILENAME)” to install. Aborting." >&2; \
 		exit 1; \
 	fi
 
