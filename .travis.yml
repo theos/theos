@@ -1,9 +1,7 @@
-matrix:
-  include:
-    - os: osx
-      osx_image: xcode7.2
-      language: objective-c
-      sudo: false
+os: osx
+osx_image: xcode7.2
+language: objective-c
+sudo: false
 
 env:
   global:
