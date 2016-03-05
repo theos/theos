@@ -98,7 +98,7 @@ sub properties {
 
 sub initRequired {
 	my $self = shift;
-	return $self->required || scalar @{$self->{METHODS}} > 0;
+	return $self->required || scalar @{$self->{METHODS}} > 0 || scalar @{$self->{PROPERTIES}} > 0;
 }
 
 ##### #
