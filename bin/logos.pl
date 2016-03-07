@@ -566,6 +566,8 @@ foreach my $line (@lines) {
 		} elsif($line =~ /\G%property\s*(?:\((\s*\w+\s*(?:,\s*(?:\w|\=|:)+\s*)*)\))?\s*((?:\w+\s+\**)+)(\w+)\s*;/gc){
 			nestingMustContain($lineno, "%property", \@nestingstack, "hook", "subclass");
 
+			$currentClass->hasinstancehooks(1);
+
 			# check property attribute validity
 			my @attributes = split/\(?\s*,\s*\)?/, $1;
 			my ($assign, $retain, $copy, $nonatomic, $getter, $setter);
