@@ -137,7 +137,7 @@ sub setter {
 	} elsif ($type eq "unsigned short"){
 		$build .= "[NSNumber numberWithUnsignedShort:";
 	} elsif ($type =~ /^(NSRange|CGPoint|CGVector|CGSize|CGRect|CGAffineTransform|UIEdgeInsets|UIOffset|CATransform3D|CMTime(Range|Mapping)?|MKCoordinate(Span)?|SCNVector[34]|SCNMatrix4)$/){
-		$build .= "[NSValue valueWith " . $type . ":";
+		$build .= "[NSValue valueWith" . $type . ":";
 	} else {
 		$hasOpening = 0;
 	}
