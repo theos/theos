@@ -26,9 +26,9 @@ sub getter {
 	}
 
 	# Build function start
-    my $build = "\n__attribute__((used))\n"; # If the property is never accessed, clang's optimizer will remove the getter/setter if this attribute isn't specified
-    
-    $build .= "static " . $type . " _logos_method\$" . $property->group . "\$" . $property->class . "\$" . $name . "\$" . "(" . $property->class . "* self, SEL _cmd){";
+	my $build = "\n__attribute__((used))\n"; # If the property is never accessed, clang's optimizer will remove the getter/setter if this attribute isn't specified
+
+	$build .= "static " . $type . " _logos_method\$" . $property->group . "\$" . $property->class . "\$" . $name . "\$" . "(" . $property->class . "* self, SEL _cmd){";
 
 	# Build function body
 
@@ -101,12 +101,12 @@ sub setter {
 	# Remove semicolon
 	$name =~ s/://;
 
-    # Build function start
-    
-    my $build = "\n__attribute__((used))\n"; # If the property is never accessed, clang's optimizer will remove the getter/setter if this attribute isn't specified
+	# Build function start
+
+	my $build = "\n__attribute__((used))\n"; # If the property is never accessed, clang's optimizer will remove the getter/setter if this attribute isn't specified
 	$build .= "static void _logos_method\$" . $property->group . "\$" . $property->class . "\$" . $name . "\$" . "(" . $property->class . "* self, SEL _cmd, " . $type . " arg){ ";
 
-    # Build function body
+	# Build function body
 
 	$build .= "objc_setAssociatedObject(self, &" . $key . ", ";
 
