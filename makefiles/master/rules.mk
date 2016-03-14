@@ -140,7 +140,9 @@ update-theos::
 		exit 1; \
 	fi
 
-	@cd $(THEOS) && git pull origin master && ./git-submodule-recur.sh init
+	@cd $(THEOS) && \
+		git pull --all && \
+		git submodule update --init --remote --recursive
 
 troubleshoot::
 	@$(PRINT_FORMAT) "Be sure to check the troubleshooting page at https://github.com/theos/theos/wiki/Troubleshooting first."
