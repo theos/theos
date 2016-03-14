@@ -140,9 +140,13 @@ update-theos::
 		exit 1; \
 	fi
 
-	@cd $(THEOS) && \
-		git pull --all && \
-		git submodule update --init --remote --recursive
+	$(ECHO_NOTHING)$(PRINT_FORMAT_MAKING) "Updating Theos"; \
+		cd $(THEOS); \
+		$(THEOS_BIN_PATH)/update-git-repo$(ECHO_END)
+
+	$(ECHO_NOTHING)$(PRINT_FORMAT_MAKING) "Updating submodules"; \
+		cd $(THEOS) && \
+		git submodule foreach --recursive $(THEOS_BIN_PATH)/update-git-repo$(ECHO_END)
 
 troubleshoot::
 	@$(PRINT_FORMAT) "Be sure to check the troubleshooting page at https://github.com/theos/theos/wiki/Troubleshooting first."
