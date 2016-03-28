@@ -7,7 +7,14 @@ origin="$(git config remote.origin.url)"
 repo_name="$(echo "$origin" | sed -E 's-^(git@github.com:|(https|git)://github.com/)(.+)$-\3-;s-\.git$--')"
 
 if [[ "$repo_name" != "$origin" && "$(curl -s -o /dev/null -w "%{http_code}" -H "Accept: application/vnd.github.chitauri-preview+sha" -H "If-None-Match: \"$(git rev-parse --verify HEAD)\"" "https://api.github.com/repos/$repo_name/commits/HEAD")" == "304" ]]; then
-	echo "Already up-to-date." 1>&2
+	echo "Theos: Already up-to-date." 1>&2
 else
-	git pull --all
+	if [[ -d ".git" ]]; then
+		# If .git is a directory, this is a parent repo. Do a pull directly.
+		git pull --all
+	elif [[ -f ".git" ]]; then
+		# If .git is a file, this is a submodule repo. Use git submodule to fetch
+		# and checkout the correct commit.
+		git submodule update --init "$PWD"
+	fi
 fi
