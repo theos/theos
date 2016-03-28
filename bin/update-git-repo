@@ -15,6 +15,9 @@ else
 	elif [[ -f ".git" ]]; then
 		# If .git is a file, this is a submodule repo. Use git submodule to fetch
 		# and checkout the correct commit.
-		git submodule update --init "$PWD"
+		submodule_dir="$PWD"
+		cd ..
+		git submodule update --init "$(basename "$submodule_dir")"
+		cd "$submodule_dir"
 	fi
 fi
