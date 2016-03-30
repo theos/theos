@@ -3,8 +3,9 @@
 # latest commit is. If the API returns 304 Not Modified, nothing has to be done.
 # Otherwise, pull the latest.
 
+extendedFlag=$([[ $(uname -sp) == "Darwin arm" ]] && echo '-r' || echo '-E')
 origin="$(git config remote.origin.url)"
-repo_name="$(echo "$origin" | sed -E 's-^(git@github.com:|(https|git)://github.com/)(.+)$-\3-;s-\.git$--')"
+repo_name="$(echo "$origin" | sed $extendedFlag 's-^(git@github.com:|(https|git)://github.com/)(.+)$-\3-;s-\.git$--')"
 
 if [[ "$repo_name" != "$origin" && "$(curl -s -o /dev/null -w "%{http_code}" -H "Accept: application/vnd.github.chitauri-preview+sha" -H "If-None-Match: \"$(git rev-parse --verify HEAD)\"" "https://api.github.com/repos/$repo_name/commits/HEAD")" == "304" ]]; then
 	echo "Theos: Already up-to-date." 1>&2
