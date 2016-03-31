@@ -11,7 +11,7 @@ endif
 
 _LOCAL_USE_SUBSTRATE = $(or $($(THEOS_CURRENT_INSTANCE)_USE_SUBSTRATE),$(_THEOS_TARGET_DEFAULT_USE_SUBSTRATE),$(_THEOS_TRUE))
 ifeq ($(call __theos_bool,$(_LOCAL_USE_SUBSTRATE)),$(_THEOS_TRUE))
-_THEOS_INTERNAL_LDFLAGS += -framework CydiaSubstrate
+_THEOS_INTERNAL_LDFLAGS += -F$(THEOS_VENDOR_LIBRARY_PATH) -framework CydiaSubstrate
 else
 _THEOS_INTERNAL_LOGOSFLAGS += -c generator=internal
 endif
