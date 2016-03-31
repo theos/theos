@@ -26,7 +26,9 @@ sub getter {
 	}
 
 	# Build function start
-	my $build = "static " . $type . " _logos_method\$" . $property->group . "\$" . $property->class . "\$" . $name . "\$" . "(" . $property->class . "* self, SEL _cmd){";
+	my $build = "__attribute__((used)) "; # If the property is never accessed, clang's optimizer will remove the getter/setter if this attribute isn't specified
+
+	$build .= "static " . $type . " _logos_method\$" . $property->group . "\$" . $property->class . "\$" . $name . "\$" . "(" . $property->class . "* self, SEL _cmd){";
 
 	# Build function body
 
@@ -99,8 +101,12 @@ sub setter {
 	# Remove semicolon
 	$name =~ s/://;
 
-	my $build = "static void _logos_method\$" . $property->group . "\$" . $property->class . "\$" . $name . "\$" . "(" . $property->class . "* self, SEL _cmd, " . $type . " arg){ ";
+	# Build function start
 
+	my $build = "__attribute__((used)) "; # If the property is never accessed, clang's optimizer will remove the getter/setter if this attribute isn't specified
+	$build .= "static void _logos_method\$" . $property->group . "\$" . $property->class . "\$" . $name . "\$" . "(" . $property->class . "* self, SEL _cmd, " . $type . " arg){ ";
+
+	# Build function body
 
 	$build .= "objc_setAssociatedObject(self, &" . $key . ", ";
 
@@ -137,7 +143,7 @@ sub setter {
 	} elsif ($type eq "unsigned short"){
 		$build .= "[NSNumber numberWithUnsignedShort:";
 	} elsif ($type =~ /^(NSRange|CGPoint|CGVector|CGSize|CGRect|CGAffineTransform|UIEdgeInsets|UIOffset|CATransform3D|CMTime(Range|Mapping)?|MKCoordinate(Span)?|SCNVector[34]|SCNMatrix4)$/){
-		$build .= "[NSValue valueWith " . $type . ":";
+		$build .= "[NSValue valueWith" . $type . ":";
 	} else {
 		$hasOpening = 0;
 	}

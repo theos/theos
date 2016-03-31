@@ -1,0 +1,33 @@
+os: osx
+osx_image: xcode7.2
+language: objective-c
+sudo: false
+
+env:
+  global:
+    # $THEOS is absolutely needed for theos to even be found
+    - THEOS=$PWD
+
+  matrix:
+    # repos known to work with recent versions of theos. alphabetical order
+    - TEST_REPO=https://github.com/hbang/libcephei.git
+    - TEST_REPO=https://github.com/hbang/TypeStatus.git
+    - TEST_REPO=https://github.com/thomasfinch/PriorityHub.git
+
+before_install:
+  # os x: update homebrew and install dependencies
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install dpkg ldid; fi
+
+script:
+  # clone and cd
+  - git clone --recursive $TEST_REPO test
+  - cd test
+  # some of the test repos still use a theos symlink
+  - ln -s $THEOS theos
+  # build!
+  - make package messages=yes
+  # go back up
+  - cd ..
+  # remove test, ready for the next one
+  - rm -rf test

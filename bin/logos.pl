@@ -19,7 +19,6 @@ $Logos::Util::errorhandler = \&utilErrorHandler;
 
 use aliased 'Logos::Patch';
 use aliased 'Logos::Patch::Source::Generator' => 'Patch::Source::Generator';
-use aliased 'Logos::Patch';
 use aliased 'Logos::Group';
 use aliased 'Logos::Method';
 use aliased 'Logos::Class';
@@ -566,6 +565,8 @@ foreach my $line (@lines) {
 			patchHere(undef);
 		} elsif($line =~ /\G%property\s*(?:\((\s*\w+\s*(?:,\s*(?:\w|\=|:)+\s*)*)\))?\s*((?:\w+\s+\**)+)(\w+)\s*;/gc){
 			nestingMustContain($lineno, "%property", \@nestingstack, "hook", "subclass");
+
+			$currentClass->hasinstancehooks(1);
 
 			# check property attribute validity
 			my @attributes = split/\(?\s*,\s*\)?/, $1;
