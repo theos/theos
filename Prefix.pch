@@ -54,10 +54,12 @@
 #endif
 
 #ifndef __clang__
+#if defined(TARGET_MACOSX) || defined(TARGET_IPHONEOS)
 #import <Availability.h>
 #undef NS_AVAILABLE
 #define NS_AVAILABLE(osx, ios)
 #undef __OSX_AVAILABLE_STARTING
 #define __OSX_AVAILABLE_STARTING(osx, ios)
 #include <stdbool.h>
+#endif
 #endif
