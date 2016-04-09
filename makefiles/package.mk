@@ -102,6 +102,17 @@ else
 	@:
 endif
 
+## Uninstallation Core Rules
+uninstall:: before-uninstall internal-uninstall after-uninstall
+
+after-uninstall:: internal-after-uninstall
+before-uninstall::
+
+internal-uninstall::
+	@:
+
+internal-after-uninstall::
+
 -include $(THEOS_MAKE_PATH)/install/$(_THEOS_PACKAGE_FORMAT)_$(_THEOS_INSTALL_TYPE).mk
 $(eval $(call __mod,install/$(_THEOS_PACKAGE_FORMAT)_$(_THEOS_INSTALL_TYPE).mk))
 
