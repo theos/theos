@@ -161,7 +161,7 @@ _THEOS_TARGET_HAS_INCLUDE_PATH := $(call __exists,$(THEOS_TARGET_INCLUDE_PATH))
 _THEOS_TARGET_HAS_LIBRARY_PATH := $(call __exists,$(THEOS_TARGET_LIBRARY_PATH))
 
 # Package Format requires Target default and falls back to `none'.
-_THEOS_PACKAGE_FORMAT := $(or $(call __schema_var_last,,PACKAGE_FORMAT),$(_THEOS_TARGET_DEFAULT_PACKAGE_FORMAT),none)
+_THEOS_PACKAGE_FORMAT := $(or $(call __schema_var_last,,$(_THEOS_TARGET_NAME_DEFINE)_PACKAGE_FORMAT),$(call __schema_var_last,,PACKAGE_FORMAT),$(_THEOS_TARGET_DEFAULT_PACKAGE_FORMAT),none)
 _THEOS_PACKAGE_LAST_FILENAME = $(call __simplify,_THEOS_PACKAGE_LAST_FILENAME,$(shell cat "$(_THEOS_LOCAL_DATA_DIR)/last_package" 2>/dev/null))
 
 # ObjC/++ stuff is not here, it's in instance/rules.mk and only added if there are OBJC/OBJCC objects.
