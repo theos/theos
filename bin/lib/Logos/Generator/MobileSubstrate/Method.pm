@@ -84,7 +84,9 @@ sub initializers {
 		$r .= "if (".$classvar.") {";
 		$r .=   "MSHookMessageEx(".$classvar.", ".$self->selectorRef($method->selector).", (IMP)&".$self->newFunctionName($method).", (IMP*)&".$self->originalFunctionName($method).");";
 		$r .= "} else {";
+		$r .= "#ifdef __DEBUG__";
 		$r .=   "HBLogError(@\"logos: nil class %s\", \"".$method->class->name."\");";
+		$r .= "#endif";
 		$r .= "}";
 	} else {
 		my $r = "";
