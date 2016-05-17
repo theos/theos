@@ -109,7 +109,9 @@ sub initializers {
 		$r .=     "HBLogError(@\"logos: message not found [%s %s]\", \"".$method->class->name."\", \"".$method->selector."\");";
 		$r .=   "}";
 		$r .= "} else {";
+		$r .= "#ifdef __DEBUG__";
 		$r .=   "HBLogError(@\"logos: nil class %s\", \"".$method->class->name."\");";
+		$r .= "#endif";
 		$r .= "}";
 	} else {
 		if(!$method->type) {
