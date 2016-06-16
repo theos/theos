@@ -719,7 +719,8 @@ if(@firstDirectivePosition) {
 	my $patch = Patch->new();
 	$patch->line($line);
 	my @patchsource = ();
-	push(@patchsource, Patch::Source::Generator->new(undef, 'preamble', $hasGeneratorPreamble));
+	push(@patchsource, Patch::Source::Generator->new(undef, 'preamble')) if !$hasGeneratorPreamble;
+	push(@patchsource, Patch::Source::Generator->new(undef, 'staticDeclarations'));
 	push(@patchsource, Patch::Source::Generator->new(undef, 'generateClassList', keys %classes));
 	push(@patchsource, Patch::Source::Generator->new($groups[0], 'declarations'));
 	push(@patchsource, Patch::Source::Generator->new($staticClassGroup, 'declarations'));

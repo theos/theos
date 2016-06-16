@@ -9,6 +9,11 @@ sub findPreamble {
 }
 
 sub preamble {
+	return ""
+}
+
+sub staticDeclarations {
+	my $self = shift;
 	return <<END;
 #if defined(__clang__)
 #if __has_feature(objc_arc)
