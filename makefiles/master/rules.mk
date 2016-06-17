@@ -141,11 +141,12 @@ update-theos::
 	fi
 
 	$(ECHO_NOTHING)$(PRINT_FORMAT_MAKING) "Updating Theos"; \
-		cd $(THEOS); \
+		cd $(THEOS) && \
 		$(THEOS_BIN_PATH)/update-git-repo$(ECHO_END)
 
 	$(ECHO_NOTHING)$(PRINT_FORMAT_MAKING) "Updating submodules"; \
 		cd $(THEOS) && \
+		git submodule --init && \
 		git submodule foreach --recursive $(THEOS_BIN_PATH)/update-git-repo$(ECHO_END)
 
 troubleshoot::
