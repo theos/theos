@@ -29,7 +29,6 @@ SDKFLAGS := $(if $(_THEOS_TARGET_MACOSX_DEPLOYMENT_VERSION),-mmacosx-version-min
 _THEOS_TARGET_CFLAGS := $(SDKFLAGS)
 _THEOS_TARGET_LDFLAGS := $(SDKFLAGS) -multiply_defined suppress
 
-export TARGET_INSTALL_REMOTE := $(_THEOS_FALSE)
-# Previously, _THEOS_TARGET_DEFAULT_PACKAGE_FORMAT was set to deb for OS X - though that seemed to be a mistake? (OS X doesn't... really use debs?)
-export _THEOS_TARGET_DEFAULT_PACKAGE_FORMAT := none
+TARGET_INSTALL_REMOTE := $(_THEOS_FALSE)
+_THEOS_TARGET_DEFAULT_PACKAGE_FORMAT := pkg
 endif
