@@ -28,6 +28,10 @@ endif
 		$(PRINT_FORMAT_ERROR) "The vendor/include and/or vendor/lib directories are missing. Please run \`make update-theos\`. More information: https://github.com/theos/theos/wiki/Installation." >&2; \
 		exit 1; \
 	fi
+	@if [[ -d "$(THEOS_LEGACY_PACKAGE_DIR)" && ! -d "$(THEOS_PACKAGE_DIR)" ]]; then \
+		$(PRINT_FORMAT) "The \"debs\" directory has been renamed to \"packages\". Moving it." >&2; \
+		mv "$(THEOS_LEGACY_PACKAGE_DIR)" "$(THEOS_PACKAGE_DIR)" || exit 1; \
+	fi
 
 internal-all::
 
