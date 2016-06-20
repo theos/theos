@@ -24,8 +24,8 @@ ifneq ($(SYSROOT),)
 		exit 1; \
 	fi
 endif
-	@if [[ ! -d "$(THEOS_VENDOR_INCLUDE_PATH)" || ! -d "$(THEOS_VENDOR_LIBRARY_PATH)" ]]; then \
-		$(PRINT_FORMAT_ERROR) "The vendor/include and/or vendor/lib directories are missing. Please run \`make update-theos\`. More information: https://github.com/theos/theos/wiki/Installation." >&2; \
+	@if [[ ! -f "$(THEOS_VENDOR_INCLUDE_PATH)/.git" || ! -f "$(THEOS_VENDOR_LIBRARY_PATH)/.git" ]]; then \
+		$(PRINT_FORMAT_ERROR) "The vendor/include and/or vendor/lib directories are missing. Please run \`git submodule update --init --recursive\` in your Theos directory. More information: https://github.com/theos/theos/wiki/Installation." >&2; \
 		exit 1; \
 	fi
 	@if [[ -d "$(THEOS_LEGACY_PACKAGE_DIR)" && ! -d "$(THEOS_PACKAGE_DIR)" ]]; then \
