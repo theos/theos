@@ -5,7 +5,7 @@ _THEOS_PLATFORM_DU ?= du
 _THEOS_PLATFORM_DPKG_DEB ?= dpkg-deb
 _THEOS_PLATFORM_DPKG_DEB_COMPRESSION ?= lzma
 
-_THEOS_DEB_PACKAGE_CONTROL_PATH := $(or $(wildcard $(THEOS_PROJECT_DIR)/control),$(wildcard $(THEOS_PROJECT_DIR)/layout/DEBIAN/control))
+_THEOS_DEB_PACKAGE_CONTROL_PATH := $(or $(wildcard $(THEOS_PROJECT_DIR)/control),$(wildcard $(THEOS_LAYOUT_DIR)/DEBIAN/control))
 _THEOS_DEB_CAN_PACKAGE := $(if $(_THEOS_DEB_PACKAGE_CONTROL_PATH),$(_THEOS_TRUE),$(_THEOS_FALSE))
 _THEOS_PACKAGE_INC_VERSION_PREFIX := -
 _THEOS_PACKAGE_EXTRA_VERSION_PREFIX := +
@@ -17,15 +17,15 @@ internal-package-check::
 	@$(PRINT_FORMAT_ERROR) "$(MAKE) package requires $(_THEOS_PLATFORM_DPKG_DEB)." >&2; exit 1
 endif
 
-ifeq ($(_THEOS_DEB_CAN_PACKAGE),$(_THEOS_TRUE)) # Control file found (or layout/ found.)
+ifeq ($(_THEOS_DEB_CAN_PACKAGE),$(_THEOS_TRUE)) # Control file found (or layout directory found.)
 THEOS_PACKAGE_NAME := $(shell grep -i "^Package:" "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 THEOS_PACKAGE_ARCH := $(shell grep -i "^Architecture:" "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 THEOS_PACKAGE_BASE_VERSION := $(shell grep -i "^Version:" "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 
 $(_THEOS_ESCAPED_STAGING_DIR)/DEBIAN:
 	$(ECHO_NOTHING)mkdir -p "$(THEOS_STAGING_DIR)/DEBIAN"$(ECHO_END)
-ifeq ($(_THEOS_HAS_STAGING_LAYOUT),1) # If we have a layout/ directory, copy layout/DEBIAN to the staging directory.
-	$(ECHO_NOTHING)[ -d "$(THEOS_PROJECT_DIR)/layout/DEBIAN" ] && rsync -a "$(THEOS_PROJECT_DIR)/layout/DEBIAN/" "$(THEOS_STAGING_DIR)/DEBIAN" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE) || true$(ECHO_END)
+ifeq ($(_THEOS_HAS_STAGING_LAYOUT),1) # If we have a layout directory, copy layout/DEBIAN to the staging directory.
+	$(ECHO_NOTHING)[ -d "$(THEOS_LAYOUT_DIR)/DEBIAN" ] && rsync -a "$(THEOS_LAYOUT_DIR)/DEBIAN/" "$(THEOS_STAGING_DIR)/DEBIAN" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE) || true$(ECHO_END)
 endif # _THEOS_HAS_STAGING_LAYOUT
 
 $(_THEOS_ESCAPED_STAGING_DIR)/DEBIAN/control: $(_THEOS_ESCAPED_STAGING_DIR)/DEBIAN
