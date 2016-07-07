@@ -12,7 +12,7 @@ internal-package-check::
 	@echo "$(MAKE) package requires pkgbuild."; exit 1
 endif
 
-ifeq ($(_THEOS_PKG_CAN_PACKAGE),$(_THEOS_TRUE)) # Control file found (or layout/ found.)
+ifeq ($(_THEOS_PKG_CAN_PACKAGE),$(_THEOS_TRUE)) # Control file found (or layout directory found.)
 THEOS_PACKAGE_NAME := $(shell grep -i "^Package:" "$(_THEOS_PKG_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 THEOS_PACKAGE_BASE_VERSION := $(shell grep -i "^Version:" "$(_THEOS_PKG_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 
