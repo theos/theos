@@ -91,8 +91,10 @@ __schema_var_all = $(strip $(foreach sch,$(call __schema_all_var_names,$(1),$(2)
 __schema_var_name_last = $(strip $(lastword $(call __schema_defined_var_names,$(1),$(2))))
 __schema_var_last = $(strip $($(lastword $(call __schema_defined_var_names,$(1),$(2)))))
 
+THEOS_LAYOUT_DIR_NAME ?= layout
+THEOS_LAYOUT_DIR ?= $(THEOS_PROJECT_DIR)/$(THEOS_LAYOUT_DIR_NAME)
 ifeq ($(_THEOS_HAS_STAGING_LAYOUT),)
-_THEOS_HAS_STAGING_LAYOUT := $(call __exists,$(THEOS_PROJECT_DIR)/layout)
+_THEOS_HAS_STAGING_LAYOUT := $(call __exists,$(THEOS_LAYOUT_DIR))
 endif
 
 _THEOS_LOAD_MODULES := $(sort $(call __schema_var_all,,MODULES) $(THEOS_AUTOLOAD_MODULES))
@@ -220,13 +222,13 @@ THEOS_OBJ_DIR = $(_THEOS_LOCAL_DATA_DIR)/$(THEOS_OBJ_DIR_NAME)/$(THEOS_CURRENT_A
 endif
 
 THEOS_STAGING_DIR_NAME ?= _
-THEOS_STAGING_DIR = $(_THEOS_LOCAL_DATA_DIR)/$(THEOS_STAGING_DIR_NAME)
+THEOS_STAGING_DIR ?= $(_THEOS_LOCAL_DATA_DIR)/$(THEOS_STAGING_DIR_NAME)
 _SPACE :=
 _SPACE +=
 _THEOS_ESCAPED_STAGING_DIR = $(subst $(_SPACE),\ ,$(THEOS_STAGING_DIR))
 
 THEOS_PACKAGE_DIR_NAME ?= packages
-THEOS_PACKAGE_DIR = $(THEOS_BUILD_DIR)/$(THEOS_PACKAGE_DIR_NAME)
+THEOS_PACKAGE_DIR ?= $(THEOS_BUILD_DIR)/$(THEOS_PACKAGE_DIR_NAME)
 THEOS_LEGACY_PACKAGE_DIR = $(THEOS_BUILD_DIR)/debs
 
 # $(warning ...) expands to the empty string, so the contents of THEOS_STAGING_DIR are not damaged in this copy.
