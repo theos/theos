@@ -26,7 +26,7 @@ script:
   # download the repo
   - curl -Lso repo.tar.gz https://github.com/$TEST_REPO/tarball/master
   # extract
-  - tar -xv --strip-components=1 -f repo.tar.gz
+  - tar -x --strip-components=1 -f repo.tar.gz
   # some of the test repos still use a theos symlink
   - ln -s $THEOS theos
   # build!
