@@ -6,7 +6,8 @@ all::
 endif
 
 .PHONY: all before-all internal-all after-all \
-	clean before-clean internal-clean after-clean update-theos
+	clean before-clean internal-clean after-clean \
+	troubleshoot update-theos
 ifeq ($(THEOS_BUILD_DIR),.)
 all:: $(_THEOS_BUILD_SESSION_FILE) before-all internal-all after-all
 else
@@ -160,12 +161,13 @@ update-theos::
 
 troubleshoot::
 	@$(PRINT_FORMAT) "Be sure to check the troubleshooting page at https://github.com/theos/theos/wiki/Troubleshooting first."
-	@$(PRINT_FORMAT) "For support with build errors, ask on IRC: http://iphonedevwiki.net/index.php/IRC. If you think you've found a bug in Theos, check the issue tracker at https://github.com/theos/theos/issues."
+	@$(PRINT_FORMAT) "For support with build errors, ask on IRC: http://iphonedevwiki.net/index.php/IRC. If you think you’ve found a bug in Theos, check the issue tracker at https://github.com/theos/theos/issues."
 	@echo
 
 ifeq ($(call __executable,ghost),$(_THEOS_TRUE))
-	@$(PRINT_FORMAT) "Creating a Ghostbin containing the output of \`make clean all messages=yes\`…"
-	$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going clean all messages=yes FORCE_COLOR=yes 2>&1 | ghost -x 2w - ansi
+	@$(PRINT_FORMAT_STAGE) 6 "Gathering troubleshooting information and uploading to Ghostbin"
+	$(ECHO_NOTHING)MAKE="$(MAKE)" MAKEFILE_NAME="$(_THEOS_PROJECT_MAKEFILE_NAME)" TARGET="$(TARGET)" SYSROOT="$(SYSROOT)" \
+		$(THEOS_BIN_PATH)/get-troubleshoot-info | ghost -x 2w - markdown$(ECHO_END)
 else
 	@$(PRINT_FORMAT_ERROR) "You don't have ghost installed. For more information, refer to https://github.com/theos/theos/wiki/Installation#prerequisites." >&2; exit 1
 endif

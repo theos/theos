@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Create Markdown output for sharing as troubleshooting info.
+
+# Convenience functions
+heading() { printf "\n# %s\n" "$1"; }
+subheading() { printf "\n## %s\n" "$1"; }
+item() { printf "* **%s:** %s\n" "$1" "$2"; }
+code() { printf "\`\`\`%s\n%s\n\`\`\`\n" "$1" "$2"; }
+
+# Gather some preliminary info for the script.
+has_xcode="$([[ -x /usr/bin/xcrun ]] && echo 1)"
+
+# Print OS, tool, etc versions.
+heading "Environment"
+subheading "Hardware"
+item 'Operating System' "$(uname -sm) $([[ -x /usr/bin/sw_vers ]] && sw_vers -productVersion)"
+item 'Device' "$(uname -i)"
+
+subheading "Toolchain"
+item 'Theos' "$(cd "$THEOS"; git rev-parse master)"
+[[ $has_xcode == 1 ]] && item 'Xcode' "$(xcrun xcodebuild -version)"
+item 'Clang' "$(clang --version 2>&1)"
+item 'Swift' "$(swift --version 2>&1)"
+
+subheading "Directories"
+item 'Location' "$THEOS"
+item 'Toolchains' "$THEOS/toolchains/*" 2>/dev/null
+item 'SDKs' "$THEOS/sdks/*" 2>/dev/null
+[[ $has_xcode == 1 ]] && item 'Developer Path' "$(xcode-select -print-path)"
+
+subheading "Current Instance"
+item 'Target' "$([[ -z "$TARGET" ]] && echo "$TARGET" || echo Not set)"
+item 'System Root' "$([[ -z "$SYSROOT" ]] && echo "$SYSROOT" || echo Not set)"
+
+# Makefile
+heading "Makefile"
+code make "$(cat "$MAKEFILE_NAME")"
+
+# Perform a build.
+heading "Build Output"
+code ansi "$("$MAKE" -f "$MAKEFILE_NAME" --no-keep-going clean all messages=yes FORCE_COLOR=yes 2>&1)"
