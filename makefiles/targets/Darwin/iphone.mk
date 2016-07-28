@@ -102,6 +102,7 @@ TARGET_DSYMUTIL ?= dsymutil
 
 TARGET_PRIVATE_FRAMEWORK_PATH = $(SYSROOT)/System/Library/PrivateFrameworks
 TARGET_PRIVATE_FRAMEWORK_INCLUDE_PATH = $(ISYSROOT)/System/Library/PrivateFrameworks
+TARGET_PRIVATE_FRAMEWORK_FALLBACK_SOURCE_PATH = $(shell xcrun --sdk iphonesimulator --show-sdk-path)/System/Library/PrivateFrameworks
 
 include $(THEOS_MAKE_PATH)/targets/_common/darwin.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_flat_bundle.mk
