@@ -44,6 +44,7 @@ internal-clean::
 
 ifeq ($(shell [[ -f "$(_THEOS_BUILD_SESSION_FILE)" ]] && echo 1),1)
 	$(ECHO_NOTHING)rm "$(_THEOS_BUILD_SESSION_FILE)"$(ECHO_END)
+	$(ECHO_NOTHING)touch "$(_THEOS_BUILD_SESSION_FILE)"$(ECHO_END)
 endif
 
 ifeq ($(MAKELEVEL),0)
