@@ -40,7 +40,7 @@ after-all::
 before-clean::
 
 internal-clean::
-	$(ECHO_CLEANING)rm -rf "$(THEOS_OBJ_DIR)"$(ECHO_END)
+	$(ECHO_CLEANING)rm -rf "$(subst $(_THEOS_OBJ_DIR_EXTENSION),,$(THEOS_OBJ_DIR))"$(ECHO_END)
 
 ifeq ($(shell [[ -f "$(_THEOS_BUILD_SESSION_FILE)" ]] && echo 1),1)
 	$(ECHO_NOTHING)rm "$(_THEOS_BUILD_SESSION_FILE)"$(ECHO_END)
