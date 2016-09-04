@@ -23,7 +23,7 @@ sub initializers {
 	}
 	# </ivars>
 	foreach(keys %{$class->protocols}) {
-		$return .= "class_addProtocol(".$self->variable($class).", objc_getProtocol(\"$_\")); ";
+		$return .= "class_addProtocol(".$self->variable($class).", objc_getProtocol(\"$_\") ?: \@protocol($_)); ";
 	}
 	$return .= "}";
 	return $return;
