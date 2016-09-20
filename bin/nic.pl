@@ -21,6 +21,8 @@ use NIC::Bridge::Context (PROMPT => \&nicPrompt);
 use NIC::Formats::NICTar;
 use NIC::NICType;
 
+$File::Find::dont_use_nlink=1;
+
 our $savedStdout = *STDOUT;
 
 my @_dirs = File::Spec->splitdir(abs_path($FindBin::Bin));
