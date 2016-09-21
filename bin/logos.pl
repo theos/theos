@@ -10,6 +10,8 @@ use Module::Load;
 use Module::Load::Conditional 'can_load';
 use Getopt::Long;
 
+$File::Find::dont_use_nlink = 1;
+
 package Logos;
 sub sigil { my $id = shift; return "_logos_$id\$"; }
 package main;

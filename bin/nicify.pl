@@ -11,6 +11,8 @@ use FindBin;
 use lib "$FindBin::Bin/lib";
 use NIC::Formats::NICTar;
 
+$File::Find::dont_use_nlink = 1;
+
 package NIC::Archive::Tar::File;
 use parent "Archive::Tar::File";
 sub new {

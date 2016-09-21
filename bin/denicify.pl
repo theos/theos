@@ -4,6 +4,8 @@ use warnings;
 use FindBin;
 use lib "$FindBin::Bin/lib";
 
+$File::Find::dont_use_nlink = 1;
+
 use NIC::NICBase;
 
 use Module::Load::Conditional 'can_load';

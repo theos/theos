@@ -10,6 +10,8 @@ use Archive::Tar;
 use IO::Compress::Gzip;
 use IO::Compress::Bzip2;
 
+$File::Find::dont_use_nlink = 1;
+
 package NIC::Archive::Tar::File;
 use parent "Archive::Tar::File";
 sub new {
