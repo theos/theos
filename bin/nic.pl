@@ -295,7 +295,7 @@ sub cleanProjectName {
 sub getUserName {
 	my $pw = getpw(getuid());
 	my ($fullname) = split(/\s*,\s*/, $pw->gecos);
-	return $fullname ? $fullname : $pw->name;
+	return $fullname && $fullname ne "\"\"" ? $fullname : $pw->name;
 }
 
 sub getHomeDir {
