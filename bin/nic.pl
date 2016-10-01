@@ -21,7 +21,12 @@ use NIC::Bridge::Context (PROMPT => \&nicPrompt);
 use NIC::Formats::NICTar;
 use NIC::NICType;
 
-$File::Find::dont_use_nlink = 1;
+if($^O eq "linux") {
+    my $fh;
+    open($fh, "/proc/version");
+    $File::Find::dont_use_nlink = grep { /Microsoft/ } <$fh>;
+    close($fh);
+}
 
 our $savedStdout = *STDOUT;
 

@@ -1,8 +1,6 @@
 #!/usr/bin/perl
 use File::Temp;
 
-$File::Find::dont_use_nlink = 1;
-
 my @o;
 for(reverse @ARGV) {
 	my $i = 0;

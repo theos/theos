@@ -11,7 +11,12 @@ use FindBin;
 use lib "$FindBin::Bin/lib";
 use NIC::Formats::NICTar;
 
-$File::Find::dont_use_nlink = 1;
+if($^O eq "linux") {
+    my $fh;
+    open($fh, "/proc/version");
+    $File::Find::dont_use_nlink = grep { /Microsoft/ } <$fh>;
+    close($fh);
+}
 
 package NIC::Archive::Tar::File;
 use parent "Archive::Tar::File";
