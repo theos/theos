@@ -34,7 +34,7 @@ sub definition {
 	map $arglist .= ", ".Logos::Method::declarationForTypeWithName($method->argtypes->[$_], $method->argnames->[$_]), (0..$method->numArgs - 1);
 	my $functionAttributes = $self->functionAttributesForMethod($method);
 	my $return = $self->returnTypeForMethod($method);
-	my $parameters = "(".$selftype." self, SEL _cmd".$arglist.")";
+	my $parameters = "(".$selftype." __unused self, SEL __unused _cmd".$arglist.")";
 	$build .= "static ".Logos::Method::declarationForTypeWithName($return, $self->newFunctionName($method).$parameters).$functionAttributes;
 	return $build;
 }

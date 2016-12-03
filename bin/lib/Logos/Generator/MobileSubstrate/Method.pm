@@ -34,7 +34,7 @@ sub _methodPrototype {
 		$arglist = ", ".$typelist if $typelist;
 	}
 
-	my $name = $self->newFunctionName($method)."(".$classargtype.($includeArgNames?" self":"").", SEL".($includeArgNames?" _cmd":"").$arglist.")";
+	my $name = $self->newFunctionName($method)."(".$classargtype.($includeArgNames?" __unused self":"").", SEL".($includeArgNames?" __unused _cmd":"").$arglist.")";
 	$build .= Logos::Method::declarationForTypeWithName($self->returnTypeForMethod($method), $name);
 	$build .= $self->functionAttributesForMethod($method);
 	return $build;

@@ -467,13 +467,13 @@ foreach my $line (@lines) {
 			# %ctor
 			fileError($lineno, "%ctor does not make sense inside a block") if($directiveDepth >= 1);
 			nestingMustNotContain($lineno, "%ctor", \@nestingstack, "hook", "subclass");
-			my $replacement = "static __attribute__((constructor)) void _logosLocalCtor_".substr(md5_hex($`.$lineno.$'), 0, 8)."(int argc, char **argv, char **envp)";
+			my $replacement = "static __attribute__((constructor)) void _logosLocalCtor_".substr(md5_hex($`.$lineno.$'), 0, 8)."(int __unused argc, char __unused **argv, char __unused **envp)";
 			patchHere($replacement);
 		} elsif($line =~ /\G%dtor\b/gc) {
 			# %dtor
 			fileError($lineno, "%dtor does not make sense inside a block") if($directiveDepth >= 1);
 			nestingMustNotContain($lineno, "%dtor", \@nestingstack, "hook", "subclass");
-			my $replacement = "static __attribute__((destructor)) void _logosLocalDtor_".substr(md5_hex($`.$lineno.$'), 0, 8)."(int argc, char **argv, char **envp)";
+			my $replacement = "static __attribute__((destructor)) void _logosLocalDtor_".substr(md5_hex($`.$lineno.$'), 0, 8)."(int __unused argc, char __unused **argv, char __unused **envp)";
 			patchHere($replacement);
 		} elsif($line =~ /\G%init\b/gc) {
 			# %init, with optional following parens

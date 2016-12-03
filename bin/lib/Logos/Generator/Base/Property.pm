@@ -28,7 +28,7 @@ sub getter {
 	# Build function start
 	my $build = "__attribute__((used)) "; # If the property is never accessed, clang's optimizer will remove the getter/setter if this attribute isn't specified
 
-	$build .= "static " . $type . " _logos_method\$" . $property->group . "\$" . $property->class . "\$" . $name . "\$" . "(" . $property->class . "* self, SEL _cmd){";
+	$build .= "static " . $type . " _logos_method\$" . $property->group . "\$" . $property->class . "\$" . $name . "\$" . "(" . $property->class . "* __unused self, SEL __unused _cmd){";
 
 	# Build function body
 
@@ -104,7 +104,7 @@ sub setter {
 	# Build function start
 
 	my $build = "__attribute__((used)) "; # If the property is never accessed, clang's optimizer will remove the getter/setter if this attribute isn't specified
-	$build .= "static void _logos_method\$" . $property->group . "\$" . $property->class . "\$" . $name . "\$" . "(" . $property->class . "* self, SEL _cmd, " . $type . " arg){ ";
+	$build .= "static void _logos_method\$" . $property->group . "\$" . $property->class . "\$" . $name . "\$" . "(" . $property->class . "* __unused self, SEL __unused _cmd, " . $type . " arg){ ";
 
 	# Build function body
 
