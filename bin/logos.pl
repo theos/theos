@@ -23,7 +23,7 @@ use aliased 'Logos::Group';
 use aliased 'Logos::Method';
 use aliased 'Logos::Class';
 use aliased 'Logos::Subclass';
-use aliased 'Logos::StaticClassGroup' ;
+use aliased 'Logos::StaticClassGroup';
 use aliased 'Logos::Property';
 use aliased 'Logos::Function';
 
