@@ -269,7 +269,7 @@ $(THEOS_OBJ_DIR)/%.ii.$(_THEOS_OBJ_FILE_TAG).o: %.ii
 
 $(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).o: %.swift
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
-	$(ECHO_COMPILING)$(TARGET_SWIFT) -frontend -emit-object -c $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -primary-file $< $(SWIFT_FILES) -o $@$(ECHO_END)
+	$(ECHO_COMPILING)$(TARGET_SWIFT) -frontend -emit-object -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -primary-file $< $(SWIFT_FILES) -o $@$(ECHO_END)
 
 
 $(THEOS_OBJ_DIR)/%.x.$(_THEOS_OBJ_FILE_TAG).o: %.x
