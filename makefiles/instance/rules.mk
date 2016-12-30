@@ -42,6 +42,11 @@ ifneq ($(_SWIFT_FILE_COUNT),0)
 	_THEOS_INTERNAL_LDFLAGS += -L$(_THEOS_TARGET_SWIFT_LDPATH) -rpath /usr/lib/libswift/$(_THEOS_TARGET_SWIFT_VERSION)
 endif
 
+# If we have a Bridging Header, import it in Swift
+ifeq ($(call __exists,$(THEOS_CURRENT_INSTANCE)-Bridging-Header.h),$(_THEOS_TRUE))
+	_THEOS_INTERNAL_IFLAGS_SWIFT += -import-objc-header $(THEOS_CURRENT_INSTANCE)-Bridging-Header.h
+endif
+
 # Add all frameworks from the type and instance.
 _THEOS_INTERNAL_LDFLAGS += $(foreach framework,$($(_THEOS_CURRENT_TYPE)_FRAMEWORKS),-framework $(framework))
 _THEOS_INTERNAL_LDFLAGS += $(foreach framework,$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,FRAMEWORKS),-framework $(framework))
@@ -269,8 +274,10 @@ $(THEOS_OBJ_DIR)/%.ii.$(_THEOS_OBJ_FILE_TAG).o: %.ii
 
 $(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).o: %.swift
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
-	$(ECHO_COMPILING)$(TARGET_SWIFT) -frontend -emit-object -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -primary-file $< $(SWIFT_FILES) -o $@$(ECHO_END)
-
+	$(ECHO_COMPILING)$(TARGET_SWIFT) -frontend -emit-object -emit-module -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -emit-module-path $(@:.o=.swiftmodule) -primary-file $< $(SWIFT_FILES) -o $@$(ECHO_END)
+	$(ECHO_NOTHING)if [[ "$<" = "$(lastword $(SWIFT_FILES))" ]]; then \
+		$(TARGET_SWIFT) -frontend -c -parse-as-library $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -emit-objc-header-path $(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE)-Swift.h $(patsubst %.swift,$(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).swiftmodule,$(SWIFT_FILES)) -o /dev/null; \
+	fi$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.x.$(_THEOS_OBJ_FILE_TAG).o: %.x
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
