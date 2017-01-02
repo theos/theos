@@ -43,8 +43,9 @@ ifneq ($(_SWIFT_FILE_COUNT),0)
 endif
 
 # If we have a Bridging Header, import it in Swift
-ifeq ($(call __exists,$(THEOS_CURRENT_INSTANCE)-Bridging-Header.h),$(_THEOS_TRUE))
-	_THEOS_INTERNAL_IFLAGS_SWIFT += -import-objc-header $(THEOS_CURRENT_INSTANCE)-Bridging-Header.h
+_THEOS_INTERNAL_SWIFT_BRIDGING_HEADER = $(or $($(THEOS_CURRENT_INSTANCE)_SWIFT_BRIDGING_HEADER),$(THEOS_CURRENT_INSTANCE)-Bridging-Header.h)
+ifeq ($(call __exists,$(_THEOS_INTERNAL_SWIFT_BRIDGING_HEADER)),$(_THEOS_TRUE))
+	_THEOS_INTERNAL_IFLAGS_SWIFT += -import-objc-header $(_THEOS_INTERNAL_SWIFT_BRIDGING_HEADER)
 endif
 
 # Add all frameworks from the type and instance.
