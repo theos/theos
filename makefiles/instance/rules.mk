@@ -58,7 +58,7 @@ _THEOS_INTERNAL_LDFLAGS += $(foreach library,$(call __schema_var_all,$(THEOS_CUR
 
 # Add all private frameworks from the type and instance, as well as -F for the private framework dir.
 ifneq ($(words $($(_THEOS_CURRENT_TYPE)_PRIVATE_FRAMEWORKS)$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,PRIVATE_FRAMEWORKS)),0)
-ifneq ($(call __exists,$(TARGET_PRIVATE_FRAMEWORK_PATH)),$(_THEOS_TRUE))
+ifeq ($(wildcard $(TARGET_PRIVATE_FRAMEWORK_PATH)/*.framework),)
 ifeq ($(TARGET_PRIVATE_FRAMEWORK_FALLBACK_SOURCE_PATH),)
 $(error Missing private frameworks for this target. Expected private frameworks at "$(TARGET_PRIVATE_FRAMEWORK_PATH)")
 endif
