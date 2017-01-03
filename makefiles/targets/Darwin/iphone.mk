@@ -89,10 +89,17 @@ else
 ISYSROOT ?= $(SYSROOT)
 endif
 
+ifeq ($(THEOS_CURRENT_ARCH),armv6)
+TARGET_LEGACY_TOOL_PATH ?= $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneOS.platform/Developer/usr/bin/
+TARGET_CC = $(TARGET_LEGACY_TOOL_PATH)$(_THEOS_TARGET_CC)
+TARGET_CXX = $(TARGET_LEGACY_TOOL_PATH)$(_THEOS_TARGET_CXX)
+TARGET_LD = $(TARGET_LEGACY_TOOL_PATH)$(_THEOS_TARGET_CXX)
+else
 TARGET_CC ?= xcrun -sdk iphoneos $(_THEOS_TARGET_CC)
 TARGET_CXX ?= xcrun -sdk iphoneos $(_THEOS_TARGET_CXX)
 TARGET_SWIFT = swift
 TARGET_LD ?= xcrun -sdk iphoneos $(_THEOS_TARGET_CXX)
+endif
 TARGET_STRIP ?= xcrun -sdk iphoneos strip
 TARGET_STRIP_FLAGS ?= -x
 TARGET_CODESIGN_ALLOCATE ?= "$(shell xcrun -sdk iphoneos -find codesign_allocate)"
