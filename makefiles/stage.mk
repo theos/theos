@@ -23,7 +23,7 @@ before-stage::
 endif # _THEOS_TOP_INVOCATION_DONE
 
 internal-stage::
-	$(ECHO_NOTHING)[ -d $(THEOS_LAYOUT_DIR) ] && rsync -a "$(THEOS_LAYOUT_DIR)/" "$(THEOS_STAGING_DIR)" --exclude "DEBIAN" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE) || true$(ECHO_END)
+	$(ECHO_NOTHING)[ -d $(THEOS_LAYOUT_DIR_NAME) ] && rsync -a "$(THEOS_LAYOUT_DIR_NAME)/" "$(THEOS_STAGING_DIR)" --exclude "DEBIAN" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE) || true$(ECHO_END)
 
 after-stage::
 	@:
