@@ -5,7 +5,7 @@ $(error Do not use 'sudo make')
 endif
 
 ifeq ($(SHELL),/bin/sh)
-export SHELL=/bin/bash
+export SHELL = bash
 endif
 
 THEOS_PROJECT_DIR ?= $(shell pwd)
