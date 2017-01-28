@@ -16,6 +16,6 @@ internal-clean:: $(SIMBLTWEAKS_WITH_SUBPROJECTS:=.clean.simbltweak.subprojects)
 endif
 
 $(SIMBLTWEAK_NAME):
-	@$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going $@.all.simbltweak.variables
+	@$(MAKE) $(MFLAGS) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going $@.all.simbltweak.variables
 
 $(eval $(call __mod,master/simbltweak.mk))

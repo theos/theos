@@ -8,6 +8,8 @@ ifeq ($(SHELL),/bin/sh)
 export SHELL=/bin/bash
 endif
 
+MFLAGS += --output-sync=target
+
 THEOS_PROJECT_DIR ?= $(shell pwd)
 _THEOS_LOCAL_DATA_DIR := $(THEOS_PROJECT_DIR)/.theos
 _THEOS_BUILD_SESSION_FILE = $(_THEOS_LOCAL_DATA_DIR)/build_session

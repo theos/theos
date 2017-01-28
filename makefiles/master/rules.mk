@@ -87,7 +87,7 @@ endif
 %.variables: _TYPE = $(subst -,_,$(subst .,,$(suffix $*)))
 %.variables: __SUBPROJECTS = $(strip $(call __schema_var_all,$(_INSTANCE)_,SUBPROJECTS))
 %.variables:
-	@ \
+	+@ \
 abs_build_dir=$(_THEOS_ABSOLUTE_BUILD_DIR); \
 if [[ "$(__SUBPROJECTS)" != "" ]]; then \
   $(PRINT_FORMAT_MAKING) "Making $(_OPERATION) in subprojects of $(_TYPE) $(_INSTANCE)"; \
@@ -98,7 +98,7 @@ if [[ "$(__SUBPROJECTS)" != "" ]]; then \
     else \
       lbuilddir="$${abs_build_dir}/$$d"; \
     fi; \
-    if $(MAKE) -C $$d -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_NO_PRINT_DIRECTORY_FLAG) --no-keep-going $(_OPERATION) \
+    if $(MAKE) $(MFLAGS) -C $$d -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_NO_PRINT_DIRECTORY_FLAG) --no-keep-going $(_OPERATION) \
         THEOS_BUILD_DIR="$$lbuilddir" \
        ; then\
        :; \
@@ -107,7 +107,7 @@ if [[ "$(__SUBPROJECTS)" != "" ]]; then \
   done; \
  fi; \
 $(PRINT_FORMAT_MAKING) "Making $(_OPERATION) for $(_TYPE) $(_INSTANCE)"; \
-$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going \
+$(MAKE) $(MFLAGS) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going \
 	internal-$(_TYPE)-$(_OPERATION) \
 	_THEOS_CURRENT_TYPE="$(_TYPE)" \
 	THEOS_CURRENT_INSTANCE="$(_INSTANCE)" \
@@ -119,7 +119,7 @@ $(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going 
 %.subprojects: _TYPE = $(subst -,_,$(subst .,,$(suffix $*)))
 %.subprojects: __SUBPROJECTS = $(strip $(call __schema_var_all,$(_INSTANCE)_,SUBPROJECTS))
 %.subprojects:
-	@ \
+	+@ \
 abs_build_dir=$(_THEOS_ABSOLUTE_BUILD_DIR); \
 if [[ "$(__SUBPROJECTS)" != "" ]]; then \
   $(PRINT_FORMAT_MAKING) "Making $(_OPERATION) in subprojects of $(_TYPE) $(_INSTANCE)"; \
@@ -130,7 +130,7 @@ if [[ "$(__SUBPROJECTS)" != "" ]]; then \
     else \
       lbuilddir="$${abs_build_dir}/$$d"; \
     fi; \
-    if $(MAKE) -C $$d -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_NO_PRINT_DIRECTORY_FLAG) --no-keep-going $(_OPERATION) \
+    if $(MAKE) $(MFLAGS) -C $$d -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_NO_PRINT_DIRECTORY_FLAG) --no-keep-going $(_OPERATION) \
         THEOS_BUILD_DIR="$$lbuilddir" \
        ; then\
        :; \
@@ -166,7 +166,7 @@ troubleshoot::
 
 ifeq ($(call __executable,ghost),$(_THEOS_TRUE))
 	@$(PRINT_FORMAT) "Creating a Ghostbin containing the output of \`make clean all messages=yes\`…"
-	$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going clean all messages=yes FORCE_COLOR=yes 2>&1 | ghost -x 2w - ansi
+	$(MAKE) $(MFLAGS) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going clean all messages=yes FORCE_COLOR=yes 2>&1 | ghost -x 2w - ansi
 else
 	@$(PRINT_FORMAT_ERROR) "You don't have ghost installed. For more information, refer to https://github.com/theos/theos/wiki/Installation#prerequisites." >&2; exit 1
 endif

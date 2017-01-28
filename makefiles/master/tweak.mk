@@ -18,6 +18,6 @@ internal-clean:: $(TWEAKS_WITH_SUBPROJECTS:=.clean.tweak.subprojects)
 endif
 
 $(TWEAK_NAME):
-	@$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going $@.all.tweak.variables
+	@$(MAKE) $(MFLAGS) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going $@.all.tweak.variables
 
 $(eval $(call __mod,master/tweak.mk))
