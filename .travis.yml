@@ -17,7 +17,7 @@ env:
 before_install:
   # os x: update homebrew and install dependencies
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install dpkg ldid; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install dpkg ldid homebrew/dupes/make; fi
 
 script:
   # create a directory
@@ -30,7 +30,7 @@ script:
   # some of the test repos still use a theos symlink
   - ln -s $THEOS theos
   # build!
-  - make package messages=yes
+  - gmake -j4 package messages=yes
   # go back up
   - cd ..
   # remove test, ready for the next one
