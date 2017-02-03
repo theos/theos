@@ -15,7 +15,6 @@ use lib "$FindBin::Bin/lib";
 
 use Logos::Method;
 use Logos::Util;
-
 $Logos::Util::errorhandler = sub {
 	die "$ARGV:$.: error: missing closing parenthesis$/"
 };

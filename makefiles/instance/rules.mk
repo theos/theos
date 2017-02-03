@@ -144,13 +144,16 @@ MAKEDEP_FILES = $(addprefix $(THEOS_OBJ_DIR)/,$(strip $(patsubst %,%.$(_THEOS_OB
 -include $(MAKEDEP_FILES)
 endif
 
-before-$(THEOS_CURRENT_INSTANCE)-all after-$(THEOS_CURRENT_INSTANCE)-all::
+before-$(THEOS_CURRENT_INSTANCE)-all::
 	@for i in $(_FILES); do \
 	    if [[ ! -f "$$i" ]]; then \
 	        $(PRINT_FORMAT_ERROR) "File $$i does not exist." 2>&1; \
 	        exit 1; \
 	    fi; \
 	done
+
+after-$(THEOS_CURRENT_INSTANCE)-all::
+	@:
 
 internal-$(_THEOS_CURRENT_TYPE)-all:: before-$(THEOS_CURRENT_INSTANCE)-all internal-$(_THEOS_CURRENT_TYPE)-all_ after-$(THEOS_CURRENT_INSTANCE)-all
 	@:
@@ -269,7 +272,7 @@ $(THEOS_OBJ_DIR)/%.ii.$(_THEOS_OBJ_FILE_TAG).o: %.ii
 
 $(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).o: %.swift
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
-	$(ECHO_COMPILING)$(TARGET_SWIFT) -frontend -emit-object -c $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -primary-file $< $(SWIFT_FILES) -o $@$(ECHO_END)
+	$(ECHO_COMPILING)$(TARGET_SWIFT) -frontend -emit-object -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -primary-file $< $(SWIFT_FILES) -o $@$(ECHO_END)
 
 
 $(THEOS_OBJ_DIR)/%.x.$(_THEOS_OBJ_FILE_TAG).o: %.x

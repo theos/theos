@@ -21,6 +21,7 @@ use NIC::Bridge::Context (PROMPT => \&nicPrompt);
 use NIC::Formats::NICTar;
 use NIC::NICType;
 
+# Workaround to allow Find to function on WSL. Currently on WSL without this line nic.pl will fail to find templates.
 if($^O eq "linux") {
     my $fh;
     open($fh, "/proc/version");
