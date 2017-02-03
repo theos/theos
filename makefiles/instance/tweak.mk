@@ -37,10 +37,10 @@ endif
 
 ifneq ($($(THEOS_CURRENT_INSTANCE)_INSTALL),0)
 internal-tweak-stage_:: $(_EXTRA_TARGET) internal-library-stage_
-	$(ECHO_NOTHING)if [[ ! -f $(THEOS_CURRENT_INSTANCE).plist ]]; then \
+	$(ECHO_NOTHING)if [[ ! -f "$(THEOS_CURRENT_INSTANCE).plist" && ! -f "$(THEOS_LAYOUT_DIR_NAME)/$(LOCAL_INSTALL_PATH)/$(THEOS_CURRENT_INSTANCE).plist" ]]; then \
 		$(PRINT_FORMAT_ERROR) "You are missing a filter property list. Make sure it’s named $(THEOS_CURRENT_INSTANCE).plist. Refer to http://iphonedevwiki.net/index.php/Cydia_Substrate#MobileLoader." >&2; \
 		exit 1; \
-	else \
+	elif [[ -f "$(THEOS_CURRENT_INSTANCE).plist" ]]; then \
 		cp $(THEOS_CURRENT_INSTANCE).plist "$(THEOS_STAGING_DIR)$(LOCAL_INSTALL_PATH)/"; \
 	fi$(ECHO_END)
 endif
