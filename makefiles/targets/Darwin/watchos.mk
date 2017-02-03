@@ -71,7 +71,7 @@ VERSIONFLAGS := -mwatchos-version-min=$(_THEOS_TARGET_WATCHOS_DEPLOYMENT_VERSION
 _THEOS_TARGET_CFLAGS += -isysroot "$(ISYSROOT)" $(SDKFLAGS) $(VERSIONFLAGS) $(MODULESFLAGS)
 _THEOS_TARGET_LDFLAGS += -isysroot "$(SYSROOT)" $(SDKFLAGS) $(VERSIONFLAGS) $(LEGACYFLAGS) -multiply_defined suppress
 _THEOS_TARGET_SWIFTFLAGS := -sdk "$(ISYSROOT)" $(SDKFLAGS)
-_THEOS_TARGET_SWIFT_TARGET := apple-watchos$(_THEOS_TARGET_SDK_VERSION)
+_THEOS_TARGET_SWIFT_TARGET := apple-watchos$(_THEOS_TARGET_WATCHOS_DEPLOYMENT_VERSION)
 _THEOS_TARGET_SWIFT_LDPATH := $(THEOS_PLATFORM_SDK_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/watchos
 _THEOS_TARGET_SWIFT_OBJPATH := $(THEOS_PLATFORM_SDK_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift_static/watchos
 _THEOS_TARGET_SWIFT_VERSION = $(shell $(TARGET_SWIFT) --version | head -1 | cut -d' ' -f4)
