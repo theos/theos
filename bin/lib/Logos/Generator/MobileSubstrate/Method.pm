@@ -80,10 +80,7 @@ sub initializers {
 	my $cgen = Logos::Generator::for($method->class);
 	my $classvar = ($method->scope eq "+" ? $cgen->metaVariable : $cgen->variable);
 	if(!$method->isNew) {
-		my $r = "";
-		$r .= "if (".$classvar.") {";
-		$r .=   "MSHookMessageEx(".$classvar.", ".$self->selectorRef($method->selector).", (IMP)&".$self->newFunctionName($method).", (IMP*)&".$self->originalFunctionName($method).");";
-		$r .= "}";
+		my $r = "MSHookMessageEx(".$classvar.", ".$self->selectorRef($method->selector).", (IMP)&".$self->newFunctionName($method).", (IMP*)&".$self->originalFunctionName($method).");";
 	} else {
 		my $r = "";
 		$r .= "{ ";
