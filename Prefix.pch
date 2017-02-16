@@ -4,12 +4,7 @@
 
 #ifdef __OBJC__
 	#import <_Prefix/NullabilityCompat.h>
-
-	#if __has_feature(modules)
-		@import Foundation;
-	#else
-		#import <Foundation/Foundation.h>
-	#endif
+	#import <Foundation/Foundation.h>
 
 	#ifdef TARGET_OS_SIMULATOR
 		#define _THEOS_IS_SIMULATOR TARGET_OS_SIMULATOR
@@ -18,23 +13,13 @@
 	#endif
 
 	#if TARGET_IPHONE || _THEOS_IS_SIMULATOR
-		#if __has_feature(modules)
-			@import UIKit;
-		#else
-			#import <UIKit/UIKit.h>
-		#endif
-
+		#import <UIKit/UIKit.h>
 		#import <_Prefix/IOSWebKitCompatHacks.h>
 	#endif
 
 	#if TARGET_MACOSX
-		#if __has_feature(modules)
-			@import Cocoa;
-			@import AppKit;
-		#else
-			#import <Cocoa/Cocoa.h>
-			#import <AppKit/AppKit.h>
-		#endif
+		#import <Cocoa/Cocoa.h>
+		#import <AppKit/AppKit.h>
 	#endif
 
 	#import <_Prefix/HBLog.h>
