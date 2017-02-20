@@ -58,9 +58,15 @@ _THEOS_INTERNAL_LDFLAGS += $(foreach library,$(call __schema_var_all,$(THEOS_CUR
 
 # Add all private frameworks from the type and instance, as well as -F for the private framework dir.
 ifneq ($(words $($(_THEOS_CURRENT_TYPE)_PRIVATE_FRAMEWORKS)$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,PRIVATE_FRAMEWORKS)),0)
+ifneq ($(THEOS_CURRENT_ARCH),)
+	_THEOS_INTERNAL_OBJCFLAGS += -F$(THEOS_OBJ_DIR_NAME)/$(THEOS_TARGET_NAME)/$(THEOS_CURRENT_ARCH)/PrivateFrameworks
+	_THEOS_INTERNAL_SWIFTFLAGS += -F$(THEOS_OBJ_DIR_NAME)/$(THEOS_TARGET_NAME)/$(THEOS_CURRENT_ARCH)/PrivateFrameworks
+	_THEOS_INTERNAL_LDFLAGS += -F$(THEOS_OBJ_DIR_NAME)/$(THEOS_TARGET_NAME)/$(THEOS_CURRENT_ARCH)/PrivateFrameworks
+else
 	_THEOS_INTERNAL_OBJCFLAGS += -F$(THEOS_OBJ_DIR_NAME)/$(THEOS_TARGET_NAME)/PrivateFrameworks
 	_THEOS_INTERNAL_SWIFTFLAGS += -F$(THEOS_OBJ_DIR_NAME)/$(THEOS_TARGET_NAME)/PrivateFrameworks
 	_THEOS_INTERNAL_LDFLAGS += -F$(THEOS_OBJ_DIR_NAME)/$(THEOS_TARGET_NAME)/PrivateFrameworks
+endif
 endif
 
 _THEOS_INTERNAL_LDFLAGS += $(foreach framework,$($(_THEOS_CURRENT_TYPE)_PRIVATE_FRAMEWORKS),-framework $(framework))
@@ -170,11 +176,26 @@ before-$(THEOS_CURRENT_INSTANCE)-stage after-$(THEOS_CURRENT_INSTANCE)-stage::
 internal-$(_THEOS_CURRENT_TYPE)-stage:: before-$(THEOS_CURRENT_INSTANCE)-stage internal-$(_THEOS_CURRENT_TYPE)-stage_ after-$(THEOS_CURRENT_INSTANCE)-stage
 	@:
 
+
+ifneq ($(THEOS_CURRENT_ARCH),)
+before-$(_THEOS_CURRENT_TYPE)-$(THEOS_CURRENT_ARCH) after-$(_THEOS_CURRENT_TYPE)-$(THEOS_CURRENT_ARCH)::
+	@:
+endif
+
 ifneq ($(words $($(_THEOS_CURRENT_TYPE)_PRIVATE_FRAMEWORKS)$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,PRIVATE_FRAMEWORKS)),0)
+ifneq ($(THEOS_CURRENT_ARCH),)
+$(THEOS_OBJ_DIR_NAME)/$(THEOS_TARGET_NAME)/$(THEOS_CURRENT_ARCH)/PrivateFrameworks/%.framework:
+	$(ECHO_NOTHING)"$(THEOS_BIN_PATH)/generate_private_framework.sh" "$(TARGET_PRIVATE_FRAMEWORK_PATH)" "$(notdir $@)" "$@" "$(TARGET_PRIVATE_FRAMEWORK_FALLBACK_SOURCE_PATH)"$(ECHO_END)
+
+before-$(_THEOS_CURRENT_TYPE)-$(THEOS_CURRENT_ARCH):: $(addprefix $(THEOS_OBJ_DIR_NAME)/$(THEOS_TARGET_NAME)/$(THEOS_CURRENT_ARCH)/PrivateFrameworks/,$(addsuffix .framework,$($(_THEOS_CURRENT_TYPE)_PRIVATE_FRAMEWORKS)$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,PRIVATE_FRAMEWORKS)))
+else
+ifeq ($(_THEOS_PLATFORM_LIPO),)
 $(THEOS_OBJ_DIR_NAME)/$(THEOS_TARGET_NAME)/PrivateFrameworks/%.framework:
 	$(ECHO_NOTHING)"$(THEOS_BIN_PATH)/generate_private_framework.sh" "$(TARGET_PRIVATE_FRAMEWORK_PATH)" "$(notdir $@)" "$@" "$(TARGET_PRIVATE_FRAMEWORK_FALLBACK_SOURCE_PATH)"$(ECHO_END)
 
 before-$(THEOS_CURRENT_INSTANCE)-all:: $(addprefix $(THEOS_OBJ_DIR_NAME)/$(THEOS_TARGET_NAME)/PrivateFrameworks/,$(addsuffix .framework,$($(_THEOS_CURRENT_TYPE)_PRIVATE_FRAMEWORKS)$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,PRIVATE_FRAMEWORKS)))
+endif
+endif
 endif
 
 .SUFFIXES:
@@ -294,15 +315,22 @@ ifeq ($(THEOS_CURRENT_ARCH),)
 
 ARCH_FILES_TO_LINK := $(addsuffix /$(1),$(addprefix $(THEOS_OBJ_DIR)/,$(TARGET_ARCHS)))
 $$(THEOS_OBJ_DIR)/%/$(1): $(__ALL_FILES)
+<<<<<<< HEAD
 	+@ \
 	mkdir -p $(THEOS_OBJ_DIR)/$$*; \
 	$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going \
+=======
+	@mkdir -p $(THEOS_OBJ_DIR)/$$*;
+	$(ECHO_NOTHING)$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going \
+		before-$(_THEOS_CURRENT_TYPE)-$$* \
+>>>>>>> 5908caa... Make private framework symlinks be per-arch so that multi-toolchain continues to work
 		internal-$(_THEOS_CURRENT_TYPE)-$(_THEOS_CURRENT_OPERATION) \
+		after-$(_THEOS_CURRENT_TYPE)-$$* \
 		_THEOS_CURRENT_TYPE="$(_THEOS_CURRENT_TYPE)" \
 		THEOS_CURRENT_INSTANCE="$(THEOS_CURRENT_INSTANCE)" \
 		_THEOS_CURRENT_OPERATION="$(_THEOS_CURRENT_OPERATION)" \
 		THEOS_BUILD_DIR="$(THEOS_BUILD_DIR)" \
-		THEOS_CURRENT_ARCH="$$*"
+		THEOS_CURRENT_ARCH="$$*"$(ECHO_END)
 
 ifneq ($$(TARGET_CODESIGN),)
 .INTERMEDIATE: $$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned

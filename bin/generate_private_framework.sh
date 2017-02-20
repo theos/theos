@@ -6,6 +6,7 @@ destination_framework="$3"
 fallback_framework_path="$4"
 
 if [ -e "$framework_path/$framework" ]; then
+	mkdir -p `dirname "$destination_framework"`
 	exec ln -s "$framework_path/$framework" "$destination_framework"
 fi
 
