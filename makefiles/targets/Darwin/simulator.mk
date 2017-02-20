@@ -33,6 +33,10 @@ ifeq ($(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION),latest)
 override _THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION := $(_LATEST_SDK)
 endif
 
+_TARGET_VERSION_GE_3_2 = $(call __simplify,_TARGET_VERSION_GE_3_2,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 3.2))
+_TARGET_VERSION_GE_4_0 = $(call __simplify,_TARGET_VERSION_GE_4_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 4.0))
+_TARGET_VERSION_GE_7_0 = $(call __simplify,_TARGET_VERSION_GE_7_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 7.0))
+
 ifeq ($(SYSROOT),)
 SYSROOT ?= $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator$(_THEOS_TARGET_SDK_VERSION).sdk
 ISYSROOT ?= $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator$(_THEOS_TARGET_INCLUDE_SDK_VERSION).sdk
@@ -46,8 +50,8 @@ TARGET_LD ?= xcrun -sdk iphonesimulator $(_THEOS_TARGET_CXX)
 TARGET_STRIP ?= xcrun -sdk iphonesimulator strip
 TARGET_STRIP_FLAGS ?= -x
 TARGET_CODESIGN_ALLOCATE ?= "$(shell xcrun -sdk iphonesimulator -find codesign_allocate)"
-TARGET_CODESIGN ?= ldid
-TARGET_CODESIGN_FLAGS ?= -S
+TARGET_CODESIGN ?= $(if $(_TARGET_VERSION_GE_7_0),ldid)
+TARGET_CODESIGN_FLAGS ?= $(if $(_TARGET_VERSION_GE_7_0),-S)
 
 TARGET_PRIVATE_FRAMEWORK_PATH = $(SYSROOT)/System/Library/PrivateFrameworks
 TARGET_PRIVATE_FRAMEWORK_INCLUDE_PATH = $(ISYSROOT)/System/Library/PrivateFrameworks
@@ -64,6 +68,7 @@ internal-install:: stage
 	install.mergeDir "$(THEOS_STAGING_DIR)" "$(IPHONE_SIMULATOR_ROOT)"
 endif
 
+<<<<<<< HEAD
 # We have to figure out the target version here, as we need it in the calculation of the deployment version.
 _TARGET_VERSION_GE_3_2 = $(call __simplify,_TARGET_VERSION_GE_3_2,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 3.2))
 _TARGET_VERSION_GE_4_0 = $(call __simplify,_TARGET_VERSION_GE_4_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 4.0))
@@ -73,6 +78,10 @@ _TARGET_VERSION_GE_8_4 = $(call __simplify,_TARGET_VERSION_GE_8_4,$(shell $(THEO
 
 ARCHS ?= $(if $(_TARGET_VERSION_GE_8_0),,i386) $(if $(_TARGET_VERSION_GE_7_0),x86_64)
 NEUTRAL_ARCH = $(if $(_TARGET_VERSION_GE_8_0),x86_64,i386)
+=======
+ARCHS ?= i386 $(if $(_TARGET_VERSION_GE_7_0),x86_64)
+NEUTRAL_ARCH = i386
+>>>>>>> 6b05eac... Use pseudo-signing when targeting iOS Simulator 7.0 or later
 
 _TARGET_VERSION_FLAG = $(if $(_TARGET_VERSION_GE_7_0),-mios-simulator-version-min=$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION),-mmacosx-version-min=$(if $(_TARGET_VERSION_GE_4_0),10.6,10.5))
 _TARGET_OBJC_ABI_CFLAGS = $(if $(_TARGET_VERSION_GE_3_2),-fobjc-abi-version=2 -fobjc-legacy-dispatch)
