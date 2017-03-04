@@ -14,7 +14,7 @@ endif
 # A version specified as a target argument overrides all previous definitions.
 _SDKVERSION := $(or $(__THEOS_TARGET_ARG_$(word 1,$(_THEOS_TARGET_ARG_ORDER))),$(SDKVERSION_$(THEOS_CURRENT_ARCH)),$(SDKVERSION))
 _THEOS_TARGET_SDK_VERSION := $(or $(_SDKVERSION),latest)
-_THEOS_TARGET_INCLUDE_SDK_VERSION := $(or $(INCLUDE_SDKVERSION),$(INCLUDE_SDKVERSION_$(THEOS_CURRENT_ARCH)),latest)
+_THEOS_TARGET_INCLUDE_SDK_VERSION := $(or $(INCLUDE_SDKVERSION),$(INCLUDE_SDKVERSION_$(THEOS_CURRENT_ARCH)),same)
 
 _SDK_DIR := $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs
 _IOS_SDKS := $(sort $(patsubst $(_SDK_DIR)/iPhoneOS%.sdk,%,$(wildcard $(_SDK_DIR)/iPhoneOS*.sdk)))
@@ -31,6 +31,10 @@ endif
 
 ifeq ($(_THEOS_TARGET_INCLUDE_SDK_VERSION),latest)
 override _THEOS_TARGET_INCLUDE_SDK_VERSION := $(_LATEST_SDK)
+else
+ifeq ($(_THEOS_TARGET_INCLUDE_SDK_VERSION),same)
+override _THEOS_TARGET_INCLUDE_SDK_VERSION := $(_THEOS_TARGET_SDK_VERSION)
+endif
 endif
 
 # We have to figure out the target version here, as we need it in the calculation of the deployment version.
