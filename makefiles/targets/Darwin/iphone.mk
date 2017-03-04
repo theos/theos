@@ -16,12 +16,12 @@ _SDKVERSION := $(or $(__THEOS_TARGET_ARG_$(word 1,$(_THEOS_TARGET_ARG_ORDER))),$
 _THEOS_TARGET_SDK_VERSION := $(or $(_SDKVERSION),latest)
 _THEOS_TARGET_INCLUDE_SDK_VERSION := $(or $(INCLUDE_SDKVERSION),$(INCLUDE_SDKVERSION_$(THEOS_CURRENT_ARCH)),same)
 
-_SDK_DIR := $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs
-_IOS_SDKS := $(sort $(patsubst $(_SDK_DIR)/iPhoneOS%.sdk,%,$(wildcard $(_SDK_DIR)/iPhoneOS*.sdk)))
+_XCODE_SDK_DIR := $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs
+_IOS_SDKS := $(sort $(patsubst $(_XCODE_SDK_DIR)/iPhoneOS%.sdk,%,$(wildcard $(_XCODE_SDK_DIR)/iPhoneOS*.sdk)) $(patsubst $(THEOS_SDKS_PATH)/iPhoneOS%.sdk,%,$(wildcard $(THEOS_SDKS_PATH)/iPhoneOS*.sdk)))
 
 ifeq ($(words $(_IOS_SDKS)),0)
 before-all::
-	@$(PRINT_FORMAT_ERROR) "You do not have an SDK in $(_SDK_DIR)." >&2; exit 1
+	@$(PRINT_FORMAT_ERROR) "You do not have an SDK in $(_XCODE_SDK_DIR) or $(THEOS_SDKS_PATH)." >&2; exit 1
 endif
 _LATEST_SDK := $(lastword $(_IOS_SDKS))
 
@@ -78,8 +78,13 @@ endif
 endif
 
 ifeq ($(SYSROOT),)
+ifeq ($(shell [[ -d "$(THEOS_SDKS_PATH)/iPhoneOS$(_THEOS_TARGET_SDK_VERSION).sdk" ]] && echo 1),1)
+SYSROOT ?= $(THEOS_SDKS_PATH)/iPhoneOS$(_THEOS_TARGET_SDK_VERSION).sdk
+ISYSROOT ?= $(THEOS_SDKS_PATH)/iPhoneOS$(_THEOS_TARGET_INCLUDE_SDK_VERSION).sdk
+else
 SYSROOT ?= $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(_THEOS_TARGET_SDK_VERSION).sdk
 ISYSROOT ?= $(THEOS_PLATFORM_SDK_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS$(_THEOS_TARGET_INCLUDE_SDK_VERSION).sdk
+endif
 else
 ISYSROOT ?= $(SYSROOT)
 endif
