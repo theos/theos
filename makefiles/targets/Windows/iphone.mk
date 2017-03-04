@@ -2,7 +2,7 @@ ifeq ($(_THEOS_TARGET_LOADED),)
 _THEOS_TARGET_LOADED := 1
 THEOS_TARGET_NAME := iphone
 
-SDKTARGET ?= armv7-apple-darwin11
+SDKTARGET ?= arm64-apple-darwin14
 SDKBINPATH ?= $(THEOS)/toolchain/$(THEOS_PLATFORM_NAME)/$(THEOS_TARGET_NAME)/bin
 
 _THEOS_TARGET_CC := clang
