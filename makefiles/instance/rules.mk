@@ -39,7 +39,7 @@ endif
 # If we have any Swift objects, add Swift libraries to the linker search path.
 # Also tell the linker to find these libraries in /usr/lib/libswift/<version>.
 ifneq ($(_SWIFT_FILE_COUNT),0)
-	_THEOS_INTERNAL_LDFLAGS += -L$(_THEOS_TARGET_SWIFT_LDPATH) -rpath /usr/lib/libswift/$(_THEOS_TARGET_SWIFT_VERSION)
+	_THEOS_INTERNAL_LDFLAGS += -L$(_THEOS_TARGET_SWIFT_LDPATH)
 endif
 
 # If we have a Bridging Header, import it in Swift
@@ -81,8 +81,8 @@ _THEOS_INTERNAL_LDFLAGS += $(foreach framework,$($(_THEOS_CURRENT_TYPE)_WEAK_FRA
 _THEOS_INTERNAL_LDFLAGS += $(foreach framework,$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,WEAK_FRAMEWORKS),-weak_framework $(framework))
 
 # Add weak libraries.
-_THEOS_INTERNAL_LDFLAGS += $(foreach library,$($(_THEOS_CURRENT_TYPE)_WEAK_LIBRARIES),-weak_library$(library))
-_THEOS_INTERNAL_LDFLAGS += $(foreach library,$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,WEAK_LIBRARIES),-weak_library$(library))
+_THEOS_INTERNAL_LDFLAGS += $(foreach library,$($(_THEOS_CURRENT_TYPE)_WEAK_LIBRARIES),-weak_library $(library))
+_THEOS_INTERNAL_LDFLAGS += $(foreach library,$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,WEAK_LIBRARIES),-weak_library $(library))
 
 ifneq ($($(THEOS_CURRENT_INSTANCE)_$(_THEOS_TARGET_NAME_DEFINE)_ARCHS),)
 TARGET_ARCHS = $($(THEOS_CURRENT_INSTANCE)_$(_THEOS_TARGET_NAME_DEFINE)_ARCHS)
