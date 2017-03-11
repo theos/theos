@@ -9,7 +9,12 @@ export SHELL = bash
 endif
 
 THEOS_PROJECT_DIR ?= $(shell pwd)
+WSL = $(shell grep -q 'Microsoft' /proc/version)
+ifeq ($(WSL),)
+_THEOS_LOCAL_DATA_DIR := $(HOME)/$(THEOS_PROJECT_DIR)/.theos
+else
 _THEOS_LOCAL_DATA_DIR := $(THEOS_PROJECT_DIR)/.theos
+endif
 _THEOS_BUILD_SESSION_FILE = $(_THEOS_LOCAL_DATA_DIR)/build_session
 
 ### Functions
