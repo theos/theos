@@ -36,6 +36,7 @@ $(_THEOS_ESCAPED_STAGING_DIR)/DEBIAN/control: $(_THEOS_ESCAPED_STAGING_DIR)/DEBI
 before-package:: $(_THEOS_ESCAPED_STAGING_DIR)/DEBIAN/control
 
 _THEOS_DEB_PACKAGE_FILENAME = $(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_NAME)_$(_THEOS_INTERNAL_PACKAGE_VERSION)_$(THEOS_PACKAGE_ARCH).deb
+WSL = $(shell grep -q 'Microsoft' /proc/version)
 ifeq ($(WSL),)
 internal-package::
 	cp -ar "$(THEOS_STAGING_DIR)" "$(_THEOS_TMP_FOR_WSL)"
@@ -43,8 +44,6 @@ internal-package::
 	$(ECHO_NOTHING)COPYFILE_DISABLE=1 $(FAKEROOT) -r $(_THEOS_PLATFORM_DPKG_DEB) -Z$(_THEOS_PLATFORM_DPKG_DEB_COMPRESSION) -b "$(_THEOS_TMP_FOR_WSL)/$(THEOS_STAGING_DIR_NAME)" "$(_THEOS_DEB_PACKAGE_FILENAME)"$(ECHO_END)
 else
 internal-package::
-    #The following line resolves a permissions issue on WSL. However it should have no ill affect on other platforms.
-	$(ECHO_NOTHING)chmod -R 755 $(THEOS_STAGING_DIR)$(ECHO_END)
 	$(ECHO_NOTHING)COPYFILE_DISABLE=1 $(FAKEROOT) -r $(_THEOS_PLATFORM_DPKG_DEB) -Z$(_THEOS_PLATFORM_DPKG_DEB_COMPRESSION) -b "$(THEOS_STAGING_DIR)" "$(_THEOS_DEB_PACKAGE_FILENAME)"$(ECHO_END)
 endif
 
