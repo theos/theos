@@ -90,8 +90,7 @@ inline _LIBCPP_INLINE_VISIBILITY
 size_t
 __constrain_hash(size_t __h, size_t __bc)
 {
-    return !(__bc & (__bc - 1)) ? __h & (__bc - 1) :
-        (__h < __bc ? __h : __h % __bc);
+    return !(__bc & (__bc - 1)) ? __h & (__bc - 1) : __h % __bc;
 }
 
 inline _LIBCPP_INLINE_VISIBILITY
@@ -101,6 +100,22 @@ __next_hash_pow2(size_t __n)
     return size_t(1) << (std::numeric_limits<size_t>::digits - __clz(__n-1));
 }
 
+#ifndef _LIBCPP_CXX03_LANG
+struct __extract_key_fail_tag {};
+struct __extract_key_self_tag {};
+struct __extract_key_first_tag {};
+
+template <class _ValTy, class _Key,
+          class _RawValTy = typename __unconstref<_ValTy>::type>
+struct __can_extract_key
+    : conditional<is_same<_RawValTy, _Key>::value, __extract_key_self_tag,
+                  __extract_key_fail_tag>::type {};
+
+template <class _Pair, class _Key, class _First, class _Second>
+struct __can_extract_key<_Pair, _Key, pair<_First, _Second>>
+    : conditional<is_same<typename remove_const<_First>::type, _Key>::value,
+                  __extract_key_first_tag, __extract_key_fail_tag>::type {};
+#endif
 
 template <class _Tp, class _Hash, class _Equal, class _Alloc> class __hash_table;
 
@@ -1057,17 +1072,6 @@ public:
       return __emplace_unique_extract_key(_VSTD::forward<_Pp>(__x),
                                           __can_extract_key<_Pp, key_type>());
     }
-
-    template <class _First, class _Second>
-    _LIBCPP_INLINE_VISIBILITY
-    typename enable_if<
-        __can_extract_map_key<_First, key_type, __container_value_type>::value,
-        pair<iterator, bool>
-    >::type __emplace_unique(_First&& __f, _Second&& __s) {
-        return __emplace_unique_key_args(__f, _VSTD::forward<_First>(__f),
-                                              _VSTD::forward<_Second>(__s));
-    }
-
     template <class... _Args>
     _LIBCPP_INLINE_VISIBILITY
     pair<iterator, bool> __emplace_unique(_Args&&... __args) {
@@ -1360,7 +1364,6 @@ __hash_table<_Tp, _Hash, _Equal, _Alloc>::__hash_table()
     _NOEXCEPT_(
         is_nothrow_default_constructible<__bucket_list>::value &&
         is_nothrow_default_constructible<__first_node>::value &&
-        is_nothrow_default_constructible<__node_allocator>::value &&
         is_nothrow_default_constructible<hasher>::value &&
         is_nothrow_default_constructible<key_equal>::value)
     : __p2_(0),
@@ -1429,7 +1432,6 @@ __hash_table<_Tp, _Hash, _Equal, _Alloc>::__hash_table(__hash_table&& __u)
         _NOEXCEPT_(
             is_nothrow_move_constructible<__bucket_list>::value &&
             is_nothrow_move_constructible<__first_node>::value &&
-            is_nothrow_move_constructible<__node_allocator>::value &&
             is_nothrow_move_constructible<hasher>::value &&
             is_nothrow_move_constructible<key_equal>::value)
     : __bucket_list_(_VSTD::move(__u.__bucket_list_)),
@@ -1476,10 +1478,6 @@ __hash_table<_Tp, _Hash, _Equal, _Alloc>::__hash_table(__hash_table&& __u,
 template <class _Tp, class _Hash, class _Equal, class _Alloc>
 __hash_table<_Tp, _Hash, _Equal, _Alloc>::~__hash_table()
 {
-    static_assert((is_copy_constructible<key_equal>::value),
-                 "Predicate must be copy-constructible.");
-    static_assert((is_copy_constructible<hasher>::value),
-                 "Hasher must be copy-constructible.");
     __deallocate(__p1_.first().__next_);
 #if _LIBCPP_DEBUG_LEVEL >= 2
     __get_db()->__erase_c(this);
@@ -2202,11 +2200,10 @@ __hash_table<_Tp, _Hash, _Equal, _Alloc>::find(const _Key& __k)
         if (__nd != nullptr)
         {
             for (__nd = __nd->__next_; __nd != nullptr &&
-                (__nd->__hash_ == __hash
-                  || __constrain_hash(__nd->__hash_, __bc) == __chash);
+                                       __constrain_hash(__nd->__hash_, __bc) == __chash;
                                                            __nd = __nd->__next_)
             {
-                if ((__nd->__hash_ == __hash) && key_eq()(__nd->__value_, __k))
+                if (key_eq()(__nd->__value_, __k))
 #if _LIBCPP_DEBUG_LEVEL >= 2
                     return iterator(__nd, this);
 #else
@@ -2232,10 +2229,10 @@ __hash_table<_Tp, _Hash, _Equal, _Alloc>::find(const _Key& __k) const
         if (__nd != nullptr)
         {
             for (__nd = __nd->__next_; __nd != nullptr &&
-                (__hash == __nd->__hash_ || __constrain_hash(__nd->__hash_, __bc) == __chash);
+                                           __constrain_hash(__nd->__hash_, __bc) == __chash;
                                                            __nd = __nd->__next_)
             {
-                if ((__nd->__hash_ == __hash) && key_eq()(__nd->__value_, __k))
+                if (key_eq()(__nd->__value_, __k))
 #if _LIBCPP_DEBUG_LEVEL >= 2
                     return const_iterator(__nd, this);
 #else
@@ -2297,7 +2294,7 @@ __hash_table<_Tp, _Hash, _Equal, _Alloc>::__construct_node(const __container_val
     __h.get_deleter().__value_constructed = true;
     __h->__hash_ = hash_function()(__h->__value_);
     __h->__next_ = nullptr;
-    return _LIBCPP_EXPLICIT_MOVE(__h);  // explicitly moved for C++03
+    return _VSTD::move(__h);  // explicitly moved for C++03
 }
 
 template <class _Tp, class _Hash, class _Equal, class _Alloc>
@@ -2311,7 +2308,7 @@ __hash_table<_Tp, _Hash, _Equal, _Alloc>::__construct_node_hash(size_t __hash,
     __h.get_deleter().__value_constructed = true;
     __h->__hash_ = __hash;
     __h->__next_ = nullptr;
-    return _LIBCPP_EXPLICIT_MOVE(__h);  // explicitly moved for C++03
+    return _VSTD::move(__h);  // explicitly moved for C++03
 }
 
 #endif  // _LIBCPP_CXX03_LANG

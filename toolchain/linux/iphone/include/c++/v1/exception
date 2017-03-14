@@ -80,10 +80,6 @@ template <class E> void rethrow_if_nested(const E& e);
 #include <__config>
 #include <cstddef>
 #include <type_traits>
-#if defined(_LIBCPP_NO_EXCEPTIONS)
-#include <cstdio>
-#include <cstdlib>
-#endif
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
@@ -120,7 +116,7 @@ _LIBCPP_FUNC_VIS terminate_handler get_terminate() _NOEXCEPT;
 _LIBCPP_NORETURN _LIBCPP_FUNC_VIS void terminate() _NOEXCEPT;
 
 _LIBCPP_FUNC_VIS bool uncaught_exception() _NOEXCEPT;
-_LIBCPP_FUNC_VIS int uncaught_exceptions() _NOEXCEPT;
+_LIBCPP_FUNC_VIS _LIBCPP_AVAILABILITY_UNCAUGHT_EXCEPTIONS int uncaught_exceptions() _NOEXCEPT;
 
 class _LIBCPP_TYPE_VIS exception_ptr;
 
@@ -239,7 +235,7 @@ rethrow_if_nested(const _Ep& __e, typename enable_if<
                                    is_polymorphic<_Ep>::value
                                                    >::type* = 0)
 {
-    const nested_exception* __nep = dynamic_cast<const nested_exception*>(_VSTD::addressof(__e));
+    const nested_exception* __nep = dynamic_cast<const nested_exception*>(&__e);
     if (__nep)
         __nep->rethrow_nested();
 }
@@ -254,20 +250,5 @@ rethrow_if_nested(const _Ep&, typename enable_if<
 }
 
 }  // std
-
-_LIBCPP_BEGIN_NAMESPACE_STD
-
-template <class _Exception>
-_LIBCPP_INLINE_VISIBILITY
-inline void __libcpp_throw(_Exception const& __e) {
-#ifndef _LIBCPP_NO_EXCEPTIONS
-    throw __e;
-#else
-    _VSTD::fprintf(stderr, "%s\n", __e.what());
-    _VSTD::abort();
-#endif
-}
-
-_LIBCPP_END_NAMESPACE_STD
 
 #endif  // _LIBCPP_EXCEPTION

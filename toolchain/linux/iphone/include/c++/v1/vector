@@ -51,8 +51,8 @@ public:
     vector& operator=(const vector& x);
     vector& operator=(vector&& x)
         noexcept(
-             allocator_type::propagate_on_container_move_assignment::value ||
-             allocator_type::is_always_equal::value); // C++17
+             allocator_type::propagate_on_container_move_assignment::value &&
+             is_nothrow_move_assignable<allocator_type>::value);
     vector& operator=(initializer_list<value_type> il);
     template <class InputIterator>
         void assign(InputIterator first, InputIterator last);
@@ -175,8 +175,8 @@ public:
     vector& operator=(const vector& x);
     vector& operator=(vector&& x)
         noexcept(
-             allocator_type::propagate_on_container_move_assignment::value ||
-             allocator_type::is_always_equal::value); // C++17
+             allocator_type::propagate_on_container_move_assignment::value &&
+             is_nothrow_move_assignable<allocator_type>::value);
     vector& operator=(initializer_list<value_type> il);
     template <class InputIterator>
         void assign(InputIterator first, InputIterator last);
@@ -262,7 +262,6 @@ void swap(vector<T,Allocator>& x, vector<T,Allocator>& y)
 */
 
 #include <__config>
-#include <iosfwd> // for forward declaration of vector
 #include <__bit_reference>
 #include <type_traits>
 #include <climits>
@@ -454,7 +453,7 @@ __vector_base<_Tp, _Allocator>::~__vector_base()
     }
 }
 
-template <class _Tp, class _Allocator /* = allocator<_Tp> */>
+template <class _Tp, class _Allocator = allocator<_Tp> >
 class _LIBCPP_TYPE_VIS_ONLY vector
     : private __vector_base<_Tp, _Allocator>
 {
@@ -563,7 +562,9 @@ public:
     vector(vector&& __x, const allocator_type& __a);
     _LIBCPP_INLINE_VISIBILITY
     vector& operator=(vector&& __x)
-        _NOEXCEPT_((__noexcept_move_assign_container<_Allocator, __alloc_traits>::value));
+        _NOEXCEPT_(
+             __alloc_traits::propagate_on_container_move_assignment::value &&
+             is_nothrow_move_assignable<allocator_type>::value);
 #endif  // _LIBCPP_HAS_NO_RVALUE_REFERENCES
 #ifndef _LIBCPP_HAS_NO_GENERALIZED_INITIALIZERS
     _LIBCPP_INLINE_VISIBILITY
@@ -789,8 +790,7 @@ private:
     void __move_range(pointer __from_s, pointer __from_e, pointer __to);
     void __move_assign(vector& __c, true_type)
         _NOEXCEPT_(is_nothrow_move_assignable<allocator_type>::value);
-    void __move_assign(vector& __c, false_type)
-        _NOEXCEPT_(__alloc_traits::is_always_equal::value);
+    void __move_assign(vector& __c, false_type);
     _LIBCPP_INLINE_VISIBILITY
     void __destruct_at_end(pointer __new_last) _NOEXCEPT
     {
@@ -1306,7 +1306,9 @@ template <class _Tp, class _Allocator>
 inline _LIBCPP_INLINE_VISIBILITY
 vector<_Tp, _Allocator>&
 vector<_Tp, _Allocator>::operator=(vector&& __x)
-    _NOEXCEPT_((__noexcept_move_assign_container<_Allocator, __alloc_traits>::value))
+        _NOEXCEPT_(
+             __alloc_traits::propagate_on_container_move_assignment::value &&
+             is_nothrow_move_assignable<allocator_type>::value)
 {
     __move_assign(__x, integral_constant<bool,
           __alloc_traits::propagate_on_container_move_assignment::value>());
@@ -1316,7 +1318,6 @@ vector<_Tp, _Allocator>::operator=(vector&& __x)
 template <class _Tp, class _Allocator>
 void
 vector<_Tp, _Allocator>::__move_assign(vector& __c, false_type)
-    _NOEXCEPT_(__alloc_traits::is_always_equal::value)
 {
     if (__base::__alloc() != __c.__alloc())
     {
@@ -1812,9 +1813,9 @@ vector<_Tp, _Allocator>::emplace(const_iterator __position, _Args&&... __args)
         }
         else
         {
-            __temp_value<value_type, _Allocator> __tmp(this->__alloc(), _VSTD::forward<_Args>(__args)...);
+            value_type __tmp(_VSTD::forward<_Args>(__args)...);
             __move_range(__p, this->__end_, __p + 1);
-            *__p = _VSTD::move(__tmp.get());
+            *__p = _VSTD::move(__tmp);
         }
         __annotator.__done();
     }
@@ -2215,7 +2216,9 @@ public:
     vector(vector&& __v, const allocator_type& __a);
     _LIBCPP_INLINE_VISIBILITY
     vector& operator=(vector&& __v)
-        _NOEXCEPT_((__noexcept_move_assign_container<_Allocator, __alloc_traits>::value));
+        _NOEXCEPT_(
+             __alloc_traits::propagate_on_container_move_assignment::value &&
+             is_nothrow_move_assignable<allocator_type>::value);
 #endif  // _LIBCPP_HAS_NO_RVALUE_REFERENCES
 #ifndef _LIBCPP_HAS_NO_GENERALIZED_INITIALIZERS
     _LIBCPP_INLINE_VISIBILITY
@@ -2363,7 +2366,6 @@ public:
         _NOEXCEPT_(!__alloc_traits::propagate_on_container_swap::value || 
                     __is_nothrow_swappable<allocator_type>::value);
 #endif
-    static void swap(reference __x, reference __y) _NOEXCEPT { _VSTD::swap(__x, __y); }
 
     void resize(size_type __sz, value_type __x = false);
     void flip() _NOEXCEPT;
@@ -2839,7 +2841,9 @@ template <class _Allocator>
 inline _LIBCPP_INLINE_VISIBILITY
 vector<bool, _Allocator>&
 vector<bool, _Allocator>::operator=(vector&& __v)
-    _NOEXCEPT_((__noexcept_move_assign_container<_Allocator, __alloc_traits>::value))
+        _NOEXCEPT_(
+             __alloc_traits::propagate_on_container_move_assignment::value &&
+             is_nothrow_move_assignable<allocator_type>::value)
 {
     __move_assign(__v, integral_constant<bool,
           __storage_traits::propagate_on_container_move_assignment::value>());

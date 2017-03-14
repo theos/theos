@@ -37,6 +37,10 @@ int toupper(int c);
 
 #include <__config>
 #include <ctype.h>
+#if defined(_LIBCPP_MSVCRT)
+#include "support/win32/support.h"
+#include "support/win32/locale_win32.h"
+#endif // _LIBCPP_MSVCRT
 
 #if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
 #pragma GCC system_header
@@ -44,76 +48,33 @@ int toupper(int c);
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-#ifdef isalnum
 #undef isalnum
-#endif
-
-#ifdef isalpha
-#undef isalpha
-#endif
-
-#ifdef isblank
-#undef isblank
-#endif
-
-#ifdef iscntrl
-#undef iscntrl
-#endif
-
-#ifdef isdigit
-#undef isdigit
-#endif
-
-#ifdef isgraph
-#undef isgraph
-#endif
-
-#ifdef islower
-#undef islower
-#endif
-
-#ifdef isprint
-#undef isprint
-#endif
-
-#ifdef ispunct
-#undef ispunct
-#endif
-
-#ifdef isspace
-#undef isspace
-#endif
-
-#ifdef isupper
-#undef isupper
-#endif
-
-#ifdef isxdigit
-#undef isxdigit
-#endif
-
-#ifdef tolower
-#undef tolower
-#endif
-
-#ifdef toupper
-#undef toupper
-#endif
-
-
 using ::isalnum;
+#undef isalpha
 using ::isalpha;
+#undef isblank
 using ::isblank;
+#undef iscntrl
 using ::iscntrl;
+#undef isdigit
 using ::isdigit;
+#undef isgraph
 using ::isgraph;
+#undef islower
 using ::islower;
+#undef isprint
 using ::isprint;
+#undef ispunct
 using ::ispunct;
+#undef isspace
 using ::isspace;
+#undef isupper
 using ::isupper;
+#undef isxdigit
 using ::isxdigit;
+#undef tolower
 using ::tolower;
+#undef toupper
 using ::toupper;
 
 _LIBCPP_END_NAMESPACE_STD

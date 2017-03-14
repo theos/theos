@@ -202,7 +202,6 @@ protected:
 private:
 #ifdef _LIBCPP_HAS_NO_CONSTEXPR
     void __init(unsigned long long __v, false_type) _NOEXCEPT;
-    _LIBCPP_INLINE_VISIBILITY
     void __init(unsigned long long __v, true_type) _NOEXCEPT;
 #endif  // _LIBCPP_HAS_NO_CONSTEXPR
     unsigned long to_ulong(false_type) const;
@@ -656,7 +655,7 @@ __bitset<0, 0>::__bitset(unsigned long long) _NOEXCEPT
 }
 
 template <size_t _Size> class _LIBCPP_TYPE_VIS_ONLY bitset;
-template <size_t _Size> struct hash<bitset<_Size> >;
+template <size_t _Size> struct _LIBCPP_TYPE_VIS_ONLY hash<bitset<_Size> >;
 
 template <size_t _Size>
 class _LIBCPP_TYPE_VIS_ONLY bitset

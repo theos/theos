@@ -141,7 +141,7 @@ template <class Mutex>
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-struct _LIBCPP_TYPE_VIS __shared_mutex_base
+struct _LIBCPP_TYPE_VIS _LIBCPP_AVAILABILITY_SHARED_MUTEX __shared_mutex_base
 {
     mutex               __mut_;
     condition_variable  __gate1_;
@@ -173,7 +173,7 @@ struct _LIBCPP_TYPE_VIS __shared_mutex_base
 
 
 #if _LIBCPP_STD_VER > 14
-class _LIBCPP_TYPE_VIS shared_mutex
+class _LIBCPP_TYPE_VIS _LIBCPP_AVAILABILITY_SHARED_MUTEX shared_mutex
 {
 	__shared_mutex_base __base;
 public:
@@ -199,7 +199,7 @@ public:
 #endif
 
 
-class _LIBCPP_TYPE_VIS shared_timed_mutex
+class _LIBCPP_TYPE_VIS _LIBCPP_AVAILABILITY_SHARED_MUTEX shared_timed_mutex
 {
 	__shared_mutex_base __base;
 public:
@@ -319,25 +319,25 @@ public:
 
     _LIBCPP_INLINE_VISIBILITY
     explicit shared_lock(mutex_type& __m)
-        : __m_(_VSTD::addressof(__m)),
+        : __m_(&__m),
           __owns_(true)
         {__m_->lock_shared();}
 
     _LIBCPP_INLINE_VISIBILITY
     shared_lock(mutex_type& __m, defer_lock_t) _NOEXCEPT
-        : __m_(_VSTD::addressof(__m)),
+        : __m_(&__m),
           __owns_(false)
         {}
 
     _LIBCPP_INLINE_VISIBILITY
     shared_lock(mutex_type& __m, try_to_lock_t)
-        : __m_(_VSTD::addressof(__m)),
+        : __m_(&__m),
           __owns_(__m.try_lock_shared())
         {}
 
     _LIBCPP_INLINE_VISIBILITY
     shared_lock(mutex_type& __m, adopt_lock_t)
-        : __m_(_VSTD::addressof(__m)),
+        : __m_(&__m),
           __owns_(true)
         {}
 
@@ -345,7 +345,7 @@ public:
         _LIBCPP_INLINE_VISIBILITY
         shared_lock(mutex_type& __m,
                     const chrono::time_point<_Clock, _Duration>& __abs_time)
-            : __m_(_VSTD::addressof(__m)),
+            : __m_(&__m),
               __owns_(__m.try_lock_shared_until(__abs_time))
             {}
 
@@ -353,7 +353,7 @@ public:
         _LIBCPP_INLINE_VISIBILITY
         shared_lock(mutex_type& __m,
                     const chrono::duration<_Rep, _Period>& __rel_time)
-            : __m_(_VSTD::addressof(__m)),
+            : __m_(&__m),
               __owns_(__m.try_lock_shared_for(__rel_time))
             {}
 

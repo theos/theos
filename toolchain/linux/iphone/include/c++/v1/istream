@@ -1251,35 +1251,18 @@ streamsize
 basic_istream<_CharT, _Traits>::readsome(char_type* __s, streamsize __n)
 {
     __gc_ = 0;
-#ifndef _LIBCPP_NO_EXCEPTIONS
-    try
+    streamsize __c = this->rdbuf()->in_avail();
+    switch (__c)
     {
-#endif  // _LIBCPP_NO_EXCEPTIONS
-        sentry __sen(*this, true);
-        if (__sen)
-        {
-            streamsize __c = this->rdbuf()->in_avail();
-            switch (__c)
-            {
-            case -1:
-                this->setstate(ios_base::eofbit);
-                break;
-            case 0:
-                break;
-            default:
-                read(__s, _VSTD::min(__c, __n));
-                break;
-            }
-        }
-        else
-            this->setstate(ios_base::failbit);
-#ifndef _LIBCPP_NO_EXCEPTIONS
+    case -1:
+        this->setstate(ios_base::eofbit);
+        break;
+    case 0:
+        break;
+    default:
+        read(__s, _VSTD::min(__c, __n));
+        break;
     }
-    catch (...)
-    {
-        this->__set_badbit_and_consider_rethrow();
-    }
-#endif  // _LIBCPP_NO_EXCEPTIONS
     return __gc_;
 }
 
@@ -1741,9 +1724,11 @@ operator>>(basic_istream<_CharT, _Traits>& __is, bitset<_Size>& __x)
     return __is;
 }
 
+#ifndef _LIBCPP_AVAILABILITY_NO_STREAMS_EXTERN_TEMPLATE
 _LIBCPP_EXTERN_TEMPLATE(class _LIBCPP_TYPE_VIS basic_istream<char>)
 _LIBCPP_EXTERN_TEMPLATE(class _LIBCPP_TYPE_VIS basic_istream<wchar_t>)
 _LIBCPP_EXTERN_TEMPLATE(class _LIBCPP_TYPE_VIS basic_iostream<char>)
+#endif
 
 _LIBCPP_END_NAMESPACE_STD
 

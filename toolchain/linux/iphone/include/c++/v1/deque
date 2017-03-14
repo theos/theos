@@ -261,21 +261,8 @@ move_backward(__deque_iterator<_V1, _P1, _R1, _M1, _D1, _B1> __f,
               __deque_iterator<_V1, _P1, _R1, _M1, _D1, _B1> __l,
               __deque_iterator<_V2, _P2, _R2, _M2, _D2, _B2> __r);
 
-template <class _ValueType, class _DiffType>
-struct __deque_block_size {
-  static const _DiffType value = sizeof(_ValueType) < 256 ? 4096 / sizeof(_ValueType) : 16;
-};
-
 template <class _ValueType, class _Pointer, class _Reference, class _MapPointer,
-          class _DiffType, _DiffType _BS =
-#ifdef _LIBCPP_ABI_INCOMPLETE_TYPES_IN_DEQUE
-// Keep template parameter to avoid changing all template declarations thoughout
-// this file.
-                               0
-#else
-                               __deque_block_size<_ValueType, _DiffType>::value
-#endif
-          >
+          class _DiffType, _DiffType _BlockSize>
 class _LIBCPP_TYPE_VIS_ONLY __deque_iterator
 {
     typedef _MapPointer __map_iterator;
@@ -286,7 +273,7 @@ private:
     __map_iterator __m_iter_;
     pointer        __ptr_;
 
-    static const difference_type __block_size;
+    static const difference_type __block_size = _BlockSize;
 public:
     typedef _ValueType                  value_type;
     typedef random_access_iterator_tag  iterator_category;
@@ -300,7 +287,7 @@ public:
 
     template <class _Pp, class _Rp, class _MP>
     _LIBCPP_INLINE_VISIBILITY
-    __deque_iterator(const __deque_iterator<value_type, _Pp, _Rp, _MP, difference_type, _BS>& __it,
+    __deque_iterator(const __deque_iterator<value_type, _Pp, _Rp, _MP, difference_type, __block_size>& __it,
                 typename enable_if<is_convertible<_Pp, pointer>::value>::type* = 0) _NOEXCEPT
         : __m_iter_(__it.__m_iter_), __ptr_(__it.__ptr_) {}
 
@@ -533,12 +520,6 @@ private:
                   __deque_iterator<_V2, _P2, _R2, _M2, _D2, _B2> __r);
 };
 
-template <class _ValueType, class _Pointer, class _Reference, class _MapPointer,
-          class _DiffType, _DiffType _BlockSize>
-const _DiffType __deque_iterator<_ValueType, _Pointer, _Reference, _MapPointer,
-                                 _DiffType, _BlockSize>::__block_size =
-    __deque_block_size<_ValueType, _DiffType>::value;
-
 // copy
 
 template <class _RAIter,
@@ -551,11 +532,10 @@ copy(_RAIter __f,
 {
     typedef typename __deque_iterator<_V2, _P2, _R2, _M2, _D2, _B2>::difference_type difference_type;
     typedef typename __deque_iterator<_V2, _P2, _R2, _M2, _D2, _B2>::pointer pointer;
-    const difference_type __block_size = __deque_iterator<_V2, _P2, _R2, _M2, _D2, _B2>::__block_size;
     while (__f != __l)
     {
         pointer __rb = __r.__ptr_;
-        pointer __re = *__r.__m_iter_ + __block_size;
+        pointer __re = *__r.__m_iter_ + _B2;
         difference_type __bs = __re - __rb;
         difference_type __n = __l - __f;
         _RAIter __m = __l;
@@ -580,12 +560,11 @@ copy(__deque_iterator<_V1, _P1, _R1, _M1, _D1, _B1> __f,
 {
     typedef typename __deque_iterator<_V1, _P1, _R1, _M1, _D1, _B1>::difference_type difference_type;
     typedef typename __deque_iterator<_V1, _P1, _R1, _M1, _D1, _B1>::pointer pointer;
-    const difference_type __block_size = __deque_iterator<_V1, _P1, _R1, _M1, _D1, _B1>::__block_size;
     difference_type __n = __l - __f;
     while (__n > 0)
     {
         pointer __fb = __f.__ptr_;
-        pointer __fe = *__f.__m_iter_ + __block_size;
+        pointer __fe = *__f.__m_iter_ + _B1;
         difference_type __bs = __fe - __fb;
         if (__bs > __n)
         {
@@ -608,12 +587,11 @@ copy(__deque_iterator<_V1, _P1, _R1, _M1, _D1, _B1> __f,
 {
     typedef typename __deque_iterator<_V1, _P1, _R1, _M1, _D1, _B1>::difference_type difference_type;
     typedef typename __deque_iterator<_V1, _P1, _R1, _M1, _D1, _B1>::pointer pointer;
-    const difference_type __block_size = __deque_iterator<_V1, _P1, _R1, _M1, _D1, _B1>::__block_size;
     difference_type __n = __l - __f;
     while (__n > 0)
     {
         pointer __fb = __f.__ptr_;
-        pointer __fe = *__f.__m_iter_ + __block_size;
+        pointer __fe = *__f.__m_iter_ + _B1;
         difference_type __bs = __fe - __fb;
         if (__bs > __n)
         {
@@ -727,11 +705,10 @@ move(_RAIter __f,
 {
     typedef typename __deque_iterator<_V2, _P2, _R2, _M2, _D2, _B2>::difference_type difference_type;
     typedef typename __deque_iterator<_V2, _P2, _R2, _M2, _D2, _B2>::pointer pointer;
-    const difference_type __block_size = __deque_iterator<_V2, _P2, _R2, _M2, _D2, _B2>::__block_size;
     while (__f != __l)
     {
         pointer __rb = __r.__ptr_;
-        pointer __re = *__r.__m_iter_ + __block_size;
+        pointer __re = *__r.__m_iter_ + _B2;
         difference_type __bs = __re - __rb;
         difference_type __n = __l - __f;
         _RAIter __m = __l;
@@ -756,12 +733,11 @@ move(__deque_iterator<_V1, _P1, _R1, _M1, _D1, _B1> __f,
 {
     typedef typename __deque_iterator<_V1, _P1, _R1, _M1, _D1, _B1>::difference_type difference_type;
     typedef typename __deque_iterator<_V1, _P1, _R1, _M1, _D1, _B1>::pointer pointer;
-    const difference_type __block_size = __deque_iterator<_V1, _P1, _R1, _M1, _D1, _B1>::__block_size;
     difference_type __n = __l - __f;
     while (__n > 0)
     {
         pointer __fb = __f.__ptr_;
-        pointer __fe = *__f.__m_iter_ + __block_size;
+        pointer __fe = *__f.__m_iter_ + _B1;
         difference_type __bs = __fe - __fb;
         if (__bs > __n)
         {
@@ -784,12 +760,11 @@ move(__deque_iterator<_V1, _P1, _R1, _M1, _D1, _B1> __f,
 {
     typedef typename __deque_iterator<_V1, _P1, _R1, _M1, _D1, _B1>::difference_type difference_type;
     typedef typename __deque_iterator<_V1, _P1, _R1, _M1, _D1, _B1>::pointer pointer;
-    const difference_type __block_size = __deque_iterator<_V1, _P1, _R1, _M1, _D1, _B1>::__block_size;
     difference_type __n = __l - __f;
     while (__n > 0)
     {
         pointer __fb = __f.__ptr_;
-        pointer __fe = *__f.__m_iter_ + __block_size;
+        pointer __fe = *__f.__m_iter_ + _B1;
         difference_type __bs = __fe - __fb;
         if (__bs > __n)
         {
@@ -934,7 +909,7 @@ protected:
     typedef typename __alloc_traits::pointer         pointer;
     typedef typename __alloc_traits::const_pointer   const_pointer;
 
-    static const difference_type __block_size;
+    static const difference_type __block_size = sizeof(value_type) < 256 ? 4096 / sizeof(value_type) : 16;
 
     typedef typename __rebind_alloc_helper<__alloc_traits, pointer>::type __pointer_allocator;
     typedef allocator_traits<__pointer_allocator>        __map_traits;
@@ -944,9 +919,9 @@ protected:
     typedef __split_buffer<pointer, __pointer_allocator> __map;
 
     typedef __deque_iterator<value_type, pointer, reference, __map_pointer,
-                             difference_type>    iterator;
+                             difference_type, __block_size>    iterator;
     typedef __deque_iterator<value_type, const_pointer, const_reference, __map_const_pointer,
-                             difference_type>    const_iterator;
+                             difference_type, __block_size>    const_iterator;
 
     __map __map_;
     size_type __start_;
@@ -1022,11 +997,6 @@ private:
     void __move_assign_alloc(__deque_base&, false_type) _NOEXCEPT
         {}
 };
-
-template <class _Tp, class _Allocator>
-const typename __deque_base<_Tp, _Allocator>::difference_type
-    __deque_base<_Tp, _Allocator>::__block_size =
-        __deque_block_size<value_type, difference_type>::value;
 
 template <class _Tp, class _Allocator>
 bool
@@ -1195,9 +1165,6 @@ public:
 
     typedef _Tp value_type;
     typedef _Allocator allocator_type;
-
-    static_assert((is_same<typename allocator_type::value_type, value_type>::value),
-                  "Allocator::value_type must be same type as value_type");
 
     typedef __deque_base<value_type, allocator_type> __base;
 
@@ -2026,7 +1993,7 @@ deque<_Tp, _Allocator>::emplace(const_iterator __p, _Args&&... __args)
         }
         else
         {
-            __temp_value<value_type, _Allocator> __tmp(this->__alloc(), _VSTD::forward<_Args>(__args)...);
+            value_type __tmp(_VSTD::forward<_Args>(__args)...);
             iterator __b = __base::begin();
             iterator __bm1 = _VSTD::prev(__b);
             __alloc_traits::construct(__a, _VSTD::addressof(*__bm1), _VSTD::move(*__b));
@@ -2034,7 +2001,7 @@ deque<_Tp, _Allocator>::emplace(const_iterator __p, _Args&&... __args)
             ++__base::size();
             if (__pos > 1)
                 __b = _VSTD::move(_VSTD::next(__b), __b + __pos, __b);
-            *__b = _VSTD::move(__tmp.get());
+            *__b = _VSTD::move(__tmp);
         }
     }
     else
@@ -2050,14 +2017,14 @@ deque<_Tp, _Allocator>::emplace(const_iterator __p, _Args&&... __args)
         }
         else
         {
-            __temp_value<value_type, _Allocator> __tmp(this->__alloc(), _VSTD::forward<_Args>(__args)...);
+            value_type __tmp(_VSTD::forward<_Args>(__args)...);
             iterator __e = __base::end();
             iterator __em1 = _VSTD::prev(__e);
             __alloc_traits::construct(__a, _VSTD::addressof(*__e), _VSTD::move(*__em1));
             ++__base::size();
             if (__de > 1)
                 __e = _VSTD::move_backward(__e - __de, __em1, __e);
-            *--__e = _VSTD::move(__tmp.get());
+            *--__e = _VSTD::move(__tmp);
         }
     }
     return __base::begin() + __pos;

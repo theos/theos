@@ -90,6 +90,7 @@ protected:
 #endif
 
 public:
+    _LIBCPP_AVAILABILITY_TYPEINFO_VTABLE
     virtual ~type_info();
 
     _LIBCPP_INLINE_VISIBILITY

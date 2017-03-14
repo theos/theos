@@ -103,6 +103,16 @@ void perror(const char* s);
 #pragma GCC system_header
 #endif
 
+// snprintf
+#if defined(_LIBCPP_MSVCRT)
+#include "support/win32/support.h"
+#endif
+
+#undef getc
+#undef putc
+#undef clearerr
+#undef feof
+#undef ferror
 _LIBCPP_BEGIN_NAMESPACE_STD
 
 using ::FILE;
