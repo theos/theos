@@ -2,7 +2,16 @@ ifeq ($(_THEOS_TARGET_LOADED),)
 _THEOS_TARGET_LOADED := 1
 THEOS_TARGET_NAME := iphone
 
-SDKTARGET ?= armv7-apple-darwin11
+#SDKTARGET ?= armv7-apple-darwin11
+# test if bin/arm64-apple-darwin14-ld exists.
+ifeq (,$(wildcard $(THEOS)/toolchain/$(THEOS_PLATFORM_NAME)/$(THEOS_TARGET_NAME)/bin/arm64-apple-darwin14-ld))
+	 # if not, use the old toolchain
+	SDKTARGET ?= armv7-apple-darwin11
+else
+	# if it does, use the new toolchain
+	SDKTARGET ?= arm64-apple-darwin14
+endif
+
 SDKBINPATH ?= $(THEOS)/toolchain/$(THEOS_PLATFORM_NAME)/$(THEOS_TARGET_NAME)/bin
 
 _THEOS_TARGET_CC := clang
