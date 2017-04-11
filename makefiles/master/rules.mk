@@ -22,7 +22,9 @@ endif
 endif
 
 .PHONY: all before-all internal-all after-all \
-	clean before-clean internal-clean after-clean update-theos
+	clean before-clean internal-clean after-clean \
+	clean-packages before-clean-packages internal-clean-packages after-clean-packages \
+	update-theos
 ifeq ($(THEOS_BUILD_DIR),.)
 all:: $(_THEOS_BUILD_SESSION_FILE) before-all internal-all after-all
 else
