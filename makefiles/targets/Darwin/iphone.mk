@@ -2,13 +2,18 @@ ifeq ($(_THEOS_TARGET_LOADED),)
 _THEOS_TARGET_LOADED := 1
 THEOS_TARGET_NAME := iphone
 
-_THEOS_TARGET_CC := clang
-_THEOS_TARGET_CXX := clang++
-_THEOS_TARGET_ARG_ORDER := 1 2
 ifeq ($(__THEOS_TARGET_ARG_1),clang)
 _THEOS_TARGET_ARG_ORDER := 2 3
+_THEOS_TARGET_CC := clang
+_THEOS_TARGET_CXX := clang++
 else ifeq ($(__THEOS_TARGET_ARG_1),gcc)
 _THEOS_TARGET_ARG_ORDER := 2 3
+_THEOS_TARGET_CC := gcc
+_THEOS_TARGET_CXX := g++
+else
+_THEOS_TARGET_ARG_ORDER := 1 2
+_THEOS_TARGET_CC := cc
+_THEOS_TARGET_CXX := c++
 endif
 
 # A version specified as a target argument overrides all previous definitions.
