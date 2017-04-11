@@ -16,19 +16,19 @@ endif
 endif
 
 %.mm: %.l.mm
-	$(THEOS_BIN_PATH)/logos.pl $< > $@
+	$(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $< > $@
 
 %.mm: %.xmm
-	$(THEOS_BIN_PATH)/logos.pl $< > $@
+	$(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $< > $@
 
 %.mm: %.xm
-	$(THEOS_BIN_PATH)/logos.pl $< > $@
+	$(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $< > $@
 
 %.m: %.xm
-	$(THEOS_BIN_PATH)/logos.pl $< > $@
+	$(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $< > $@
 
 %.swift: %.xswift
-	$(THEOS_BIN_PATH)/logos.pl $< > $@
+	$(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $< > $@
 
 ifneq ($(THEOS_BUILD_DIR),.)
 $(THEOS_BUILD_DIR):
