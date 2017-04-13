@@ -29,11 +29,19 @@ else
 	STDOUT_NULL_REDIRECT = > /dev/null
 endif
 
+ifeq ($(shell [ -t 2 ] && echo 1),1)
 	PRINT_FORMAT = printf "\e[0;36m==> \e[1;36mNotice:\e[m %s\n"
 	PRINT_FORMAT_MAKING = printf "\e[1;31m> \e[1;3;39m%s…\e[m\n"
 	PRINT_FORMAT_STAGE = printf "\e[0;3%im==> \e[1;39m%s…\e[m\n"
 	PRINT_FORMAT_WARNING = printf "\e[0;33m==> \e[1;33mWarning:\e[m %s\n"
 	PRINT_FORMAT_ERROR = printf "\e[0;31m==> \e[1;31mError:\e[m %s\n"
+else
+	PRINT_FORMAT = printf "==> Notice: %s\n"
+	PRINT_FORMAT_MAKING = printf "> %s...\n"
+	PRINT_FORMAT_STAGE = printf "==> %s...\n"
+	PRINT_FORMAT_WARNING = printf "==> Warning: %s\n"
+	PRINT_FORMAT_ERROR = printf "==> Error: %s\n"
+endif
 
 	ECHO_PREPROCESSING = $(ECHO_BEGIN)$(PRINT_FORMAT_STAGE) 1 "Preprocessing $<"$(ECHO_END); $(ECHO_PIPEFAIL) (
 
