@@ -286,7 +286,7 @@ $(THEOS_OBJ_DIR)/%.xm.$(_THEOS_OBJ_FILE_TAG).o: %.xm $(THEOS_OBJ_DIR)/%.xm.mm
 
 $(THEOS_OBJ_DIR)/%.mi: %.xi
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
-	$(ECHO_PREPROCESSING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x objective-c -E -I"$(call __clean_pwd,$(dir $<))" $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_PFLAGS) $(PREPROCESS_ARCH_FLAGS) $(ALL_OBJCFLAGS) $(_THEOS_TARGET_ONLY_OBJCFLAGS) -include CydiaSubstrate/CydiaSubstrate.h $< > $(THEOS_OBJ_DIR)/$<.pre && $(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $(THEOS_OBJ_DIR)/$<.pre > $(THEOS_OBJ_DIR)/$<.mi $(ECHO_END)
+	$(ECHO_PREPROCESSING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x objective-c -E -I"$(call __clean_pwd,$(dir $<))" $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_PFLAGS) $(PREPROCESS_ARCH_FLAGS) $(ALL_OBJCFLAGS) $(_THEOS_TARGET_ONLY_OBJCFLAGS) $< > $(THEOS_OBJ_DIR)/$<.pre && $(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $(THEOS_OBJ_DIR)/$<.pre > $(THEOS_OBJ_DIR)/$<.mi $(ECHO_END)
 	$(ECHO_PREPROCESSING)$(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $< > $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.xi.$(_THEOS_OBJ_FILE_TAG).o: %.xi $(THEOS_OBJ_DIR)/%.mi
@@ -295,7 +295,7 @@ $(THEOS_OBJ_DIR)/%.xi.$(_THEOS_OBJ_FILE_TAG).o: %.xi $(THEOS_OBJ_DIR)/%.mi
 
 $(THEOS_OBJ_DIR)/%.mii: %.xmi
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
-	$(ECHO_PREPROCESSING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x objective-c -E -I"$(call __clean_pwd,$(dir $<))" $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_PFLAGS) $(PREPROCESS_ARCH_FLAGS) $(ALL_OBJCFLAGS) $(_THEOS_TARGET_ONLY_OBJCFLAGS) -include CydiaSubstrate/CydiaSubstrate.h $< > $(THEOS_OBJ_DIR)/$<.pre && $(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $(THEOS_OBJ_DIR)/$<.pre > $(THEOS_OBJ_DIR)/$<.mi $(ECHO_END)
+	$(ECHO_PREPROCESSING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x objective-c -E -I"$(call __clean_pwd,$(dir $<))" $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_PFLAGS) $(PREPROCESS_ARCH_FLAGS) $(ALL_OBJCFLAGS) $(_THEOS_TARGET_ONLY_OBJCFLAGS) $< > $(THEOS_OBJ_DIR)/$<.pre && $(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $(THEOS_OBJ_DIR)/$<.pre > $(THEOS_OBJ_DIR)/$<.mi $(ECHO_END)
 	$(ECHO_PREPROCESSING)$(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $< > $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.xmi.$(_THEOS_OBJ_FILE_TAG).o: %.xmi $(THEOS_OBJ_DIR)/%.mii
