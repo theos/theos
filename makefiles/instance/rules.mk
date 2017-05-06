@@ -282,7 +282,7 @@ $(THEOS_OBJ_DIR)/%.x.$(_THEOS_OBJ_FILE_TAG).o: %.x $(THEOS_OBJ_DIR)/%.x.m
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x objective-c -c -I"$(call __clean_pwd,$(dir $<))" $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(_THEOS_TARGET_ONLY_OBJCFLAGS) $(THEOS_OBJ_DIR)/$<.m -o $@$(ECHO_END)
 
-$(THEOS_OBJ_DIR)/%.xm.mm: %.x
+$(THEOS_OBJ_DIR)/%.xm.mm: %.xm
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
 	$(ECHO_PREPROCESSING)$(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $< > $@$(ECHO_END)
 
