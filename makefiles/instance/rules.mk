@@ -279,9 +279,11 @@ $(THEOS_OBJ_DIR)/%.ii.$(_THEOS_OBJ_FILE_TAG).o: %.ii
 $(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).o: %.swift
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
 	$(ECHO_COMPILING)$(TARGET_SWIFT) -frontend -emit-object -emit-module -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -emit-module-path $(@:.o=.swiftmodule) -primary-file $< $(SWIFT_FILES) -o $@$(ECHO_END)
-	$(ECHO_NOTHING)if [[ "$<" = "$(lastword $(SWIFT_FILES))" ]]; then \
-		$(TARGET_SWIFT) -frontend -c -parse-as-library $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -emit-objc-header-path $(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE)-Swift.h $(patsubst %.swift,$(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).swiftmodule,$(SWIFT_FILES)) -o /dev/null; \
-	fi$(ECHO_END)
+
+# This seems to always crash Swift. Disabling for now.
+# $(ECHO_NOTHING)if false&& [[ "$<" = "$(lastword $(SWIFT_FILES))" ]]; then \
+# $(TARGET_SWIFT) -frontend -c -parse-as-library $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -emit-objc-header-path $(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE)-Swift.h $(patsubst %.swift,$(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).swiftmodule,$(SWIFT_FILES)) -o /dev/null; \
+# fi$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.x.$(_THEOS_OBJ_FILE_TAG).o: %.x
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
