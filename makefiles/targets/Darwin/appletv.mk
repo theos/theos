@@ -53,7 +53,7 @@ include $(THEOS_MAKE_PATH)/targets/_common/darwin_flat_bundle.mk
 
 TARGET_CC ?= xcrun -sdk appletvos $(_THEOS_TARGET_CC)
 TARGET_CXX ?= xcrun -sdk appletvos $(_THEOS_TARGET_CXX)
-TARGET_SWIFT = xcrun -sdk appletvos swift
+TARGET_SWIFT = swift
 TARGET_LD ?= xcrun -sdk appletvos $(_THEOS_TARGET_CXX)
 TARGET_STRIP ?= xcrun -sdk appletvos strip
 TARGET_CODESIGN_ALLOCATE ?= "$(shell xcrun -sdk appletvos -find codesign_allocate)"
