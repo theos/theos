@@ -91,7 +91,7 @@ endif
 
 TARGET_CC ?= xcrun -sdk iphoneos $(_THEOS_TARGET_CC)
 TARGET_CXX ?= xcrun -sdk iphoneos $(_THEOS_TARGET_CXX)
-TARGET_SWIFT = xcrun -sdk iphoneos swift
+TARGET_SWIFT = swift
 TARGET_LD ?= xcrun -sdk iphoneos $(_THEOS_TARGET_CXX)
 TARGET_STRIP ?= xcrun -sdk iphoneos strip
 TARGET_STRIP_FLAGS ?= -x

@@ -54,7 +54,7 @@ include $(THEOS_MAKE_PATH)/targets/_common/darwin_flat_bundle.mk
 
 TARGET_CC ?= xcrun -sdk watchos $(_THEOS_TARGET_CC)
 TARGET_CXX ?= xcrun -sdk watchos $(_THEOS_TARGET_CXX)
-TARGET_SWIFT = xcrun -sdk watchos swift
+TARGET_SWIFT = swift
 TARGET_LD ?= xcrun -sdk watchos $(_THEOS_TARGET_CXX)
 TARGET_STRIP ?= xcrun -sdk watchos strip
 TARGET_CODESIGN_ALLOCATE ?= "$(shell xcrun -sdk watchos -find codesign_allocate)"
