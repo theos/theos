@@ -24,14 +24,13 @@ _THEOS_TMP_FOR_WSL := $(_THEOS_TMP_FOR_WSL_BASE)/$(THEOS_PROJECT_DIR:$(_THEOS_TM
 all::
 	mkdir -p $(_THEOS_TMP_FOR_WSL)
 
+clean::
 ifneq ($(_THEOS_TMP_FOR_WSL),)
 ifneq ($(_THEOS_TMP_FOR_WSL),/)
-clean::
 	rm -rf $(_THEOS_TMP_FOR_WSL)
 # rmdir --ignore-fail-on-non-empty $(_THEOS_TMP_FOR_WSL_BASE)
 endif
 endif
-else
 endif
 
 ### Functions
