@@ -356,7 +356,7 @@ foreach my $line (@lines) {
 			my $patchStart = $-[0];
 
 			# word, then an optional: ": (argtype)argname"
-			while($line =~ /\G\s*([^\s]*)(\s*:\s*(\((.+?)\))?\s*([^\s]+?)\b)?/gc) {
+			while($line =~ /\G\s*([^ \t:{}]*)(\s*:\s*(\((.+?)\))?\s*([^ \t:{}]+?)\b)?/gc) {
 				if(!$1 && !$2) { # Exit the loop if both Keywords and Args are missing: e.g. false positive.
 					pos($line) = $-[0];
 					last;
