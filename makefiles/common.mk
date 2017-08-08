@@ -12,6 +12,7 @@ THEOS_PROJECT_DIR ?= $(shell pwd)
 _THEOS_LOCAL_DATA_DIR := $(THEOS_PROJECT_DIR)/.theos
 _THEOS_BUILD_SESSION_FILE = $(_THEOS_LOCAL_DATA_DIR)/build_session
 
+WSL = $(shell grep -q 'Microsoft' /proc/version)
 ifeq ($(WSL),)
 _THEOS_TMP_FOR_WSL_BASE := /tmp/theos_for_wsl
 _THEOS_TMP_FOR_WSL := $(abspath $(dir $(lastword $(THEOS_PROJECT_DIR))))
