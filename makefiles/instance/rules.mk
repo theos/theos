@@ -349,7 +349,7 @@ ifneq ($$(TARGET_CODESIGN),)
 .INTERMEDIATE: $$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned
 $(THEOS_OBJ_DIR)/$(1): $$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned
 ifeq ($(WSL),)
-	$$(ECHO_SIGNING)cp "$$<" $(_THEOS_TMP_FOR_WSL) && $$(_THEOS_CODESIGN_COMMANDLINE) "$(_THEOS_TMP_FOR_WSL)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned" && mv "$(_THEOS_TMP_FOR_WSL)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned" "$$@"$$(ECHO_END)
+	$$(ECHO_SIGNING)mkdir -p "$(_THEOS_TMP_FOR_WSL)/$(dir $(1))" && cp "$$<" "$(_THEOS_TMP_FOR_WSL)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned" && $$(_THEOS_CODESIGN_COMMANDLINE) "$(_THEOS_TMP_FOR_WSL)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned" && mv "$(_THEOS_TMP_FOR_WSL)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned" "$$@"$$(ECHO_END)
 else
 	$$(ECHO_SIGNING)$$(_THEOS_CODESIGN_COMMANDLINE) "$$<" && mv "$$<" "$$@"$$(ECHO_END)
 endif
