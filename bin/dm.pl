@@ -10,6 +10,13 @@ use Archive::Tar;
 use IO::Compress::Gzip;
 use IO::Compress::Bzip2;
 
+if($^O eq "linux") {
+    my $fh;
+    open($fh, "/proc/version");
+    $File::Find::dont_use_nlink = grep { /Microsoft/ } <$fh>;
+    close($fh);
+}
+
 package NIC::Archive::Tar::File;
 use parent "Archive::Tar::File";
 sub new {

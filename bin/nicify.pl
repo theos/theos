@@ -11,6 +11,13 @@ use FindBin;
 use lib "$FindBin::Bin/lib";
 use NIC::Formats::NICTar;
 
+if($^O eq "linux") {
+    my $fh;
+    open($fh, "/proc/version");
+    $File::Find::dont_use_nlink = grep { /Microsoft/ } <$fh>;
+    close($fh);
+}
+
 package NIC::Archive::Tar::File;
 use parent "Archive::Tar::File";
 sub new {
@@ -42,15 +49,14 @@ our @tarfiles = (
 	NIC::Archive::Tar::File->new(data=>"./NIC/", "", {type=>Archive::Tar::Constant::DIR, uid=>0, gid=>0, mode=>0777})
 );
 
-chdir $ARGV[0];
-
+my $given_path = $ARGV[0];
 my $control_in = undef;
 
-if(-f "pre.NIC") {
+if(-f "$given_path/pre.NIC") {
 	warning("Using legacy pre.NIC as ./NIC/control.");
-	$control_in = "./pre.NIC";
-} elsif(-f "NIC/control") {
-	$control_in = "./NIC/control";
+	$control_in = "$given_path/pre.NIC";
+} elsif(-f "$given_path/NIC/control") {
+	$control_in = "$given_path/NIC/control";
 }
 
 if(!$control_in) {
