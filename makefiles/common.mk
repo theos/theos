@@ -14,6 +14,25 @@ THEOS_PROJECT_DIR ?= $(shell pwd)
 _THEOS_LOCAL_DATA_DIR := $(THEOS_PROJECT_DIR)/.theos
 _THEOS_BUILD_SESSION_FILE = $(_THEOS_LOCAL_DATA_DIR)/build_session
 
+WSL = $(shell grep -q 'Microsoft' /proc/version)
+ifeq ($(WSL),)
+_THEOS_TMP_FOR_WSL_BASE := /tmp/theos_for_wsl
+_THEOS_TMP_FOR_WSL := $(abspath $(dir $(lastword $(THEOS_PROJECT_DIR))))
+_THEOS_TMP_FOR_WSL := $(_THEOS_TMP_FOR_WSL_BASE)/$(THEOS_PROJECT_DIR:$(_THEOS_TMP_FOR_WSL)/%=%)
+
+all::
+	mkdir -p $(_THEOS_TMP_FOR_WSL)
+
+ifneq ($(_THEOS_TMP_FOR_WSL),)
+ifneq ($(_THEOS_TMP_FOR_WSL),/)
+clean::
+	rm -rf $(_THEOS_TMP_FOR_WSL)
+# rmdir --ignore-fail-on-non-empty $(_THEOS_TMP_FOR_WSL_BASE)
+endif
+endif
+else
+endif
+
 ### Functions
 # Function for getting a clean absolute path from cd.
 __clean_pwd = $(shell (unset CDPATH; cd "$(1)"; pwd))
