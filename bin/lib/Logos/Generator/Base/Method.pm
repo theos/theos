@@ -22,12 +22,55 @@ sub originalCall {
 	::fileError(-1, "generator does not implement Method::originalCall");
 }
 
+sub selectorRef {
+	my $self = shift;
+	my $selector = shift;
+	if ($selector eq "dealloc") {
+		return "sel_registerName(\"".$selector."\")";
+	}
+	return "\@selector(".$selector.")";
+}
+
+sub selfTypeForMethod {
+	my $self = shift;
+	my $method = shift;
+	if($method->scope eq "+") {
+		return "_LOGOS_SELF_TYPE_NORMAL Class _LOGOS_SELF_CONST";
+	}
+	if($method->methodFamily eq "init") {
+		return "_LOGOS_SELF_TYPE_INIT ".$method->class->type;
+	}
+	return "_LOGOS_SELF_TYPE_NORMAL ".$method->class->type." _LOGOS_SELF_CONST";
+}
+
+sub returnTypeForMethod {
+	my $self = shift;
+	my $method = shift;
+ 	if($method->methodFamily ne "") {
+		return $method->class->type;
+	}
+	my $result = $method->return;
+	if ($result eq "instancetype") {
+		return $method->class->type;
+	}
+	return $result;
+}
+
+sub functionAttributesForMethod {
+	my $self = shift;
+	my $method = shift;
+	if($method->methodFamily ne "") {
+		return " _LOGOS_RETURN_RETAINED";
+	}
+	return "";
+}
+
 sub buildLogCall {
 	my $self = shift;
 	my $method = shift;
 	my $args = shift;
 	# Log preamble
-	my $build = "NSLog(\@\"".$method->scope."[<".$method->class->name.": %p>";
+	my $build = "HBLogDebug(\@\"".$method->scope."[<".$method->class->name.": %p>";
 	my $argnamelist = "";
 	if($method->numArgs > 0) {
 		# For each argument, add its keyword and a format char to the log string.

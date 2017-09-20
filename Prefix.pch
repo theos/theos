@@ -1,25 +1,30 @@
+#ifdef DEBUG
+	#define __DEBUG__
+#endif
+
 #ifdef __OBJC__
-	#import <Foundation/Foundation.h>
-	#define CLASS(cls) objc_getClass(#cls)
+	#import <_Prefix/NullabilityCompat.h>
 
-	#ifdef DEBUG
-		#define __DEBUG__
-	#endif
-	
-	#ifdef __DEBUG__
-		#define CMLog(format, ...) NSLog(@"(%s) in [%s:%d] ::: %@", __PRETTY_FUNCTION__, __FILE__, __LINE__, [NSString stringWithFormat:format, ## __VA_ARGS__])
-		#define MARK	CMLog(@"%s", __PRETTY_FUNCTION__);
-		#define START_TIMER NSTimeInterval start = [NSDate timeIntervalSinceReferenceDate];
-		#define END_TIMER(msg) 	NSTimeInterval stop = [NSDate timeIntervalSinceReferenceDate]; CMLog([NSString stringWithFormat:@"%@ Time = %f", msg, stop-start])
-	#else
-		#define CMLog(format, ...)
-		#define MARK
-		#define START_TIMER
-		#define END_TIMER(msg)
-		//#define NSLog(...)
+	#ifndef THEOS_SWIFT
+		#import <Foundation/Foundation.h>
+
+		#ifdef TARGET_OS_SIMULATOR
+			#define _THEOS_IS_SIMULATOR TARGET_OS_SIMULATOR
+		#else
+			#define _THEOS_IS_SIMULATOR TARGET_IPHONE_SIMULATOR
+		#endif
+
+		#if TARGET_IPHONE || _THEOS_IS_SIMULATOR
+			#import <UIKit/UIKit.h>
+			#import <_Prefix/IOSWebKitCompatHacks.h>
+		#endif
+
+		#if TARGET_MACOSX
+			#import <Cocoa/Cocoa.h>
+			#import <AppKit/AppKit.h>
+		#endif
 	#endif
 
-	#define NB [NSBundle mainBundle]
-	#define UD [NSUserDefaults standardUserDefaults]
-	#define FM [NSFileManager defaultManager]
+	#import <_Prefix/HBLog.h>
+	#import <_Prefix/IOSMacros.h>
 #endif

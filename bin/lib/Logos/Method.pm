@@ -88,7 +88,7 @@ sub numArgs {
 sub addArgument {
 	my $self = shift;
 	my ($type, $name) = @_;
-	push(@{$self->{ARGTYPES}}, $type);	
+	push(@{$self->{ARGTYPES}}, $type);
 	push(@{$self->{ARGNAMES}}, $name);
 }
 
@@ -110,6 +110,30 @@ sub _new_selector {
 	}
 }
 
+sub methodFamily {
+	my $self = shift;
+	my $selector = $self->selector;
+	if ($self->scope eq "+") {
+		if ($selector =~ /^alloc($|[A-Z,:])/) {
+			return "alloc" if $self->return eq "id" || $self->return eq "instancetype";
+		}
+		if ($selector eq "new") {
+			return "new" if $self->return eq "id" || $self->return eq "instancetype";
+		}
+	} else {
+		if ($selector =~ /^init($|[A-Z,:])/) {
+			return "init" if $self->return eq "id" || $self->return eq "instancetype";
+		}
+		if (($selector eq "copy") || ($selector eq "copyWithZone:")) {
+			return "copy";
+		}
+		if (($selector eq "mutableCopy") || ($selector eq "mutableCopyWithZone:")) {
+			return "mutableCopy";
+		}
+	}
+	return "";
+}
+
 sub printArgForArgType {
 	my $argtype = shift;
 	my $argname = shift;
@@ -121,12 +145,13 @@ sub printArgForArgType {
 	$argtype =~ s/\s+$//g;
 
 	return "NSStringFromSelector($argname)" if $argtype =~ /^SEL$/;
+	return "$argname" if $argtype =~ /^Class$/;
 	return "$argname.location, $argname.length" if $argtype =~ /^NSRange$/;
 	return "$argname.origin.x, $argname.origin.y, $argname.size.width, $argname.size.height" if $argtype =~ /^(CG|NS)Rect$/;
 	return "$argname.x, $argname.y" if $argtype =~ /^(CG|NS)Point$/;
 	return "$argname.width, $argname.height" if $argtype =~ /^(CG|NS)Size$/;
-	return "(long)$argname" if /^NS(Integer|SocketNativeHandle|StringEncoding|SortOptions|ComparisonResult|EnumerationOptions|(Hash|Map)TableOptions|SearchPath(Directory|DomainMask))$/i;
-	return "(unsigned long)$argname" if /^NSUInteger$/i;
+	return "(long)$argname" if $argtype =~ /^NS(Integer|SocketNativeHandle|StringEncoding|SortOptions|ComparisonResult|EnumerationOptions|(Hash|Map)TableOptions|SearchPath(Directory|DomainMask))$/i;
+	return "(unsigned long)$argname" if $argtype =~ /^NSUInteger$/i;
 
 	return ($fallthrough ? "(unsigned int)" : "").$argname;
 }
@@ -174,9 +199,10 @@ sub formatCharForArgType {
 
 	# Floating-Point Types
 	return "%f" if /^(double|float|CGFloat|CGDouble|NSTimeInterval)$/;
-	
+
 	# Special Types (should also have an entry in printArgForArgType
 	return "%@" if /^SEL$/;
+	return "%@" if /^Class$/;
 
 	# Even-more-special expanded types
 	return "(%d:%d)" if /^NSRange$/;
@@ -220,6 +246,7 @@ sub typeEncodingForArgType {
 	return "*" if /^char\s*\*$/;
 
 	return "@" if /^id$/;
+	return "@" if /^instancetype$/;
 	return "#" if /^Class$/;
 	return ":" if /^SEL$/;
 

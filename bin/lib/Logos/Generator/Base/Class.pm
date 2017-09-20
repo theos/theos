@@ -46,6 +46,9 @@ sub initializers {
 	for(@{$class->methods}) {
 		$return .= Logos::Generator::for($_)->initializers;
 	}
+	for(@{$class->properties}) {
+		$return .= Logos::Generator::for($_)->initializers;
+	}
 	return $return;
 }
 

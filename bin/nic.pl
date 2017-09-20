@@ -21,6 +21,14 @@ use NIC::Bridge::Context (PROMPT => \&nicPrompt);
 use NIC::Formats::NICTar;
 use NIC::NICType;
 
+# Workaround to allow Find to function on WSL. Currently on WSL without this line nic.pl will fail to find templates.
+if($^O eq "linux") {
+    my $fh;
+    open($fh, "/proc/version");
+    $File::Find::dont_use_nlink = grep { /Microsoft/ } <$fh>;
+    close($fh);
+}
+
 our $savedStdout = *STDOUT;
 
 my @_dirs = File::Spec->splitdir(abs_path($FindBin::Bin));
@@ -37,7 +45,7 @@ my $_theospath = File::Spec->catdir(@_dirs);
 	exitWithError("Cowardly refusing to make a project inside \$THEOS ($_abstheospath)") if($_cwd =~ /^$_abstheospath/);
 }
 
-my %CONFIG = (link_theos => 1);
+my %CONFIG = (link_theos => 0);
 loadConfig();
 
 my $clean_project_name = "";
@@ -287,7 +295,7 @@ sub cleanProjectName {
 sub getUserName {
 	my $pw = getpw(getuid());
 	my ($fullname) = split(/\s*,\s*/, $pw->gecos);
-	return $fullname ? $fullname : $pw->name;
+	return $fullname && $fullname ne "\"\"" ? $fullname : $pw->name;
 }
 
 sub getHomeDir {

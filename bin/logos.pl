@@ -19,12 +19,13 @@ $Logos::Util::errorhandler = \&utilErrorHandler;
 
 use aliased 'Logos::Patch';
 use aliased 'Logos::Patch::Source::Generator' => 'Patch::Source::Generator';
-use aliased 'Logos::Patch';
 use aliased 'Logos::Group';
 use aliased 'Logos::Method';
 use aliased 'Logos::Class';
 use aliased 'Logos::Subclass';
-use aliased 'Logos::StaticClassGroup' ;
+use aliased 'Logos::StaticClassGroup';
+use aliased 'Logos::Property';
+use aliased 'Logos::Function';
 
 use Logos::Generator;
 
@@ -93,7 +94,7 @@ READLOOP: while(my $line = <FILE>) {
 		$line = $`.$';
 		redo READLOOP;
 	}
-	
+
 	# Start of a multi-line /* comment.
 	while($line =~ /\/\*.*$/g) {
 		next if fallsBetween($-[0], @quotes);
@@ -171,6 +172,7 @@ my $currentGroup = $defaultGroup;
 my $currentClass = undef;
 my $currentMethod = undef;
 my $newMethodTypeEncoding = undef;
+my $currentFunction = undef;
 
 my %classes = ();
 
@@ -378,33 +380,68 @@ foreach my $line (@lines) {
 			addPatch($patch);
 		} elsif($line =~ /\G%orig\b/gc) {
 			# %orig, with optional following parens.
-			nestingMustContain($lineno, "%orig", \@nestingstack, "hook", "subclass");
-			fileWarning($lineno, "%orig in new method ".prettyPrintMethod($currentMethod)." will be non-operative.") if $currentMethod->isNew;
+			if (!defined $currentClass) {
+				fileError($lineno, "%orig does not make sense outside a function") if(!defined($currentFunction));
+				my $patchStart = $-[0];
 
-			my $patchStart = $-[0];
+				my $remaining = substr($line, pos($line));
+				my $orig_args = undef;
 
-			my $remaining = substr($line, pos($line));
-			my $orig_args = undef;
+				my ($popen, $pclose) = matchedParenthesisSet($remaining);
+				if(defined $popen) {
+					$orig_args = substr($remaining, $popen, $pclose-$popen-1);;
+					pos($line) = pos($line) + $pclose;
+				}
 
-			my ($popen, $pclose) = matchedParenthesisSet($remaining);
-			if(defined $popen) {
-				$orig_args = substr($remaining, $popen, $pclose-$popen-1);;
-				pos($line) = pos($line) + $pclose;
+				my $patch = Patch->new();
+				$patch->line($lineno);
+				$patch->range($patchStart, pos($line));
+				$patch->source(Patch::Source::Generator->new($currentFunction, 'originalFunctionCall', $orig_args));
+				addPatch($patch);
+			} else {
+				nestingMustContain($lineno, "%orig", \@nestingstack, "hook", "subclass");
+				fileError($lineno, "%orig does not make sense outside a method") if(!defined($currentMethod));
+				fileError($lineno, "%orig does not make sense outside a block") if($directiveDepth < 1);
+				fileWarning($lineno, "%orig in new method ".prettyPrintMethod($currentMethod)." will be non-operative.") if $currentMethod->isNew;
+
+				my $patchStart = $-[0];
+
+				my $remaining = substr($line, pos($line));
+				my $orig_args = undef;
+
+				my ($popen, $pclose) = matchedParenthesisSet($remaining);
+				if(defined $popen) {
+					$orig_args = substr($remaining, $popen, $pclose-$popen-1);;
+					pos($line) = pos($line) + $pclose;
+				}
+
+				my $capturedMethod = $currentMethod;
+				my $patch = Patch->new();
+				$patch->line($lineno);
+				$patch->range($patchStart, pos($line));
+				$patch->source(Patch::Source::Generator->new($capturedMethod, 'originalCall', $orig_args));
+				addPatch($patch);
 			}
-
-			my $capturedMethod = $currentMethod;
-			my $patch = Patch->new();
-			$patch->line($lineno);
-			$patch->range($patchStart, pos($line));
-			$patch->source(Patch::Source::Generator->new($capturedMethod, 'originalCall', $orig_args));
-			addPatch($patch);
 		} elsif($line =~ /\G&\s*%orig\b/gc) {
 			# &%orig, at a word boundary
-			nestingMustContain($lineno, "%orig", \@nestingstack, "hook", "subclass");
-			fileError($lineno, "no original method pointer for &%orig in new method ".prettyPrintMethod($currentMethod).".") if $currentMethod->isNew;
+			if (!defined $currentClass) {
+				fileError($lineno, "%orig does not make sense outside a function") if(!defined($currentFunction));
+				my $patchStart = $-[0];
+				my $patchEnd = $patchStart + 6;
+				my $patch = Patch->new();
+				$patch->line($lineno);
+				$patch->range($patchStart, $patchEnd);
+				$patch->source(Patch::Source::Generator->new($currentFunction, 'originalFunctionName'));
+				addPatch($patch);
+			} else {
+				nestingMustContain($lineno, "%orig", \@nestingstack, "hook", "subclass");
+				fileError($lineno, "%orig does not make sense outside a method") if(!defined($currentMethod));
+				fileError($lineno, "%orig does not make sense outside a block") if($directiveDepth < 1);
+				fileError($lineno, "no original method pointer for &%orig in new method ".prettyPrintMethod($currentMethod).".") if $currentMethod->isNew;
 
-			my $capturedMethod = $currentMethod;
-			patchHere(Patch::Source::Generator->new($capturedMethod, 'originalFunctionName'));
+				my $capturedMethod = $currentMethod;
+				patchHere(Patch::Source::Generator->new($capturedMethod, 'originalFunctionName'));
+			}
 		} elsif($line =~ /\G%log\b/gc) {
 			# %log
 			nestingMustContain($lineno, "%log", \@nestingstack, "hook", "subclass");
@@ -430,7 +467,13 @@ foreach my $line (@lines) {
 			# %ctor
 			fileError($lineno, "%ctor does not make sense inside a block") if($directiveDepth >= 1);
 			nestingMustNotContain($lineno, "%ctor", \@nestingstack, "hook", "subclass");
-			my $replacement = "static __attribute__((constructor)) void _logosLocalCtor_".substr(md5_hex($`.$lineno.$'), 0, 8)."()";
+			my $replacement = "static __attribute__((constructor)) void _logosLocalCtor_".substr(md5_hex($`.$lineno.$'), 0, 8)."(int __unused argc, char __unused **argv, char __unused **envp)";
+			patchHere($replacement);
+		} elsif($line =~ /\G%dtor\b/gc) {
+			# %dtor
+			fileError($lineno, "%dtor does not make sense inside a block") if($directiveDepth >= 1);
+			nestingMustNotContain($lineno, "%dtor", \@nestingstack, "hook", "subclass");
+			my $replacement = "static __attribute__((destructor)) void _logosLocalDtor_".substr(md5_hex($`.$lineno.$'), 0, 8)."(int __unused argc, char __unused **argv, char __unused **envp)";
 			patchHere($replacement);
 		} elsif($line =~ /\G%init\b/gc) {
 			# %init, with optional following parens
@@ -520,6 +563,107 @@ foreach my $line (@lines) {
 		} elsif($line =~ /\G%config\s*\(\s*(\w+)\s*=\s*(.*?)\s*\)/gc) {
 			$main::CONFIG{$1} = $2;
 			patchHere(undef);
+		} elsif($line =~ /\G%property\s*(?:\((\s*\w+\s*(?:,\s*(?:\w|\=|:)+\s*)*)\))?\s*([a-zA-Z_\$][\w\$]*(?:\s*[a-zA-Z_\$][\w\$]*)*(?:\s*\*+)*)\s*(\b[a-zA-Z_\$][\w\$]*+)\s*;/gc){
+			nestingMustContain($lineno, "%property", \@nestingstack, "hook", "subclass");
+
+			$currentClass->hasinstancehooks(1);
+
+			# check property attribute validity
+			my @attributes = split/\(?\s*,\s*\)?/, $1;
+			my ($assign, $retain, $copy, $nonatomic, $getter, $setter);
+			my $numattr = 0;
+
+			foreach(@attributes){
+				$numattr++;
+
+				if($_ =~ /assign/){
+					$assign = 1;
+				}elsif($_ =~ /retain/){
+					$retain = 1;
+				}elsif($_ =~ /copy/){
+					$copy = 1;
+				}elsif($_ =~ /nonatomic/){
+					$nonatomic = 1;
+				}elsif($_ =~ /getter=(\w+)/){
+					$getter = $1;
+				}elsif($_ =~ /setter=(\w+:)/){
+					$setter = $1;
+				}elsif($_ =~ /readwrite|readonly/){
+					fileError($lineno, "property attribute '".$_."' not supported.");
+				}else{
+					fileError($lineno, "unknown property attribute '".$_."'.");
+				}
+			}
+
+			if(!$assign && !$retain && !$copy){
+				fileWarning($lineno, "no 'assign', 'retain', or 'copy' attribute is specified - 'assign' is assumed");
+				push(@attributes, "assign");
+				$numattr++;
+			}
+
+			if($assign && $retain){
+				fileError($lineno, "property attributes 'assign' and 'retain' are mutually exclusive.");
+			}
+
+			if($assign && $copy){
+				fileError($lineno, "property attributes 'assign' and 'copy' are mutually exclusive.");
+			}
+
+			if($copy && $retain){
+				fileError($lineno, "property attributes 'copy' and 'retain' are mutually exclusive.");
+			}
+
+			my $property = Property->new();
+
+
+			$property->class($currentClass->name);
+
+			if($currentGroup){
+				$property->group($currentGroup->name);
+			}else{
+				$property->group("_ungrouped");
+			}
+
+			$property->numattr($numattr);
+			$property->attributes(@attributes);
+			$property->type($2);
+			$property->name($3);
+
+			$currentClass->addProperty($property);
+
+			my $patchStart = $-[0];
+			my $patch = Patch->new();
+			$patch->line($lineno);
+			$patch->range($patchStart, pos($line));
+			$patch->source(Patch::Source::Generator->new($property, 'getters_setters'));
+			addPatch($patch);
+		} elsif($line =~ /\G%hookf\b/gc) {
+			#%hookf
+			fileError($lineno, "%hookf does not make sense inside a block") if($directiveDepth >= 1);
+			nestingMustNotContain($lineno, "%hookf", \@nestingstack, "hook", "subclass");
+
+			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
+
+			my $patchStart = $-[0];
+
+			my $remaining = substr($line, pos($line));
+			my $argumentString = undef;
+			my $args = [];
+
+			my ($popen, $pclose) = matchedParenthesisSet($remaining);
+			if(defined $popen) {
+				$argumentString = substr($remaining, $popen, $pclose-$popen-1);
+				pos($line) = pos($line) + $pclose;
+				@$args = Logos::Util::smartSplit(qr/\s*,\s*/, $argumentString);
+			}
+
+			$currentFunction = $currentGroup->addFunction($args);
+
+			my $patch = Patch->new();
+			$patch->line($lineno);
+			$patch->range($patchStart, pos($line));
+			$patch->source(Patch::Source::Generator->new($currentFunction, 'declaration'));
+			addPatch($patch);
 		}
 	}
 
@@ -576,6 +720,7 @@ if(@firstDirectivePosition) {
 	$patch->line($line);
 	my @patchsource = ();
 	push(@patchsource, Patch::Source::Generator->new(undef, 'preamble')) if !$hasGeneratorPreamble;
+	push(@patchsource, Patch::Source::Generator->new(undef, 'staticDeclarations'));
 	push(@patchsource, Patch::Source::Generator->new(undef, 'generateClassList', keys %classes));
 	push(@patchsource, Patch::Source::Generator->new($groups[0], 'declarations'));
 	push(@patchsource, Patch::Source::Generator->new($staticClassGroup, 'declarations'));
@@ -606,7 +751,7 @@ if(exists $main::CONFIG{"dump"}) {
 			patches=>\@patches,
 			lines=>\@lines,
 			config=>\%::CONFIG
-		       };
+		};
 	if($main::CONFIG{"dump"} eq "yaml") {
 		load 'YAML::Syck';
 		print STDERR YAML::Syck::Dump($dumphref);

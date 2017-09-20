@@ -15,6 +15,8 @@ sub new {
 	$self->{REQUIRED} = 0;
 	$self->{METHODS} = [];
 	$self->{NUM_METHODS} = 0;
+	$self->{PROPERTIES} = [];
+	$self->{NUM_PROPERTIES} = 0;
 	$self->{GROUP} = undef;
 	bless($self, $class);
 	return $self;
@@ -89,9 +91,14 @@ sub methods {
 	return $self->{METHODS};
 }
 
+sub properties {
+	my $self = shift;
+	return $self->{PROPERTIES};
+}
+
 sub initRequired {
 	my $self = shift;
-	return $self->required || scalar @{$self->{METHODS}} > 0;
+	return $self->required || scalar @{$self->{METHODS}} > 0 || scalar @{$self->{PROPERTIES}} > 0;
 }
 
 ##### #
@@ -103,6 +110,13 @@ sub addMethod {
 	my $hook = shift;
 	push(@{$self->{METHODS}}, $hook);
 	$self->{NUM_METHODS}++;
+}
+
+sub addProperty {
+	my $self = shift;
+	my $property = shift;
+	push(@{$self->{PROPERTIES}}, $property);
+	$self->{NUM_PROPERTIES}++;
 }
 
 1;

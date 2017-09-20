@@ -11,7 +11,12 @@ sub findPreamble {
 
 sub preamble {
 	my $self = shift;
-	return join("\n", ($self->SUPER::preamble(), "#include <substrate.h>"));
+	my $skipIncludes = shift;
+	if ($skipIncludes) {
+		return $self->SUPER::preamble();
+	} else {
+		return join("\n", ($self->SUPER::preamble(), "#include <substrate.h>"));
+	}
 }
 
 1;

@@ -1,0 +1,23 @@
+#!/bin/bash
+# If the current directory has a GitHub remote URL, then ask GitHub what the
+# latest commit is. If the API returns 304 Not Modified, nothing has to be done.
+# Otherwise, pull the latest.
+
+origin="$(git config remote.origin.url)"
+repo_name="$(echo "$origin" | sed 's-^git@github.com:--;s-^https?://github.com/--;s-^git://github.com/--;s-\.git$--')"
+
+if [[ "$repo_name" != "$origin" && "$(curl -s -o /dev/null -w "%{http_code}" -H "Accept: application/vnd.github.v3.sha" -H "If-None-Match: \"$(git rev-parse --verify HEAD)\"" "https://api.github.com/repos/$repo_name/commits/HEAD")" == "304" ]]; then
+	echo "Theos: Already up-to-date." 1>&2
+else
+	if [[ -d ".git" ]]; then
+		# If .git is a directory, this is a parent repo. Do a pull directly.
+		git pull --all
+	elif [[ -f ".git" ]]; then
+		# If .git is a file, this is a submodule repo. Use git submodule to fetch
+		# and checkout the correct commit.
+		submodule_dir="$PWD"
+		cd ..
+		git submodule update --init "$(basename "$submodule_dir")"
+		cd "$submodule_dir"
+	fi
+fi

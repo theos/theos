@@ -1,4 +1,10 @@
-lib/libsubstrate.dylib
+.bootstrap
 .DS_Store
 ._*
-.bootstrap
+
+sdks/*
+toolchain/*
+
+include/*
+lib/*
+!*/.keep
