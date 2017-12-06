@@ -1,12 +1,12 @@
 {
   "name": "theos",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A cross-platform build system for creating iOS, macOS, Linux, and Windows programs.",
   "author": "Theos",
   "license": "GPL-3.0",
   "homepage": "https://theos.github.io/",
   "bugs": "https://github.com/theos/theos/issues",
-  
+
   "repository": {
     "type": "git",
     "url": "git+https://github.com/theos/theos.git"
