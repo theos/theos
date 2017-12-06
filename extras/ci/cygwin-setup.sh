@@ -17,6 +17,10 @@ if [[ -z $THEOS ]]; then
 	exit 1
 fi
 
+# install dependencies
+status "Installing dependencies"
+PERL_MM_USE_DEFAULT=1 cpan IO::Compress::Lzma
+
 # ensure we’re in $THEOS
 cd $THEOS
 

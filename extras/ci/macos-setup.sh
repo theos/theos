@@ -23,8 +23,8 @@ brew update
 
 # install dependencies
 status "Installing dependencies"
-brew install fakeroot ldid
-brew install --force-bottle https://raw.githubusercontent.com/Homebrew/homebrew-core/7a4dabfc1a2acd9f01a1670fde4f0094c4fb6ffa/Formula/dpkg.rb
+brew install ldid
+PERL_MM_USE_DEFAULT=1 cpan IO::Compress::Lzma
 
 # ensure we’re in $THEOS
 cd $THEOS
