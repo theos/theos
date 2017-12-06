@@ -14,11 +14,6 @@ if [[ -z $THEOS ]]; then
 	exit 1
 fi
 
-if [[ -z $TEST_REPO ]]; then
-	echo "The repo env var is missing." >&2
-	exit 1
-fi
-
 for i in hbang/libcephei hbang/TypeStatus thomasfinch/PriorityHub; do
 	# create a directory
 	TEMP_DIR=$(mktemp -d)
