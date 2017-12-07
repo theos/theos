@@ -12,7 +12,7 @@ fi
 # dm.pl requires IO::Compress::Lzma to be installed, which uses Compress::Raw::Lzma, which
 # tragically includes a binary component, which tragically requires root to install if using system
 # perl. we don’t use dm.pl on iOS so skip this check there
-if [[ "$(uname -o)-$(uname -p)" != "Darwin-arm" ]] && ! perl -MIO::Compress::Lzma -e '1' 2>/dev/null; then
+if [[ "$(uname -s)-$(uname -p)" != "Darwin-arm" ]] && ! perl -MIO::Compress::Lzma -e '1' 2>/dev/null; then
 	if [[ $(which perl) == /usr/bin/perl ]]; then
 		echo "A Perl dependency needs to be installed. This will require your password for sudo. Provide it below, or press Ctrl-C and then run this manually:"
 		echo
