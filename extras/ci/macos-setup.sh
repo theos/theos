@@ -23,7 +23,7 @@ brew update
 
 # install dependencies
 status "Installing dependencies"
-brew install ldid
+brew install ldid perl
 PERL_MM_USE_DEFAULT=1 cpan IO::Compress::Lzma
 
 # ensure we’re in $THEOS
