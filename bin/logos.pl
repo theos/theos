@@ -576,19 +576,19 @@ foreach my $line (@lines) {
 			my $numattr = 0;
 
 			foreach(@attributes) {
-				if($_ =~ /assign/) {
-					$assign = 1;
-				} elsif($_ =~ /retain/) {
-					$retain = 1;
-				} elsif($_ =~ /copy/) {
-					$copy = 1;
-				} elsif($_ =~ /nonatomic/) {
-					$nonatomic = 1;
-				} elsif($_ =~ /getter=(\w+)/) {
+				if($_ =~ /getter=(\w+)/) {
 					$getter = $1;
 				} elsif($_ =~ /setter=(\w+:)/) {
 					$setter = $1;
-				} elsif($_ =~ /readwrite|readonly/) {
+				} elsif($_ eq "assign" || $_ eq "unsafe_unretained") {
+					$assign = 1;
+				} elsif($_ eq "retain" || $_ eq "strong") {
+					$retain = 1;
+				} elsif($_ eq "copy") {
+					$copy = 1;
+				} elsif($_ eq "nonatomic") {
+					$nonatomic = 1;
+				} elsif($_ =~ /readwrite|readonly|weak/) {
 					fileError($lineno, "property attribute '".$_."' not supported.");
 				} else {
 					fileError($lineno, "unknown property attribute '".$_."'.");
