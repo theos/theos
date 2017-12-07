@@ -570,64 +570,93 @@ foreach my $line (@lines) {
 
 			# check property attribute validity
 			my @attributes = split/\(?\s*,\s*\)?/, $1;
+			my $type = $2;
+			my $name = $3;
 			my ($assign, $retain, $copy, $nonatomic, $getter, $setter);
 			my $numattr = 0;
 
-			foreach(@attributes){
-				$numattr++;
-
-				if($_ =~ /assign/){
+			foreach(@attributes) {
+				if($_ =~ /assign/) {
 					$assign = 1;
-				}elsif($_ =~ /retain/){
+				} elsif($_ =~ /retain/) {
 					$retain = 1;
-				}elsif($_ =~ /copy/){
+				} elsif($_ =~ /copy/) {
 					$copy = 1;
-				}elsif($_ =~ /nonatomic/){
+				} elsif($_ =~ /nonatomic/) {
 					$nonatomic = 1;
-				}elsif($_ =~ /getter=(\w+)/){
+				} elsif($_ =~ /getter=(\w+)/) {
 					$getter = $1;
-				}elsif($_ =~ /setter=(\w+:)/){
+				} elsif($_ =~ /setter=(\w+:)/) {
 					$setter = $1;
-				}elsif($_ =~ /readwrite|readonly/){
+				} elsif($_ =~ /readwrite|readonly/) {
 					fileError($lineno, "property attribute '".$_."' not supported.");
-				}else{
+				} else {
 					fileError($lineno, "unknown property attribute '".$_."'.");
 				}
 			}
 
-			if(!$assign && !$retain && !$copy){
-				fileWarning($lineno, "no 'assign', 'retain', or 'copy' attribute is specified - 'assign' is assumed");
-				push(@attributes, "assign");
-				$numattr++;
-			}
-
-			if($assign && $retain){
+			if($assign && $retain) {
 				fileError($lineno, "property attributes 'assign' and 'retain' are mutually exclusive.");
 			}
 
-			if($assign && $copy){
+			if($assign && $copy) {
 				fileError($lineno, "property attributes 'assign' and 'copy' are mutually exclusive.");
 			}
 
-			if($copy && $retain){
+			if($copy && $retain) {
 				fileError($lineno, "property attributes 'copy' and 'retain' are mutually exclusive.");
 			}
 
 			my $property = Property->new();
-
-
 			$property->class($currentClass->name);
+			$property->type($type);
+			$property->name($name);
 
-			if($currentGroup){
+			if(!$assign && !$retain && !$copy) {
+				fileWarning($lineno, "no 'assign', 'retain', or 'copy' attribute is specified - 'assign' is assumed");
+				$assign = 1;
+			}
+
+			my $policy = "OBJC_ASSOCIATION_";
+			if($retain) {
+				$policy .= "RETAIN";
+			} elsif($copy) {
+				$policy .= "COPY";
+			} elsif($assign) {
+				$policy .= "ASSIGN";
+			} else {
+				fileError($lineno, "error: no 'assign', 'retain', or 'copy' attribu...wait, how did you manage to get here?\n");
+			}
+
+			if($nonatomic) {
+				# The 'assign' attribute appears to be nonatomic by default.
+				if(!$assign) {
+					$policy .= "_NONATOMIC";
+				}
+			}
+
+			$property->associationPolicy($policy);
+
+			if($currentGroup) {
 				$property->group($currentGroup->name);
-			}else{
+			} else {
 				$property->group("_ungrouped");
 			}
 
-			$property->numattr($numattr);
-			$property->attributes(@attributes);
-			$property->type($2);
-			$property->name($3);
+			if(!$getter) {
+				# Use property name if no getter specified
+				$getter = $name;
+			}
+			$property->getter($getter);
+
+			if(!$setter) {
+				# Capitalize first letter
+				$_ = $name;
+				$_ =~ s/://;
+				$_ =~ s/^([a-z])/\u$1/;
+				$setter = "set".$_;
+			}
+			$property->setter($setter);
 
 			$currentClass->addProperty($property);
 
@@ -635,7 +664,7 @@ foreach my $line (@lines) {
 			my $patch = Patch->new();
 			$patch->line($lineno);
 			$patch->range($patchStart, pos($line));
-			$patch->source(Patch::Source::Generator->new($property, 'getters_setters'));
+			$patch->source(Patch::Source::Generator->new($property, 'definition'));
 			addPatch($patch);
 		} elsif($line =~ /\G%hookf\b/gc) {
 			#%hookf
