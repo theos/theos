@@ -3,40 +3,31 @@
 #endif
 
 #ifdef __OBJC__
-	#import <_Prefix/NullabilityCompat.h>
-
-	#if __has_feature(modules)
-		@import Foundation;
-	#else
+	// This block shouldn't really be in this prefix header, but we can't remove it without breaking
+	// pretty much everyone's projects. THEOS_LEAN_AND_MEAN allows for this block to be skipped on a
+	// per-project or per-developer basis. This is always skipped when building Swift.
+	#if !defined(THEOS_LEAN_AND_MEAN) && !defined(THEOS_SWIFT)
+		#import <_Prefix/NullabilityCompat.h>
 		#import <Foundation/Foundation.h>
-	#endif
 
-	#ifdef TARGET_OS_SIMULATOR
-		#define _THEOS_IS_SIMULATOR TARGET_OS_SIMULATOR
-	#else
-		#define _THEOS_IS_SIMULATOR TARGET_IPHONE_SIMULATOR
-	#endif
-
-	#if TARGET_IPHONE || _THEOS_IS_SIMULATOR
-		#if __has_feature(modules)
-			@import UIKit;
+		#ifdef TARGET_OS_SIMULATOR
+			#define _THEOS_IS_SIMULATOR TARGET_OS_SIMULATOR
 		#else
-			#import <UIKit/UIKit.h>
+			#define _THEOS_IS_SIMULATOR TARGET_IPHONE_SIMULATOR
 		#endif
 
-		#import <_Prefix/IOSWebKitCompatHacks.h>
-	#endif
+		#if TARGET_IPHONE || _THEOS_IS_SIMULATOR
+			#import <UIKit/UIKit.h>
+			#import <_Prefix/IOSWebKitCompatHacks.h>
+		#endif
 
-	#if TARGET_MACOSX
-		#if __has_feature(modules)
-			@import Cocoa;
-			@import AppKit;
-		#else
+		#if TARGET_MACOSX
 			#import <Cocoa/Cocoa.h>
 			#import <AppKit/AppKit.h>
 		#endif
+
+		#import <_Prefix/IOSMacros.h>
 	#endif
 
 	#import <_Prefix/HBLog.h>
-	#import <_Prefix/IOSMacros.h>
 #endif

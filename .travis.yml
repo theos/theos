@@ -1,5 +1,6 @@
+# Xcode 9.1 on macOS 10.12
 os: osx
-osx_image: xcode7.2
+osx_image: xcode9.1
 language: objective-c
 sudo: false
 
@@ -8,30 +9,18 @@ env:
     # $THEOS is absolutely needed for theos to even be found
     - THEOS=$PWD
 
-  matrix:
-    # repos known to work with recent versions of theos. alphabetical order
-    - TEST_REPO=hbang/libcephei
-    - TEST_REPO=hbang/TypeStatus
-    - TEST_REPO=thomasfinch/PriorityHub
-
 before_install:
-  # os x: update homebrew and install dependencies
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install dpkg ldid homebrew/dupes/make; fi
+  # set up theos
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./extras/ci/macos-setup.sh; fi
 
 script:
-  # create a directory
-  - mkdir test
-  - cd test
-  # download the repo
-  - curl -Lso repo.tar.gz https://github.com/$TEST_REPO/tarball/master
-  # extract
-  - tar -x --strip-components=1 -f repo.tar.gz
-  # some of the test repos still use a theos symlink
-  - ln -s $THEOS theos
-  # build!
-  - gmake -j4 package messages=yes
-  # go back up
-  - cd ..
-  # remove test, ready for the next one
-  - rm -rf test
+  # launch the test script
+  - ./extras/ci/test-github-projects.sh
+
+deploy:
+  - provider: npm
+    email: adam@hbang.ws
+    api_key:
+      secure: YjSkpUQMVAJeT+V3J2Ew84Jw9+cZKsv3CG4acPcShEHUbnb/9YEp1sscnejlJYwEdXayqNYTd7LNelOnQYl7TVC2jcYpMtC744j8R4PbewZOGM2fviDi8R0HEcJStTvsq6MQFphl54aEpqOFfZLE2UrY/BirfDFwJXbJUWp0ypY=
+    on:
+      tags: true

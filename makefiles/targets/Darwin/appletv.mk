@@ -53,7 +53,7 @@ include $(THEOS_MAKE_PATH)/targets/_common/darwin_flat_bundle.mk
 
 TARGET_CC ?= xcrun -sdk appletvos $(_THEOS_TARGET_CC)
 TARGET_CXX ?= xcrun -sdk appletvos $(_THEOS_TARGET_CXX)
-TARGET_SWIFT = xcrun -sdk appletvos swift
+TARGET_SWIFT = swift
 TARGET_LD ?= xcrun -sdk appletvos $(_THEOS_TARGET_CXX)
 TARGET_STRIP ?= xcrun -sdk appletvos strip
 TARGET_CODESIGN_ALLOCATE ?= "$(shell xcrun -sdk appletvos -find codesign_allocate)"
@@ -71,9 +71,8 @@ _THEOS_TARGET_CFLAGS += -isysroot "$(ISYSROOT)" $(SDKFLAGS) $(VERSIONFLAGS) $(MO
 _THEOS_TARGET_LDFLAGS += -isysroot "$(SYSROOT)" $(SDKFLAGS) $(VERSIONFLAGS) $(LEGACYFLAGS) -multiply_defined suppress
 
 _THEOS_TARGET_SWIFTFLAGS := -sdk "$(ISYSROOT)" $(SDKFLAGS)
-_THEOS_TARGET_SWIFT_TARGET := apple-tvos$(_THEOS_TARGET_SDK_VERSION)
+_THEOS_TARGET_SWIFT_TARGET := apple-tvos$(_THEOS_TARGET_APPLETVOS_DEPLOYMENT_VERSION)
 _THEOS_TARGET_SWIFT_LDPATH := $(THEOS_PLATFORM_SDK_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/appletvos
-_THEOS_TARGET_SWIFT_OBJPATH := $(THEOS_PLATFORM_SDK_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift_static/appletvos
 _THEOS_TARGET_SWIFT_VERSION = $(shell $(TARGET_SWIFT) --version | head -1 | cut -d' ' -f4)
 _THEOS_TARGET_IBFLAGS = --auto-activate-custom-fonts --minimum-deployment-target $(_THEOS_TARGET_SDK_VERSION) $(IBMODULESFLAGS)
 
