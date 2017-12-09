@@ -13,6 +13,13 @@ endif
 
 ifeq ($(call __theos_bool,$(THEOS_USE_PARALLEL_BUILDING)),$(_THEOS_TRUE))
 MAKEFLAGS += -Otarget
+
+# If jobs haven’t already been specified, and we know how to get the number of logical cores on this
+# platform, set jobs to the logical core count (CPU cores multiplied by threads per core).
+ifneq ($(_THEOS_PLATFORM_GET_LOGICAL_CORES),)
+ifeq ($(findstring --jobserver-auth=,$(MAKEFLAGS)),)
+MAKEFLAGS += -j$(shell $(_THEOS_PLATFORM_GET_LOGICAL_CORES))
+endif
 endif
 endif
 

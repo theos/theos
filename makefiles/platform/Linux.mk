@@ -9,4 +9,5 @@ _THEOS_PLATFORM_MD5SUM := md5sum
 _THEOS_PLATFORM_LIPO = $(THEOS)/toolchain/$(THEOS_PLATFORM_NAME)/iphone/bin/$(SDKTARGET)-lipo
 # TODO: Find some better way to determine _THEOS_PLATFORM_SHOW_IN_FILE_MANAGER, as not all desktop environments use Nautilus as the file manager
 _THEOS_PLATFORM_SHOW_IN_FILE_MANAGER := nautilus
+_THEOS_PLATFORM_GET_LOGICAL_CORES := nproc
 endif
