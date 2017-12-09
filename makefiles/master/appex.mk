@@ -14,6 +14,6 @@ internal-clean:: $(APPEXS_WITH_SUBPROJECTS:=.clean.appex.subprojects)
 endif
 
 $(APPEX_NAME):
-	@$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going $@.all.appex.variables
+	$(ECHO_MAKE)$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going $@.all.appex.variables
 
 $(eval $(call __mod,master/appex.mk))
