@@ -31,7 +31,7 @@ ifeq ($(_THEOS_MAKE_PARALLEL_BUILDING), no)
 internal-simbltweak-all_:: $(_OBJ_DIR_STAMPS) shared-instance-bundle-all $(THEOS_OBJ_DIR)/$(_LOCAL_INSTANCE_TARGET)
 else
 internal-simbltweak-all_:: $(_OBJ_DIR_STAMPS) shared-instance-bundle-all
-	$(ECHO_MAKE)$(MAKE) $(MFLAGS) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going \
+	$(ECHO_MAKE)$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going \
 		internal-simbltweak-compile \
 		_THEOS_CURRENT_TYPE=$(_THEOS_CURRENT_TYPE) THEOS_CURRENT_INSTANCE=$(THEOS_CURRENT_INSTANCE) _THEOS_CURRENT_OPERATION=compile \
 		THEOS_BUILD_DIR="$(THEOS_BUILD_DIR)" _THEOS_MAKE_PARALLEL=yes

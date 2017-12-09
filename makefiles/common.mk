@@ -1,14 +1,14 @@
 all::
 
+# Block sudo. This is a common way users create more permissions problems than they already had.
 ifeq ($(notdir $(firstword $(SUDO_COMMAND))),make)
 $(error Do not use 'sudo make')
 endif
 
+# We use bash for all subshells. Force SHELL to bash if it’s currently set to sh.
 ifeq ($(SHELL),/bin/sh)
 export SHELL = bash
 endif
-
-MFLAGS += --output-sync=target
 
 THEOS_PROJECT_DIR ?= $(shell pwd)
 _THEOS_LOCAL_DATA_DIR := $(THEOS_PROJECT_DIR)/.theos
@@ -247,6 +247,8 @@ ifeq ($(_THEOS_VERBOSE),$(_THEOS_FALSE))
 else
 	_THEOS_NO_PRINT_DIRECTORY_FLAG :=
 endif
+
+MAKEFLAGS += $(_THEOS_NO_PRINT_DIRECTORY_FLAG) --no-keep-going
 
 unexport THEOS_CURRENT_INSTANCE _THEOS_CURRENT_TYPE
 

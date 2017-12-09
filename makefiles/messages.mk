@@ -7,6 +7,7 @@ _THEOS_VERBOSE := $(call __theos_bool,$(or $(messages),$(MESSAGES)))
 ifeq ($(_THEOS_VERBOSE),$(_THEOS_TRUE))
 	ECHO_BEGIN = (
 	ECHO_NOTHING = $(ECHO_PIPEFAIL) (
+	ECHO_MAKE = +
 	ECHO_END = )
 
 	ifeq ($(call __executable,unbuffer),$(_THEOS_TRUE))
@@ -20,6 +21,7 @@ ifeq ($(_THEOS_VERBOSE),$(_THEOS_TRUE))
 else
 	ECHO_BEGIN = @(
 	ECHO_NOTHING = @(
+	ECHO_MAKE = +@
 	ECHO_UNBUFFERED =
 	ECHO_END = )
 

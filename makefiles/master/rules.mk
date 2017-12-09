@@ -5,6 +5,17 @@ all::
 	@exit 1
 endif
 
+# Determine whether we are on a modern enough version of make for us to enable parallel building.
+# --output-sync was added in make 4.0; output is hard to read without it. Xcode includes make 3.81.
+ifeq ($(THEOS_USE_PARALLEL_BUILDING),)
+THEOS_USE_PARALLEL_BUILDING := $(call __simplify,THEOS_USE_PARALLEL_BUILDING,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(MAKE_VERSION) gt 4.0))
+endif
+
+ifeq ($(call __theos_bool,$(THEOS_USE_PARALLEL_BUILDING)),$(_THEOS_TRUE))
+MAKEFLAGS += -Otarget
+endif
+endif
+
 .PHONY: all before-all internal-all after-all \
 	clean before-clean internal-clean after-clean update-theos
 ifeq ($(THEOS_BUILD_DIR),.)
@@ -98,7 +109,7 @@ if [[ "$(__SUBPROJECTS)" != "" ]]; then \
     else \
       lbuilddir="$${abs_build_dir}/$$d"; \
     fi; \
-    if $(MAKE) $(MFLAGS) -C $$d -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_NO_PRINT_DIRECTORY_FLAG) --no-keep-going $(_OPERATION) \
+    if $(MAKE) -C $$d -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_NO_PRINT_DIRECTORY_FLAG) --no-keep-going $(_OPERATION) \
         THEOS_BUILD_DIR="$$lbuilddir" \
        ; then\
        :; \
@@ -107,7 +118,7 @@ if [[ "$(__SUBPROJECTS)" != "" ]]; then \
   done; \
  fi; \
 $(PRINT_FORMAT_MAKING) "Making $(_OPERATION) for $(_TYPE) $(_INSTANCE)"; \
-$(MAKE) $(MFLAGS) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going \
+$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going \
 	internal-$(_TYPE)-$(_OPERATION) \
 	_THEOS_CURRENT_TYPE="$(_TYPE)" \
 	THEOS_CURRENT_INSTANCE="$(_INSTANCE)" \
@@ -130,7 +141,7 @@ if [[ "$(__SUBPROJECTS)" != "" ]]; then \
     else \
       lbuilddir="$${abs_build_dir}/$$d"; \
     fi; \
-    if $(MAKE) $(MFLAGS) -C $$d -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_NO_PRINT_DIRECTORY_FLAG) --no-keep-going $(_OPERATION) \
+    if $(MAKE) -C $$d -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_NO_PRINT_DIRECTORY_FLAG) --no-keep-going $(_OPERATION) \
         THEOS_BUILD_DIR="$$lbuilddir" \
        ; then\
        :; \
@@ -166,7 +177,7 @@ troubleshoot::
 
 ifeq ($(call __executable,ghost),$(_THEOS_TRUE))
 	@$(PRINT_FORMAT) "Creating a Ghostbin containing the output of \`make clean all messages=yes\`…"
-	$(MAKE) $(MFLAGS) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going clean all messages=yes FORCE_COLOR=yes 2>&1 | ghost -x 2w - ansi
+	$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going clean all messages=yes FORCE_COLOR=yes 2>&1 | ghost -x 2w - ansi
 else
 	@$(PRINT_FORMAT_ERROR) "You don't have ghost installed. For more information, refer to https://github.com/theos/theos/wiki/Installation#prerequisites." >&2; exit 1
 endif
