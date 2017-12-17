@@ -205,8 +205,14 @@ ifneq ($(GO_EASY_ON_ME),1)
 	_THEOS_INTERNAL_CFLAGS += -Werror
 endif
 
-ifeq ($(call __theos_bool,$(or $(FORCE_COLOR),$(_THEOS_FALSE))),$(_THEOS_TRUE))
+# If FORCE_COLOR hasn’t already been set, determine whether we’re a tty (a graphical terminal) and
+# enable color if so. We need to detect this ourselves because output is buffered by make when
+# running rules in parallel, so clang doesn’t see stderr as a tty.
+FORCE_COLOR ?= $(shell [ -t 2 ] && echo $(_THEOS_TRUE))
+
+ifeq ($(call __theos_bool,$(FORCE_COLOR)),$(_THEOS_TRUE))
 	_THEOS_INTERNAL_CFLAGS += -fcolor-diagnostics
+	_THEOS_INTERNAL_SWIFTFLAGS += -fcolor-diagnostics
 	_THEOS_INTERNAL_LDFLAGS += -fcolor-diagnostics
 endif
 
@@ -242,13 +248,12 @@ FW_PACKAGE_STAGING_DIR = $(THEOS_STAGING_DIR)$(warning FW_PACKAGE_STAGING_DIR is
 THEOS_SUBPROJECT_PRODUCT = subproject.o
 
 include $(THEOS_MAKE_PATH)/messages.mk
-ifeq ($(_THEOS_VERBOSE),$(_THEOS_FALSE))
-	_THEOS_NO_PRINT_DIRECTORY_FLAG := --no-print-directory
-else
-	_THEOS_NO_PRINT_DIRECTORY_FLAG :=
-endif
 
-MAKEFLAGS += $(_THEOS_NO_PRINT_DIRECTORY_FLAG) --no-keep-going
+_THEOS_MAKEFLAGS := --no-keep-going FORCE_COLOR=$(FORCE_COLOR)
+
+ifeq ($(_THEOS_VERBOSE),$(_THEOS_FALSE))
+	_THEOS_MAKEFLAGS += --no-print-directory
+endif
 
 unexport THEOS_CURRENT_INSTANCE _THEOS_CURRENT_TYPE
 

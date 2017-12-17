@@ -12,13 +12,11 @@ THEOS_USE_PARALLEL_BUILDING := $(call __simplify,THEOS_USE_PARALLEL_BUILDING,$(s
 endif
 
 ifeq ($(call __theos_bool,$(THEOS_USE_PARALLEL_BUILDING)),$(_THEOS_TRUE))
-MAKEFLAGS += -Otarget
-
 # If jobs haven’t already been specified, and we know how to get the number of logical cores on this
 # platform, set jobs to the logical core count (CPU cores multiplied by threads per core).
 ifneq ($(_THEOS_PLATFORM_GET_LOGICAL_CORES),)
 ifeq ($(findstring --jobserver-auth=,$(MAKEFLAGS)),)
-MAKEFLAGS += -j$(shell $(_THEOS_PLATFORM_GET_LOGICAL_CORES))
+MAKEFLAGS += -j$(shell $(_THEOS_PLATFORM_GET_LOGICAL_CORES)) -Otarget
 endif
 endif
 endif
@@ -116,7 +114,7 @@ if [[ "$(__SUBPROJECTS)" != "" ]]; then \
     else \
       lbuilddir="$${abs_build_dir}/$$d"; \
     fi; \
-    if $(MAKE) -C $$d -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_NO_PRINT_DIRECTORY_FLAG) --no-keep-going $(_OPERATION) \
+    if $(MAKE) -C $$d -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) $(_OPERATION) \
         THEOS_BUILD_DIR="$$lbuilddir" \
        ; then\
        :; \
@@ -125,7 +123,7 @@ if [[ "$(__SUBPROJECTS)" != "" ]]; then \
   done; \
  fi; \
 $(PRINT_FORMAT_MAKING) "Making $(_OPERATION) for $(_TYPE) $(_INSTANCE)"; \
-$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going \
+$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) \
 	internal-$(_TYPE)-$(_OPERATION) \
 	_THEOS_CURRENT_TYPE="$(_TYPE)" \
 	THEOS_CURRENT_INSTANCE="$(_INSTANCE)" \
@@ -148,7 +146,7 @@ if [[ "$(__SUBPROJECTS)" != "" ]]; then \
     else \
       lbuilddir="$${abs_build_dir}/$$d"; \
     fi; \
-    if $(MAKE) -C $$d -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_NO_PRINT_DIRECTORY_FLAG) --no-keep-going $(_OPERATION) \
+    if $(MAKE) -C $$d -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) $(_OPERATION) \
         THEOS_BUILD_DIR="$$lbuilddir" \
        ; then\
        :; \
