@@ -1,26 +1,8 @@
 #!/bin/bash
 # since `git submodule foreach` doesn’t get called for submodules that aren’t cloned, force
-# vendor/lib and vendor/dm.pl to be cloned here
-if [[ ! -f "vendor/lib/.git" ]]; then
-	git submodule update --init vendor/lib
-fi
-
-if [[ ! -f "vendor/dm.pl/.git" ]]; then
-	git submodule update --init vendor/dm.pl
-fi
-
-# dm.pl requires IO::Compress::Lzma to be installed, which uses Compress::Raw::Lzma, which
-# tragically includes a binary component, which tragically requires root to install if using system
-# perl. we don’t use dm.pl on iOS so skip this check there
-if [[ "$(uname -s)-$(uname -p)" != "Darwin-arm" ]] && ! perl -MIO::Compress::Lzma -e '1' 2>/dev/null; then
-	if [[ $(which perl) == /usr/bin/perl ]]; then
-		echo "A Perl dependency needs to be installed. This will require your password for sudo. Provide it below, or press Ctrl-C and then run this manually:"
-		echo
-		echo "  sudo cpan IO::Compress::Lzma"
-		echo
-		sudo PERL_MM_USE_DEFAULT=1 cpan IO::Compress::Lzma
-	else
-		echo "Installing a Perl module dependency. This may take a minute."
-		PERL_MM_USE_DEFAULT=1 cpan IO::Compress::Lzma
+# those submodules to be cloned here
+for i in vendor/*; do
+	if [[ ! -f $i/.git ]]; then
+		git submodule update --init $i
 	fi
-fi
+done
