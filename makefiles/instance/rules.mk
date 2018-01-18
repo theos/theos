@@ -325,6 +325,9 @@ ifeq ($$(OBJ_FILES_TO_LINK),)
 endif
 endif
 	$$(ECHO_LINKING)$$(ECHO_UNBUFFERED)$$(TARGET_LD) $$(ALL_LDFLAGS) -o "$$@" $$^ | (grep -v 'usr/lib/dylib1.o, missing required architecture' || true)$$(ECHO_END)
+ifneq ($(TARGET_DSYMUTIL),)
+	$$(ECHO_DEBUG_SYMBOLS)$$(ECHO_UNBUFFERED)$$(TARGET_DSYMUTIL) "$$@"$(ECHO_END)
+endif
 ifeq ($(SHOULD_STRIP),$(_THEOS_TRUE))
 	$$(ECHO_STRIPPING)$$(ECHO_UNBUFFERED)$$(TARGET_STRIP) $$(ALL_STRIP_FLAGS) "$$@"$$(ECHO_END)
 endif
@@ -362,6 +365,9 @@ endif
 endif
 	$$(ECHO_NOTHING)mkdir -p $(shell dirname "$(THEOS_OBJ_DIR)/$(1)")$$(ECHO_END)
 	$$(ECHO_LINKING)$$(ECHO_UNBUFFERED)$$(TARGET_LD) $$(ALL_LDFLAGS) -o "$$@" $$^ | (grep -v 'usr/lib/dylib1.o, missing required architecture' || true)$$(ECHO_END)
+ifneq ($(TARGET_DSYMUTIL),)
+	$$(ECHO_DEBUG_SYMBOLS)$$(ECHO_UNBUFFERED)$$(TARGET_DSYMUTIL) "$$@"$(ECHO_END)
+endif
 ifeq ($(SHOULD_STRIP),$(_THEOS_TRUE))
 	$$(ECHO_STRIPPING)$$(ECHO_UNBUFFERED)$$(TARGET_STRIP) $$(ALL_STRIP_FLAGS) "$$@"$$(ECHO_END)
 endif

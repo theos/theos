@@ -98,6 +98,7 @@ TARGET_STRIP_FLAGS ?= -x
 TARGET_CODESIGN_ALLOCATE ?= "$(shell xcrun -sdk iphoneos -find codesign_allocate)"
 TARGET_CODESIGN ?= ldid
 TARGET_CODESIGN_FLAGS ?= -S
+TARGET_DSYMUTIL ?= dsymutil
 
 TARGET_PRIVATE_FRAMEWORK_PATH = $(SYSROOT)/System/Library/PrivateFrameworks
 TARGET_PRIVATE_FRAMEWORK_INCLUDE_PATH = $(ISYSROOT)/System/Library/PrivateFrameworks
