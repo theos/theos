@@ -1,6 +1,6 @@
 {
   "name": "theos",
-  "version": "2.1.1",
+  "version": "2.2",
   "description": "A cross-platform build system for creating iOS, macOS, Linux, and Windows programs.",
   "author": "Theos",
   "license": "GPL-3.0",
