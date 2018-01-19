@@ -37,9 +37,8 @@ ifneq ($(_OBJCC_FILE_COUNT),0)
 endif
 
 # If we have any Swift objects, add Swift libraries to the linker search path.
-# Also tell the linker to find these libraries in /usr/lib/libswift/<version>.
 ifneq ($(_SWIFT_FILE_COUNT),0)
-	_THEOS_INTERNAL_LDFLAGS += -L$(_THEOS_TARGET_SWIFT_LDPATH)
+	_THEOS_INTERNAL_LDFLAGS += -L$(_THEOS_TARGET_SWIFT_LDPATH) $(_THEOS_TARGET_SWIFT_LDFLAGS)
 endif
 
 # If we have a Bridging Header, import it in Swift
