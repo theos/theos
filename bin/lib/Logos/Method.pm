@@ -145,7 +145,7 @@ sub printArgForArgType {
 	$argtype =~ s/\s+$//g;
 
 	return "NSStringFromSelector($argname)" if $argtype =~ /^SEL$/;
-	return "$argname" if $argtype =~ /^Class$/;
+	return "NSStringFromClass($argname)" if $argtype =~ /^Class$/;
 	return "$argname.location, $argname.length" if $argtype =~ /^NSRange$/;
 	return "$argname.origin.x, $argname.origin.y, $argname.size.width, $argname.size.height" if $argtype =~ /^(CG|NS)Rect$/;
 	return "$argname.x, $argname.y" if $argtype =~ /^(CG|NS)Point$/;
