@@ -157,6 +157,8 @@ my $dirname = lc($clean_project_name);
 $NIC->build($dirname);
 chdir($cwd);
 
+my $isSubproject = 0;
+
 my @makefiles = ("GNUmakefile", "makefile", "Makefile");
 my $makefile;
 map { $makefile = $_ if -e $_; } @makefiles;
@@ -168,6 +170,7 @@ if($makefile) {
 		my $alreadyHas = 0;
 		map {$alreadyHas++ if /^\s*SUBPROJECTS.*$dirname/;} @lines;
 		if($alreadyHas == 0) {
+			$isSubproject = 1;
 			print "Adding '$project_name' as an aggregate subproject in Theos makefile '$makefile'.",$/;
 			my $newline = "SUBPROJECTS += $dirname";
 			my $i = 0;
@@ -183,6 +186,17 @@ if($makefile) {
 	}
 	untie(@lines);
 }
+
+my $initializeGit = $CONFIG{'init_git'};
+$initializeGit = 0 if !$initializeGit;
+
+if($initializeGit == 1 &! $isSubproject) {
+	chdir($dirname);
+	my $init = `git init; git add -A; git commit -m "Initial Commit"`;
+} elsif($initializeGit == 1 && $isSubproject) {
+	my $init = `git add '$dirname'; git commit -m "Instantiated Subproject $clean_project_name"`;
+}
+
 print "Done.",$/;
 
 sub promptIfMissing {
@@ -228,7 +242,7 @@ sub promptList {
 		}
 		if($_ < 1 || $_ > $#list+1) {
 			print "Invalid value.",$/,$prompt,": ";
-			next;	
+			next;
 		}
 		$idx = $_-1;
 		last;
