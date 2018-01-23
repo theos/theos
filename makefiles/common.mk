@@ -205,10 +205,10 @@ ifneq ($(GO_EASY_ON_ME),1)
 	_THEOS_INTERNAL_CFLAGS += -Werror
 endif
 
-# If FORCE_COLOR hasn’t already been set, determine whether we’re a tty (a graphical terminal) and
-# enable color if so. We need to detect this ourselves because output is buffered by make when
-# running rules in parallel, so clang doesn’t see stderr as a tty.
-FORCE_COLOR ?= $(shell [ -t 2 ] && echo $(_THEOS_TRUE))
+# If FORCE_COLOR hasn’t already been set, set it to enabled. We need to do this because output is
+# buffered by make when running rules in parallel, so clang doesn’t see stderr as a tty. We can’t
+# test this using [ -t 2 ] because it runs in a sub-shell and will always return 1 (false).
+FORCE_COLOR ?= $(_THEOS_TRUE)
 
 ifeq ($(call __theos_bool,$(FORCE_COLOR)),$(_THEOS_TRUE))
 	_THEOS_INTERNAL_CFLAGS += -fcolor-diagnostics
