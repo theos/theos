@@ -53,6 +53,7 @@ my $project_name = "";
 my $package_prefix = $CONFIG{'package_prefix'};
 $package_prefix = "com.yourcompany" if !$package_prefix;
 my $package_name = "";
+my $requestsGit = 1 if $CONFIG{'request_git'};
 my $username = $CONFIG{'username'};
 $username = "" if !$username;
 
@@ -108,6 +109,8 @@ if(-d $directory) {
 	promptIfMissing(\$response, "N", "There's already something in $directory. Continue");
 	exit 1 if(uc($response) eq "N");
 }
+
+promptIfMissing(\$requestsGit, "Y", "Initialise a Git repository for the project");
 
 $NIC->variable("FULLPROJECTNAME") = $project_name;
 $NIC->variable("PROJECTNAME") = $clean_project_name;
@@ -187,14 +190,20 @@ if($makefile) {
 	untie(@lines);
 }
 
-my $initializeGit = $CONFIG{'init_git'};
-$initializeGit = 0 if !$initializeGit;
+if(!$isSubproject) {
+	promptIfMissing(\$requestsGit, "Y", "Initialise a Git repository for the project");
+	$requestsGit = (uc($requestsGit) eq "N") ? 0 : 1;
 
-if($initializeGit == 1 &! $isSubproject) {
-	chdir($dirname);
-	my $init = `git init; git add -A; git commit -m "Initial Commit"`;
-} elsif($initializeGit == 1 && $isSubproject) {
-	my $init = `git add '$dirname'; git commit -m "Instantiated Subproject $clean_project_name"`;
+	if($requestsGit) {
+		chdir($dirname);
+		my $init = `git init; git add -A; git commit -m "Initial Commit"`;
+	}
+} else {
+	# Probably don't want to prompt for git in subproject. Only if user has already requested
+	# git in the config do we add this commit message otherwise we don't know if git is setup
+	if($requestsGit) {
+		my $init = `git add $dirname; git commit -m "Instantiated Subproject $clean_project_name"`;
+	}
 }
 
 print "Done.",$/;
