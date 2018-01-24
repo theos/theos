@@ -110,8 +110,6 @@ if(-d $directory) {
 	exit 1 if(uc($response) eq "N");
 }
 
-promptIfMissing(\$requestsGit, "Y", "Initialise a Git repository for the project");
-
 $NIC->variable("FULLPROJECTNAME") = $project_name;
 $NIC->variable("PROJECTNAME") = $clean_project_name;
 $NIC->variable("PACKAGENAME") = $package_name;
