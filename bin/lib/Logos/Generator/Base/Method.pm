@@ -46,7 +46,7 @@ sub selfTypeForMethod {
 sub returnTypeForMethod {
 	my $self = shift;
 	my $method = shift;
- 	if($method->methodFamily ne "") {
+	if($method->methodFamily ne "") {
 		return $method->class->type;
 	}
 	my $result = $method->return;

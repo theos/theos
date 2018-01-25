@@ -23,10 +23,10 @@ use NIC::NICType;
 
 # Workaround to allow Find to function on WSL. Currently on WSL without this line nic.pl will fail to find templates.
 if($^O eq "linux") {
-    my $fh;
-    open($fh, "/proc/version");
-    $File::Find::dont_use_nlink = grep { /Microsoft/ } <$fh>;
-    close($fh);
+	my $fh;
+	open($fh, "/proc/version");
+	$File::Find::dont_use_nlink = grep { /Microsoft/ } <$fh>;
+	close($fh);
 }
 
 our $savedStdout = *STDOUT;
