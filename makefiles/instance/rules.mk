@@ -336,7 +336,7 @@ ifeq ($(THEOS_CURRENT_ARCH),)
 
 ARCH_FILES_TO_LINK := $(addsuffix /$(1),$(addprefix $(THEOS_OBJ_DIR)/,$(TARGET_ARCHS)))
 $$(THEOS_OBJ_DIR)/%/$(1): $(__ALL_FILES)
-	@ \
+	+@ \
 	mkdir -p $(THEOS_OBJ_DIR)/$$*; \
 	$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going \
 		internal-$(_THEOS_CURRENT_TYPE)-$(_THEOS_CURRENT_OPERATION) \

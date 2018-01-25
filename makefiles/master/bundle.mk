@@ -14,6 +14,6 @@ internal-clean:: $(BUNDLES_WITH_SUBPROJECTS:=.clean.bundle.subprojects)
 endif
 
 $(BUNDLE_NAME):
-	@$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going $@.all.bundle.variables
+	$(ECHO_MAKE)$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) $@.all.bundle.variables
 
 $(eval $(call __mod,master/bundle.mk))
