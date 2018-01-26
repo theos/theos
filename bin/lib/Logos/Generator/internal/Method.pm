@@ -57,7 +57,7 @@ sub originalCall {
 	my $pointerType = "(*)(".$classargtype.", SEL";
 	$pointerType .=       ", ".$argtypelist if $argtypelist;
 	$pointerType .=   ")";
-	return "(".$self->originalFunctionName($method)." ? ".$self->originalFunctionName($method)." : (__typeof__(".$self->originalFunctionName($method)."))class_getMethodImplementation(".$classref.", \@selector(".$method->selector.")))".$self->originalCallParams($method, $customargs);
+	return "(".$self->originalFunctionName($method)." ? ".$self->originalFunctionName($method)." : (__typeof__(".$self->originalFunctionName($method)."))class_getMethodImplementation(".$classref.", ".$self->selectorRef($method->selector)."))".$self->originalCallParams($method, $customargs);
 }
 
 sub declarations {
