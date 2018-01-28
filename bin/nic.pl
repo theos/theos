@@ -53,6 +53,7 @@ my $project_name = "";
 my $package_prefix = $CONFIG{'package_prefix'};
 $package_prefix = "com.yourcompany" if !$package_prefix;
 my $package_name = "";
+my $requestsGit = 1 if $CONFIG{'request_git'};
 my $username = $CONFIG{'username'};
 $username = "" if !$username;
 
@@ -157,6 +158,8 @@ my $dirname = lc($clean_project_name);
 $NIC->build($dirname);
 chdir($cwd);
 
+my $isSubproject = 0;
+
 my @makefiles = ("GNUmakefile", "makefile", "Makefile");
 my $makefile;
 map { $makefile = $_ if -e $_; } @makefiles;
@@ -168,6 +171,7 @@ if($makefile) {
 		my $alreadyHas = 0;
 		map {$alreadyHas++ if /^\s*SUBPROJECTS.*$dirname/;} @lines;
 		if($alreadyHas == 0) {
+			$isSubproject = 1;
 			print "Adding '$project_name' as an aggregate subproject in Theos makefile '$makefile'.",$/;
 			my $newline = "SUBPROJECTS += $dirname";
 			my $i = 0;
@@ -183,6 +187,23 @@ if($makefile) {
 	}
 	untie(@lines);
 }
+
+if(!$isSubproject) {
+	promptIfMissing(\$requestsGit, "Y", "Initialise a Git repository for the project");
+	$requestsGit = (uc($requestsGit) eq "N") ? 0 : 1;
+
+	if($requestsGit) {
+		chdir($dirname);
+		my $init = `git init; git add -A; git commit -m "Initial Commit"`;
+	}
+} else {
+	# Probably don't want to prompt for git in subproject. Only if user has already requested
+	# git in the config do we add this commit message otherwise we don't know if git is setup
+	if($requestsGit) {
+		my $init = `git add $dirname; git commit -m "Instantiated Subproject $clean_project_name"`;
+	}
+}
+
 print "Done.",$/;
 
 sub promptIfMissing {
@@ -228,7 +249,7 @@ sub promptList {
 		}
 		if($_ < 1 || $_ > $#list+1) {
 			print "Invalid value.",$/,$prompt,": ";
-			next;	
+			next;
 		}
 		$idx = $_-1;
 		last;
