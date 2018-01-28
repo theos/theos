@@ -224,7 +224,7 @@ foreach my $line (@lines) {
 		$directiveDepth = 0 if(!@directiveDepthTokens);
 		$directiveDepth = $depthsForCurrentLine{join(':', @directiveDepthTokens)} if @directiveDepthTokens;
 
-		if($line =~ /\G%hook\s+([\$_\w]+)/gc) {
+		if($line =~ /\G%hook\s+([^ \t:{}\(\);]+)/gc) {
 			# "%hook <identifier>"
 			fileError($lineno, "%hook does not make sense inside a block") if($directiveDepth >= 1);
 			nestingMustNotContain($lineno, "%hook", \@nestingstack, "hook", "subclass");
@@ -236,7 +236,7 @@ foreach my $line (@lines) {
 			$currentClass = $currentGroup->addClassNamed($1);
 			$classes{$currentClass->name}++;
 			patchHere(undef);
-		} elsif($line =~ /\G%subclass\s+([\$_\w]+)\s*:\s*([\$_\w]+)\s*(\<\s*(.*?)\s*\>)?/gc) {
+		} elsif($line =~ /\G%subclass\s+([^ \t:{}\(\);]+)\s*:\s*([^ \t:{}\(\);]+)\s*(\<\s*(.*?)\s*\>)?/gc) {
 			# %subclass <identifier> : <identifier> \<<protocols ...>\>
 			fileError($lineno, "%subclass does not make sense inside a block") if($directiveDepth >= 1);
 			nestingMustNotContain($lineno, "%subclass", \@nestingstack, "hook", "subclass");
@@ -265,7 +265,7 @@ foreach my $line (@lines) {
 			$classes{$classname}++;
 
 			patchHere(undef);
-		} elsif($line =~ /\G%group\s+([\$_\w]+)/gc) {
+		} elsif($line =~ /\G%group\s+([^ \t:{}\(\);]+)/gc) {
 			# %group <identifier>
 			fileError($lineno, "%group does not make sense inside a block") if($directiveDepth >= 1);
 			nestingMustNotContain($lineno, "%group", \@nestingstack, "group");
@@ -284,7 +284,7 @@ foreach my $line (@lines) {
 				$patchSource = Patch::Source::Generator->new($capturedGroup, 'declarations');
 			}
 			patchHere($patchSource);
-		} elsif($line =~ /\G%class\s+([+-])?([\$_\w]+)/gc) {
+		} elsif($line =~ /\G%class\s+([+-])?([^ \t:{}\(\);]+)/gc) {
 			# %class [+-]<identifier>
 			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
 
@@ -300,7 +300,7 @@ foreach my $line (@lines) {
 			}
 			$classes{$classname}++;
 			patchHere(undef);
-		} elsif($line =~ /\G%c\(\s*([+-])?([\$_\w]+)\s*\)/gc) {
+		} elsif($line =~ /\G%c\(\s*([+-])?([^ \t:{}\(\);]+)\s*\)/gc) {
 			# %c([+-]<identifier>)
 			@firstDirectivePosition = ($lineno, $-[0]) if !@firstDirectivePosition;
 
@@ -321,7 +321,7 @@ foreach my $line (@lines) {
 			$xtype = $2 if $2;
 			$newMethodTypeEncoding = $xtype;
 			patchHere(undef);
-		} elsif($currentClass && $line =~ /\G([+-])\s*\(\s*(.*?)\s*\)(?=\s*[\$\w:])/gc && $directiveDepth < 1) {
+		} elsif($currentClass && $line =~ /\G([+-])\s*\(\s*(.*?)\s*\)(?=\s*[^ \t:{}\(\);])/gc && $directiveDepth < 1) {
 			# [+-] (<return>)<[X:]>, but only when we're in a %hook.
 
 			# Gasp! We've been moved to a different group!
@@ -356,7 +356,7 @@ foreach my $line (@lines) {
 			my $patchStart = $-[0];
 
 			# word, then an optional: ": (argtype)argname"
-			while($line =~ /\G\s*([\$\w]*)(\s*:\s*(\((.+?)\))?\s*([\$\w]+?)\b)?/gc) {
+			while($line =~ /\G\s*([^ \t:{}\(\)]*)(\s*:\s*(\((.+?)\))?\s*([^ \t:{}\(\)]+?)\b)?/gc) {
 				if(!$1 && !$2) { # Exit the loop if both Keywords and Args are missing: e.g. false positive.
 					pos($line) = $-[0];
 					last;
