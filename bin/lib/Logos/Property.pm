@@ -5,7 +5,7 @@ use strict;
 # Setters and Getters #
 # #####################
 
-sub new{
+sub new {
 	my $proto = shift;
 	my $class = ref($proto) || $proto;
 	my $self = {};
@@ -13,9 +13,9 @@ sub new{
 	$self->{GROUP} = undef;
 	$self->{NAME} = undef;
 	$self->{TYPE} = undef;
-	$self->{NUMATTR} = undef;
 	$self->{ASSOCIATIONPOLICY} = undef;
-	$self->{ATTRIBUTES} = [];
+	$self->{GETTER} = undef;
+	$self->{SETTER} = undef;
 	bless($self, $class);
 	return $self;
 }
@@ -44,23 +44,24 @@ sub type {
 	return $self->{TYPE};
 }
 
-sub numattr {
-	my $self = shift;
-	if(@_) { $self->{NUMATTR} = shift; }
-	return $self->{NUMATTR};
-}
-
-sub attributes {
-	my $self = shift;
-	if(@_) { @{$self->{ATTRIBUTES}} = @_; }
-	return $self->{ATTRIBUTES};
-}
-
 sub associationPolicy {
 	my $self = shift;
-	if (@_) { $self->{ASSOCIATIONPOLICY} = shift; }
+	if(@_) { $self->{ASSOCIATIONPOLICY} = shift; }
 	return $self->{ASSOCIATIONPOLICY};
 }
+
+sub getter {
+	my $self = shift;
+	if(@_) { $self->{GETTER} = shift; }
+	return $self->{GETTER};
+}
+
+sub setter {
+	my $self = shift;
+	if(@_) { $self->{SETTER} = shift; }
+	return $self->{SETTER};
+}
+
 
 ##### #
 # END #
