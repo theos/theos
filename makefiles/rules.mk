@@ -9,10 +9,8 @@ endif
 
 ifeq ($(_THEOS_MAKE_PARALLEL_BUILDING), no)
 .NOTPARALLEL:
-else
-ifneq ($(_THEOS_MAKE_PARALLEL), yes)
+else ifneq ($(_THEOS_MAKE_PARALLEL), yes)
 .NOTPARALLEL:
-endif
 endif
 
 %.mm: %.l.mm
