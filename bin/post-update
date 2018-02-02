@@ -1,6 +1,8 @@
 #!/bin/bash
-# since `git submodule foreach` doesn’t get called for submodules that aren’t
-# cloned, force vendor/lib to be cloned here
-if [[ ! -f "vendor/lib/.git" ]]; then
-	git submodule update --init vendor/lib
-fi
+# since `git submodule foreach` doesn’t get called for submodules that aren’t cloned, force
+# those submodules to be cloned here
+for i in vendor/*; do
+	if [[ ! -f $i/.git ]]; then
+		git submodule update --init $i
+	fi
+done

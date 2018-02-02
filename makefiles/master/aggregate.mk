@@ -9,7 +9,7 @@ internal-stage internal-after-install:: _OPERATION = $@
 internal-all internal-clean internal-stage internal-after-install:: _OPERATION_NAME = $(subst internal-,,$@)
 
 internal-all internal-clean internal-stage internal-after-install::
-	@abs_build_dir=$(_THEOS_ABSOLUTE_BUILD_DIR); \
+	+@abs_build_dir=$(_THEOS_ABSOLUTE_BUILD_DIR); \
 	for d in $(SUBPROJECTS); do \
 	  $(PRINT_FORMAT_MAKING) "Making $(_OPERATION_NAME) in $$d"; \
 	  if [[ "$${abs_build_dir}" = "." ]]; then \
@@ -17,7 +17,7 @@ internal-all internal-clean internal-stage internal-after-install::
 	  else \
 	    lbuilddir="$${abs_build_dir}/$$d"; \
 	  fi; \
-	  if $(MAKE) -C $$d -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_NO_PRINT_DIRECTORY_FLAG) --no-keep-going $(_OPERATION) \
+		if $(MAKE) -C $$d -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-keep-going $(_OPERATION) \
 		THEOS_BUILD_DIR="$$lbuilddir" \
 	     ; then\
 	     :; \
