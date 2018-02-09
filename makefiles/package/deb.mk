@@ -28,10 +28,14 @@ ifeq ($(_THEOS_HAS_STAGING_LAYOUT),1) # If we have a layout directory, copy layo
 	$(ECHO_NOTHING)[ -d "$(THEOS_LAYOUT_DIR)/DEBIAN" ] && rsync -a "$(THEOS_LAYOUT_DIR)/DEBIAN/" "$(THEOS_STAGING_DIR)/DEBIAN" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE) || true$(ECHO_END)
 endif # _THEOS_HAS_STAGING_LAYOUT
 
-_THEOS_PACKAGE_LIBSWIFT_VERSION := $(firstword $(subst ., ,$(_THEOS_TARGET_SWIFT_VERSION))) (>= $(_THEOS_TARGET_SWIFT_VERSION))
+ifeq ($(firstword $(subst ., ,$(_THEOS_TARGET_SWIFT_VERSION))),4)
+_THEOS_DEB_LIBSWIFT_DEPENDS := com.modmyi.libswift4 (>= $(_THEOS_TARGET_SWIFT_VERSION))
+else
+_THEOS_DEB_LIBSWIFT_DEPENDS := org.swift.libswift (>= $(_THEOS_TARGET_SWIFT_VERSION))
+endif
 
 $(_THEOS_ESCAPED_STAGING_DIR)/DEBIAN/control: $(_THEOS_ESCAPED_STAGING_DIR)/DEBIAN
-	$(ECHO_NOTHING)sed -e '/^[Dd]epends:/s/org.swift.libswift/&$(_THEOS_PACKAGE_LIBSWIFT_VERSION)/; /^[Vv]ersion:/d; /^$$/d; $$a\' "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" > "$@"$(ECHO_END)
+	$(ECHO_NOTHING)sed -e 's/\$${LIBSWIFT}/$(_THEOS_TARGET_LIBSWIFT_DEPENDS)/g; s/\$${LIBSWIFT_VERSION}/$(_THEOS_TARGET_SWIFT_VERSION)/g; /^[Vv]ersion:/d; /^$$/d; $$a\' "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" > "$@"$(ECHO_END)
 	$(ECHO_NOTHING)echo "Version: $(_THEOS_INTERNAL_PACKAGE_VERSION)" >> "$@"$(ECHO_END)
 	$(ECHO_NOTHING)echo "Installed-Size: $(shell $(_THEOS_PLATFORM_DU) $(_THEOS_PLATFORM_DU_EXCLUDE) DEBIAN -ks "$(THEOS_STAGING_DIR)" | cut -f 1)" >> "$@"$(ECHO_END)
 
