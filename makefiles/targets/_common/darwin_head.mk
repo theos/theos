@@ -81,24 +81,28 @@ endif
 
 ifeq ($(words $(_UNSORTED_SDKS)),0)
 before-all::
-	@$(PRINT_FORMAT_ERROR) "You do not have an SDK in $(_XCODE_SDK_DIR) or $(THEOS_SDKS_PATH)." >&2; exit 1
+ifeq ($(_XCODE_SDK_DIR),)
+	@$(PRINT_FORMAT_ERROR) "You do not have any SDKs in $(THEOS_SDKS_PATH)." >&2; exit 1
+else
+	@$(PRINT_FORMAT_ERROR) "You do not have any SDKs in $(_XCODE_SDK_DIR) or $(THEOS_SDKS_PATH)." >&2; exit 1
+endif
 endif
 
-_IOS_SDKS = $(sort $(_UNSORTED_SDKS))
-_LATEST_SDK := $(lastword $(_IOS_SDKS))
+_SORTED_SDKS = $(call __simplify,_SORTED_SDKS,$(shell echo $(_UNSORTED_SDKS) | tr ' ' $$'\n' | sort -t. -k 1,1n -k 2,2n))
+_LATEST_SDK = $(call __simplify,_LATEST_SDK,$(lastword $(_SORTED_SDKS)))
 
 ifeq ($(_THEOS_TARGET_SDK_VERSION),latest)
-override _THEOS_TARGET_SDK_VERSION := $(_LATEST_SDK)
+	override _THEOS_TARGET_SDK_VERSION := $(_LATEST_SDK)
 endif
 
 ifeq ($(_THEOS_TARGET_INCLUDE_SDK_VERSION),latest)
-override _THEOS_TARGET_INCLUDE_SDK_VERSION := $(_LATEST_SDK)
+	override _THEOS_TARGET_INCLUDE_SDK_VERSION := $(_LATEST_SDK)
 else ifeq ($(_THEOS_TARGET_INCLUDE_SDK_VERSION),same)
-override _THEOS_TARGET_INCLUDE_SDK_VERSION := $(_THEOS_TARGET_SDK_VERSION)
+	override _THEOS_TARGET_INCLUDE_SDK_VERSION := $(_THEOS_TARGET_SDK_VERSION)
 endif
 
 _THEOS_TARGET_OS_DEPLOYMENT_VERSION := $(or $(__THEOS_TARGET_ARG_$(word 2,$(_THEOS_TARGET_ARG_ORDER))),$(TARGET_OS_DEPLOYMENT_VERSION_$(THEOS_CURRENT_ARCH)),$(TARGET_OS_DEPLOYMENT_VERSION),$(_SDKVERSION),$(_THEOS_TARGET_DEFAULT_OS_DEPLOYMENT_VERSION))
 
 ifeq ($(_THEOS_TARGET_OS_DEPLOYMENT_VERSION),latest)
-override _THEOS_TARGET_OS_DEPLOYMENT_VERSION := $(_LATEST_SDK)
+	override _THEOS_TARGET_OS_DEPLOYMENT_VERSION := $(_LATEST_SDK)
 endif
