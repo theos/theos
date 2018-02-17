@@ -1,5 +1,4 @@
 # We have to figure out the target version here, as we need it in the calculation of the deployment version.
-_TARGET_VERSION_GE_11_0 = $(call __simplify,_TARGET_VERSION_GE_11_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 11.0))
 _TARGET_VERSION_GE_10_0 = $(call __simplify,_TARGET_VERSION_GE_10_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 10.0))
 _TARGET_VERSION_GE_8_4 = $(call __simplify,_TARGET_VERSION_GE_8_4,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 8.4))
 _TARGET_VERSION_GE_7_0 = $(call __simplify,_TARGET_VERSION_GE_7_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 7.0))
@@ -17,7 +16,7 @@ else
 	_THEOS_TARGET_DEFAULT_OS_DEPLOYMENT_VERSION := 3.0
 endif
 
-_DEPLOY_VERSION_GE_11_0 = $(call __simplify,_DEPLOY_VERSION_GE_5_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_OS_DEPLOYMENT_VERSION) ge 11.0))
+_DEPLOY_VERSION_GE_11_0 = $(call __simplify,_DEPLOY_VERSION_GE_11_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_OS_DEPLOYMENT_VERSION) ge 11.0))
 _DEPLOY_VERSION_GE_5_0 = $(call __simplify,_DEPLOY_VERSION_GE_5_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_OS_DEPLOYMENT_VERSION) ge 5.0))
 _DEPLOY_VERSION_GE_3_0 = $(call __simplify,_DEPLOY_VERSION_GE_3_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_OS_DEPLOYMENT_VERSION) ge 3.0))
 _DEPLOY_VERSION_LT_4_3 = $(call __simplify,_DEPLOY_VERSION_LT_4_3,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_OS_DEPLOYMENT_VERSION) lt 4.3))
@@ -30,7 +29,7 @@ export _THEOS_TARGET_WARNED_DEPLOY := 1
 endif
 endif
 
-ifeq ($(_TARGET_VERSION_GE_11_0)$(_DEPLOY_VERSION_GE_11_0),11) # >= 11.0, Deploy >= 11.0 {
+ifeq ($(_DEPLOY_VERSION_GE_11_0),11) # >= Deploy >= 11.0 {
 	ARCHS ?= arm64
 else ifeq ($(_TARGET_VERSION_GE_7_0),1) # } >= 7.0 {
 	ARCHS ?= armv7 arm64
