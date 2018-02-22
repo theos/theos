@@ -35,7 +35,10 @@ endif
 
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_tail.mk
 
-_TARGET_VERSION_FLAG += $(if $(_TARGET_VERSION_GE_7_0),,-mmacosx-version-min=$(if $(_TARGET_VERSION_GE_4_0),10.6,10.5))
+ifeq ($(_TARGET_VERSION_GE_7_0),)
+	VERSIONFLAGS = -mmacosx-version-min=$(if $(_TARGET_VERSION_GE_4_0),10.6,10.5)
+endif
+
 _TARGET_OBJC_ABI_CFLAGS := $(if $(_TARGET_VERSION_GE_3_2),-fobjc-abi-version=2 -fobjc-legacy-dispatch)
 _TARGET_OBJC_ABI_LDFLAGS := $(if $(_TARGET_VERSION_GE_3_2),-Xlinker -objc_abi_version -Xlinker 2)
 
