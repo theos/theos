@@ -156,24 +156,8 @@ if [[ "$(__SUBPROJECTS)" != "" ]]; then \
  fi
 
 update-theos::
-	@if [[ ! -d "$(THEOS)/.git" ]]; then \
-		$(PRINT_FORMAT_ERROR) "$(THEOS) is not a Git repository. For more information, refer to https://github.com/theos/theos/wiki/Installation#updating." >&2; \
-		exit 1; \
-	fi
-
-	$(ECHO_NOTHING)$(PRINT_FORMAT_MAKING) "Updating Theos"; \
-		cd $(THEOS) && \
-		$(THEOS_BIN_PATH)/update-git-repo$(ECHO_END)
-
-	$(ECHO_NOTHING)$(PRINT_FORMAT_MAKING) "Updating submodules"; \
-		cd $(THEOS) && \
-		git config submodule.fetchJobs 4 && \
-		git submodule init && \
-		git submodule foreach --recursive $(THEOS_BIN_PATH)/update-git-repo$(ECHO_END)
-
-	$(ECHO_NOTHING)$(PRINT_FORMAT_MAKING) "Running post-update configuration"; \
-		cd $(THEOS) && \
-		$(THEOS_BIN_PATH)/post-update$(ECHO_END)
+	@$(PRINT_FORMAT_MAKING) "Updating Theos"
+	$(ECHO_NOTHING)$(THEOS_BIN_PATH)/update-theos$(ECHO_END)
 
 troubleshoot::
 	@$(PRINT_FORMAT) "Be sure to check the troubleshooting page at https://github.com/theos/theos/wiki/Troubleshooting first."

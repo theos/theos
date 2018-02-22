@@ -1,8 +1,17 @@
 #!/bin/bash
-# since `git submodule foreach` doesn’t get called for submodules that aren’t cloned, force
-# those submodules to be cloned here
-for i in vendor/*; do
-	if [[ ! -f $i/.git ]]; then
-		git submodule update --init $i
-	fi
-done
+set -e
+
+# Ensure $THEOS is set and is a directory.
+if [[ -z "$THEOS" || ! -d "$THEOS" ]]; then
+	echo "\$THEOS must be set to the location of Theos to use $(basename $0)." >&2
+	exit 1
+fi
+
+cd "$THEOS"
+
+# Unless running on iOS, ensure IO::Compress::Lzma is installed. Print a message if not.
+if [[ "$(uname -s)-$(uname -p)" != "Darwin-arm" ]] && ! perl -MIO::Compress::Lzma -e '1' 2>/dev/null; then
+	printf "\n%s\n\n%s\n" \
+		"===============================================================================" \
+		"The Perl module IO::Compress::Lzma needs to be installed. For more information, refer to https://github.com/theos/theos/wiki/Installation#prerequisites."
+fi
