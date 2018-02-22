@@ -4,6 +4,7 @@ THEOS_TARGET_NAME := iphone
 
 _THEOS_TARGET_CC := clang
 _THEOS_TARGET_CXX := clang++
+_THEOS_TARGET_SWIFT := swift
 _THEOS_TARGET_ARG_ORDER := 1 2
 ifeq ($(__THEOS_TARGET_ARG_1),clang)
 _THEOS_TARGET_ARG_ORDER := 2 3
@@ -103,7 +104,7 @@ endif
 
 TARGET_CC ?= xcrun -sdk iphoneos $(_THEOS_TARGET_CC)
 TARGET_CXX ?= xcrun -sdk iphoneos $(_THEOS_TARGET_CXX)
-TARGET_SWIFT = swift
+TARGET_SWIFT ?= xcrun -sdk iphoneos $(_THEOS_TARGET_SWIFT)
 TARGET_LD ?= xcrun -sdk iphoneos $(_THEOS_TARGET_CXX)
 TARGET_STRIP ?= xcrun -sdk iphoneos strip
 TARGET_STRIP_FLAGS ?= -x
