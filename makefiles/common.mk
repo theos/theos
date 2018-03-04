@@ -209,12 +209,13 @@ ifneq ($(GO_EASY_ON_ME),1)
 	_THEOS_INTERNAL_CFLAGS += -Werror
 endif
 
-# If FORCE_COLOR hasn’t already been set, set it to enabled. We need to do this because output is
-# buffered by make when running rules in parallel, so clang doesn’t see stderr as a tty. We can’t
-# test this using [ -t 2 ] because it runs in a sub-shell and will always return 1 (false).
-FORCE_COLOR ?= $(_THEOS_TRUE)
+# If COLOR hasn’t already been set, set it to enabled. We need to do this because output is buffered
+# by make when running rules in parallel, so clang doesn’t see stderr as a tty. We can’t test this
+# using [ -t 2 ] because it runs in a sub-shell and will always return 1 (false).
+COLOR ?= $(_THEOS_TRUE)
 
-ifeq ($(call __theos_bool,$(FORCE_COLOR)),$(_THEOS_TRUE))
+ifeq ($(call __theos_bool,$(or $(COLOR),$(FORCE_COLOR))),$(_THEOS_TRUE))
+	COLOR := $(_THEOS_TRUE)
 	_THEOS_INTERNAL_CFLAGS += -fcolor-diagnostics
 	_THEOS_INTERNAL_SWIFTFLAGS += -fcolor-diagnostics
 	_THEOS_INTERNAL_LDFLAGS += -fcolor-diagnostics
@@ -253,7 +254,7 @@ THEOS_SUBPROJECT_PRODUCT = subproject.o
 
 include $(THEOS_MAKE_PATH)/messages.mk
 
-_THEOS_MAKEFLAGS := --no-keep-going FORCE_COLOR=$(FORCE_COLOR)
+_THEOS_MAKEFLAGS := --no-keep-going COLOR=$(COLOR)
 
 ifeq ($(_THEOS_VERBOSE),$(_THEOS_FALSE))
 	_THEOS_MAKEFLAGS += --no-print-directory
