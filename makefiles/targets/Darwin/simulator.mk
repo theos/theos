@@ -27,7 +27,12 @@ _TARGET_VERSION_GE_8_0 = $(call __simplify,_TARGET_VERSION_GE_8_0,$(shell $(THEO
 _TARGET_VERSION_GE_8_4 = $(call __simplify,_TARGET_VERSION_GE_8_4,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 8.4))
 _TARGET_VERSION_GE_11_0 = $(call __simplify,_TARGET_VERSION_GE_11_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 11.0))
 
-NEUTRAL_ARCH := $(if $(_TARGET_VERSION_GE_8_0),x86_64,i386)
+ARCHS ?= $(if $(_TARGET_VERSION_GE_8_0),,i386) $(if $(_TARGET_VERSION_GE_7_0),x86_64)
+NEUTRAL_ARCH = $(if $(_TARGET_VERSION_GE_8_0),x86_64,i386)
+
+_TARGET_VERSION_FLAG = $(if $(_TARGET_VERSION_GE_7_0),-mios-simulator-version-min=$(_THEOS_TARGET_IPHONEOS_DEPLOYMENT_VERSION),-mmacosx-version-min=$(if $(_TARGET_VERSION_GE_4_0),10.6,10.5))
+_TARGET_OBJC_ABI_CFLAGS = $(if $(_TARGET_VERSION_GE_3_2),-fobjc-abi-version=2 -fobjc-legacy-dispatch)
+_TARGET_OBJC_ABI_LDFLAGS = $(if $(_TARGET_VERSION_GE_3_2),-Xlinker -objc_abi_version -Xlinker 2)
 
 ifeq ($(_TARGET_VERSION_GE_8_4),1)
 _THEOS_DARWIN_CAN_USE_MODULES := 1

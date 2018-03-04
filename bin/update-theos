@@ -1,0 +1,42 @@
+#!/bin/bash
+set -e
+
+has() {
+	type "$1" >/dev/null 2>&1
+}
+
+# Ensure $THEOS is set and is a directory.
+if [[ -z "$THEOS" || ! -d "$THEOS" ]]; then
+	echo "\$THEOS must be set to the location of Theos to use $(basename $0)." >&2
+	exit 1
+fi
+
+# Ensure $THEOS is a Git repo.
+if [[ ! -d "$THEOS/.git" ]]; then
+	echo "$THEOS is not a Git repository. Theos relies on Git to update itself. For more information, refer to https://github.com/theos/theos/wiki/Installation#updating." >&2
+	exit 2
+fi
+
+# Ensure the user has Git.
+if ! has git; then
+	echo "Git is not installed. Theos relies on Git to update itself. For more information, refer to https://github.com/theos/theos/wiki/Installation." >&2
+	exit 2
+fi
+
+cd "$THEOS"
+git config submodule.fetchJobs 4
+
+# If the Theos Git repo has a GitHub remote URL, then ask GitHub what the latest commit is. If the
+# API returns 304 Not Modified, nothing has to be done. Otherwise, pull the latest of everything.
+origin="$(git config remote.origin.url)"
+repo_name="$(echo "$origin" | perl -pe 's-^(https?://|git://|.*@)(ssh\.)?github.com[:/]--;s-\.git$--')"
+
+if [[ "$repo_name" != "$origin" && "$(curl -s -o /dev/null -w "%{http_code}" -H "Accept: application/vnd.github.v3.sha" -H "If-None-Match: \"$(git rev-parse --verify HEAD)\"" "https://api.github.com/repos/$repo_name/commits/HEAD")" == "304" ]]; then
+	echo "Theos is already up-to-date." 1>&2
+else
+	git pull --all --rebase=false
+	git submodule update --init --recursive
+fi
+
+# The Theos update may need to do some extra stuff, 
+exec bin/post-update

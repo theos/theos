@@ -22,7 +22,9 @@ endif
 endif
 
 .PHONY: all before-all internal-all after-all \
-	clean before-clean internal-clean after-clean update-theos
+	clean before-clean internal-clean after-clean \
+	clean-packages before-clean-packages internal-clean-packages after-clean-packages \
+	update-theos
 ifeq ($(THEOS_BUILD_DIR),.)
 all:: $(_THEOS_BUILD_SESSION_FILE) before-all internal-all after-all
 else
@@ -156,24 +158,8 @@ if [[ "$(__SUBPROJECTS)" != "" ]]; then \
  fi
 
 update-theos::
-	@if [[ ! -d "$(THEOS)/.git" ]]; then \
-		$(PRINT_FORMAT_ERROR) "$(THEOS) is not a Git repository. For more information, refer to https://github.com/theos/theos/wiki/Installation#updating." >&2; \
-		exit 1; \
-	fi
-
-	$(ECHO_NOTHING)$(PRINT_FORMAT_MAKING) "Updating Theos"; \
-		cd $(THEOS) && \
-		$(THEOS_BIN_PATH)/update-git-repo$(ECHO_END)
-
-	$(ECHO_NOTHING)$(PRINT_FORMAT_MAKING) "Updating submodules"; \
-		cd $(THEOS) && \
-		git config submodule.fetchJobs 4 && \
-		git submodule init && \
-		git submodule foreach --recursive $(THEOS_BIN_PATH)/update-git-repo$(ECHO_END)
-
-	$(ECHO_NOTHING)$(PRINT_FORMAT_MAKING) "Running post-update configuration"; \
-		cd $(THEOS) && \
-		$(THEOS_BIN_PATH)/post-update$(ECHO_END)
+	@$(PRINT_FORMAT_MAKING) "Updating Theos"
+	$(ECHO_NOTHING)$(THEOS_BIN_PATH)/update-theos$(ECHO_END)
 
 troubleshoot::
 	@$(PRINT_FORMAT) "Be sure to check the troubleshooting page at https://github.com/theos/theos/wiki/Troubleshooting first."
@@ -182,7 +168,7 @@ troubleshoot::
 
 ifeq ($(call __executable,ghost),$(_THEOS_TRUE))
 	@$(PRINT_FORMAT) "Creating a Ghostbin containing the output of \`make clean all messages=yes\`…"
-	+$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going clean all messages=yes FORCE_COLOR=yes 2>&1 | ghost -x 2w - ansi
+	+$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going clean all messages=yes COLOR=yes 2>&1 | ghost -x 2w - ansi
 else
 	@$(PRINT_FORMAT_ERROR) "You don't have ghost installed. For more information, refer to https://github.com/theos/theos/wiki/Installation#prerequisites." >&2; exit 1
 endif
