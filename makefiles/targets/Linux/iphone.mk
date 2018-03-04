@@ -16,5 +16,5 @@ PREFIX := $(SDKBINPATH)/$(SDKTARGET)-
 
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_head.mk
 include $(THEOS_MAKE_PATH)/targets/_common/iphone.mk
-include $(THEOS_MAKE_PATH)/targets/_common/darwin_tal.mk
+include $(THEOS_MAKE_PATH)/targets/_common/darwin_tail.mk
 endif
