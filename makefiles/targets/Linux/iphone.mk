@@ -2,6 +2,11 @@ ifeq ($(_THEOS_TARGET_LOADED),)
 _THEOS_TARGET_LOADED := 1
 THEOS_TARGET_NAME := iphone
 
+_THEOS_TARGET_PLATFORM_NAME := iphoneos
+_THEOS_TARGET_PLATFORM_SDK_NAME := iPhoneOS
+_THEOS_TARGET_PLATFORM_FLAG_NAME := iphoneos
+_THEOS_TARGET_PLATFORM_SWIFT_NAME := apple-ios
+
 # Determine toolchain to use based on file existence.
 ifeq ($(SDKTARGET),)
 ifeq ($(wildcard $(THEOS)/toolchain/$(THEOS_PLATFORM_NAME)/$(THEOS_TARGET_NAME)/bin/arm64-apple-darwin14-ld),)
