@@ -31,7 +31,7 @@ git config submodule.fetchJobs 4
 origin="$(git config remote.origin.url)"
 repo_name="$(echo "$origin" | perl -pe 's-^(https?://|git://|.*@)(ssh\.)?github.com[:/]--;s-\.git$--')"
 
-if [[ "$repo_name" != "$origin" && "$(curl -s -o /dev/null -w "%{http_code}" -H "Accept: application/vnd.github.v3.sha" -H "If-None-Match: \"$(git rev-parse --verify HEAD)\"" "https://api.github.com/repos/$repo_name/commits/HEAD")" == "304" ]]; then
+if [[ "$1" != "--force" && "$repo_name" != "$origin" && "$(curl -s -o /dev/null -w "%{http_code}" -H "Accept: application/vnd.github.v3.sha" -H "If-None-Match: \"$(git rev-parse --verify HEAD)\"" "https://api.github.com/repos/$repo_name/commits/HEAD")" == "304" ]]; then
 	echo "Theos is already up-to-date." 1>&2
 else
 	git pull --all --rebase=false
