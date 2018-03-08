@@ -19,16 +19,6 @@ _LOCAL_INSTANCE_TARGET := $(_LOCAL_BUNDLE_FULL_NAME)$(_THEOS_TARGET_BUNDLE_BINAR
 include $(THEOS_MAKE_PATH)/instance/shared/bundle.mk
 # End Bundle Setup
 
-ifeq ($(_LOCAL_APP_EXTENSION_SAFE),)
-	_LOCAL_APP_EXTENSION_SAFE := $(or $($(THEOS_CURRENT_INSTANCE)_APP_EXTENSION_SAFE),$(_THEOS_FALSE))
-endif
-
-ifeq ($(_LOCAL_APP_EXTENSION_SAFE),$(_THEOS_TRUE))
-	_THEOS_INTERNAL_CFLAGS += -fapplication-extension
-	_THEOS_INTERNAL_SWIFTFLAGS += -application-extension
-	_THEOS_INTERNAL_LDFLAGS += -fapplication-extension
-endif
-
 ifeq ($(_THEOS_MAKE_PARALLEL_BUILDING), no)
 internal-bundle-all_:: $(_OBJ_DIR_STAMPS) shared-instance-bundle-all $(THEOS_OBJ_DIR)/$(_LOCAL_INSTANCE_TARGET)
 else
