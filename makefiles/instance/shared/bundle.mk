@@ -11,13 +11,20 @@
 
 .PHONY: shared-instance-bundle-stage
 
+ifeq ($(_LOCAL_APP_EXTENSION_SAFE_API),)
+	_LOCAL_APP_EXTENSION_SAFE_API := $(or $($(THEOS_CURRENT_INSTANCE)_APP_EXTENSION_SAFE_API),$(_THEOS_FALSE))
+endif
+
 ifeq ($(_LOCAL_APP_EXTENSION_SAFE),)
 	_LOCAL_APP_EXTENSION_SAFE := $(or $($(THEOS_CURRENT_INSTANCE)_APP_EXTENSION_SAFE),$(_THEOS_FALSE))
 endif
 
-ifeq ($(_LOCAL_APP_EXTENSION_SAFE),$(_THEOS_TRUE))
+ifeq ($(_LOCAL_APP_EXTENSION_SAFE_API),$(_THEOS_TRUE))
 	_THEOS_INTERNAL_CFLAGS += -fapplication-extension
 	_THEOS_INTERNAL_SWIFTFLAGS += -application-extension
+endif
+
+ifeq ($(_LOCAL_APP_EXTENSION_SAFE),$(_THEOS_TRUE))
 	_THEOS_INTERNAL_LDFLAGS += -fapplication-extension
 endif
 
