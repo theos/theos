@@ -24,19 +24,13 @@ if ! has git; then
 fi
 
 cd "$THEOS"
+
+# Set conflig flag so multiple git fetch jobs run simultaneously.
 git config submodule.fetchJobs 4
 
-# If the Theos Git repo has a GitHub remote URL, then ask GitHub what the latest commit is. If the
-# API returns 304 Not Modified, nothing has to be done. Otherwise, pull the latest of everything.
-origin="$(git config remote.origin.url)"
-repo_name="$(echo "$origin" | perl -pe 's-^(https?://|git://|.*@)(ssh\.)?github.com[:/]--;s-\.git$--')"
+# Update Theos itself, then submodules.
+git pull --all --rebase=false
+git submodule update --init --recursive
 
-if [[ "$1" != "--force" && "$repo_name" != "$origin" && "$(curl -s -o /dev/null -w "%{http_code}" -H "Accept: application/vnd.github.v3.sha" -H "If-None-Match: \"$(git rev-parse --verify HEAD)\"" "https://api.github.com/repos/$repo_name/commits/HEAD")" == "304" ]]; then
-	echo "Theos is already up-to-date." 1>&2
-else
-	git pull --all --rebase=false
-	git submodule update --init --recursive
-fi
-
-# The Theos update may need to do some extra stuff, 
+# The Theos update may need to do some extra stuff, so run the post-update script here.
 exec bin/post-update
