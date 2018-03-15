@@ -11,5 +11,5 @@ TARGET_INSTALL_REMOTE := if ($(call __theos_bool,$(THEOS_INSTALL_USING_SSH)),$(_
 
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_head.mk
 include $(THEOS_MAKE_PATH)/targets/_common/iphone.mk
-include $(THEOS_MAKE_PATH)/targets/_common/tail.mk
+include $(THEOS_MAKE_PATH)/targets/_common/darwin_tail.mk
 endif

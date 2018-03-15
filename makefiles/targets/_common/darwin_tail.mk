@@ -31,17 +31,12 @@ _THEOS_TARGET_CFLAGS := -isysroot "$(ISYSROOT)" $(VERSIONFLAGS) $(MODULESFLAGS) 
 _THEOS_TARGET_LDFLAGS := -isysroot "$(SYSROOT)" $(VERSIONFLAGS) $(LEGACYFLAGS) -multiply_defined suppress
 
 _THEOS_TARGET_SWIFTFLAGS := -sdk "$(SYSROOT)" $(_THEOS_TARGET_CC_SWIFTFLAGS)
-_THEOS_TARGET_SWIFT_TARGET := $(_THEOS_TARGET_PLATFORM_SWIFT_NAME)$(_THEOS_TARGET_DARWIN_DEPLOYMENT_VERSION)
+_THEOS_TARGET_SWIFT_TARGET := $(_THEOS_TARGET_PLATFORM_SWIFT_NAME)$(_THEOS_TARGET_OS_DEPLOYMENT_VERSION)
 
 ifeq ($(call __executable,$(TARGET_SWIFT)),$(_THEOS_TRUE))
-	_THEOS_TARGET_SWIFT_VERSION = $(call __simplify,_THEOS_TARGET_SWIFT_VERSION,$(shell $(TARGET_SWIFT) --version | head -1 | cut -d' ' -f4))
+	_THEOS_TARGET_SWIFT_VERSION = $(call __simplify,_THEOS_TARGET_SWIFT_VERSION,$(shell $(TARGET_SWIFT) --version | head -1 | cut -d' ' -f4 | cut -d'-' -f1))
 	_THEOS_TARGET_SWIFT_LDFLAGS := $(call __simplify,_THEOS_TARGET_SWIFT_LDFLAGS,-rpath /usr/lib/libswift/$(_THEOS_TARGET_SWIFT_VERSION))
-
-ifeq ($(THEOS_PLATFORM_NAME),macosx)
-	_THEOS_TARGET_SWIFT_LDPATH := $(THEOS_PLATFORM_SDK_ROOT)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphoneos
-else
 	_THEOS_TARGET_SWIFT_LDPATH = $(call __simplify,_THEOS_TARGET_SWIFT_LDPATH,$(dir $(shell type -p $(TARGET_SWIFT)))../lib/swift/$(_THEOS_TARGET_PLATFORM_NAME))
-endif
 endif
 
 ifeq ($(_THEOS_TARGET_DARWIN_BUNDLE_TYPE),hierarchial)
