@@ -15,3 +15,6 @@ if [[ "$(uname -s)-$(uname -p)" != "Darwin-arm" ]] && ! perl -MIO::Compress::Lzm
 		"===============================================================================" \
 		"The Perl module IO::Compress::Lzma needs to be installed. For more information, refer to https://github.com/theos/theos/wiki/Installation#prerequisites."
 fi
+
+printf "\n\e[0;36m==> \e[1;36mNotice:\e[m %s\n" \
+	"Visit https://github.com/theos/theos/releases to see the changelog."
