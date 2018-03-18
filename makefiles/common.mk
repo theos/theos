@@ -54,8 +54,9 @@ THEOS_VENDOR_INCLUDE_PATH := $(THEOS)/vendor/include
 THEOS_FALLBACK_INCLUDE_PATH := $(THEOS)/include/_fallback
 THEOS_MODULE_PATH := $(THEOS)/mod
 THEOS_SDKS_PATH := $(THEOS)/sdks
+PERL := perl
 export THEOS THEOS_BIN_PATH THEOS_MAKE_PATH THEOS_LIBRARY_PATH THEOS_VENDOR_LIBRARY_PATH THEOS_INCLUDE_PATH THEOS_VENDOR_INCLUDE_PATH THEOS_FALLBACK_INCLUDE_PATH
-export THEOS_PROJECT_DIR
+export THEOS_PROJECT_DIR PERL
 
 export PATH := $(THEOS_BIN_PATH):$(PATH)
 
@@ -133,7 +134,7 @@ $(eval $(call __mod,platform/$(_THEOS_PLATFORM).mk))
 $(eval $(call __mod,platform/$(_THEOS_OS).mk))
 
 ifneq ($(_THEOS_TARGET_CALCULATED),1)
-__TARGET_MAKEFILE := $(shell $(THEOS_BIN_PATH)/target.pl "$(target)" "$(call __schema_var_last,,TARGET)" "$(_THEOS_PLATFORM_DEFAULT_TARGET)")
+__TARGET_MAKEFILE := $(shell $(PERL) $(THEOS_BIN_PATH)/target.pl "$(target)" "$(call __schema_var_last,,TARGET)" "$(_THEOS_PLATFORM_DEFAULT_TARGET)")
 -include $(__TARGET_MAKEFILE)
 $(shell rm -f $(__TARGET_MAKEFILE) > /dev/null 2>&1)
 export _THEOS_TARGET := $(__THEOS_TARGET_ARG_0)
