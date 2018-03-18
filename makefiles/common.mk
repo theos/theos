@@ -265,7 +265,7 @@ unexport THEOS_CURRENT_INSTANCE _THEOS_CURRENT_TYPE
 THEOS_RSYNC_EXCLUDES ?= _MTN .git .svn .DS_Store ._*
 _THEOS_RSYNC_EXCLUDE_COMMANDLINE := $(foreach exclude,$(THEOS_RSYNC_EXCLUDES),--exclude "$(exclude)")
 
-FAKEROOT := $(THEOS_BIN_PATH)/fakeroot.sh -p "$(_THEOS_LOCAL_DATA_DIR)/fakeroot"
+FAKEROOT := $(SHELL) $(THEOS_BIN_PATH)/fakeroot.sh -p "$(_THEOS_LOCAL_DATA_DIR)/fakeroot"
 export FAKEROOT
 
 _THEOS_MAKE_PARALLEL_BUILDING ?= yes
