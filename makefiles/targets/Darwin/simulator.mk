@@ -61,7 +61,7 @@ internal-install::
 	@exit 1
 else
 internal-install:: stage
-	install.mergeDir "$(THEOS_STAGING_DIR)" "$(IPHONE_SIMULATOR_ROOT)"
+	$(SHELL) install.mergeDir "$(THEOS_STAGING_DIR)" "$(IPHONE_SIMULATOR_ROOT)"
 endif
 
 # We have to figure out the target version here, as we need it in the calculation of the deployment version.

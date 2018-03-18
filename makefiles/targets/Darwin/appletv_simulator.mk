@@ -61,7 +61,7 @@ internal-install::
 	@exit 1
 else
 internal-install:: stage
-	install.mergeDir "$(THEOS_STAGING_DIR)" "$(APPLETV_SIMULATOR_ROOT)"
+	$(SHELL) install.mergeDir "$(THEOS_STAGING_DIR)" "$(APPLETV_SIMULATOR_ROOT)"
 endif
 
 ARCHS ?= x86_64
