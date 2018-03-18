@@ -1,0 +1,15 @@
+[submodule "vendor/include"]
+	path = vendor/include
+	url = https://github.com/theos/headers.git
+[submodule "vendor/lib"]
+	path = vendor/lib
+	url = https://github.com/theos/lib.git
+[submodule "vendor/dm.pl"]
+	path = vendor/dm.pl
+	url = https://github.com/theos/dm.pl.git
+[submodule "vendor/logos"]
+	path = vendor/logos
+	url = https://github.com/theos/logos.git
+[submodule "vendor/nic"]
+	path = vendor/nic
+	url = https://github.com/theos/nic.git

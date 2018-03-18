@@ -1,29 +1,33 @@
+#ifdef DEBUG
+	#define __DEBUG__
+#endif
+
 #ifdef __OBJC__
-	#import <Foundation/Foundation.h>
-	#if TARGET_IPHONE || TARGET_IPHONE_SIMULATOR
-		#import <UIKit/UIKit.h>
+	// This block shouldn't really be in this prefix header, but we can't remove it without breaking
+	// pretty much everyone's projects. THEOS_LEAN_AND_MEAN allows for this block to be skipped on a
+	// per-project or per-developer basis. This is always skipped when building Swift.
+	#if !defined(THEOS_LEAN_AND_MEAN) && !defined(THEOS_SWIFT)
+		#import <_Prefix/NullabilityCompat.h>
+		#import <Foundation/Foundation.h>
+
+		#ifdef TARGET_OS_SIMULATOR
+			#define _THEOS_IS_SIMULATOR TARGET_OS_SIMULATOR
+		#else
+			#define _THEOS_IS_SIMULATOR TARGET_IPHONE_SIMULATOR
+		#endif
+
+		#if TARGET_IPHONE || _THEOS_IS_SIMULATOR
+			#import <UIKit/UIKit.h>
+			#import <_Prefix/IOSWebKitCompatHacks.h>
+		#endif
+
+		#if TARGET_MACOSX
+			#import <Cocoa/Cocoa.h>
+			#import <AppKit/AppKit.h>
+		#endif
+
+		#import <_Prefix/IOSMacros.h>
 	#endif
 
-	#define CLASS(cls) objc_getClass(#cls)
-
-	#ifdef DEBUG
-		#define __DEBUG__
-	#endif
-	
-	#ifdef __DEBUG__
-		#define CMLog(format, ...) NSLog(@"(%s) in [%s:%d] ::: %@", __PRETTY_FUNCTION__, __FILE__, __LINE__, [NSString stringWithFormat:format, ## __VA_ARGS__])
-		#define MARK	CMLog(@"%s", __PRETTY_FUNCTION__);
-		#define START_TIMER NSTimeInterval start = [NSDate timeIntervalSinceReferenceDate];
-		#define END_TIMER(msg) 	NSTimeInterval stop = [NSDate timeIntervalSinceReferenceDate]; CMLog([NSString stringWithFormat:@"%@ Time = %f", msg, stop-start])
-	#else
-		#define CMLog(format, ...)
-		#define MARK
-		#define START_TIMER
-		#define END_TIMER(msg)
-		//#define NSLog(...)
-	#endif
-
-	#define NB [NSBundle mainBundle]
-	#define UD [NSUserDefaults standardUserDefaults]
-	#define FM [NSFileManager defaultManager]
+	#import <_Prefix/HBLog.h>
 #endif
