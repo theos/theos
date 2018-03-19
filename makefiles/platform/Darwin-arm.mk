@@ -6,7 +6,7 @@ _THEOS_PLATFORM_DEFAULT_TARGET := iphone
 _THEOS_PLATFORM_DPKG_DEB := $(shell \
 	PATH=$$PATH:$(THEOS_BIN_PATH); \
 	DM=$$(which dm.pl); \
-	[ ! -z "$${DM}" ] && $(PERL) -MIO::Compress::Lzma -MIO::Compress::Gzip -MIO::Compress::Bzip2 -MIO::Compress::Xz -e 'exit 0' \
+	[ ! -z "$${DM}" ] && ($(PERL) -MIO::Compress::Lzma -e '1' 2>/dev/null) \
 		&& echo $$DM || echo dpkg-deb \
 	)
 _THEOS_PLATFORM_DU_EXCLUDE := --exclude
