@@ -247,9 +247,6 @@ THEOS_PACKAGE_DIR_NAME ?= packages
 THEOS_PACKAGE_DIR ?= $(THEOS_BUILD_DIR)/$(THEOS_PACKAGE_DIR_NAME)
 THEOS_LEGACY_PACKAGE_DIR = $(THEOS_BUILD_DIR)/debs
 
-# $(warning ...) expands to the empty string, so the contents of THEOS_STAGING_DIR are not damaged in this copy.
-FW_PACKAGE_STAGING_DIR = $(THEOS_STAGING_DIR)$(warning FW_PACKAGE_STAGING_DIR is deprecated; please use THEOS_STAGING_DIR)
-
 THEOS_SUBPROJECT_PRODUCT = subproject.o
 
 include $(THEOS_MAKE_PATH)/messages.mk

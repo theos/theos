@@ -1,15 +1,16 @@
-FRAMEWORKDIR = $(THEOS)$(warning FRAMEWORKDIR is deprecated. Please migrate to THEOS.)
-FW_BINDIR = $(THEOS_BIN_PATH)$(warning FW_BINDIR is deprecated. Please migrate to THEOS_BIN_PATH.)
-FW_MAKEDIR = $(THEOS_MAKE_PATH)$(warning FW_MAKEDIR is deprecated. Please migrate to THEOS_MAKE_PATH.)
-FW_INCDIR = $(THEOS_INCLUDE_PATH)$(warning FW_INCDIR is deprecated. Please migrate to THEOS_INCLUDE_PATH.)
-FW_LIBDIR = $(THEOS_LIBRARY_PATH)$(warning FW_LIBDIR is deprecated. Please migrate to THEOS_LIBRARY_PATH.)
-FW_MODDIR = $(THEOS_MODULE_PATH)$(warning FW_MODDIR is deprecated. Please migrate to THEOS_MODULE_PATH.)
+FRAMEWORKDIR = $(THEOS)
+FW_BINDIR = $(THEOS_BIN_PATH)
+FW_MAKEDIR = $(THEOS_MAKE_PATH)
+FW_INCDIR = $(THEOS_INCLUDE_PATH)
+FW_LIBDIR = $(THEOS_LIBRARY_PATH)
+FW_MODDIR = $(THEOS_MODULE_PATH)
 
-FW_PROJECT_DIR = $(THEOS_PROJECT_DIR)$(warning FW_PROJECT_DIR is deprecated. Please migrate to THEOS_PROJECT_DIR.)
+FW_PROJECT_DIR = $(THEOS_PROJECT_DIR)
 
 export FRAMEWORKDIR FW_BINDIR FW_MAKEDIR FW_INCDIR FW_LIBDIR FW_MODDIR
 export FW_PROJECT_DIR
 
+# $(warning ...) expands to the empty string, so the contents of these variables are not damaged.
 FW_PLATFORM_NAME = $(THEOS_PLATFORM_NAME)$(warning FW_PLATFORM_NAME is deprecated. Please migrate to THEOS_PLATFORM_NAME.)
 FW_TARGET_NAME = $(THEOS_TARGET_NAME)$(warning FW_TARGET_NAME is deprecated. Please migrate to THEOS_TARGET_NAME.)
 
@@ -44,6 +45,7 @@ FW_PACKAGE_ARCH = $(THEOS_PACKAGE_ARCH)$(warning FW_PACKAGE_ARCH is deprecated. 
 FW_PACKAGE_VERSION = $(THEOS_PACKAGE_BASE_VERSION)$(warning FW_PACKAGE_VERSION is deprecated. Please migrate to THEOS_PACKAGE_BASE_VERSION.)
 FW_PACKAGE_DEBVERSION = $(THEOS_PACKAGE_VERSION)$(warning FW_PACKAGE_DEBVERSION is deprecated. Please migrate to THEOS_PACKAGE_VERSION.)
 FW_PACKAGE_FILENAME = $(THEOS_PACKAGE_FILENAME)$(warning FW_PACKAGE_FILENAME is deprecated. Please migrate to THEOS_PACKAGE_FILENAME.)
+FW_PACKAGE_STAGING_DIR = $(THEOS_STAGING_DIR)$(warning FW_PACKAGE_STAGING_DIR is deprecated. Please migrate to THEOS_STAGING_DIR.)
 
 ifdef FW_DEVICE_TUNNEL
 $(warning FW_DEVICE_TUNNEL is deprecated. Please migrate to THEOS_DEVICE_IP and THEOS_DEVICE_PORT.)
