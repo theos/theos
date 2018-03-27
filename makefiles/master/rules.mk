@@ -37,8 +37,10 @@ do:: all package install
 
 before-all::
 # If the sysroot is set but doesn’t exist, bail out.
-ifneq ($(SYSROOT)$(call __exists,$(SYSROOT)),$(_THEOS_TRUE))
+ifneq ($(SYSROOT),)
+ifneq ($(call __exists,$(SYSROOT)),$(_THEOS_TRUE))
 	@$(PRINT_FORMAT_ERROR) "Your current SYSROOT, “$(SYSROOT)”, appears to be missing." >&2; exit 1
+endif
 endif
 
 # If a vendored path is missing, bail out.
@@ -107,7 +109,7 @@ after-clean-packages::
 $(_THEOS_BUILD_SESSION_FILE):
 	@mkdir -p $(_THEOS_LOCAL_DATA_DIR)
 
-ifeq ($(shell [[ -f "$(_THEOS_BUILD_SESSION_FILE)" ]] || echo 0),0)
+ifeq ($(call __exists,$(_THEOS_BUILD_SESSION_FILE)),$(_THEOS_FALSE))
 	@touch $(_THEOS_BUILD_SESSION_FILE)
 endif
 
