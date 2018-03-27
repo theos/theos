@@ -32,23 +32,25 @@ endif
 ifeq ($(call __theos_bool,$(COLOR)),$(_THEOS_TRUE))
 	PRINT_FORMAT = printf "\e[0;36m==> \e[1;36mNotice:\e[m %s\n"
 	PRINT_FORMAT_MAKING = printf "\e[1;31m> \e[1;3;39m%s…\e[m\n"
-	PRINT_FORMAT_RED = printf "\e[0;31m==> \e[1;39m%s…\e[m\n"
-	PRINT_FORMAT_GREEN = printf "\e[0;32m==> \e[1;39m%s…\e[m\n"
-	PRINT_FORMAT_YELLOW = printf "\e[0;33m==> \e[1;39m%s…\e[m\n"
-	PRINT_FORMAT_BLUE = printf "\e[0;34m==> \e[1;39m%s…\e[m\n"
-	PRINT_FORMAT_MAGENTA = printf "\e[0;35m==> \e[1;39m%s…\e[m\n"
-	PRINT_FORMAT_CYAN = printf "\e[0;36m==> \e[1;39m%s…\e[m\n"
+	PRINT_FORMAT_STAGE = printf "\e[0;3%im==> \e[1;39m%s…\e[m\n"
+	PRINT_FORMAT_RED = $(PRINT_FORMAT_STAGE) 1
+	PRINT_FORMAT_GREEN = $(PRINT_FORMAT_STAGE) 2
+	PRINT_FORMAT_YELLOW = $(PRINT_FORMAT_STAGE) 3
+	PRINT_FORMAT_BLUE = $(PRINT_FORMAT_STAGE) 4
+	PRINT_FORMAT_MAGENTA = $(PRINT_FORMAT_STAGE) 5
+	PRINT_FORMAT_CYAN = $(PRINT_FORMAT_STAGE) 6
 	PRINT_FORMAT_WARNING = printf "\e[0;33m==> \e[1;33mWarning:\e[m %s\n"
 	PRINT_FORMAT_ERROR = printf "\e[0;31m==> \e[1;31mError:\e[m %s\n"
 else
 	PRINT_FORMAT = printf "==> Notice: %s\n"
 	PRINT_FORMAT_MAKING = printf "> %s...\n"
-	PRINT_FORMAT_RED = printf "==> %s...\n"
-	PRINT_FORMAT_GREEN = printf "==> %s...\n"
-	PRINT_FORMAT_YELLOW = printf "==> %s...\n"
-	PRINT_FORMAT_BLUE = printf "==> %s...\n"
-	PRINT_FORMAT_MAGENTA = printf "==> %s...\n"
-	PRINT_FORMAT_CYAN = printf "==> %s...\n"
+	PRINT_FORMAT_STAGE = printf "==> %s...\n"
+	PRINT_FORMAT_RED = $(PRINT_FORMAT_STAGE)
+	PRINT_FORMAT_GREEN = $(PRINT_FORMAT_STAGE)
+	PRINT_FORMAT_YELLOW = $(PRINT_FORMAT_STAGE)
+	PRINT_FORMAT_BLUE = $(PRINT_FORMAT_STAGE)
+	PRINT_FORMAT_MAGENTA = $(PRINT_FORMAT_STAGE)
+	PRINT_FORMAT_CYAN = $(PRINT_FORMAT_STAGE)
 	PRINT_FORMAT_WARNING = printf "==> Warning: %s\n"
 	PRINT_FORMAT_ERROR = printf "==> Error: %s\n"
 endif
