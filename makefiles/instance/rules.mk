@@ -299,12 +299,10 @@ $$(THEOS_OBJ_DIR)/%/$(1): $(__ALL_FILES)
 		THEOS_BUILD_DIR="$(THEOS_BUILD_DIR)" \
 		THEOS_CURRENT_ARCH="$$*"
 
-WSL = $(shell grep -q 'Microsoft' /proc/version)
-
 ifneq ($$(TARGET_CODESIGN),)
 .INTERMEDIATE: $$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned
 $(THEOS_OBJ_DIR)/$(1): $$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned
-ifeq ($(WSL),)
+ifeq ($(_THEOS_IS_WSL),$(_THEOS_TRUE))
 	$$(ECHO_SIGNING)mkdir -p "$(_THEOS_TMP_FOR_WSL)/$(dir $(1))" && cp "$$<" "$(_THEOS_TMP_FOR_WSL)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned" && $$(_THEOS_CODESIGN_COMMANDLINE) "$(_THEOS_TMP_FOR_WSL)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned" && mv "$(_THEOS_TMP_FOR_WSL)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned" "$$@"$$(ECHO_END)
 else
 	$$(ECHO_SIGNING)$$(_THEOS_CODESIGN_COMMANDLINE) "$$<" && mv "$$<" "$$@"$$(ECHO_END)
@@ -328,7 +326,7 @@ ifneq ($(TARGET_DSYMUTIL),)
 	$$(ECHO_DEBUG_SYMBOLS)$$(ECHO_UNBUFFERED)$$(TARGET_DSYMUTIL) "$$@"$(ECHO_END)
 endif
 ifeq ($(SHOULD_STRIP),$(_THEOS_TRUE))
-ifeq ($(WSL),)
+ifeq ($(_THEOS_IS_WSL),$(_THEOS_TRUE))
 mkdir -p "$(_THEOS_TMP_FOR_WSL)/$(THEOS_CURRENT_ARCH)"
 $$(ECHO_STRIPPING)$$(ECHO_UNBUFFERED)cp "$$@" "$(_THEOS_TMP_FOR_WSL)/$(THEOS_CURRENT_ARCH)" && $$(TARGET_STRIP) $$(ALL_STRIP_FLAGS) "$(_THEOS_TMP_FOR_WSL)/$(THEOS_CURRENT_ARCH)/$(1)" && mv "$(_THEOS_TMP_FOR_WSL)/$(THEOS_CURRENT_ARCH)/$(1)" $$(THEOS_OBJ_DIR)$$(ECHO_END)
 else

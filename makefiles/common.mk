@@ -15,43 +15,6 @@ _THEOS_RELATIVE_DATA_DIR ?= .theos
 _THEOS_LOCAL_DATA_DIR := $(THEOS_PROJECT_DIR)/$(_THEOS_RELATIVE_DATA_DIR)
 _THEOS_BUILD_SESSION_FILE = $(_THEOS_LOCAL_DATA_DIR)/build_session
 
-WSL = $(shell grep -q 'Microsoft' /proc/version)
-ifeq ($(WSL),)
-_THEOS_TMP_FOR_WSL_BASE := /tmp/theos_for_wsl
-_THEOS_TMP_FOR_WSL := $(abspath $(dir $(lastword $(THEOS_PROJECT_DIR))))
-_THEOS_TMP_FOR_WSL := $(_THEOS_TMP_FOR_WSL_BASE)/$(THEOS_PROJECT_DIR:$(_THEOS_TMP_FOR_WSL)/%=%)
-
-all::
-	mkdir -p $(_THEOS_TMP_FOR_WSL)
-
-clean::
-ifneq ($(_THEOS_TMP_FOR_WSL),)
-ifneq ($(_THEOS_TMP_FOR_WSL),/)
-	rm -rf $(_THEOS_TMP_FOR_WSL)
-# rmdir --ignore-fail-on-non-empty $(_THEOS_TMP_FOR_WSL_BASE)
-endif
-endif
-endif
-
-WSL = $(shell grep -q 'Microsoft' /proc/version)
-ifeq ($(WSL),)
-_THEOS_TMP_FOR_WSL_BASE := /tmp/theos_for_wsl
-_THEOS_TMP_FOR_WSL := $(abspath $(dir $(lastword $(THEOS_PROJECT_DIR))))
-_THEOS_TMP_FOR_WSL := $(_THEOS_TMP_FOR_WSL_BASE)/$(THEOS_PROJECT_DIR:$(_THEOS_TMP_FOR_WSL)/%=%)
-
-all::
-	mkdir -p $(_THEOS_TMP_FOR_WSL)
-
-ifneq ($(_THEOS_TMP_FOR_WSL),)
-ifneq ($(_THEOS_TMP_FOR_WSL),/)
-clean::
-	rm -rf $(_THEOS_TMP_FOR_WSL)
-# rmdir --ignore-fail-on-non-empty $(_THEOS_TMP_FOR_WSL_BASE)
-endif
-endif
-else
-endif
-
 ### Functions
 # Function for getting a clean absolute path from cd.
 __clean_pwd = $(shell (unset CDPATH; cd "$(1)"; pwd))
@@ -96,6 +59,16 @@ export THEOS THEOS_BIN_PATH THEOS_MAKE_PATH THEOS_LIBRARY_PATH THEOS_VENDOR_LIBR
 export THEOS_PROJECT_DIR
 
 export PATH := $(THEOS_BIN_PATH):$(PATH)
+
+# Determine whether we’re on Windows Subsystem for Linux and calculate this project’s temp path
+# (used to work around WSL limitations and for translating Linux paths to Windows where needed).
+_THEOS_IS_WSL = $(if $(shell grep Microsoft /proc/version 2>/dev/null),$(_THEOS_TRUE),$(_THEOS_FALSE))
+
+ifeq ($(_THEOS_IS_WSL),)
+_THEOS_TMP_FOR_WSL_BASE := /tmp/theos_for_wsl
+_THEOS_TMP_FOR_WSL := $(abspath $(dir $(lastword $(THEOS_PROJECT_DIR))))
+_THEOS_TMP_FOR_WSL := $(_THEOS_TMP_FOR_WSL_BASE)/$(THEOS_PROJECT_DIR:$(_THEOS_TMP_FOR_WSL)/%=%)
+endif
 
 -include ~/.theosrc
 
