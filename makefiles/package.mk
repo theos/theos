@@ -4,12 +4,16 @@ _THEOS_PACKAGE_RULES_LOADED := 1
 ## Packaging Core Rules
 .PHONY: package internal-package-check before-package internal-package after-package
 
+WSL = $(shell grep -q 'Microsoft' /proc/version)
+
 package:: internal-package-check stage before-package internal-package after-package
 before-package:: $(THEOS_PACKAGE_DIR)
 internal-package::
 ifeq ($(_THEOS_FINAL_PACKAGE),$(_THEOS_TRUE))
+ifneq ($(WSL),)
 	find $(THEOS_STAGING_DIR) -name \*.png -a ! -type l -exec pincrush -i {} \;
 	find $(THEOS_STAGING_DIR) \( -name \*.plist -or -name \*.strings \) -exec plutil -convert binary1 {} \;
+endif
 endif
 internal-package-check::
 	@:
