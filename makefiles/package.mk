@@ -77,14 +77,16 @@ install:: before-install internal-install after-install
 
 internal-install-check::
 # Throw an error if we aren’t aware of any built package yet.
-ifeq ($(_THEOS_PACKAGE_LAST_FILENAME),)
-	@$(PRINT_FORMAT_ERROR) "$(MAKE) install and show require that you build a package before you try to install it." >&2; exit 1
-endif
+	@if [[ -z "$(_THEOS_PACKAGE_LAST_FILENAME)" ]]; then \
+		$(PRINT_FORMAT_ERROR) "$(MAKE) install and show require that you build a package before you try to install it." >&2; \
+		exit 1; \
+	fi
 
 # Throw an error if the package doesn’t exist.
-ifeq ($(call __exists,$(_THEOS_PACKAGE_LAST_FILENAME)),$(_THEOS_FALSE))
-	@$(PRINT_FORMAT_ERROR) "Could not find “$(_THEOS_PACKAGE_LAST_FILENAME)” to install. Aborting." >&2; exit 1
-endif
+	@if [[ ! -f "$(_THEOS_PACKAGE_LAST_FILENAME)" ]]; then \
+		$(PRINT_FORMAT_ERROR) "Could not find “$(_THEOS_PACKAGE_LAST_FILENAME)” to install. Aborting." >&2; \
+		exit 1; \
+	fi
 
 export TARGET_INSTALL_REMOTE
 _THEOS_INSTALL_TYPE := local

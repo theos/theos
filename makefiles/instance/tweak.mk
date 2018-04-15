@@ -42,5 +42,6 @@ ifeq ($(call __exists,$(THEOS_CURRENT_INSTANCE).plist),$(_THEOS_TRUE))
 else ifeq ($(call __exists,$(THEOS_LAYOUT_DIR_NAME)/$(LOCAL_INSTALL_PATH)/$(THEOS_CURRENT_INSTANCE).plist),$(_THEOS_FALSE))
 	@$(PRINT_FORMAT_ERROR) "You are missing a filter property list. Make sure it’s named $(THEOS_CURRENT_INSTANCE).plist. Refer to http://iphonedevwiki.net/index.php/Cydia_Substrate#MobileLoader." >&2; exit 1
 endif
+endif
 
 $(eval $(call __mod,instance/tweak.mk))
