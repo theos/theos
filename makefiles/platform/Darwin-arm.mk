@@ -15,6 +15,5 @@ endif
 
 _THEOS_PLATFORM_DU_EXCLUDE := --exclude
 _THEOS_PLATFORM_MD5SUM := md5sum
-_THEOS_PLATFORM_LIPO = lipo
 _THEOS_PLATFORM_GET_LOGICAL_CORES := sysctl -n hw.ncpu
 endif

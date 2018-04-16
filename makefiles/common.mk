@@ -11,7 +11,8 @@ export SHELL = bash
 endif
 
 THEOS_PROJECT_DIR ?= $(shell pwd)
-_THEOS_LOCAL_DATA_DIR := $(THEOS_PROJECT_DIR)/.theos
+_THEOS_RELATIVE_DATA_DIR ?= .theos
+_THEOS_LOCAL_DATA_DIR := $(THEOS_PROJECT_DIR)/$(_THEOS_RELATIVE_DATA_DIR)
 _THEOS_BUILD_SESSION_FILE = $(_THEOS_LOCAL_DATA_DIR)/build_session
 
 ### Functions
@@ -59,7 +60,19 @@ export THEOS_PROJECT_DIR
 
 export PATH := $(THEOS_BIN_PATH):$(PATH)
 
--include ~/.theosrc
+# Determine whether we’re on Windows Subsystem for Linux and calculate this project’s temp path
+# (used to work around WSL limitations and for translating Linux paths to Windows where needed).
+_THEOS_IS_WSL = $(if $(shell grep Microsoft /proc/version 2>/dev/null),$(_THEOS_TRUE),$(_THEOS_FALSE))
+
+ifeq ($(_THEOS_IS_WSL),)
+_THEOS_TMP_FOR_WSL_BASE := /tmp/theos_for_wsl
+_THEOS_TMP_FOR_WSL := $(abspath $(dir $(lastword $(THEOS_PROJECT_DIR))))
+_THEOS_TMP_FOR_WSL := $(_THEOS_TMP_FOR_WSL_BASE)/$(THEOS_PROJECT_DIR:$(_THEOS_TMP_FOR_WSL)/%=%)
+endif
+
+ifeq ($(call __exists,$(HOME)/.theosrc),$(_THEOS_TRUE))
+-include $(HOME)/.theosrc
+endif
 
 _THEOS_FINAL_PACKAGE := $(_THEOS_FALSE)
 
@@ -170,7 +183,10 @@ _THEOS_PACKAGE_FORMAT := $(or $(call __schema_var_last,,$(_THEOS_TARGET_NAME_DEF
 _THEOS_PACKAGE_LAST_FILENAME = $(call __simplify,_THEOS_PACKAGE_LAST_FILENAME,$(shell cat "$(_THEOS_LOCAL_DATA_DIR)/last_package" 2>/dev/null))
 
 # ObjC/++ stuff is not here, it's in instance/rules.mk and only added if there are OBJC/OBJCC objects.
-_THEOS_INTERNAL_LDFLAGS = $(if $(_THEOS_TARGET_HAS_LIBRARY_PATH),-L$(THEOS_TARGET_LIBRARY_PATH) )-L$(THEOS_LIBRARY_PATH) -L$(THEOS_VENDOR_LIBRARY_PATH)
+_THEOS_INTERNAL_LDFLAGS = $(if $(_THEOS_TARGET_HAS_LIBRARY_PATH),-L$(THEOS_TARGET_LIBRARY_PATH) )-L$(THEOS_LIBRARY_PATH)
+ifneq ($(THEOS_VENDOR_LIBRARY_PATH),)
+_THEOS_INTERNAL_LDFLAGS += -L$(THEOS_VENDOR_LIBRARY_PATH)
+endif
 
 DEBUGFLAG ?= -ggdb
 DEBUG.CFLAGS = -DDEBUG $(DEBUGFLAG) -O0
@@ -198,21 +214,22 @@ _THEOS_INTERNAL_CFLAGS = -DTARGET_$(_THEOS_TARGET_NAME_DEFINE)=1 $(OPTFLAG) -Wal
 _THEOS_INTERNAL_SWIFTFLAGS = -DTHEOS_SWIFT -DTARGET_$(_THEOS_TARGET_NAME_DEFINE) $(SWIFT_OPTFLAG) -module-name $(THEOS_CURRENT_INSTANCE)
 _THEOS_INTERNAL_IFLAGS_BASE = $(if $(_THEOS_TARGET_HAS_INCLUDE_PATH),-I$(THEOS_TARGET_INCLUDE_PATH) )-I$(THEOS_INCLUDE_PATH) -I$(THEOS_VENDOR_INCLUDE_PATH) -I$(THEOS_FALLBACK_INCLUDE_PATH)
 _THEOS_INTERNAL_IFLAGS_C = $(_THEOS_INTERNAL_IFLAGS_BASE) -include $(THEOS)/Prefix.pch
-_THEOS_INTERNAL_IFLAGS_SWIFT = $(_THEOS_INTERNAL_IFLAGS_BASE) -import-objc-header $(THEOS)/Prefix.pch
+_THEOS_INTERNAL_IFLAGS_SWIFT = $(_THEOS_INTERNAL_IFLAGS_BASE)
 
 ifneq ($(GO_EASY_ON_ME),1)
 	_THEOS_INTERNAL_LOGOSFLAGS += -c warnings=error
 	_THEOS_INTERNAL_CFLAGS += -Werror
 endif
 
-# If FORCE_COLOR hasn’t already been set, set it to enabled. We need to do this because output is
-# buffered by make when running rules in parallel, so clang doesn’t see stderr as a tty. We can’t
-# test this using [ -t 2 ] because it runs in a sub-shell and will always return 1 (false).
-FORCE_COLOR ?= $(_THEOS_TRUE)
+# If COLOR hasn’t already been set, set it to enabled. We need to do this because output is buffered
+# by make when running rules in parallel, so clang doesn’t see stderr as a tty. We can’t test this
+# using [ -t 2 ] because it runs in a sub-shell and will always return 1 (false).
+COLOR ?= $(_THEOS_TRUE)
 
-ifeq ($(call __theos_bool,$(FORCE_COLOR)),$(_THEOS_TRUE))
+ifeq ($(call __theos_bool,$(or $(COLOR),$(FORCE_COLOR))),$(_THEOS_TRUE))
+	COLOR := $(_THEOS_TRUE)
 	_THEOS_INTERNAL_CFLAGS += -fcolor-diagnostics
-	_THEOS_INTERNAL_SWIFTFLAGS += -fcolor-diagnostics
+	_THEOS_INTERNAL_SWIFTFLAGS += -color-diagnostics
 	_THEOS_INTERNAL_LDFLAGS += -fcolor-diagnostics
 endif
 
@@ -242,14 +259,11 @@ THEOS_PACKAGE_DIR_NAME ?= packages
 THEOS_PACKAGE_DIR ?= $(THEOS_BUILD_DIR)/$(THEOS_PACKAGE_DIR_NAME)
 THEOS_LEGACY_PACKAGE_DIR = $(THEOS_BUILD_DIR)/debs
 
-# $(warning ...) expands to the empty string, so the contents of THEOS_STAGING_DIR are not damaged in this copy.
-FW_PACKAGE_STAGING_DIR = $(THEOS_STAGING_DIR)$(warning FW_PACKAGE_STAGING_DIR is deprecated; please use THEOS_STAGING_DIR)
-
 THEOS_SUBPROJECT_PRODUCT = subproject.o
 
 include $(THEOS_MAKE_PATH)/messages.mk
 
-_THEOS_MAKEFLAGS := --no-keep-going FORCE_COLOR=$(FORCE_COLOR)
+_THEOS_MAKEFLAGS := --no-keep-going COLOR=$(COLOR)
 
 ifeq ($(_THEOS_VERBOSE),$(_THEOS_FALSE))
 	_THEOS_MAKEFLAGS += --no-print-directory

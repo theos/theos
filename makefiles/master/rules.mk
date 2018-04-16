@@ -22,7 +22,9 @@ endif
 endif
 
 .PHONY: all before-all internal-all after-all \
-	clean before-clean internal-clean after-clean update-theos
+	clean before-clean internal-clean after-clean \
+	clean-packages before-clean-packages internal-clean-packages after-clean-packages \
+	update-theos
 ifeq ($(THEOS_BUILD_DIR),.)
 all:: $(_THEOS_BUILD_SESSION_FILE) before-all internal-all after-all
 else
@@ -34,20 +36,29 @@ clean:: before-clean internal-clean after-clean
 do:: all package install
 
 before-all::
+# If the sysroot is set but doesn’t exist, bail out.
 ifneq ($(SYSROOT),)
-	@if [[ ! -d "$(SYSROOT)" ]]; then \
-		$(PRINT_FORMAT_ERROR) "Your current SYSROOT, “$(SYSROOT)”, appears to be missing." >&2; \
-		exit 1; \
-	fi
+ifneq ($(call __exists,$(SYSROOT)),$(_THEOS_TRUE))
+	@$(PRINT_FORMAT_ERROR) "Your current SYSROOT, “$(SYSROOT)”, appears to be missing." >&2; exit 1
 endif
-	@if [[ ! -f "$(THEOS_VENDOR_INCLUDE_PATH)/.git" || ! -f "$(THEOS_VENDOR_LIBRARY_PATH)/.git" ]]; then \
-		$(PRINT_FORMAT_ERROR) "The vendor/include and/or vendor/lib directories are missing. Please run \`git submodule update --init --recursive\` in your Theos directory. More information: https://github.com/theos/theos/wiki/Installation." >&2; \
-		exit 1; \
-	fi
-	@if [[ -d "$(THEOS_LEGACY_PACKAGE_DIR)" && ! -d "$(THEOS_PACKAGE_DIR)" ]]; then \
-		$(PRINT_FORMAT) "The \"debs\" directory has been renamed to \"packages\". Moving it." >&2; \
-		mv "$(THEOS_LEGACY_PACKAGE_DIR)" "$(THEOS_PACKAGE_DIR)" || exit 1; \
-	fi
+endif
+
+# If a vendored path is missing, bail out.
+ifneq ($(call __exists,$(THEOS_VENDOR_INCLUDE_PATH)/.git)$(call __exists,$(THEOS_VENDOR_LIBRARY_PATH)/.git),$(_THEOS_TRUE)$(_THEOS_TRUE))
+	@$(PRINT_FORMAT_ERROR) "The vendor/include and/or vendor/lib directories are missing. Please run \`$(THEOS)/bin/update-theos\`. More information: https://github.com/theos/theos/wiki/Installation." >&2; exit 1
+endif
+
+ifeq ($(call __exists,$(THEOS_LEGACY_PACKAGE_DIR)),$(_THEOS_TRUE))
+ifneq ($(call __exists,$(THEOS_PACKAGE_DIR)),$(_THEOS_TRUE))
+	@$(PRINT_FORMAT) "The \"debs\" directory has been renamed to \"packages\". Moving it." >&2
+	$(ECHO_NOTHING)mv "$(THEOS_LEGACY_PACKAGE_DIR)" "$(THEOS_PACKAGE_DIR)"$(ECHO_END)
+endif
+endif
+
+# If we need to do the WSL workaround, do it here.
+ifneq ($(_THEOS_TMP_FOR_WSL),)
+	$(ECHO_NOTHING)mkdir -p $(_THEOS_TMP_FOR_WSL)$(ECHO_END)
+endif
 
 internal-all::
 
@@ -58,13 +69,19 @@ before-clean::
 internal-clean::
 	$(ECHO_CLEANING)rm -rf "$(subst $(_THEOS_OBJ_DIR_EXTENSION),,$(THEOS_OBJ_DIR))"$(ECHO_END)
 
-ifeq ($(shell [[ -f "$(_THEOS_BUILD_SESSION_FILE)" ]] && echo 1),1)
+ifeq ($(call __exists,$(_THEOS_BUILD_SESSION_FILE)),$(_THEOS_TRUE))
 	$(ECHO_NOTHING)rm "$(_THEOS_BUILD_SESSION_FILE)"$(ECHO_END)
 	$(ECHO_NOTHING)touch "$(_THEOS_BUILD_SESSION_FILE)"$(ECHO_END)
 endif
 
 ifeq ($(MAKELEVEL),0)
 	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)"$(ECHO_END)
+endif
+
+ifneq ($(_THEOS_TMP_FOR_WSL),)
+ifneq ($(_THEOS_TMP_FOR_WSL),/)
+	$(ECHO_NOTHING)rm -rf $(_THEOS_TMP_FOR_WSL)$(ECHO_END)
+endif
 endif
 
 after-clean::
@@ -92,7 +109,7 @@ after-clean-packages::
 $(_THEOS_BUILD_SESSION_FILE):
 	@mkdir -p $(_THEOS_LOCAL_DATA_DIR)
 
-ifeq ($(shell [[ -f "$(_THEOS_BUILD_SESSION_FILE)" ]] || echo 0),0)
+ifeq ($(call __exists,$(_THEOS_BUILD_SESSION_FILE)),$(_THEOS_FALSE))
 	@touch $(_THEOS_BUILD_SESSION_FILE)
 endif
 
@@ -166,7 +183,7 @@ troubleshoot::
 
 ifeq ($(call __executable,ghost),$(_THEOS_TRUE))
 	@$(PRINT_FORMAT) "Creating a Ghostbin containing the output of \`make clean all messages=yes\`…"
-	+$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going clean all messages=yes FORCE_COLOR=yes 2>&1 | ghost -x 2w - ansi
+	+$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going clean all messages=yes COLOR=yes 2>&1 | ghost -x 2w - ansi
 else
 	@$(PRINT_FORMAT_ERROR) "You don't have ghost installed. For more information, refer to https://github.com/theos/theos/wiki/Installation#prerequisites." >&2; exit 1
 endif
