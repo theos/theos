@@ -70,7 +70,9 @@ _THEOS_TMP_FOR_WSL := $(abspath $(dir $(lastword $(THEOS_PROJECT_DIR))))
 _THEOS_TMP_FOR_WSL := $(_THEOS_TMP_FOR_WSL_BASE)/$(THEOS_PROJECT_DIR:$(_THEOS_TMP_FOR_WSL)/%=%)
 endif
 
--include ~/.theosrc
+ifeq ($(call __exists,$(HOME)/.theosrc),$(_THEOS_TRUE))
+-include $(HOME)/.theosrc
+endif
 
 _THEOS_FINAL_PACKAGE := $(_THEOS_FALSE)
 
