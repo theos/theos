@@ -29,14 +29,24 @@ ifeq ($(_THEOS_TARGET_PLATFORM_IS_SIMULATOR),$(_THEOS_TRUE))
 else
 	TARGET_INSTALL_REMOTE ?= $(_THEOS_TRUE)
 
-	TARGET_CODESIGN ?= ldid
+ifeq ($(TARGET_CODESIGN),)
+# Determine the path to ldid. If it can’t be found, just use “ldid” so there’s an understandable
+# “no such file or directory” error.
+ifeq ($(call __executable,ldid),$(_THEOS_TRUE))
+	TARGET_CODESIGN = ldid
+else ifeq ($(call __executable,$(SDKBINPATH)/ldid),$(_THEOS_TRUE))
+	TARGET_CODESIGN = $(SDKBINPATH)/ldid
+else
+	TARGET_CODESIGN = ldid
+endif
+endif
+
 	TARGET_CODESIGN_FLAGS ?= -S
 endif
 
 # __invocation returns the command-line invocation for the tool specified as its argument.
 ifneq ($(PREFIX),)
 	# Linux, Cygwin
-	TARGET_CODESIGN ?= $(SDKBINPATH)/ldid
 	__invocation = $(PREFIX)$(1)
 else ifeq ($(call __executable,xcrun),$(_THEOS_TRUE))
 	# macOS
