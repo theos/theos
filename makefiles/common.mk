@@ -228,9 +228,8 @@ COLOR ?= $(_THEOS_TRUE)
 
 ifeq ($(call __theos_bool,$(or $(COLOR),$(FORCE_COLOR))),$(_THEOS_TRUE))
 	COLOR := $(_THEOS_TRUE)
-	_THEOS_INTERNAL_CFLAGS += -fcolor-diagnostics
-	_THEOS_INTERNAL_SWIFTFLAGS += -color-diagnostics
-	_THEOS_INTERNAL_LDFLAGS += -fcolor-diagnostics
+	_THEOS_INTERNAL_COLORFLAGS += -fcolor-diagnostics
+	_THEOS_INTERNAL_SWIFTCOLORFLAGS += -color-diagnostics
 endif
 
 THEOS_BUILD_DIR ?= .
