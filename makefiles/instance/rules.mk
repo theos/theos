@@ -15,9 +15,8 @@ _SWIFT_FILE_COUNT = $(words $(filter %.swift %.xswift,$(_FILES)))
 # This is := because it would otherwise be evaluated immediately afterwards.
 _SUBPROJECTS := $(strip $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,SUBPROJECTS))
 ifneq ($(_SUBPROJECTS),)
-SUBPROJECT_OBJ_FILES = $(foreach d, $(_SUBPROJECTS), $(THEOS_BUILD_DIR)/$(firstword $(subst :, ,$(d)))/$(THEOS_OBJ_DIR_NAME)/$(or $(word 2,$(subst :, ,$(d))),*).$(THEOS_SUBPROJECT_PRODUCT))
-#SUBPROJECT_OBJ_FILES = $(addsuffix /$(THEOS_OBJ_DIR_NAME)/$(THEOS_SUBPROJECT_PRODUCT), $(addprefix $(THEOS_BUILD_DIR)/,$($(THEOS_CURRENT_INSTANCE)_SUBPROJECTS)))
-SUBPROJECT_LDFLAGS = $(shell sort $(foreach d,$(_SUBPROJECTS),$(THEOS_BUILD_DIR)/$(firstword $(subst :, ,$(d)))/$(THEOS_OBJ_DIR_NAME)/$(or $(word 2,$(subst :, ,$(d))),*).ldflags) | uniq)
+SUBPROJECT_OBJ_FILES = $(foreach d, $(_SUBPROJECTS), $(THEOS_OBJ_DIR)/$(or $(word 2,$(subst :, ,$(d))),*).$(THEOS_SUBPROJECT_PRODUCT))
+SUBPROJECT_LDFLAGS = $(shell sort $(foreach d,$(_SUBPROJECTS),$(THEOS_OBJ_DIR)/$(or $(word 2,$(subst :, ,$(d))),*).ldflags) | uniq)
 _THEOS_INTERNAL_LDFLAGS += $(SUBPROJECT_LDFLAGS)
 endif
 
@@ -38,7 +37,10 @@ endif
 
 # If we have any Swift objects, add Swift libraries to the linker search path.
 ifneq ($(_SWIFT_FILE_COUNT),0)
-	_THEOS_INTERNAL_LDFLAGS += -L$(_THEOS_TARGET_SWIFT_LDPATH) $(_THEOS_TARGET_SWIFT_LDFLAGS)
+	_THEOS_INTERNAL_LDFLAGS += -L$(_THEOS_TARGET_SWIFT_LDPATH)
+ifneq ($(_THEOS_CURRENT_TYPE),subproject)
+	_THEOS_INTERNAL_LDFLAGS += $(_THEOS_TARGET_SWIFT_LDFLAGS)
+endif
 endif
 
 # If we have a Bridging Header, import it in Swift
@@ -267,7 +269,7 @@ $(THEOS_OBJ_DIR)/%.xmi.$(_THEOS_OBJ_FILE_TAG).o: %.xmi $(THEOS_OBJ_DIR)/%.mii
 
 define _THEOS_TEMPLATE_DEFAULT_LINKING_RULE
 ifeq ($(TARGET_LIPO),)
-ifneq ($$(TARGET_CODESIGN),)
+ifneq ($$(_THEOS_CODESIGN_COMMANDLINE),)
 .INTERMEDIATE: $$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned
 $$(THEOS_OBJ_DIR)/$(1): $$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned
 	$$(ECHO_SIGNING)$$(_THEOS_CODESIGN_COMMANDLINE) "$$<" && mv "$$<" "$$@"$$(ECHO_END)
@@ -280,12 +282,16 @@ ifeq ($$(OBJ_FILES_TO_LINK),)
 	$$(WARNING_EMPTY_LINKING)
 endif
 endif
+ifeq ($$(_THEOS_CURRENT_TYPE),subproject)
+	$$(ECHO_LINKING)$$(ECHO_UNBUFFERED)$$(TARGET_LIBTOOL) -static -o "$$@" $$^$$(ECHO_END)
+else
 	$$(ECHO_LINKING)$$(ECHO_UNBUFFERED)$$(TARGET_LD) $$(ALL_LDFLAGS) -o "$$@" $$^$$(ECHO_END)
-ifneq ($(TARGET_DSYMUTIL),)
+ifneq ($$(TARGET_DSYMUTIL),)
 	$$(ECHO_DEBUG_SYMBOLS)$$(ECHO_UNBUFFERED)$$(TARGET_DSYMUTIL) "$$@"$(ECHO_END)
 endif
 ifeq ($(SHOULD_STRIP),$(_THEOS_TRUE))
 	$$(ECHO_STRIPPING)$$(ECHO_UNBUFFERED)$$(TARGET_STRIP) $$(ALL_STRIP_FLAGS) "$$@"$$(ECHO_END)
+endif
 endif
 else ifeq ($(THEOS_CURRENT_ARCH),)
 
@@ -300,7 +306,7 @@ $$(THEOS_OBJ_DIR)/%/$(1): $(__ALL_FILES)
 		THEOS_BUILD_DIR="$(THEOS_BUILD_DIR)" \
 		THEOS_CURRENT_ARCH="$$*"
 
-ifneq ($$(TARGET_CODESIGN),)
+ifneq ($$(_THEOS_CODESIGN_COMMANDLINE),)
 .INTERMEDIATE: $$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned
 $(THEOS_OBJ_DIR)/$(1): $$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned
 ifeq ($(_THEOS_IS_WSL),$(_THEOS_TRUE))
@@ -312,6 +318,9 @@ $(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned: $$(ARCH_FILES_TO_LINK)
 else
 $(THEOS_OBJ_DIR)/$(1): $$(ARCH_FILES_TO_LINK)
 endif
+ifeq ($$(_THEOS_CURRENT_TYPE),subproject)
+	@echo "$$(_THEOS_INTERNAL_LDFLAGS)" > $$(THEOS_OBJ_DIR)/$$(THEOS_CURRENT_INSTANCE).ldflags
+endif
 	$(ECHO_MERGING)$(ECHO_UNBUFFERED)$(TARGET_LIPO) $(foreach ARCH,$(TARGET_ARCHS),-arch $(ARCH) $(THEOS_OBJ_DIR)/$(ARCH)/$(1)) -create -output "$$@"$(ECHO_END)
 
 else
@@ -322,8 +331,12 @@ ifeq ($$(OBJ_FILES_TO_LINK),)
 endif
 endif
 	$$(ECHO_NOTHING)mkdir -p $(shell dirname "$(THEOS_OBJ_DIR)/$(1)")$$(ECHO_END)
+ifeq ($$(_THEOS_CURRENT_TYPE),subproject)
+	$$(ECHO_LINKING)$$(ECHO_UNBUFFERED)$$(TARGET_LIBTOOL) -static -o "$$@" $$^$$(ECHO_END)
+	@echo "$$(_THEOS_INTERNAL_LDFLAGS)" > $$(THEOS_OBJ_DIR)/$$(THEOS_CURRENT_INSTANCE).ldflags
+else
 	$$(ECHO_LINKING)$$(ECHO_UNBUFFERED)$$(TARGET_LD) $$(ALL_LDFLAGS) -o "$$@" $$^$$(ECHO_END)
-ifneq ($(TARGET_DSYMUTIL),)
+ifneq ($$(TARGET_DSYMUTIL),)
 	$$(ECHO_DEBUG_SYMBOLS)$$(ECHO_UNBUFFERED)$$(TARGET_DSYMUTIL) "$$@"$(ECHO_END)
 endif
 ifeq ($(SHOULD_STRIP),$(_THEOS_TRUE))
@@ -332,6 +345,7 @@ ifeq ($$(_THEOS_IS_WSL),$(_THEOS_TRUE))
 	$$(ECHO_STRIPPING)$$(ECHO_UNBUFFERED)cp "$$@" "$$(_THEOS_TMP_FOR_WSL)/$$(THEOS_CURRENT_ARCH)" && $$(TARGET_STRIP) $$(ALL_STRIP_FLAGS) "$$(_THEOS_TMP_FOR_WSL)/$$(THEOS_CURRENT_ARCH)/$(1)" && mv "$$(_THEOS_TMP_FOR_WSL)/$$(THEOS_CURRENT_ARCH)/$(1)" $$(THEOS_OBJ_DIR)$$(ECHO_END)
 else
 	$$(ECHO_STRIPPING)$$(ECHO_UNBUFFERED)$$(TARGET_STRIP) $$(ALL_STRIP_FLAGS) "$$@"$$(ECHO_END)
+endif
 endif
 endif
 endif

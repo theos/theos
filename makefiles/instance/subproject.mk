@@ -2,6 +2,9 @@ ifeq ($(_THEOS_RULES_LOADED),)
 include $(THEOS_MAKE_PATH)/rules.mk
 endif
 
+# Unset codesign command line. No codesigning is involved here.
+_THEOS_CODESIGN_COMMANDLINE =
+
 .PHONY: internal-subproject-all_ internal-subproject-stage_ internal-subproject-compile
 
 ifeq ($(_THEOS_MAKE_PARALLEL_BUILDING), no)
@@ -16,8 +19,6 @@ internal-subproject-all_:: $(_OBJ_DIR_STAMPS)
 internal-subproject-compile: $(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE).$(THEOS_SUBPROJECT_PRODUCT)
 endif
 
-$(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE).$(THEOS_SUBPROJECT_PRODUCT): $(OBJ_FILES_TO_LINK)
-	$(ECHO_LINKING)$(TARGET_LD) -nostdlib -r -d $(ADDITIONAL_LDFLAGS) $(_THEOS_TARGET_LDFLAGS) $(LDFLAGS) -o $@ $^$(ECHO_END)
-	@echo "$(_THEOS_INTERNAL_LDFLAGS)" > $(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE).ldflags
+$(eval $(call _THEOS_TEMPLATE_DEFAULT_LINKING_RULE,$(THEOS_CURRENT_INSTANCE).$(THEOS_SUBPROJECT_PRODUCT)))
 
 $(eval $(call __mod,instance/subproject.mk))
