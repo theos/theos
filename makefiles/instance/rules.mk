@@ -135,6 +135,7 @@ _THEOS_OUT_FILE_TAG = $(call __simplify,_THEOS_OUT_FILE_TAG,$(shell echo "$(ALL_
 
 ifeq ($(call __theos_bool,$(or $(USE_DEPS),1)),$(_THEOS_TRUE))
 ALL_DEPFLAGS = -MT $@ -MMD -MP -MF "$(THEOS_OBJ_DIR)/$<.$(_THEOS_OBJ_FILE_TAG).Td"
+ALL_DEPFLAGS_SWIFT = -emit-dependencies-path "$(THEOS_OBJ_DIR)/$<.$(_THEOS_OBJ_FILE_TAG).Td"
 DEP_FILES = $(strip $(patsubst %,$(THEOS_OBJ_DIR)/%.$(_THEOS_OBJ_FILE_TAG).Td,$(_FILES)))
 -include $(DEP_FILES)
 endif
@@ -223,7 +224,7 @@ $(THEOS_OBJ_DIR)/%.ii.$(_THEOS_OBJ_FILE_TAG).o: %.ii
 
 $(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).o: %.swift
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
-	$(ECHO_COMPILING)$(TARGET_SWIFT) -frontend -emit-object -emit-module -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -emit-module-path $(@:.o=.swiftmodule) -primary-file $< $(SWIFT_FILES) -o $@$(ECHO_END)
+	$(ECHO_COMPILING)$(TARGET_SWIFT) -frontend -emit-object -emit-module -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_DEPFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -emit-module-path $(@:.o=.swiftmodule) -primary-file $< $(SWIFT_FILES) -o $@$(ECHO_END)
 
 # This seems to always crash Swift. Disabling for now.
 # $(ECHO_NOTHING)if false&& [[ "$<" = "$(lastword $(SWIFT_FILES))" ]]; then \
