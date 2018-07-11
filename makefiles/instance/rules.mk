@@ -224,14 +224,10 @@ $(THEOS_OBJ_DIR)/%.ii.$(_THEOS_OBJ_FILE_TAG).o: %.ii
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x c++-cpp-output -c $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $< -o $@$(ECHO_END)
 
-$(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).o: %.swift
+$(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).o \
+$(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).swiftmodule: %.swift
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
-	$(ECHO_COMPILING)$(TARGET_SWIFT) -frontend -emit-object -emit-module -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_DEPFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -emit-module-path $(@:.o=.swiftmodule) -primary-file $< $(SWIFT_FILES) -o $@$(ECHO_END)
-
-# This seems to always crash Swift. Disabling for now.
-# $(ECHO_NOTHING)if false&& [[ "$<" = "$(lastword $(SWIFT_FILES))" ]]; then \
-# $(TARGET_SWIFT) -frontend -c -parse-as-library $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -emit-objc-header-path $(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE)-Swift.h $(patsubst %.swift,$(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).swiftmodule,$(SWIFT_FILES)) -o /dev/null; \
-# fi$(ECHO_END)
+	$(ECHO_COMPILING)$(TARGET_SWIFT) -frontend -emit-object -emit-module -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_DEPFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -emit-module-path $(@:.o=.swiftmodule) -primary-file $< $(filter-out $<,$(SWIFT_FILES)) -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.x.m: %.x
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
@@ -331,6 +327,9 @@ ifeq ($$(OBJ_FILES_TO_LINK),)
 endif
 endif
 	$$(ECHO_NOTHING)mkdir -p $(shell dirname "$(THEOS_OBJ_DIR)/$(1)")$$(ECHO_END)
+# ifneq ($$(words $$(SWIFT_FILES)),0)
+# 	$$(ECHO_COMPILING)$$(TARGET_SWIFT) -frontend -c -parse-as-library $$(ALL_SWIFTFLAGS) -target $$(THEOS_CURRENT_ARCH)-$$(_THEOS_TARGET_SWIFT_TARGET) -emit-objc-header-path $$(THEOS_OBJ_DIR)/$$(THEOS_CURRENT_INSTANCE)-Swift.h $$(patsubst %.swift,$$(THEOS_OBJ_DIR)/%.swift.$$(_THEOS_OBJ_FILE_TAG).swiftmodule,$$(filter %.swift,$$@)) -o /dev/null$$(ECHO_END)
+# endif
 ifeq ($$(_THEOS_CURRENT_TYPE),subproject)
 	$$(ECHO_LINKING)$$(ECHO_UNBUFFERED)$$(TARGET_LIBTOOL) -static -o "$$@" $$^$$(ECHO_END)
 	@echo "$$(_THEOS_INTERNAL_LDFLAGS)" > $$(THEOS_OBJ_DIR)/$$(THEOS_CURRENT_INSTANCE).ldflags
