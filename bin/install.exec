@@ -1,5 +1,5 @@
 #!/bin/bash
-if [[ TARGET_INSTALL_REMOTE -eq 1 ]]; then
+if [[ $TARGET_INSTALL_REMOTE == 1 ]]; then
 	args=(ssh)
 
 	if [[ ! -z "$THEOS_DEVICE_PORT" ]]; then
