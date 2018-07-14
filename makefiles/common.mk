@@ -1,8 +1,11 @@
 all::
 
-# Block sudo. This is a common way users create more permissions problems than they already had.
-ifeq ($(notdir $(firstword $(SUDO_COMMAND))),make)
-$(error Do not use 'sudo make')
+# Block root at any level. This is a common way users create more permissions problems than they already had.
+ifeq ($(UID),0)
+$(error Do not use Theos as root)
+endif
+ifeq ($(EUID),0)
+$(error Do not use Theos as root)
 endif
 
 # We use bash for all subshells. Force SHELL to bash if it’s currently set to sh.
