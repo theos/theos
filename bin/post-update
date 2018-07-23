@@ -9,12 +9,5 @@ fi
 
 cd "$THEOS"
 
-# Unless running on iOS, ensure IO::Compress::Lzma is installed. Print a message if not.
-if [[ "$(uname -s)-$(uname -p)" != "Darwin-arm" ]] && ! perl -MIO::Compress::Lzma -e '1' 2>/dev/null; then
-	printf "\n%s\n\n%s\n" \
-		"===============================================================================" \
-		"The Perl module IO::Compress::Lzma needs to be installed. For more information, refer to https://github.com/theos/theos/wiki/Installation#prerequisites."
-fi
-
 printf "\n\e[0;36m==> \e[1;36mNotice:\e[m %s\n" \
 	"Visit https://github.com/theos/theos/releases to see the changelog."
