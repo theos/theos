@@ -44,6 +44,11 @@ endif
 	TARGET_CODESIGN_FLAGS ?= -S
 endif
 
+# give precedence to Swift toolchains located at SWIFTBINPATH
+ifeq ($(call __executable,$(SWIFTBINPATH)/swift),$(_THEOS_TRUE))
+	TARGET_SWIFT ?= $(SWIFTBINPATH)/swift
+endif
+
 # __invocation returns the command-line invocation for the tool specified as its argument.
 ifneq ($(PREFIX),)
 	# Linux, Cygwin

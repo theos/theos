@@ -16,6 +16,7 @@ SDKTARGET ?= arm64-apple-darwin14
 endif
 endif
 
+SWIFTBINPATH ?= $(THEOS)/toolchain/swift/bin
 SDKBINPATH ?= $(THEOS)/toolchain/$(THEOS_PLATFORM_NAME)/$(THEOS_TARGET_NAME)/bin
 PREFIX := $(SDKBINPATH)/$(SDKTARGET)-
 
