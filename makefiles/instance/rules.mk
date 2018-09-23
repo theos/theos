@@ -6,11 +6,16 @@ __ON_FILES = $(filter-out -%,$(__ALL_FILES))
 __OFF_FILES = $(patsubst -%,%,$(filter -%,$(__ALL_FILES)))
 _FILES = $(strip $(filter-out $(__OFF_FILES),$(__ON_FILES)))
 OBJ_FILES = $(strip $(patsubst %,%.$(_THEOS_OBJ_FILE_TAG).o,$(_FILES)))
-SWIFT_FILES = $(filter %.swift,$(_FILES))
+OBJC_FILES = $(filter %.m %.mm %.x %.xm %.xi %.xmi,$(_FILES))
+OBJCC_FILES = $(filter %.mm %.xm %.xmi,$(_FILES))
+SWIFT_FILES = $(filter %.swift %.xswift,$(_FILES))
 
-_OBJC_FILE_COUNT = $(words $(filter %.m %.mm %.x %.xm %.xi %.xmi,$(_FILES)))
-_OBJCC_FILE_COUNT = $(words $(filter %.mm %.xm %.xmi,$(_FILES)))
-_SWIFT_FILE_COUNT = $(words $(filter %.swift %.xswift,$(_FILES)))
+_OBJC_FILE_COUNT = $(words $(OBJC_FILES))
+_OBJCC_FILE_COUNT = $(words $(OBJCC_FILES))
+_SWIFT_FILE_COUNT = $(words $(SWIFT_FILES))
+
+# we have to keep this in a subdir so we can add it as a header search path without unexpected consequences
+_SWIFTMODULE_HEADER = $(THEOS_OBJ_DIR)/generated-headers/$(THEOS_CURRENT_INSTANCE)-Swift.h
 
 # This is := because it would otherwise be evaluated immediately afterwards.
 _SUBPROJECTS := $(strip $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,SUBPROJECTS))
@@ -41,6 +46,14 @@ ifneq ($(_SWIFT_FILE_COUNT),0)
 ifneq ($(_THEOS_CURRENT_TYPE),subproject)
 	_THEOS_INTERNAL_LDFLAGS += $(_THEOS_TARGET_SWIFT_LDFLAGS)
 endif
+endif
+
+ifneq ($(_SWIFT_FILE_COUNT),0)
+	ifneq ($(_OBJC_FILE_COUNT),0)
+		# if both Swift and ObjC files exist
+		_THEOS_GENERATE_SWIFTMODULE_HEADER = $(_THEOS_TRUE)
+		_THEOS_INTERNAL_IFLAGS_C += -I$(dir $(_SWIFTMODULE_HEADER))
+	endif
 endif
 
 # If we have a Bridging Header, import it in Swift
@@ -168,6 +181,12 @@ internal-$(_THEOS_CURRENT_TYPE)-stage:: before-$(THEOS_CURRENT_INSTANCE)-stage i
 .SUFFIXES: .m .mm .c .cc .cpp .xm
 
 MDFLAGS = -MP -MT "$@ $(subst .md,.o,$@)" -MM
+
+ifeq ($(_THEOS_GENERATE_SWIFTMODULE_HEADER),$(_THEOS_TRUE))
+# add swiftmodule header as dependency to all objc objects
+$(patsubst %,$(THEOS_OBJ_DIR)/%.$(_THEOS_OBJ_FILE_TAG).o,$(OBJC_FILES)): $(_SWIFTMODULE_HEADER)
+endif
+
 $(THEOS_OBJ_DIR)/%.m.$(_THEOS_OBJ_FILE_TAG).o: %.m
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x objective-c -c $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(_THEOS_TARGET_ONLY_OBJCFLAGS) $< -o $@$(ECHO_END)
@@ -227,7 +246,11 @@ $(THEOS_OBJ_DIR)/%.ii.$(_THEOS_OBJ_FILE_TAG).o: %.ii
 $(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).o \
 $(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).swiftmodule: %.swift
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
-	$(ECHO_COMPILING)$(TARGET_SWIFT) -frontend -emit-object -emit-module -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_DEPFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -emit-module-path $(@:.o=.swiftmodule) -primary-file $< $(filter-out $<,$(SWIFT_FILES)) -o $@$(ECHO_END)
+	$(ECHO_COMPILING)$(TARGET_SWIFT) -frontend -emit-object -emit-module -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_DEPFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -emit-module-path $(@:.o=.swiftmodule) -primary-file $< $(filter-out $<,$(SWIFT_FILES)) -o $(@:.swiftmodule=.o)$(ECHO_END)
+
+$(_SWIFTMODULE_HEADER): $(patsubst %.swift,$(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).swiftmodule,$(SWIFT_FILES))
+	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_SWIFTMODULE_HEADER)$(TARGET_SWIFT) -frontend -c $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -parse-as-library $^ -emit-objc-header-path $@ -o /dev/null$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.x.m: %.x
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
@@ -327,9 +350,6 @@ ifeq ($$(OBJ_FILES_TO_LINK),)
 endif
 endif
 	$$(ECHO_NOTHING)mkdir -p $(shell dirname "$(THEOS_OBJ_DIR)/$(1)")$$(ECHO_END)
-# ifneq ($$(words $$(SWIFT_FILES)),0)
-# 	$$(ECHO_COMPILING)$$(TARGET_SWIFT) -frontend -c -parse-as-library $$(ALL_SWIFTFLAGS) -target $$(THEOS_CURRENT_ARCH)-$$(_THEOS_TARGET_SWIFT_TARGET) -emit-objc-header-path $$(THEOS_OBJ_DIR)/$$(THEOS_CURRENT_INSTANCE)-Swift.h $$(patsubst %.swift,$$(THEOS_OBJ_DIR)/%.swift.$$(_THEOS_OBJ_FILE_TAG).swiftmodule,$$(filter %.swift,$$@)) -o /dev/null$$(ECHO_END)
-# endif
 ifeq ($$(_THEOS_CURRENT_TYPE),subproject)
 	$$(ECHO_LINKING)$$(ECHO_UNBUFFERED)$$(TARGET_LIBTOOL) -static -o "$$@" $$^$$(ECHO_END)
 	@echo "$$(_THEOS_INTERNAL_LDFLAGS)" > $$(THEOS_OBJ_DIR)/$$(THEOS_CURRENT_INSTANCE).ldflags
