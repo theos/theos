@@ -8,6 +8,7 @@ _TARGET_VERSION_GE_4_0 = $(call __simplify,_TARGET_VERSION_GE_4_0,$(shell $(THEO
 _TARGET_VERSION_GE_3_0 = $(call __simplify,_TARGET_VERSION_GE_3_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 3.0))
 
 ifeq ($(_TARGET_VERSION_GE_12_0),1)
+	_TARGET_LIBCPP_CCFLAGS := -stdlib=libc++
 	_TARGET_LIBCPP_LDFLAGS := -stdlib=libc++ -lc++
 endif
 
