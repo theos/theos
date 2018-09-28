@@ -34,7 +34,7 @@ $(THEOS_BUILD_DIR):
 endif
 
 $(THEOS_OBJ_DIR):
-	@cd $(THEOS_BUILD_DIR); mkdir -p $(THEOS_OBJ_DIR_NAME)
+	@mkdir -p $@
 
 $(THEOS_OBJ_DIR)/.stamp: $(THEOS_OBJ_DIR)
 	@mkdir -p $(dir $@); touch $@
