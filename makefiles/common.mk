@@ -64,7 +64,7 @@ export PATH := $(THEOS_BIN_PATH):$(PATH)
 # (used to work around WSL limitations and for translating Linux paths to Windows where needed).
 _THEOS_IS_WSL = $(if $(shell grep Microsoft /proc/version 2>/dev/null),$(_THEOS_TRUE),$(_THEOS_FALSE))
 
-ifeq ($(_THEOS_IS_WSL),)
+ifeq ($(_THEOS_IS_WSL),$(_THEOS_TRUE))
 _THEOS_TMP_FOR_WSL_BASE := /tmp/theos_for_wsl
 _THEOS_TMP_FOR_WSL := $(abspath $(dir $(lastword $(THEOS_PROJECT_DIR))))
 _THEOS_TMP_FOR_WSL := $(_THEOS_TMP_FOR_WSL_BASE)/$(THEOS_PROJECT_DIR:$(_THEOS_TMP_FOR_WSL)/%=%)
