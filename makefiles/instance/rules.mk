@@ -363,4 +363,67 @@ endif
 
 endef
 
+define _THEOS_TEMPLATE_ARCHIVE_LINKING_RULE
+ifeq ($(TARGET_LIPO),)
+$$(THEOS_OBJ_DIR)/$(1): $$(OBJ_FILES_TO_LINK)
+ifneq ($(2),nowarn)
+ifeq ($$(OBJ_FILES_TO_LINK),)
+	$$(WARNING_EMPTY_LINKING)
+endif
+endif
+ifeq ($$(_THEOS_CURRENT_TYPE),subproject)
+	$$(ECHO_LINKING)$$(ECHO_UNBUFFERED)$$(TARGET_LIBTOOL) -static -o "$$@" $$^$$(ECHO_END)
+else
+	$$(ECHO_LINKING)$$(ECHO_UNBUFFERED)$$(TARGET_LIBTOOL) -static -o "$$@" $$^$$(ECHO_END)
+ifeq ($(SHOULD_STRIP),$(_THEOS_TRUE))
+	$$(ECHO_STRIPPING)$$(ECHO_UNBUFFERED)$$(TARGET_STRIP) $$(ALL_STRIP_FLAGS) "$$@"$$(ECHO_END)
+endif
+endif
+else ifeq ($(THEOS_CURRENT_ARCH),)
+ifeq ($(_THEOS_LIBRARY_TYPE),static)
+
+ARCH_FILES_TO_LINK := $(addsuffix /$(1),$(addprefix $(THEOS_OBJ_DIR)/,$(TARGET_ARCHS)))
+$$(THEOS_OBJ_DIR)/%/$(1): $(__ALL_FILES)
+	@mkdir -p $(THEOS_OBJ_DIR)/$$*
+	$(ECHO_MAKE)$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going \
+		internal-$(_THEOS_CURRENT_TYPE)-$(_THEOS_CURRENT_OPERATION) \
+		_THEOS_CURRENT_TYPE="$(_THEOS_CURRENT_TYPE)" \
+		THEOS_CURRENT_INSTANCE="$(THEOS_CURRENT_INSTANCE)" \
+		_THEOS_CURRENT_OPERATION="$(_THEOS_CURRENT_OPERATION)" \
+		THEOS_BUILD_DIR="$(THEOS_BUILD_DIR)" \
+		THEOS_CURRENT_ARCH="$$*"
+
+endif
+$(THEOS_OBJ_DIR)/$(1): $$(ARCH_FILES_TO_LINK)
+ifeq ($$(_THEOS_CURRENT_TYPE),subproject)
+	@echo "$$(_THEOS_INTERNAL_LDFLAGS)" > $$(THEOS_OBJ_DIR)/$$(THEOS_CURRENT_INSTANCE).ldflags
+endif
+	$(ECHO_MERGING)$(ECHO_UNBUFFERED)$(TARGET_LIPO) $(foreach ARCH,$(TARGET_ARCHS),-arch $(ARCH) $(THEOS_OBJ_DIR)/$(ARCH)/$(1)) -create -output "$$@"$(ECHO_END)
+
+else
+$$(THEOS_OBJ_DIR)/$(1): $$(OBJ_FILES_TO_LINK)
+ifneq ($(2),nowarn)
+ifeq ($$(OBJ_FILES_TO_LINK),)
+	$$(WARNING_EMPTY_LINKING)
+endif
+endif
+	$$(ECHO_NOTHING)mkdir -p $(shell dirname "$(THEOS_OBJ_DIR)/$(1)")$$(ECHO_END)
+ifeq ($$(_THEOS_CURRENT_TYPE),subproject)
+	$$(ECHO_STATIC_LINKING)$$(ECHO_UNBUFFERED)$$(TARGET_LIBTOOL) -static -o "$$@" $$^$$(ECHO_END)
+	@echo "$$(_THEOS_INTERNAL_LDFLAGS)" > $$(THEOS_OBJ_DIR)/$$(THEOS_CURRENT_INSTANCE).ldflags
+else
+	$$(ECHO_STATIC_LINKING)$$(ECHO_UNBUFFERED)$$(TARGET_LIBTOOL) -static -o "$$@" $$^$$(ECHO_END)
+ifeq ($(SHOULD_STRIP),$(_THEOS_TRUE))
+ifeq ($$(_THEOS_IS_WSL),$(_THEOS_TRUE))
+	mkdir -p "$$(_THEOS_TMP_FOR_WSL)/$$(THEOS_CURRENT_ARCH)"
+	$$(ECHO_STRIPPING)$$(ECHO_UNBUFFERED)cp "$$@" "$$(_THEOS_TMP_FOR_WSL)/$$(THEOS_CURRENT_ARCH)" && $$(TARGET_STRIP) $$(ALL_STRIP_FLAGS) "$$(_THEOS_TMP_FOR_WSL)/$$(THEOS_CURRENT_ARCH)/$(1)" && mv "$$(_THEOS_TMP_FOR_WSL)/$$(THEOS_CURRENT_ARCH)/$(1)" $$(THEOS_OBJ_DIR)$$(ECHO_END)
+else
+	$$(ECHO_STRIPPING)$$(ECHO_UNBUFFERED)$$(TARGET_STRIP) $$(ALL_STRIP_FLAGS) "$$@"$$(ECHO_END)
+endif
+endif
+endif
+endif
+
+endef
+
 $(eval $(call __mod,instance/rules.mk))
