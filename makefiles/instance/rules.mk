@@ -371,7 +371,7 @@ endif
 
 endef
 
-define _THEOS_TEMPLATE_DEFAULT_ARCHIVE_RULE
+define _THEOS_TEMPLATE_ARCHIVE_LINKING_RULE
 ifeq ($(TARGET_LIPO),)
 $$(THEOS_OBJ_DIR)/$(1): $$(OBJ_FILES_TO_LINK)
 ifneq ($(2),nowarn)
@@ -388,6 +388,7 @@ ifeq ($(SHOULD_STRIP),$(_THEOS_TRUE))
 endif
 endif
 else ifeq ($(THEOS_CURRENT_ARCH),)
+ifeq ($(_THEOS_LIBRARY_TYPE),static)
 
 ARCH_FILES_TO_LINK := $(addsuffix /$(1),$(addprefix $(THEOS_OBJ_DIR)/,$(TARGET_ARCHS)))
 $$(THEOS_OBJ_DIR)/%/$(1): $(__ALL_FILES)
@@ -400,6 +401,7 @@ $$(THEOS_OBJ_DIR)/%/$(1): $(__ALL_FILES)
 		THEOS_BUILD_DIR="$(THEOS_BUILD_DIR)" \
 		THEOS_CURRENT_ARCH="$$*"
 
+endif
 $(THEOS_OBJ_DIR)/$(1): $$(ARCH_FILES_TO_LINK)
 ifeq ($$(_THEOS_CURRENT_TYPE),subproject)
 	@echo "$$(_THEOS_INTERNAL_LDFLAGS)" > $$(THEOS_OBJ_DIR)/$$(THEOS_CURRENT_INSTANCE).ldflags
@@ -415,10 +417,10 @@ endif
 endif
 	$$(ECHO_NOTHING)mkdir -p $(shell dirname "$(THEOS_OBJ_DIR)/$(1)")$$(ECHO_END)
 ifeq ($$(_THEOS_CURRENT_TYPE),subproject)
-	$$(ECHO_LINKING)$$(ECHO_UNBUFFERED)$$(TARGET_LIBTOOL) -static -o "$$@" $$^$$(ECHO_END)
+	$$(ECHO_STATIC_LINKING)$$(ECHO_UNBUFFERED)$$(TARGET_LIBTOOL) -static -o "$$@" $$^$$(ECHO_END)
 	@echo "$$(_THEOS_INTERNAL_LDFLAGS)" > $$(THEOS_OBJ_DIR)/$$(THEOS_CURRENT_INSTANCE).ldflags
 else
-	$$(ECHO_LINKING)$$(ECHO_UNBUFFERED)$$(TARGET_LIBTOOL) -static -o "$$@" $$^$$(ECHO_END)
+	$$(ECHO_STATIC_LINKING)$$(ECHO_UNBUFFERED)$$(TARGET_LIBTOOL) -static -o "$$@" $$^$$(ECHO_END)
 ifeq ($(SHOULD_STRIP),$(_THEOS_TRUE))
 ifeq ($$(_THEOS_IS_WSL),$(_THEOS_TRUE))
 	mkdir -p "$$(_THEOS_TMP_FOR_WSL)/$$(THEOS_CURRENT_ARCH)"
