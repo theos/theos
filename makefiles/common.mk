@@ -285,7 +285,6 @@ ifeq ($(THEOS_CURRENT_INSTANCE),)
 endif
 THEOS_PACKAGE_VERSION = $(call __simplify,THEOS_PACKAGE_VERSION,$(THEOS_PACKAGE_BASE_VERSION)$(warning THEOS_PACKAGE_VERSION is deprecated. Please migrate to THEOS_PACKAGE_BASE_VERSION.))
 
-TARGET_AR_EXT := .a
 THEOS_LINKAGE_TYPE ?= dynamic
 
 $(eval $(call __mod,common.mk))
