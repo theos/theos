@@ -36,7 +36,12 @@ _THEOS_TARGET_SWIFT_TARGET := $(_THEOS_TARGET_PLATFORM_SWIFT_NAME)$(_THEOS_TARGE
 
 ifeq ($(call __executable,$(TARGET_SWIFT)),$(_THEOS_TRUE))
 	_THEOS_TARGET_SWIFT_VERSION = $(call __simplify,_THEOS_TARGET_SWIFT_VERSION,$(shell $(TARGET_SWIFT) --version | head -1 | cut -d'v' -f2 | cut -d' ' -f2 | cut -d'-' -f1))
-	_THEOS_TARGET_SWIFT_LDFLAGS := $(call __simplify,_THEOS_TARGET_SWIFT_LDFLAGS,-rpath /usr/lib/libswift/$(_THEOS_TARGET_SWIFT_VERSION))
+ifeq ($(firstword $(subst ., ,$(_THEOS_TARGET_SWIFT_VERSION))),4)
+	_THEOS_TARGET_SWIFT_VERSION_PATH = $(_THEOS_TARGET_SWIFT_VERSION)
+else
+	_THEOS_TARGET_SWIFT_VERSION_PATH = stable
+endif
+	_THEOS_TARGET_SWIFT_LDFLAGS := $(call __simplify,_THEOS_TARGET_SWIFT_LDFLAGS,-rpath /usr/lib/libswift/$(_THEOS_TARGET_SWIFT_VERSION_PATH))
 	_THEOS_TARGET_SWIFT_LDPATH = $(call __simplify,_THEOS_TARGET_SWIFT_LDPATH,$(dir $(shell type -p $(TARGET_SWIFT)))../lib/swift/$(_THEOS_TARGET_PLATFORM_NAME))
 endif
 
