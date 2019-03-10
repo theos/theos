@@ -1,5 +1,10 @@
 all::
 
+# common.mk should only be included once. Throw an error if already included in this makefile.
+ifneq ($(__THEOS_COMMON_MK_VERSION),)
+$(error common.mk has been included multiple times. Please check your makefiles.)
+endif
+
 # Block sudo. This is a common way users create more permissions problems than they already had.
 ifeq ($(notdir $(firstword $(SUDO_COMMAND))),make)
 $(error Do not use 'sudo make')
