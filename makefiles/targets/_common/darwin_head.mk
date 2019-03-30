@@ -55,7 +55,7 @@ ifneq ($(PREFIX),)
 	__invocation = $(PREFIX)$(1)
 else ifeq ($(call __executable,xcrun),$(_THEOS_TRUE))
 	# macOS
-	__invocation = $(shell xcrun -sdk $(_THEOS_TARGET_PLATFORM_NAME) -f $(1))
+	__invocation = $(shell xcrun -sdk $(_THEOS_TARGET_PLATFORM_NAME) -f $(1) 2>/dev/null)
 else
 	# iOS
 	__invocation = $(1)
@@ -75,8 +75,8 @@ TARGET_STRIP_FLAGS ?= -x
 ifeq ($(TARGET_DSYMUTIL),)
 ifeq ($(call __executable,$(call __invocation,llvm-dsymutil)),$(_THEOS_TRUE))
 	TARGET_DSYMUTIL = $(call __invocation,llvm-dsymutil)
-else ifeq ($(call __executable,dsymutil),$(_THEOS_TRUE))
-	TARGET_DSYMUTIL = dsymutil
+else ifeq ($(call __executable,$(call __invocation,dsymutil)),$(_THEOS_TRUE))
+	TARGET_DSYMUTIL = $(call __invocation,dsymutil)
 endif
 endif
 
