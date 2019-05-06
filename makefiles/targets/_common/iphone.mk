@@ -1,4 +1,5 @@
 # We have to figure out the target version here, as we need it in the calculation of the deployment version.
+_TARGET_VERSION_GE_12_1 = $(call __simplify,_TARGET_VERSION_GE_12_1,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 12.1))
 _TARGET_VERSION_GE_12_0 = $(call __simplify,_TARGET_VERSION_GE_12_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 12.0))
 _TARGET_VERSION_GE_10_0 = $(call __simplify,_TARGET_VERSION_GE_10_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 10.0))
 _TARGET_VERSION_GE_8_4 = $(call __simplify,_TARGET_VERSION_GE_8_4,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 8.4))
@@ -35,10 +36,18 @@ export _THEOS_TARGET_WARNED_DEPLOY := 1
 endif
 endif
 
-ifeq ($(_DEPLOY_VERSION_GE_11_0),11) # >= Deploy >= 11.0 {
+ifeq ($(_DEPLOY_VERSION_GE_11_0),11) # } Deploy >= 11.0 {
+ifeq ($(_TARGET_VERSION_GE_12_1)$(THEOS_PLATFORM_NAME),1macosx) # >= 12.1, macOS {
+	ARCHS ?= arm64 arm64e
+else # } else {
 	ARCHS ?= arm64
+endif # }
 else ifeq ($(_TARGET_VERSION_GE_7_0),1) # } >= 7.0 {
+ifeq ($(_TARGET_VERSION_GE_12_1)$(THEOS_PLATFORM_NAME),1macosx) # >= 12.1, macOS {
+	ARCHS ?= armv7 arm64 arm64e
+else # } else {
 	ARCHS ?= armv7 arm64
+endif # }
 else ifeq ($(_TARGET_VERSION_GE_6_0),1) # } >= 6.0 {
 ifeq ($(_TARGET_VERSION_GE_7_0)$(_DEPLOY_VERSION_GE_5_0),11) # >= 7.0, Deploy >= 5.0 {
 	ARCHS ?= armv7 arm64
