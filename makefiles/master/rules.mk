@@ -55,11 +55,6 @@ ifneq ($(call __exists,$(THEOS_PACKAGE_DIR)),$(_THEOS_TRUE))
 endif
 endif
 
-# If we need to do the WSL workaround, do it here.
-ifneq ($(_THEOS_TMP_FOR_WSL),)
-	$(ECHO_NOTHING)mkdir -p $(_THEOS_TMP_FOR_WSL)$(ECHO_END)
-endif
-
 internal-all::
 
 after-all::
@@ -76,12 +71,6 @@ endif
 
 ifeq ($(MAKELEVEL),0)
 	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)"$(ECHO_END)
-endif
-
-ifneq ($(_THEOS_TMP_FOR_WSL),)
-ifneq ($(_THEOS_TMP_FOR_WSL),/)
-	$(ECHO_NOTHING)rm -rf $(_THEOS_TMP_FOR_WSL)$(ECHO_END)
-endif
 endif
 
 after-clean::

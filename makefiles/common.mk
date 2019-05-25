@@ -65,16 +65,6 @@ export THEOS_PROJECT_DIR
 
 export PATH := $(THEOS_BIN_PATH):$(PATH)
 
-# Determine whether we’re on Windows Subsystem for Linux and calculate this project’s temp path
-# (used to work around WSL limitations and for translating Linux paths to Windows where needed).
-_THEOS_IS_WSL = $(if $(shell grep Microsoft /proc/version 2>/dev/null),$(_THEOS_TRUE),$(_THEOS_FALSE))
-
-ifeq ($(_THEOS_IS_WSL),$(_THEOS_TRUE))
-_THEOS_TMP_FOR_WSL_BASE := /tmp/theos_for_wsl
-_THEOS_TMP_FOR_WSL := $(abspath $(dir $(lastword $(THEOS_PROJECT_DIR))))
-_THEOS_TMP_FOR_WSL := $(_THEOS_TMP_FOR_WSL_BASE)/$(THEOS_PROJECT_DIR:$(_THEOS_TMP_FOR_WSL)/%=%)
-endif
-
 ifeq ($(call __exists,$(HOME)/.theosrc),$(_THEOS_TRUE))
 -include $(HOME)/.theosrc
 endif
