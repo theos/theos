@@ -6,7 +6,7 @@
 	// This block shouldn’t really be in this prefix header, but we can’t remove it without breaking
 	// pretty much everyone’s projects. THEOS_LEAN_AND_MEAN allows for this block to be skipped on a
 	// per-project or per-developer basis. This file is not imported at all when using Swift.
-	#ifndef THEOS_LEAN_AND_MEAN
+	#if defined(THEOS_LEGACY_PREFIX_HEADER) && !defined(THEOS_LEAN_AND_MEAN)
 		#import <_Prefix/BackwardsCompat.h>
 		#import <Foundation/Foundation.h>
 
