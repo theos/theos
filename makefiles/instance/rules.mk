@@ -53,6 +53,7 @@ ifneq ($(_SWIFT_FILE_COUNT),0)
 		# if both Swift and ObjC files exist
 		_THEOS_GENERATE_SWIFTMODULE_HEADER = $(_THEOS_TRUE)
 		_THEOS_INTERNAL_IFLAGS_C += -I$(dir $(_SWIFTMODULE_HEADER))
+		_THEOS_INTERNAL_SWIFTFLAGS += -enable-objc-interop
 	endif
 endif
 
@@ -61,6 +62,7 @@ _THEOS_INTERNAL_SWIFT_BRIDGING_HEADER = $(or $($(THEOS_CURRENT_INSTANCE)_SWIFT_B
 ifeq ($(call __exists,$(_THEOS_INTERNAL_SWIFT_BRIDGING_HEADER)),$(_THEOS_TRUE))
 	_THEOS_INTERNAL_IFLAGS_SWIFT += -import-objc-header $(_THEOS_INTERNAL_SWIFT_BRIDGING_HEADER)
 endif
+_THEOS_INTERNAL_SWIFTFLAGS += -swift-version $(or $($(THEOS_CURRENT_INSTANCE)_SWIFT_VERSION),5)
 
 # Add all frameworks from the type and instance.
 _THEOS_INTERNAL_LDFLAGS += $(foreach framework,$($(_THEOS_CURRENT_TYPE)_FRAMEWORKS),-framework $(framework))
@@ -257,11 +259,11 @@ $(THEOS_OBJ_DIR)/%.ii.$(_THEOS_OBJ_FILE_TAG).o: %.ii
 $(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).o \
 $(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).swiftmodule: %.swift
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
-	$(ECHO_COMPILING)$(TARGET_SWIFT) -frontend -emit-object -emit-module -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_DEPFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -emit-module-path $(@:.o=.swiftmodule) -primary-file $< $(filter-out $<,$(SWIFT_FILES)) -o $(@:.swiftmodule=.o)$(ECHO_END)
+	$(ECHO_COMPILING)$(TARGET_SWIFT) -frontend -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_DEPFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -emit-module-path $(@:.o=.swiftmodule) -primary-file $< $(filter-out $<,$(SWIFT_FILES)) -o $(@:.swiftmodule=.o)$(ECHO_END)
 
 $(_SWIFTMODULE_HEADER): $(patsubst %.swift,$(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).swiftmodule,$(SWIFT_FILES))
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
-	$(ECHO_SWIFTMODULE_HEADER)$(TARGET_SWIFT) -frontend -c $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -parse-as-library $^ -emit-objc-header-path $@ -o /dev/null$(ECHO_END)
+	$(ECHO_SWIFTMODULE_HEADER)$(TARGET_SWIFT) -frontend -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -merge-modules $^ -emit-objc-header-path $@ -o /dev/null$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.x.m: %.x
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
