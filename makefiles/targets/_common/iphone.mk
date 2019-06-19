@@ -74,3 +74,9 @@ endif
 ifeq ($(_TARGET_VERSION_GE_8_4),1)
 	_THEOS_DARWIN_CAN_USE_MODULES := $(_THEOS_TRUE)
 endif
+
+# “iOS 9 changed the 32-bit pagesize on 64-bit CPUs from 4096 bytes to 16384: all 32-bit binaries
+# must now be compiled with -Wl,-segalign,4000.” https://twitter.com/saurik/status/654198997024796672
+ifneq ($(filter armv6 armv7 armv7s,$(THEOS_CURRENT_ARCH)),)
+	LEGACYFLAGS := -Xlinker -segalign -Xlinker 4000
+endif
