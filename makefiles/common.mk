@@ -200,7 +200,7 @@ SHOULD_STRIP := $(call __theos_bool,$(or $(strip),$(STRIP),$(_THEOS_SHOULD_STRIP
 
 ifeq ($(SHOULD_STRIP),$(_THEOS_TRUE))
 OPTFLAG ?= -Os
-SWIFT_OPTFLAG ?= -O
+SWIFT_OPTFLAG ?= -O -whole-module-optimization
 else
 TARGET_STRIP = :
 OPTFLAG ?= -O0
