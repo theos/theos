@@ -19,17 +19,21 @@ else ifeq ($(__THEOS_TARGET_ARG_1),gcc)
 	_THEOS_TARGET_ARG_ORDER := 2 3
 endif
 
+TARGET_CODESIGN_IDENTITY ?= -
+_THEOS_TARGET_DEFAULT_CODESIGN ?= codesign
 _THEOS_TARGET_DEFAULT_PACKAGE_FORMAT ?= deb
 
 ifeq ($(_THEOS_TARGET_PLATFORM_IS_SIMULATOR),$(_THEOS_TRUE))
 	_THEOS_TARGET_LOGOS_DEFAULT_GENERATOR := internal
-
-	TARGET_CODESIGN ?= codesign
-	TARGET_CODESIGN_FLAGS ?= --sign 'iPhone Developer'
 else
 	TARGET_INSTALL_REMOTE ?= $(_THEOS_TRUE)
+endif
 
 ifeq ($(TARGET_CODESIGN),)
+ifeq ($(_THEOS_TARGET_DEFAULT_CODESIGN),codesign)
+	TARGET_CODESIGN := codesign
+	TARGET_CODESIGN_FLAGS =
+else
 # Determine the path to ldid. If it can’t be found, just use “ldid” so there’s an understandable
 # “no such file or directory” error.
 ifeq ($(call __executable,ldid),$(_THEOS_TRUE))
@@ -41,7 +45,7 @@ else
 endif
 endif
 
-	TARGET_CODESIGN_FLAGS ?= -S
+	TARGET_CODESIGN_FLAGS =
 endif
 
 # give precedence to Swift toolchains located at SWIFTBINPATH
@@ -67,7 +71,6 @@ TARGET_LD ?= $(call __invocation,$(_THEOS_TARGET_CXX))
 TARGET_SWIFT ?= $(call __invocation,$(_THEOS_TARGET_SWIFT))
 TARGET_LIPO ?= $(call __invocation,lipo)
 TARGET_STRIP ?= $(call __invocation,strip)
-TARGET_CODESIGN_ALLOCATE ?= $(call __invocation,codesign_allocate)
 TARGET_LIBTOOL ?= $(call __invocation,libtool)
 
 TARGET_STRIP_FLAGS ?= -x

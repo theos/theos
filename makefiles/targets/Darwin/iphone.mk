@@ -6,6 +6,7 @@ _THEOS_TARGET_PLATFORM_NAME := iphoneos
 _THEOS_TARGET_PLATFORM_SDK_NAME := iPhoneOS
 _THEOS_TARGET_PLATFORM_FLAG_NAME := iphoneos
 _THEOS_TARGET_PLATFORM_SWIFT_NAME := apple-ios
+_THEOS_TARGET_DEFAULT_CODESIGN := ldid
 
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_head.mk
 include $(THEOS_MAKE_PATH)/targets/_common/iphone.mk
