@@ -21,12 +21,6 @@ endif
 
 VERSIONFLAGS := -m$(_THEOS_TARGET_PLATFORM_FLAG_NAME)-version-min=$(_THEOS_TARGET_OS_DEPLOYMENT_VERSION)
 
-# “iOS 9 changed the 32-bit pagesize on 64-bit CPUs from 4096 bytes to 16384: all 32-bit binaries
-# must now be compiled with -Wl,-segalign,4000.” https://twitter.com/saurik/status/654198997024796672
-ifneq ($(THEOS_CURRENT_ARCH),arm64)
-	LEGACYFLAGS := -Xlinker -segalign -Xlinker 4000
-endif
-
 _THEOS_TARGET_CFLAGS := -isysroot "$(ISYSROOT)" $(VERSIONFLAGS) $(MODULESFLAGS) $(_THEOS_TARGET_CC_CFLAGS)
 _THEOS_TARGET_CCFLAGS := $(_TARGET_LIBCPP_CCFLAGS)
 _THEOS_TARGET_LDFLAGS := -isysroot "$(SYSROOT)" $(VERSIONFLAGS) $(LEGACYFLAGS) -multiply_defined suppress $(_TARGET_LIBCPP_LDFLAGS)
