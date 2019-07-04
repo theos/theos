@@ -69,6 +69,8 @@ TARGET_LIPO ?= $(call __invocation,lipo)
 TARGET_STRIP ?= $(call __invocation,strip)
 TARGET_CODESIGN_ALLOCATE ?= $(call __invocation,codesign_allocate)
 TARGET_LIBTOOL ?= $(call __invocation,libtool)
+TARGET_XCODEBUILD ?= $(call __invocation,xcodebuild)
+TARGET_XCPRETTY ?= $(call __invocation,xcpretty)
 
 TARGET_STRIP_FLAGS ?= -x
 

@@ -44,7 +44,7 @@ endif
 ifeq ($(_THEOS_INTERNAL_TRUE_PATH),)
 _THEOS_RELATIVE_MAKE_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
 _THEOS_INTERNAL_TRUE_PATH := $(call __clean_pwd,$(_THEOS_RELATIVE_MAKE_PATH)/..)
-ifneq ($(words $(_THEOS_INTERNAL_TRUE_PATH)),1) # It's a hack, but it works.
+ifneq ($(words $(_THEOS_INTERNAL_TRUE_PATH)),1) # a hack, but it works.
 $(shell unlink /tmp/theos &> /dev/null; ln -Ffs "$(_THEOS_INTERNAL_TRUE_PATH)" /tmp/theos)
 _THEOS_INTERNAL_TRUE_PATH := /tmp/theos
 endif
