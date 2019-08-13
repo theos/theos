@@ -80,7 +80,7 @@ endif
 _THEOS_INTERNAL_LDFLAGS += $(foreach framework,$($(_THEOS_CURRENT_TYPE)_PRIVATE_FRAMEWORKS),-framework $(framework))
 _THEOS_INTERNAL_LDFLAGS += $(foreach framework,$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,PRIVATE_FRAMEWORKS),-framework $(framework))
 
-# Add extra frameworks (ones in $THEOS/lib).
+# Add extra frameworks (ones in $THEOS/vendor/lib).
 ifneq ($(words $($(_THEOS_CURRENT_TYPE)_EXTRA_FRAMEWORKS)$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,EXTRA_FRAMEWORKS)),0)
 	_THEOS_INTERNAL_OBJCFLAGS += -F$(THEOS_VENDOR_LIBRARY_PATH) -F$(THEOS_LIBRARY_PATH)
 	_THEOS_INTERNAL_SWIFTFLAGS += -F$(THEOS_VENDOR_LIBRARY_PATH) -F$(THEOS_LIBRARY_PATH)
