@@ -34,6 +34,7 @@ _THEOS_XCODEBUILD_END = CODE_SIGNING_ALLOWED=NO DSTROOT=$(THEOS_OBJ_DIR)/install
 export EXPANDED_CODE_SIGN_IDENTITY =
 export EXPANDED_CODE_SIGN_IDENTITY_NAME =
 
+# TODO: sign in a depth-first manner
 internal-xcodeproj-compile:
 	$(_THEOS_XCODEBUILD_BEGIN) \
 	$(ALL_XCODEOPTS) \
@@ -51,7 +52,6 @@ ifneq ($(_THEOS_CODESIGN_COMMANDLINE),)
 		process_exec $$1/$$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" $$1/Info.plist); \
 	}; \
 	export -f process_exec process_bundle; \
-# TODO: do this depth-first
 	find $(THEOS_OBJ_DIR)/install -name '*.dylib' -print0 | xargs -I{} -0 bash -c 'process_exec "$$@"' _ {}; \
 	find $(THEOS_OBJ_DIR)/install -name '*.framework' -print0 | xargs -I{} -0 bash -c 'process_bundle "$$@"' _ {}; \
 	find $(THEOS_OBJ_DIR)/install -name '*.appex' -print0 | xargs -I{} -0 bash -c 'process_bundle "$$@"' _ {}; \
