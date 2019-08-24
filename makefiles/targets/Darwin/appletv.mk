@@ -11,6 +11,7 @@ _THEOS_DARWIN_CAN_USE_MODULES := $(_THEOS_TRUE)
 NEUTRAL_ARCH := arm64
 
 _THEOS_TARGET_DEFAULT_OS_DEPLOYMENT_VERSION := 9.0
+_THEOS_TARGET_LOGOS_DEFAULT_GENERATOR := internal
 
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_head.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_tail.mk
