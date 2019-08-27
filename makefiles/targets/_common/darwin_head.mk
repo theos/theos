@@ -73,10 +73,10 @@ TARGET_XCPRETTY ?= $(call __invocation,xcpretty)
 TARGET_STRIP_FLAGS ?= -x
 
 ifeq ($(TARGET_DSYMUTIL),)
-ifeq ($(call __executable,$(call __invocation,llvm-dsymutil)),$(_THEOS_TRUE))
-	TARGET_DSYMUTIL = $(call __invocation,llvm-dsymutil)
-else ifeq ($(call __executable,$(call __invocation,dsymutil)),$(_THEOS_TRUE))
+ifeq ($(call __executable,$(call __invocation,dsymutil)),$(_THEOS_TRUE))
 	TARGET_DSYMUTIL = $(call __invocation,dsymutil)
+else ifeq ($(call __executable,$(call __invocation,llvm-dsymutil)),$(_THEOS_TRUE))
+	TARGET_DSYMUTIL = $(call __invocation,llvm-dsymutil)
 endif
 endif
 
