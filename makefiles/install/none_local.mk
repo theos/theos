@@ -1,6 +1,5 @@
 internal-install:: stage
-	install.mergeDir "$(THEOS_STAGING_DIR)" "/"
+	$(ECHO_INSTALLING)install.mergeDir "$(THEOS_STAGING_DIR)" "/"$(ECHO_END)
 
 internal-uninstall::
-	@echo "$(MAKE) uninstall is not supported when packaging is disabled" >&2
-	@exit 1
+	@$(PRINT_FORMAT_ERROR) "$(MAKE) uninstall is not supported when packaging is disabled" >&2; exit 1

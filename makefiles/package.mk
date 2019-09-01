@@ -8,8 +8,8 @@ package:: internal-package-check stage before-package internal-package after-pac
 before-package:: $(THEOS_PACKAGE_DIR)
 internal-package::
 ifeq ($(_THEOS_FINAL_PACKAGE),$(_THEOS_TRUE))
-	find $(THEOS_STAGING_DIR) -name \*.png -a ! -type l -exec pincrush -i {} \;
-	find $(THEOS_STAGING_DIR) \( -name \*.plist -or -name \*.strings \) -exec plutil -convert binary1 {} \;
+	$(ECHO_NOTHING)find $(THEOS_STAGING_DIR) -name \*.png -a ! -type l -exec pincrush -i {} \;$(ECHO_END)
+	$(ECHO_NOTHING)find $(THEOS_STAGING_DIR) \( -name \*.plist -or -name \*.strings \) -exec plutil -convert binary1 {} \;$(ECHO_END)
 endif
 internal-package-check::
 	@:
@@ -78,14 +78,12 @@ install:: before-install internal-install after-install
 internal-install-check::
 # Throw an error if we aren’t aware of any built package yet.
 	@if [[ -z "$(_THEOS_PACKAGE_LAST_FILENAME)" ]]; then \
-		$(PRINT_FORMAT_ERROR) "$(MAKE) install and show require that you build a package before you try to install it." >&2; \
-		exit 1; \
+		$(PRINT_FORMAT_ERROR) "$(MAKE) install and show require that you build a package before you try to install it." >&2; exit 1; \
 	fi
 
 # Throw an error if the package doesn’t exist.
 	@if [[ ! -f "$(_THEOS_PACKAGE_LAST_FILENAME)" ]]; then \
-		$(PRINT_FORMAT_ERROR) "Could not find “$(_THEOS_PACKAGE_LAST_FILENAME)” to install. Aborting." >&2; \
-		exit 1; \
+		$(PRINT_FORMAT_ERROR) "Could not find “$(_THEOS_PACKAGE_LAST_FILENAME)” to install. Aborting." >&2; exit 1; \
 	fi
 
 export TARGET_INSTALL_REMOTE
@@ -150,7 +148,7 @@ endif
 
 # For Cygwin and WSL, call the path translator to ensure we get a Windows path.
 ifeq ($(_THEOS_PLATFORM_SHOW_IN_FILE_MANAGER_PATH_TRANSLATOR),)
-	$(_THEOS_PLATFORM_SHOW_IN_FILE_MANAGER) "$(shell cat "$(_THEOS_LOCAL_DATA_DIR)/last_package")"
+	$(ECHO_NOTHING)$(_THEOS_PLATFORM_SHOW_IN_FILE_MANAGER) "$(shell cat "$(_THEOS_LOCAL_DATA_DIR)/last_package")"$(ECHO_END)
 else
-	$(_THEOS_PLATFORM_SHOW_IN_FILE_MANAGER) "$(shell $(_THEOS_PLATFORM_SHOW_IN_FILE_MANAGER_PATH_TRANSLATOR) $$(cat "$(_THEOS_LOCAL_DATA_DIR)/last_package"))"
+	$(ECHO_NOTHING)$(_THEOS_PLATFORM_SHOW_IN_FILE_MANAGER) "$(shell $(_THEOS_PLATFORM_SHOW_IN_FILE_MANAGER_PATH_TRANSLATOR) $$(cat "$(_THEOS_LOCAL_DATA_DIR)/last_package"))"$(ECHO_END)
 endif

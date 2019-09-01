@@ -9,7 +9,7 @@ _THEOS_PACKAGE_EXTRA_VERSION_PREFIX := +
 _THEOS_PKG_HAS_PKGBUILD := $(call __executable,pkgbuild)
 ifneq ($(_THEOS_PKG_HAS_PKGBUILD),$(_THEOS_TRUE))
 internal-package-check::
-	@echo "$(MAKE) package requires pkgbuild."; exit 1
+	@$(PRINT_FORMAT_ERROR) "$(MAKE) package requires pkgbuild." >&2; exit 1
 endif
 
 ifeq ($(_THEOS_PKG_CAN_PACKAGE),$(_THEOS_TRUE)) # Control file found (or layout directory found.)
@@ -25,7 +25,7 @@ after-package:: __THEOS_LAST_PACKAGE_FILENAME = $(_THEOS_PKG_PACKAGE_FILENAME)
 
 else # _THEOS_PKG_CAN_PACKAGE == 0
 internal-package::
-	@echo "$(MAKE) package requires you to have a control file in the project root describing the package."; exit 1
+	@$(PRINT_FORMAT_ERROR) "$(MAKE) package requires you to have a control file in the project root describing the package."; exit 1
 
 endif # _THEOS_PKG_CAN_PACKAGE
 endif # _THEOS_PACKAGE_FORMAT_LOADED

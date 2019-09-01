@@ -12,11 +12,10 @@ include $(THEOS_MAKE_PATH)/targets/_common/darwin_head.mk
 
 ifeq ($(IPHONE_SIMULATOR_ROOT),)
 internal-install::
-	@$(PRINT_FORMAT_ERROR) "$(MAKE) install for the simulator requires that you set IPHONE_SIMULATOR_ROOT to the root directory of the simulated OS." >&2
-	@exit 1
+	@$(PRINT_FORMAT_ERROR) "$(MAKE) install for the simulator requires that you set IPHONE_SIMULATOR_ROOT to the root directory of the simulated OS." >&2; exit 1
 else
 internal-install:: stage
-	install.mergeDir "$(THEOS_STAGING_DIR)" "$(IPHONE_SIMULATOR_ROOT)"
+	$(ECHO_NOTHING)install.mergeDir "$(THEOS_STAGING_DIR)" "$(IPHONE_SIMULATOR_ROOT)"$(ECHO_END)
 endif
 
 # We have to figure out the target version here, as we need it in the calculation of the deployment version.
