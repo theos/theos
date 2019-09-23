@@ -9,7 +9,7 @@ _THEOS_PACKAGE_EXTRA_VERSION_PREFIX := +
 _THEOS_RPM_HAS_RPMBUILD := $(call __executable,rpmbuild)
 ifneq ($(_THEOS_RPM_HAS_RPMBUILD),$(_THEOS_TRUE))
 internal-package-check::
-	@$(PRINT_FORMAT_ERROR) "$(MAKE) package requires rpmbuild." >&2; exit 1
+	$(ERROR_BEGIN)"$(MAKE) package requires rpmbuild."$(ERROR_END)
 endif
 
 ifeq ($(_THEOS_RPM_CAN_PACKAGE),$(_THEOS_TRUE)) # Control file found (or layout directory found.)
@@ -41,7 +41,7 @@ after-package:: __THEOS_LAST_PACKAGE_FILENAME = $(_THEOS_RPM_PACKAGE_FILENAME)
 
 else # _THEOS_RPM_CAN_PACKAGE == 0
 internal-package::
-	@$(PRINT_FORMAT_ERROR) "$(MAKE) package requires you to have a package.spec file in the project directory." >&2; exit 1
+	$(ERROR_BEGIN)"$(MAKE) package requires you to have a package.spec file in the project directory."$(ERROR_END)
 
 endif # _THEOS_RPM_CAN_PACKAGE
 endif # _THEOS_PACKAGE_FORMAT_LOADED

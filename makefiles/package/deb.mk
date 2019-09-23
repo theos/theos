@@ -19,7 +19,7 @@ _THEOS_DEB_HAS_DPKG_DEB := $(call __executable,$(_THEOS_PLATFORM_DPKG_DEB))
 
 ifneq ($(_THEOS_DEB_HAS_DPKG_DEB),$(_THEOS_TRUE))
 internal-package-check::
-	@$(PRINT_FORMAT_ERROR) "$(MAKE) package requires $(_THEOS_PLATFORM_DPKG_DEB)." >&2; exit 1
+	$(ERROR_BEGIN)"$(MAKE) package requires $(_THEOS_PLATFORM_DPKG_DEB)."$(ERROR_END)
 endif
 
 ifeq ($(_THEOS_DEB_CAN_PACKAGE),$(_THEOS_TRUE)) # Control file found (or layout directory found.)
@@ -64,7 +64,7 @@ after-package:: __THEOS_LAST_PACKAGE_FILENAME = $(_THEOS_DEB_PACKAGE_FILENAME)
 
 else # _THEOS_DEB_CAN_PACKAGE == 0
 internal-package::
-	@$(PRINT_FORMAT_ERROR) "$(MAKE) package requires you to have a layout/ directory in the project root, containing the basic package structure, or a control file in the project root describing the package." >&2; exit 1
+	$(ERROR_BEGIN)"$(MAKE) package requires you to have a layout/ directory in the project root, containing the basic package structure, or a control file in the project root describing the package."$(ERROR_END)
 
 endif # _THEOS_DEB_CAN_PACKAGE
 endif # _THEOS_PACKAGE_FORMAT_LOADED

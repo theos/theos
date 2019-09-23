@@ -1,7 +1,7 @@
 __THEOS_RULES_MK_VERSION := 1k
 ifneq ($(__THEOS_RULES_MK_VERSION),$(__THEOS_COMMON_MK_VERSION))
 all::
-	@$(PRINT_FORMAT_ERROR) "Theos version mismatch! common.mk [version $(or $(__THEOS_COMMON_MK_VERSION),0)] loaded in tandem with rules.mk [version $(or $(__THEOS_RULES_MK_VERSION),0)] Check that \$$\(THEOS\) is set properly!" >&2; exit 1
+	@echo "Theos version mismatch! common.mk [version $(or $(__THEOS_COMMON_MK_VERSION),0)] loaded in tandem with rules.mk [version $(or $(__THEOS_RULES_MK_VERSION),0)] Check that \$$\(THEOS\) is set properly!" >&2; exit 1
 endif
 
 # Determine whether we are on a modern enough version of make for us to enable parallel building.
@@ -38,13 +38,13 @@ before-all::
 # If the sysroot is set but doesn’t exist, bail out.
 ifneq ($(SYSROOT),)
 ifneq ($(call __exists,$(SYSROOT)),$(_THEOS_TRUE))
-	@$(PRINT_FORMAT_ERROR) "Your current SYSROOT, “$(SYSROOT)”, appears to be missing." >&2; exit 1
+	$(ERROR_BEGIN)"Your current SYSROOT, “$(SYSROOT)”, appears to be missing."$(ERROR_END)
 endif
 endif
 
 # If a vendored path is missing, bail out.
 ifneq ($(call __exists,$(THEOS_VENDOR_INCLUDE_PATH)/.git)$(call __exists,$(THEOS_VENDOR_LIBRARY_PATH)/.git),$(_THEOS_TRUE)$(_THEOS_TRUE))
-	@$(PRINT_FORMAT_ERROR) "The vendor/include and/or vendor/lib directories are missing. Please run \`$(THEOS)/bin/update-theos\`. More information: https://github.com/theos/theos/wiki/Installation." >&2; exit 1
+	$(ERROR_BEGIN)"The vendor/include and/or vendor/lib directories are missing. Please run \`$(THEOS)/bin/update-theos\`. More information: https://github.com/theos/theos/wiki/Installation."$(ERROR_END)
 endif
 
 ifeq ($(call __exists,$(THEOS_LEGACY_PACKAGE_DIR)),$(_THEOS_TRUE))
@@ -173,7 +173,7 @@ ifeq ($(call __executable,ghost),$(_THEOS_TRUE))
 	@$(PRINT_FORMAT) "Creating a Ghostbin containing the output of \`make clean all messages=yes\`…"
 	+$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going clean all messages=yes COLOR=yes 2>&1 | ghost -x 2w - ansi
 else
-	@$(PRINT_FORMAT_ERROR) "You don't have ghost installed. For more information, refer to https://github.com/theos/theos/wiki/Installation#prerequisites." >&2; exit 1
+	$(ERROR_BEGIN)"You don't have ghost installed. For more information, refer to https://github.com/theos/theos/wiki/Installation#prerequisites."$(ERROR_END)
 endif
 
 $(eval $(call __mod,master/rules.mk))

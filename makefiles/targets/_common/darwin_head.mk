@@ -95,9 +95,9 @@ endif
 ifeq ($(words $(_UNSORTED_SDKS)),0)
 before-all::
 ifeq ($(_XCODE_SDK_DIR),)
-	@$(PRINT_FORMAT_ERROR) "You do not have any SDKs in $(THEOS_SDKS_PATH)." >&2; exit 1
+	$(ERROR_BEGIN)"You do not have any SDKs in $(THEOS_SDKS_PATH)."$(ERROR_END)
 else
-	@$(PRINT_FORMAT_ERROR) "You do not have any SDKs in $(_XCODE_SDK_DIR) or $(THEOS_SDKS_PATH)." >&2; exit 1
+	$(ERROR_BEGIN)"You do not have any SDKs in $(_XCODE_SDK_DIR) or $(THEOS_SDKS_PATH)."$(ERROR_END)
 endif
 endif
 
