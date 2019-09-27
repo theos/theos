@@ -158,7 +158,7 @@ endif
 before-$(THEOS_CURRENT_INSTANCE)-all::
 	@for i in $(_FILES); do \
 		if [[ ! -f "$$i" ]]; then \
-			$(ERROR_BEGIN)"File $$i does not exist."$(ERROR_END); \
+			$(ERROR_BEGIN) "File $$i does not exist." $(ERROR_END) \
 		fi; \
 	done
 
