@@ -84,7 +84,7 @@ endif
 	ECHO_CLEANING = $(ECHO_BEGIN)$(PRINT_FORMAT_CYAN) "Cleaning"$(ECHO_END); $(ECHO_PIPEFAIL) (
 
 	ERROR_BEGIN = @$(PRINT_FORMAT_ERROR) $(NULLSTRING)
-	ERROR_END = $(NULLSTRING) >&2; exit 1
+	ERROR_END = $(NULLSTRING) >&2; exit 1;
 
 WARNING_EMPTY_LINKING = @$(PRINT_FORMAT_WARNING) "No files to link. Please check your Makefile! Make sure you set $(THEOS_CURRENT_INSTANCE)_FILES (or similar variables)"
 
