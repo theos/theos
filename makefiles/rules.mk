@@ -9,26 +9,24 @@ endif
 
 ifeq ($(_THEOS_MAKE_PARALLEL_BUILDING), no)
 .NOTPARALLEL:
-else
-ifneq ($(_THEOS_MAKE_PARALLEL), yes)
+else ifneq ($(_THEOS_MAKE_PARALLEL), yes)
 .NOTPARALLEL:
-endif
 endif
 
 %.mm: %.l.mm
-	$(THEOS_BIN_PATH)/logos.pl $< > $@
+	$(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $< > $@
 
 %.mm: %.xmm
-	$(THEOS_BIN_PATH)/logos.pl $< > $@
+	$(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $< > $@
 
 %.mm: %.xm
-	$(THEOS_BIN_PATH)/logos.pl $< > $@
+	$(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $< > $@
 
 %.m: %.xm
-	$(THEOS_BIN_PATH)/logos.pl $< > $@
+	$(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $< > $@
 
 %.swift: %.xswift
-	$(THEOS_BIN_PATH)/logos.pl $< > $@
+	$(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $< > $@
 
 ifneq ($(THEOS_BUILD_DIR),.)
 $(THEOS_BUILD_DIR):
@@ -36,7 +34,7 @@ $(THEOS_BUILD_DIR):
 endif
 
 $(THEOS_OBJ_DIR):
-	@cd $(THEOS_BUILD_DIR); mkdir -p $(THEOS_OBJ_DIR_NAME)
+	@mkdir -p $@
 
 $(THEOS_OBJ_DIR)/.stamp: $(THEOS_OBJ_DIR)
 	@mkdir -p $(dir $@); touch $@

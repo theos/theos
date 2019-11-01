@@ -9,11 +9,11 @@ ifeq ($(LOCAL_INSTALL_PATH),)
 	LOCAL_INSTALL_PATH = /Library/MobileSubstrate/DynamicLibraries
 endif
 
-_LOCAL_USE_SUBSTRATE = $(or $($(THEOS_CURRENT_INSTANCE)_USE_SUBSTRATE),$(_THEOS_TARGET_DEFAULT_USE_SUBSTRATE),$(_THEOS_TRUE))
-ifeq ($(call __theos_bool,$(_LOCAL_USE_SUBSTRATE)),$(_THEOS_TRUE))
+_LOCAL_LOGOS_DEFAULT_GENERATOR = $(or $($(THEOS_CURRENT_INSTANCE)_LOGOS_DEFAULT_GENERATOR),$(LOGOS_DEFAULT_GENERATOR),$(_THEOS_TARGET_LOGOS_DEFAULT_GENERATOR),MobileSubstrate)
+_THEOS_INTERNAL_LOGOSFLAGS += -c generator=$(_LOCAL_LOGOS_DEFAULT_GENERATOR)
+
+ifeq ($(_LOCAL_LOGOS_DEFAULT_GENERATOR),MobileSubstrate)
 _THEOS_INTERNAL_LDFLAGS += -F$(THEOS_VENDOR_LIBRARY_PATH) -framework CydiaSubstrate
-else
-_THEOS_INTERNAL_LOGOSFLAGS += -c generator=internal
 endif
 
 include $(THEOS_MAKE_PATH)/instance/library.mk
@@ -37,12 +37,11 @@ endif
 
 ifneq ($($(THEOS_CURRENT_INSTANCE)_INSTALL),0)
 internal-tweak-stage_:: $(_EXTRA_TARGET) internal-library-stage_
-	$(ECHO_NOTHING)if [[ ! -f "$(THEOS_CURRENT_INSTANCE).plist" && ! -f "$(THEOS_LAYOUT_DIR_NAME)/$(LOCAL_INSTALL_PATH)/$(THEOS_CURRENT_INSTANCE).plist" ]]; then \
-		$(PRINT_FORMAT_ERROR) "You are missing a filter property list. Make sure it’s named $(THEOS_CURRENT_INSTANCE).plist. Refer to http://iphonedevwiki.net/index.php/Cydia_Substrate#MobileLoader." >&2; \
-		exit 1; \
-	elif [[ -f "$(THEOS_CURRENT_INSTANCE).plist" ]]; then \
-		cp $(THEOS_CURRENT_INSTANCE).plist "$(THEOS_STAGING_DIR)$(LOCAL_INSTALL_PATH)/"; \
-	fi$(ECHO_END)
+ifeq ($(call __exists,$(THEOS_CURRENT_INSTANCE).plist),$(_THEOS_TRUE))
+	$(ECHO_NOTHING)cp $(THEOS_CURRENT_INSTANCE).plist "$(THEOS_STAGING_DIR)$(LOCAL_INSTALL_PATH)/"$(ECHO_END)
+else ifeq ($(call __exists,$(THEOS_LAYOUT_DIR_NAME)/$(LOCAL_INSTALL_PATH)/$(THEOS_CURRENT_INSTANCE).plist),$(_THEOS_FALSE))
+	$(ERROR_BEGIN)"You are missing a filter property list. Make sure it’s named $(THEOS_CURRENT_INSTANCE).plist. Refer to http://iphonedevwiki.net/index.php/Cydia_Substrate#MobileLoader."$(ERROR_END)
+endif
 endif
 
 $(eval $(call __mod,instance/tweak.mk))
