@@ -34,7 +34,11 @@ _THEOS_XCODEBUILD_END = CODE_SIGNING_ALLOWED=NO DSTROOT=$(THEOS_OBJ_DIR)/install
 export EXPANDED_CODE_SIGN_IDENTITY =
 export EXPANDED_CODE_SIGN_IDENTITY_NAME =
 
-# TODO: sign in a depth-first manner
+__theos_find_and_execute = find $(1) -print0 | xargs -I{} -0 bash -c '$(2) "$$@"' _ {};
+
+_THEOS_SIGNABLE_BUNDLE_EXTENSIONS = app framework appex
+_THEOS_SIGNABLE_FILE_EXTENSIONS = dylib
+
 internal-xcodeproj-compile:
 	$(_THEOS_XCODEBUILD_BEGIN) \
 	$(ALL_XCODEOPTS) \
@@ -48,14 +52,21 @@ ifneq ($(_THEOS_CODESIGN_COMMANDLINE),)
 	$(ECHO_SIGNING)function process_exec { \
 		$(_THEOS_CODESIGN_COMMANDLINE) $$1; \
 	}; \
-	function process_bundle { \
-		process_exec $$1/$$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" $$1/Info.plist); \
+	function process_dir { \
+		$(call __theos_find_and_execute,"$$1" -mindepth 1 -maxdepth 1 -type d,process_dir) \
+		$(foreach ext,$(_THEOS_SIGNABLE_FILE_EXTENSIONS),$(call __theos_find_and_execute,"$$1" -mindepth 1 -maxdepth 1 -name '*.$(ext)',process_exec)) \
+		full_dir_name="$$(basename "$$(cd "$$1" && pwd -P)")"; \
+		full_dir_ext="$${full_dir_name##*.}"; \
+		[[ "$${full_dir_name}" = "$${full_dir_ext}" ]] && full_dir_ext=; \
+		for ext in $(_THEOS_SIGNABLE_BUNDLE_EXTENSIONS); do \
+			if [[ "$${full_dir_ext}" == "$${ext}" ]]; then \
+				process_exec "$$1/$$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" $$1/Info.plist)"; \
+				return; \
+			fi; \
+		done; \
 	}; \
-	export -f process_exec process_bundle; \
-	find $(THEOS_OBJ_DIR)/install -name '*.dylib' -print0 | xargs -I{} -0 bash -c 'process_exec "$$@"' _ {}; \
-	find $(THEOS_OBJ_DIR)/install -name '*.framework' -print0 | xargs -I{} -0 bash -c 'process_bundle "$$@"' _ {}; \
-	find $(THEOS_OBJ_DIR)/install -name '*.appex' -print0 | xargs -I{} -0 bash -c 'process_bundle "$$@"' _ {}; \
-	find $(THEOS_OBJ_DIR)/install -name '*.app' -print0 | xargs -I{} -0 bash -c 'process_bundle "$$@"' _ {}; \
+	export -f process_exec process_dir; \
+	process_dir $(THEOS_OBJ_DIR)/install; \
 	$(ECHO_END)
 endif
 
