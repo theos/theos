@@ -7,7 +7,14 @@ endif
 # Determine whether we are on a modern enough version of make for us to enable parallel building.
 # --output-sync was added in make 4.0; output is hard to read without it. Xcode includes make 3.81.
 ifeq ($(THEOS_USE_PARALLEL_BUILDING),)
-THEOS_USE_PARALLEL_BUILDING := $(call __simplify,THEOS_USE_PARALLEL_BUILDING,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(MAKE_VERSION) gt 4.0))
+_THEOS_IS_MAKE_GT_4_0 := $(shell $(THEOS_BIN_PATH)/vercmp.pl $(MAKE_VERSION) gt 4.0)
+ifeq ($(_THEOS_IS_MAKE_GT_4_0)$(THEOS_IGNORE_PARALLEL_BUILDING_NOTICE),)
+ifneq ($(shell $(or $(_THEOS_PLATFORM_GET_LOGICAL_CORES),:)),1)
+all::
+	@$(PRINT_FORMAT) "Build may be slow as Theos isn’t using all available CPU cores on this computer. Consider upgrading GNU Make: https://github.com/theos/theos/wiki/Installation-"
+endif
+endif
+THEOS_USE_PARALLEL_BUILDING := $(_THEOS_IS_MAKE_GT_4_0)
 endif
 
 ifeq ($(call __theos_bool,$(THEOS_USE_PARALLEL_BUILDING)),$(_THEOS_TRUE))
