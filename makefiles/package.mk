@@ -8,7 +8,6 @@ package:: internal-package-check stage before-package internal-package after-pac
 before-package:: $(THEOS_PACKAGE_DIR)
 internal-package::
 ifeq ($(_THEOS_FINAL_PACKAGE),$(_THEOS_TRUE))
-	$(ECHO_NOTHING)find $(THEOS_STAGING_DIR) -name \*.png -a ! -type l -exec pincrush -i {} \;$(ECHO_END)
 	$(ECHO_NOTHING)find $(THEOS_STAGING_DIR) \( -name \*.plist -or -name \*.strings \) -exec plutil -convert binary1 {} \;$(ECHO_END)
 endif
 internal-package-check::
