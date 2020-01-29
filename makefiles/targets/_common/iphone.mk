@@ -36,7 +36,7 @@ export _THEOS_TARGET_WARNED_DEPLOY := 1
 endif
 endif
 
-ifeq ($(_DEPLOY_VERSION_GE_11_0),11) # } Deploy >= 11.0 {
+ifeq ($(_DEPLOY_VERSION_GE_11_0),1) # } Deploy >= 11.0 {
 ifeq ($(_TARGET_VERSION_GE_12_1)$(THEOS_PLATFORM_NAME),1macosx) # >= 12.1, macOS {
 	ARCHS ?= arm64 arm64e
 else # } else {
