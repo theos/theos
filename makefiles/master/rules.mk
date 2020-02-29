@@ -11,7 +11,7 @@ _THEOS_IS_MAKE_GT_4_0 := $(shell $(THEOS_BIN_PATH)/vercmp.pl $(MAKE_VERSION) gt 
 ifeq ($(_THEOS_IS_MAKE_GT_4_0)$(THEOS_IGNORE_PARALLEL_BUILDING_NOTICE),)
 ifneq ($(shell $(or $(_THEOS_PLATFORM_GET_LOGICAL_CORES),:)),1)
 all::
-	@$(PRINT_FORMAT) "Build may be slow as Theos isn’t using all available CPU cores on this computer. Consider upgrading GNU Make: https://github.com/theos/theos/wiki/Installation-"
+	@$(PRINT_FORMAT) "Build may be slow as Theos isn’t using all available CPU cores on this computer. Consider upgrading GNU Make: https://github.com/theos/theos/wiki/Parallel-Building"
 endif
 endif
 THEOS_USE_PARALLEL_BUILDING := $(_THEOS_IS_MAKE_GT_4_0)
