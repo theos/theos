@@ -1,5 +1,5 @@
 # We have to figure out the target version here, as we need it in the calculation of the deployment version.
-_TARGET_VERISON_GE_13_0 = $(call __simplify,_TARGET_VERSION_GE_13_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 13.0))
+_TARGET_VERSION_GE_13_0 = $(call __simplify,_TARGET_VERSION_GE_13_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 13.0))
 _TARGET_VERSION_GE_12_1 = $(call __simplify,_TARGET_VERSION_GE_12_1,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 12.1))
 _TARGET_VERSION_GE_12_0 = $(call __simplify,_TARGET_VERSION_GE_12_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 12.0))
 _TARGET_VERSION_GE_10_0 = $(call __simplify,_TARGET_VERSION_GE_10_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 10.0))
@@ -9,9 +9,8 @@ _TARGET_VERSION_GE_6_0 = $(call __simplify,_TARGET_VERSION_GE_6_0,$(shell $(THEO
 _TARGET_VERSION_GE_4_0 = $(call __simplify,_TARGET_VERSION_GE_4_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 4.0))
 _TARGET_VERSION_GE_3_0 = $(call __simplify,_TARGET_VERSION_GE_3_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 3.0))
 
-ifneq ($(_TARGET_VERSION_GE_13_0),1)
+ifeq ($(_TARGET_VERSION_GE_13_0),1)
 	_THEOS_TARGET_USE_CLANG_TARGET_FLAG := $(_THEOS_TRUE)
-	_THEOS_TARGET_PREFIXHEADER_CFLAGS := -DTHEOS_LEGACY_PREFIX_HEADER
 endif
 
 ifeq ($(_TARGET_VERSION_GE_12_0),1)
