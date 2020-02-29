@@ -25,24 +25,45 @@ endif
 
 ifeq ($(findstring DEBUG,$(THEOS_SCHEMA)),)
 	_THEOS_XCODE_BUILD_CONFIG = Release
+	_THEOS_XCODE_BUILD_COMMAND := archive
 else
 	_THEOS_XCODE_BUILD_CONFIG = Debug
+	_THEOS_XCODE_BUILD_COMMAND := build install
 endif
 
-_THEOS_XCODEBUILD_BEGIN = $(ECHO_NOTHING)set -e; $(TARGET_XCODEBUILD) -scheme '$(or $($(THEOS_CURRENT_INSTANCE)_XCODE_SCHEME),$(THEOS_CURRENT_INSTANCE))' -configuration $(_THEOS_XCODE_BUILD_CONFIG) -derivedDataPath $(THEOS_OBJ_DIR)
-_THEOS_XCODEBUILD_END = CODE_SIGNING_ALLOWED=NO DSTROOT=$(THEOS_OBJ_DIR)/install $(_THEOS_XCODE_XCPRETTY)$(ECHO_END)
+# Try a workspace or project the user has already specified, falling back to figuring out the
+# workspace or project ourselves based on the instance name.
+ifneq ($($(THEOS_CURRENT_INSTANCE)_XCODE_WORKSPACE),)
+	_THEOS_XCODEBUILD_PROJECT_FLAG := -workspace $($(THEOS_CURRENT_INSTANCE)_XCODE_WORKSPACE)
+else ifneq ($($(THEOS_CURRENT_INSTANCE)_XCODE_PROJECT),)
+	_THEOS_XCODEBUILD_PROJECT_FLAG := -project $($(THEOS_CURRENT_INSTANCE)_XCODE_PROJECT)
+else ifeq ($(call __exists,$(THEOS_CURRENT_INSTANCE).xcworkspace),$(_THEOS_TRUE))
+	_THEOS_XCODEBUILD_PROJECT_FLAG := -workspace $(THEOS_CURRENT_INSTANCE).xcworkspace
+else
+	_THEOS_XCODEBUILD_PROJECT_FLAG := -project $(THEOS_CURRENT_INSTANCE).xcodeproj
+endif
+
+_THEOS_XCODEBUILD_BEGIN = $(ECHO_NOTHING)set -eo pipefail; $(TARGET_XCODEBUILD) \
+	$(_THEOS_XCODEBUILD_PROJECT_FLAG) \
+	-scheme '$(or $($(THEOS_CURRENT_INSTANCE)_XCODE_SCHEME),$(THEOS_CURRENT_INSTANCE))' \
+	-configuration $(_THEOS_XCODE_BUILD_CONFIG) \
+	-derivedDataPath $(THEOS_OBJ_DIR)
+_THEOS_XCODEBUILD_END = CODE_SIGNING_ALLOWED=NO \
+	ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES=NO \
+	DSTROOT=$(THEOS_OBJ_DIR)/install \
+	$(_THEOS_XCODE_XCPRETTY)$(ECHO_END)
 export EXPANDED_CODE_SIGN_IDENTITY =
 export EXPANDED_CODE_SIGN_IDENTITY_NAME =
 
 __theos_find_and_execute = find $(1) -print0 | xargs -I{} -0 bash -c '$(2) "$$@"' _ {};
 
-_THEOS_SIGNABLE_BUNDLE_EXTENSIONS = app framework appex
+_THEOS_SIGNABLE_BUNDLE_EXTENSIONS = bundle app framework appex
 _THEOS_SIGNABLE_FILE_EXTENSIONS = dylib
 
 internal-xcodeproj-compile:
 	$(_THEOS_XCODEBUILD_BEGIN) \
 	$(ALL_XCODEOPTS) \
-	build install \
+	$(_THEOS_XCODE_BUILD_COMMAND) \
 	$(ALL_XCODEFLAGS) \
 	$(_THEOS_XCODEBUILD_END)
 ifeq ($(_THEOS_PACKAGE_FORMAT),deb)
