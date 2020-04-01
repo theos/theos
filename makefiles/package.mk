@@ -77,12 +77,12 @@ install:: before-install internal-install after-install
 internal-install-check::
 # Throw an error if we aren’t aware of any built package yet.
 	@if [[ -z "$(_THEOS_PACKAGE_LAST_FILENAME)" ]]; then \
-		$(ERROR_BEGIN) "$(MAKE) install and show require that you build a package before you try to install it." $(ERROR_END) \
+		$(PRINT_FORMAT_ERROR) "$(MAKE) install and show require that you build a package before you try to install it." >&2; exit 1; \
 	fi
 
 # Throw an error if the package doesn’t exist.
 	@if [[ ! -f "$(_THEOS_PACKAGE_LAST_FILENAME)" ]]; then \
-		$(ERROR_BEGIN) "Could not find “$(_THEOS_PACKAGE_LAST_FILENAME)” to install. Aborting." $(ERROR_END) \
+		$(PRINT_FORMAT_ERROR) "Could not find “$(_THEOS_PACKAGE_LAST_FILENAME)” to install. Aborting." >&2; exit 1; \
 	fi
 
 export TARGET_INSTALL_REMOTE
