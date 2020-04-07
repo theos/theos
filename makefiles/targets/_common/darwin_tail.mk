@@ -32,10 +32,10 @@ _THEOS_TARGET_CCFLAGS := $(_TARGET_LIBCPP_CCFLAGS)
 _THEOS_TARGET_LDFLAGS := -isysroot "$(SYSROOT)" $(VERSIONFLAGS) $(LEGACYFLAGS) -multiply_defined suppress $(_TARGET_LIBCPP_LDFLAGS) $(_TARGET_LIBSWIFT_LDFLAGS)
 
 _THEOS_TARGET_SWIFTFLAGS := -sdk "$(SYSROOT)" $(_THEOS_TARGET_CC_SWIFTFLAGS)
-_THEOS_TARGET_SWIFT_LDPATH = $(call __simplify,_THEOS_TARGET_SWIFT_LDPATH,$(dir $(shell type -p $(TARGET_SWIFT)))../lib/swift/$(_THEOS_TARGET_PLATFORM_NAME))
+_THEOS_TARGET_SWIFT_LDPATHS = $(call __simplify,_THEOS_TARGET_SWIFT_LDPATHS,$(dir $(shell type -p $(TARGET_SWIFT)))../lib/swift/$(_THEOS_TARGET_PLATFORM_NAME) /usr/lib/swift)
 
 ifeq ($(_THEOS_TARGET_USE_APPLE_LIBSWIFT),$(_THEOS_TRUE))
-	_THEOS_TARGET_LDFLAGS += -L$(_THEOS_TARGET_SWIFT_LDPATH)
+	_THEOS_TARGET_LDFLAGS += $(foreach path,$(_THEOS_TARGET_SWIFT_LDPATHS),-L$(path))
 else
 ifeq ($(call __executable,$(TARGET_SWIFT)),$(_THEOS_TRUE))
 	_THEOS_TARGET_SWIFT_VERSION = $(call __simplify,_THEOS_TARGET_SWIFT_VERSION,$(shell $(TARGET_SWIFT) --version | head -1 | cut -d'v' -f2 | cut -d' ' -f2 | cut -d'-' -f1))

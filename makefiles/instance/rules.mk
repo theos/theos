@@ -42,7 +42,7 @@ endif
 
 # If we have any Swift objects, add Swift libraries to the linker search path.
 ifneq ($(_SWIFT_FILE_COUNT),0)
-	_THEOS_INTERNAL_LDFLAGS += -L$(_THEOS_TARGET_SWIFT_LDPATH)
+	_THEOS_INTERNAL_LDFLAGS += $(foreach path,$(_THEOS_TARGET_SWIFT_LDPATHS),-L$(path))
 ifneq ($(_THEOS_CURRENT_TYPE),subproject)
 	_THEOS_INTERNAL_LDFLAGS += $(_THEOS_TARGET_SWIFT_LDFLAGS)
 endif
