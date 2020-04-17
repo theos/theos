@@ -7,20 +7,16 @@ _THEOS_TARGET_PLATFORM_SDK_NAME := iPhoneOS
 _THEOS_TARGET_PLATFORM_FLAG_NAME := iphoneos
 _THEOS_TARGET_PLATFORM_SWIFT_NAME := apple-ios
 
-# Determine toolchain to use based on file existence.
-ifeq ($(SDKTARGET),)
-ifeq ($(wildcard $(THEOS)/toolchain/$(THEOS_PLATFORM_NAME)/$(THEOS_TARGET_NAME)/bin/arm64-apple-darwin14-ld),)
-SDKTARGET ?= armv7-apple-darwin11
-else
-SDKTARGET ?= arm64-apple-darwin14
-endif
-endif
-
 SWIFTBINPATH ?= $(THEOS)/toolchain/swift/bin
 SDKBINPATH ?= $(THEOS)/toolchain/$(THEOS_PLATFORM_NAME)/$(THEOS_TARGET_NAME)/bin
-PREFIX := $(SDKBINPATH)/$(SDKTARGET)-
+PREFIX := $(SDKBINPATH)/
 
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_head.mk
 include $(THEOS_MAKE_PATH)/targets/_common/iphone.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_tail.mk
+
+TARGET_OPTIONS ?= -target apple-darwin
+_THEOS_TARGET_CFLAGS += $(TARGET_OPTIONS)
+_THEOS_TARGET_CCFLAGS += $(TARGET_OPTIONS)
+_THEOS_TARGET_LDFLAGS += $(TARGET_OPTIONS)
 endif
