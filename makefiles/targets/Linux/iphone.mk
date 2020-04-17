@@ -15,7 +15,7 @@ include $(THEOS_MAKE_PATH)/targets/_common/darwin_head.mk
 include $(THEOS_MAKE_PATH)/targets/_common/iphone.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_tail.mk
 
-TARGET_OPTIONS ?= -target apple-darwin
+TARGET_OPTIONS ?= -target arm64-apple-darwin
 _THEOS_TARGET_CFLAGS += $(TARGET_OPTIONS)
 _THEOS_TARGET_CCFLAGS += $(TARGET_OPTIONS)
 _THEOS_TARGET_LDFLAGS += $(TARGET_OPTIONS)
