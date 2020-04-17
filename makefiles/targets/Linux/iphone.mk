@@ -11,7 +11,7 @@ SWIFTBINPATH ?= $(THEOS)/toolchain/swift/bin
 SDKBINPATH ?= $(THEOS)/toolchain/$(THEOS_PLATFORM_NAME)/$(THEOS_TARGET_NAME)/bin
 
 # Determine toolchain to use based on file existence.
-ifeq ($(SDKTARGET),)
+ifeq ($(SDKTARGETPREFIX),)
 ifeq ($(call __exists, $(SDKBINPATH)/armv7-apple-darwin11-ld),$(_THEOS_TRUE))
 SDKTARGETPREFIX ?= armv7-apple-darwin11-
 else ifeq ($(call __exists, $(SDKBINPATH)/arm64-apple-darwin14-ld),$(_THEOS_TRUE))
