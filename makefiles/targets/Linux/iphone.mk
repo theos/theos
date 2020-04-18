@@ -17,7 +17,7 @@ SDKTARGETPREFIX ?= armv7-apple-darwin11-
 else ifeq ($(call __exists, $(SDKBINPATH)/arm64-apple-darwin14-ld),$(_THEOS_TRUE))
 SDKTARGETPREFIX ?= arm64-apple-darwin14-
 else
-SDKTARGETPREFIX ?=
+# toolchain has no prefix so we are responsible of supplying target triple to clang for cross compiling
 TARGET_OPTIONS ?= -target arm64-apple-darwin
 endif
 endif
