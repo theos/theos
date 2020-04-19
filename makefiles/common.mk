@@ -2,7 +2,7 @@ all::
 
 # common.mk should only be included once. Throw an error if already included in this makefile.
 ifneq ($(__THEOS_COMMON_MK_VERSION),)
-$(error common.mk has been included multiple times. Please check your makefiles.)
+$(error common.mk has been included multiple times. Please check your makefiles)
 endif
 
 # Block sudo. This is a common way users create more permissions problems than they already had.
@@ -35,6 +35,10 @@ __simplify = $(2)$(eval $(1):=$(2))
 ###
 
 __THEOS_COMMON_MK_VERSION := 1k
+
+ifneq ($(words $(THEOS_PROJECT_DIR)),1)
+$(error Your project is located at “$(THEOS_PROJECT_DIR)”, which contains spaces. Spaces are not supported in the project path)
+endif
 
 ifeq ($(_THEOS_PROJECT_MAKEFILE_NAME),)
 _THEOS_STATIC_MAKEFILE_LIST := $(filter-out $(lastword $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
