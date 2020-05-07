@@ -11,6 +11,7 @@ _THEOS_TARGET_SUPPORTS_BUNDLES := 1
 _THEOS_TARGET_CC := clang
 _THEOS_TARGET_CXX := clang++
 _THEOS_TARGET_SWIFT := swift
+_THEOS_TARGET_SWIFTC := swiftc
 _THEOS_TARGET_ARG_ORDER := 1 2
 ifeq ($(__THEOS_TARGET_ARG_1),clang)
 	_THEOS_TARGET_ARG_ORDER := 2 3
@@ -43,11 +44,6 @@ endif
 	TARGET_CODESIGN_FLAGS ?= -S
 endif
 
-# give precedence to Swift toolchains located at SWIFTBINPATH
-ifeq ($(call __executable,$(SWIFTBINPATH)/swift),$(_THEOS_TRUE))
-	TARGET_SWIFT ?= $(SWIFTBINPATH)/swift
-endif
-
 # __invocation returns the command-line invocation for the tool specified as its argument.
 ifneq ($(PREFIX),)
 	# Linux, Cygwin
@@ -60,16 +56,25 @@ else
 	__invocation = $(1)
 endif
 
+# give precedence to Swift toolchains located at SWIFTBINPATH
+ifeq ($(call __exists,$(SWIFTBINPATH)),$(_THEOS_TRUE))
+	__invocation_swift = $(SWIFTBINPATH)/$(1)
+else
+	__invocation_swift = $(call __invocation,$(1))
+endif
+
 TARGET_CC ?= $(call __invocation,$(_THEOS_TARGET_CC))
 TARGET_CXX ?= $(call __invocation,$(_THEOS_TARGET_CXX))
 TARGET_LD ?= $(call __invocation,$(_THEOS_TARGET_CXX))
-TARGET_SWIFT ?= $(call __invocation,$(_THEOS_TARGET_SWIFT))
 TARGET_LIPO ?= $(call __invocation,lipo)
 TARGET_STRIP ?= $(call __invocation,strip)
 TARGET_CODESIGN_ALLOCATE ?= $(call __invocation,codesign_allocate)
 TARGET_LIBTOOL ?= $(call __invocation,libtool)
 TARGET_XCODEBUILD ?= $(call __invocation,xcodebuild)
 TARGET_XCPRETTY ?= $(call __invocation,xcpretty)
+
+TARGET_SWIFT ?= $(call __invocation_swift,$(_THEOS_TARGET_SWIFT))
+TARGET_SWIFTC ?= $(call __invocation_swift,$(_THEOS_TARGET_SWIFTC))
 
 TARGET_STRIP_FLAGS ?= -x
 

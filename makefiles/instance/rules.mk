@@ -53,7 +53,6 @@ ifneq ($(_SWIFT_FILE_COUNT),0)
 		# if both Swift and ObjC files exist
 		_THEOS_GENERATE_SWIFTMODULE_HEADER = $(_THEOS_TRUE)
 		_THEOS_INTERNAL_IFLAGS_C += -I$(dir $(_SWIFTMODULE_HEADER))
-		_THEOS_INTERNAL_SWIFTFLAGS += -enable-objc-interop
 	endif
 endif
 
@@ -134,7 +133,7 @@ ALL_CFLAGS = $(ALL_PFLAGS) $(ALL_ARCHFLAGS)
 ALL_CCFLAGS = $(_THEOS_INTERNAL_CCFLAGS) $(_THEOS_TARGET_CCFLAGS) $(ADDITIONAL_CCFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,CCFLAGS) $(call __schema_var_all,,CCFLAGS)
 ALL_OBJCFLAGS = $(_THEOS_INTERNAL_OBJCFLAGS) $(_THEOS_TARGET_OBJCFLAGS) $(ADDITIONAL_OBJCFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,OBJCFLAGS) $(call __schema_var_all,,OBJCFLAGS)
 ALL_OBJCCFLAGS = $(_THEOS_INTERNAL_OBJCCFLAGS) $(ADDITIONAL_OBJCCFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,OBJCCFLAGS) $(call __schema_var_all,,OBJCCFLAGS)
-ALL_SWIFTFLAGS = $(_THEOS_INTERNAL_SWIFTCOLORFLAGS) $(_THEOS_INTERNAL_SWIFTFLAGS) $(_THEOS_TARGET_SWIFTFLAGS) $(ADDITIONAL_SWIFTFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,OBJCCFLAGS) $(call __schema_var_all,,SWIFTFLAGS)
+ALL_SWIFTFLAGS = $(_THEOS_INTERNAL_SWIFTCOLORFLAGS) $(_THEOS_INTERNAL_SWIFTFLAGS) $(_THEOS_TARGET_SWIFTFLAGS) $(ADDITIONAL_SWIFTFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,SWIFTFLAGS) $(call __schema_var_all,,SWIFTFLAGS)
 ALL_LOGOSFLAGS = $(_THEOS_INTERNAL_LOGOSFLAGS) $(ADDITIONAL_LOGOSFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,LOGOSFLAGS) $(call __schema_var_all,,LOGOSFLAGS)
 
 ALL_LDFLAGS = $(_THEOS_INTERNAL_COLORFLAGS) $(_THEOS_INTERNAL_LDFLAGS) $(ADDITIONAL_LDFLAGS) $(_THEOS_TARGET_LDFLAGS) $(ALL_ARCHFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,LDFLAGS) $(call __schema_var_all,,LDFLAGS)
@@ -152,7 +151,6 @@ _THEOS_OUT_FILE_TAG = $(call __simplify,_THEOS_OUT_FILE_TAG,$(shell echo "$(ALL_
 
 ifeq ($(call __theos_bool,$(or $(USE_DEPS),1)),$(_THEOS_TRUE))
 ALL_DEPFLAGS = -MT $@ -MMD -MP -MF "$(THEOS_OBJ_DIR)/$<.$(_THEOS_OBJ_FILE_TAG).Td"
-ALL_DEPFLAGS_SWIFT = -emit-dependencies-path "$(THEOS_OBJ_DIR)/$<.$(_THEOS_OBJ_FILE_TAG).Td"
 DEP_FILES = $(strip $(patsubst %,$(THEOS_OBJ_DIR)/%.$(_THEOS_OBJ_FILE_TAG).Td,$(_FILES)))
 -include $(DEP_FILES)
 endif
@@ -179,13 +177,13 @@ internal-$(_THEOS_CURRENT_TYPE)-stage:: before-$(THEOS_CURRENT_INSTANCE)-stage i
 
 .SUFFIXES:
 
-.SUFFIXES: .m .mm .c .cc .cpp .xm
+.SUFFIXES: .m .mm .c .cc .cpp .xm .swift
 
 MDFLAGS = -MP -MT "$@ $(subst .md,.o,$@)" -MM
 
 ifeq ($(_THEOS_GENERATE_SWIFTMODULE_HEADER),$(_THEOS_TRUE))
 # add swiftmodule header as dependency to all objc objects
-$(patsubst %,$(THEOS_OBJ_DIR)/%.$(_THEOS_OBJ_FILE_TAG).o,$(OBJC_FILES)): $(_SWIFTMODULE_HEADER)
+$(patsubst %,$(THEOS_OBJ_DIR)/%.$(_THEOS_OBJ_FILE_TAG).o,$(OBJC_FILES)): $(patsubst %,$(THEOS_OBJ_DIR)/%.$(_THEOS_OBJ_FILE_TAG).o,$(SWIFT_FILES))
 endif
 
 $(THEOS_OBJ_DIR)/%.m.$(_THEOS_OBJ_FILE_TAG).o: %.m
@@ -244,14 +242,24 @@ $(THEOS_OBJ_DIR)/%.ii.$(_THEOS_OBJ_FILE_TAG).o: %.ii
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x c++-cpp-output -c $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $< -o $@$(ECHO_END)
 
-$(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).o \
-$(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).swiftmodule: %.swift
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
-	$(ECHO_COMPILING)$(TARGET_SWIFT) -frontend -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_DEPFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -emit-module-path $(@:.o=.swiftmodule) -primary-file $< $(filter-out $<,$(SWIFT_FILES)) -o $(@:.swiftmodule=.o)$(ECHO_END)
+# EASY PERFORMANCE WINS (TBD by somebody?):
+# - Compiling and caching the generator/parser swift files saves 1s of overhead (YMMV)
+# - Increasing num-threads during WMO builds might also help (see SWIFT_OPTFLAG in common.mk)
 
-$(_SWIFTMODULE_HEADER): $(patsubst %.swift,$(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).swiftmodule,$(SWIFT_FILES))
+.PHONY: compile-swift
+
+$(THEOS_OBJ_DIR)/output-file-map.json:
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
-	$(ECHO_SWIFTMODULE_HEADER)$(TARGET_SWIFT) -frontend -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -emit-module -merge-modules $^ -emit-objc-header-path $@ -o /dev/null$(ECHO_END)
+	$(ECHO_NOTHING)$(TARGET_SWIFT) $(THEOS_BIN_PATH)/generate-output-file-map.swift $(THEOS_OBJ_DIR) $(_THEOS_OBJ_FILE_TAG) $(SWIFT_FILES) > $@$(ECHO_END)
+
+compile-swift: $(SWIFT_FILES) $(THEOS_OBJ_DIR)/output-file-map.json
+	$(ECHO_NOTHING)mkdir -p $(dir $@) $(dir $(_SWIFTMODULE_HEADER))$(ECHO_END)
+	$(ECHO_NOTHING)$(TARGET_SWIFTC) -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -output-file-map $(THEOS_OBJ_DIR)/output-file-map.json -emit-objc-header-path $(_SWIFTMODULE_HEADER) -emit-dependencies -emit-module-path $(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE).swiftmodule $(SWIFT_FILES) -parseable-output 2>&1 | $(TARGET_SWIFT) $(THEOS_BIN_PATH)/parse-swiftc-output.swift $(or $(call __theos_bool,$(COLOR)),0) $(THEOS_CURRENT_ARCH)$(ECHO_END)
+
+# TODO: Add output map json and also prevent swiftmodules from landing in project dir
+
+$(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).o: compile-swift
+	@
 
 $(THEOS_OBJ_DIR)/%.x.m: %.x
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
