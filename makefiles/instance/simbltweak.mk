@@ -9,7 +9,7 @@ _THEOS_INTERNAL_LDFLAGS += -dynamiclib
 # Bundle Setup
 LOCAL_INSTALL_PATH ?= $(strip $($(THEOS_CURRENT_INSTANCE)_INSTALL_PATH))
 ifeq ($(LOCAL_INSTALL_PATH),)
-	LOCAL_INSTALL_PATH = /Library/Application Support/SIMBL/Plugins
+	LOCAL_INSTALL_PATH = /Library/Application Support/MacEnhance/Plugins
 endif
 
 ifeq ($($(THEOS_CURRENT_INSTANCE)_BUNDLE_NAME),)
