@@ -248,7 +248,7 @@ $(THEOS_OBJ_DIR)/%.ii.$(_THEOS_OBJ_FILE_TAG).o: %.ii
 
 .PHONY: compile-swift
 
-$(THEOS_OBJ_DIR)/output-file-map.json:
+$(THEOS_OBJ_DIR)/output-file-map.json: $(SWIFT_FILES)
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
 	$(ECHO_NOTHING)$(TARGET_SWIFT) $(THEOS_BIN_PATH)/generate-output-file-map.swift $(THEOS_OBJ_DIR) $(_THEOS_OBJ_FILE_TAG) $(SWIFT_FILES) > $@$(ECHO_END)
 

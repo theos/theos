@@ -44,7 +44,7 @@ ifeq ($(firstword $(subst ., ,$(_THEOS_TARGET_SWIFT_VERSION))),4)
 else
 	_THEOS_TARGET_SWIFT_VERSION_PATH = stable
 endif
-	_THEOS_TARGET_SWIFT_LDFLAGS = $(call __simplify,_THEOS_TARGET_SWIFT_LDFLAGS,-rpath /usr/lib/libswift/$(_THEOS_TARGET_SWIFT_VERSION_PATH))
+	_THEOS_TARGET_SWIFT_LDFLAGS = $(call __simplify,_THEOS_TARGET_SWIFT_LDFLAGS,-rpath /usr/lib/swift -rpath /usr/lib/libswift/$(_THEOS_TARGET_SWIFT_VERSION_PATH))
 endif
 endif
 
