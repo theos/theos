@@ -14,8 +14,19 @@ internal-xcodeproj-all_::
 		THEOS_BUILD_DIR="$(THEOS_BUILD_DIR)" _THEOS_MAKE_PARALLEL=yes
 endif
 
-ALL_XCODEFLAGS = $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,XCODEFLAGS)
-ALL_XCODEOPTS = $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,XCODEOPTS)
+ALL_XCODEFLAGS = $(_THEOS_INTERNAL_XCODEFLAGS) $(ADDITIONAL_XCODEFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,XCODEFLAGS) $(call __schema_var_all,,XCODEFLAGS)
+ALL_XCODEOPTS = $(_THEOS_INTERNAL_XCODEOPTS) $(ADDITIONAL_XCODEOPTS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,XCODEOPTS) $(call __schema_var_all,,XCODEOPTS)
+
+# Xcode strips even debug builds, which is an issue when using lldb because it's unable to 
+# locate the local unstripped copy since it isn't aware of our custom derivedDataPath. While 
+# that underlying issue still needs to be resolved to allow debugging release builds, the 
+# following is a more immediate solution until we get around to solving that – which we could
+# do by, for example, writing a DBGShellCommands script or using DBGFileMappedPaths.
+ifeq ($(SHOULD_STRIP),$(_THEOS_TRUE))
+_THEOS_INTERNAL_XCODEFLAGS += STRIP_INSTALLED_PRODUCT=YES
+else
+_THEOS_INTERNAL_XCODEFLAGS += STRIP_INSTALLED_PRODUCT=NO
+endif
 
 ifneq ($(TARGET_XCPRETTY),)
 ifneq ($(_THEOS_VERBOSE),$(_THEOS_TRUE))
