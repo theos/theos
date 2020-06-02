@@ -27,6 +27,6 @@ endif
 _TARGET_OBJC_ABI_CFLAGS = -fobjc-abi-version=2 -fobjc-legacy-dispatch
 _TARGET_OBJC_ABI_LDFLAGS = -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -allow_simulator_linking_to_macosx_dylibs
 
-_THEOS_TARGET_CFLAGS := -isysroot $(ISYSROOT) $(SDKFLAGS) $(_TARGET_OBJC_ABI_CFLAGS) $(MODULESFLAGS)
-_THEOS_TARGET_LDFLAGS := -isysroot $(SYSROOT) $(SDKFLAGS) -multiply_defined suppress $(_TARGET_OBJC_ABI_LDFLAGS)
+_THEOS_TARGET_CFLAGS += $(_TARGET_OBJC_ABI_CFLAGS)
+_THEOS_TARGET_LDFLAGS += $(_TARGET_OBJC_ABI_LDFLAGS)
 endif
