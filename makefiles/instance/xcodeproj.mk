@@ -22,11 +22,7 @@ ALL_XCODEOPTS = $(_THEOS_INTERNAL_XCODEOPTS) $(ADDITIONAL_XCODEOPTS) $(call __sc
 # that underlying issue still needs to be resolved to allow debugging release builds, the 
 # following is a more immediate solution until we get around to solving that – which we could
 # do by, for example, writing a DBGShellCommands script or using DBGFileMappedPaths.
-ifeq ($(SHOULD_STRIP),$(_THEOS_TRUE))
-_THEOS_INTERNAL_XCODEFLAGS += STRIP_INSTALLED_PRODUCT=YES
-else
-_THEOS_INTERNAL_XCODEFLAGS += STRIP_INSTALLED_PRODUCT=NO
-endif
+_THEOS_INTERNAL_XCODEFLAGS += STRIP_INSTALLED_PRODUCT=$(if $(SHOULD_STRIP),YES,NO)
 
 ifneq ($(TARGET_XCPRETTY),)
 ifneq ($(_THEOS_VERBOSE),$(_THEOS_TRUE))
