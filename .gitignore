@@ -7,4 +7,5 @@ toolchain/*
 
 include/*
 lib/*
+templates/*
 !*/.keep

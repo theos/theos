@@ -14,26 +14,29 @@ TARGET_PRIVATE_FRAMEWORK_PATH ?= $(SYSROOT)/System/Library/PrivateFrameworks
 TARGET_PRIVATE_FRAMEWORK_INCLUDE_PATH ?= $(ISYSROOT)/System/Library/PrivateFrameworks
 
 # if the toolchain is capable of using clang modules, define the flags that enable modules
-ifeq ($(_THEOS_DARWIN_CAN_USE_MODULES),1)
+ifeq ($(_THEOS_DARWIN_CAN_USE_MODULES),$(_THEOS_TRUE))
 	MODULESFLAGS := -fmodules -fcxx-modules -fmodule-name=$(THEOS_CURRENT_INSTANCE) -fbuild-session-file=$(_THEOS_BUILD_SESSION_FILE) \
 		-fmodules-prune-after=345600 -fmodules-prune-interval=86400 -fmodules-validate-once-per-build-session
 endif
 
-VERSIONFLAGS := -m$(_THEOS_TARGET_PLATFORM_FLAG_NAME)-version-min=$(_THEOS_TARGET_OS_DEPLOYMENT_VERSION)
+_THEOS_TARGET_SWIFT_TARGET := $(_THEOS_TARGET_PLATFORM_SWIFT_NAME)$(_THEOS_TARGET_OS_DEPLOYMENT_VERSION)$(_THEOS_TARGET_PLATFORM_SWIFT_SUFFIX)
 
-# “iOS 9 changed the 32-bit pagesize on 64-bit CPUs from 4096 bytes to 16384: all 32-bit binaries
-# must now be compiled with -Wl,-segalign,4000.” https://twitter.com/saurik/status/654198997024796672
-ifneq ($(THEOS_CURRENT_ARCH),arm64)
-	LEGACYFLAGS := -Xlinker -segalign -Xlinker 4000
+ifeq ($(_THEOS_TARGET_USE_CLANG_TARGET_FLAG),$(_THEOS_TRUE))
+	VERSIONFLAGS := -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET)
+else
+	VERSIONFLAGS := -m$(_THEOS_TARGET_PLATFORM_FLAG_NAME)-version-min=$(_THEOS_TARGET_OS_DEPLOYMENT_VERSION)
 endif
 
 _THEOS_TARGET_CFLAGS := -isysroot "$(ISYSROOT)" $(VERSIONFLAGS) $(MODULESFLAGS) $(_THEOS_TARGET_CC_CFLAGS)
 _THEOS_TARGET_CCFLAGS := $(_TARGET_LIBCPP_CCFLAGS)
-_THEOS_TARGET_LDFLAGS := -isysroot "$(SYSROOT)" $(VERSIONFLAGS) $(LEGACYFLAGS) -multiply_defined suppress $(_TARGET_LIBCPP_LDFLAGS)
+_THEOS_TARGET_LDFLAGS := -isysroot "$(SYSROOT)" $(VERSIONFLAGS) $(LEGACYFLAGS) -multiply_defined suppress $(_TARGET_LIBCPP_LDFLAGS) $(_TARGET_LIBSWIFT_LDFLAGS)
 
 _THEOS_TARGET_SWIFTFLAGS := -sdk "$(SYSROOT)" $(_THEOS_TARGET_CC_SWIFTFLAGS)
-_THEOS_TARGET_SWIFT_TARGET := $(_THEOS_TARGET_PLATFORM_SWIFT_NAME)$(_THEOS_TARGET_OS_DEPLOYMENT_VERSION)
+_THEOS_TARGET_SWIFT_LDPATHS = $(call __simplify,_THEOS_TARGET_SWIFT_LDPATHS,$(dir $(shell type -p $(TARGET_SWIFT)))../lib/swift/$(_THEOS_TARGET_PLATFORM_NAME) /usr/lib/swift)
 
+ifeq ($(_THEOS_TARGET_USE_APPLE_LIBSWIFT),$(_THEOS_TRUE))
+	_THEOS_TARGET_LDFLAGS += $(foreach path,$(_THEOS_TARGET_SWIFT_LDPATHS),-L$(path))
+else
 ifeq ($(call __executable,$(TARGET_SWIFT)),$(_THEOS_TRUE))
 	_THEOS_TARGET_SWIFT_VERSION = $(call __simplify,_THEOS_TARGET_SWIFT_VERSION,$(shell $(TARGET_SWIFT) --version | head -1 | cut -d'v' -f2 | cut -d' ' -f2 | cut -d'-' -f1))
 ifeq ($(firstword $(subst ., ,$(_THEOS_TARGET_SWIFT_VERSION))),4)
@@ -41,8 +44,8 @@ ifeq ($(firstword $(subst ., ,$(_THEOS_TARGET_SWIFT_VERSION))),4)
 else
 	_THEOS_TARGET_SWIFT_VERSION_PATH = stable
 endif
-	_THEOS_TARGET_SWIFT_LDFLAGS := $(call __simplify,_THEOS_TARGET_SWIFT_LDFLAGS,-rpath /usr/lib/libswift/$(_THEOS_TARGET_SWIFT_VERSION_PATH))
-	_THEOS_TARGET_SWIFT_LDPATH = $(call __simplify,_THEOS_TARGET_SWIFT_LDPATH,$(dir $(shell type -p $(TARGET_SWIFT)))../lib/swift/$(_THEOS_TARGET_PLATFORM_NAME))
+	_THEOS_TARGET_SWIFT_LDFLAGS = $(call __simplify,_THEOS_TARGET_SWIFT_LDFLAGS,-rpath /usr/lib/libswift/$(_THEOS_TARGET_SWIFT_VERSION_PATH))
+endif
 endif
 
 ifeq ($(_THEOS_TARGET_DARWIN_BUNDLE_TYPE),hierarchial)

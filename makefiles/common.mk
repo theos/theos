@@ -2,7 +2,7 @@ all::
 
 # common.mk should only be included once. Throw an error if already included in this makefile.
 ifneq ($(__THEOS_COMMON_MK_VERSION),)
-$(error common.mk has been included multiple times. Please check your makefiles.)
+$(error common.mk has been included multiple times. Please check your makefiles)
 endif
 
 # Block sudo. This is a common way users create more permissions problems than they already had.
@@ -35,6 +35,10 @@ __simplify = $(2)$(eval $(1):=$(2))
 ###
 
 __THEOS_COMMON_MK_VERSION := 1k
+
+ifneq ($(words $(THEOS_PROJECT_DIR)),1)
+$(error Your project is located at “$(THEOS_PROJECT_DIR)”, which contains spaces. Spaces are not supported in the project path)
+endif
 
 ifeq ($(_THEOS_PROJECT_MAKEFILE_NAME),)
 _THEOS_STATIC_MAKEFILE_LIST := $(filter-out $(lastword $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
@@ -200,7 +204,7 @@ SHOULD_STRIP := $(call __theos_bool,$(or $(strip),$(STRIP),$(_THEOS_SHOULD_STRIP
 
 ifeq ($(SHOULD_STRIP),$(_THEOS_TRUE))
 OPTFLAG ?= -Os
-SWIFT_OPTFLAG ?= -O
+SWIFT_OPTFLAG ?= -O -whole-module-optimization
 else
 TARGET_STRIP = :
 OPTFLAG ?= -O0
@@ -246,8 +250,7 @@ endif
 
 THEOS_STAGING_DIR_NAME ?= _
 THEOS_STAGING_DIR ?= $(_THEOS_LOCAL_DATA_DIR)/$(THEOS_STAGING_DIR_NAME)
-_SPACE :=
-_SPACE +=
+_SPACE := $(subst x,,x x)
 _THEOS_ESCAPED_STAGING_DIR = $(subst $(_SPACE),\ ,$(THEOS_STAGING_DIR))
 
 THEOS_PACKAGE_DIR_NAME ?= packages
@@ -263,6 +266,7 @@ _THEOS_MAKEFLAGS := --no-keep-going COLOR=$(COLOR)
 ifeq ($(_THEOS_VERBOSE),$(_THEOS_FALSE))
 	_THEOS_MAKEFLAGS += --no-print-directory
 endif
+MAKEFLAGS += $(_THEOS_MAKEFLAGS)
 
 unexport THEOS_CURRENT_INSTANCE _THEOS_CURRENT_TYPE
 
@@ -279,5 +283,7 @@ ifeq ($(THEOS_CURRENT_INSTANCE),)
 	include $(THEOS_MAKE_PATH)/package.mk
 endif
 THEOS_PACKAGE_VERSION = $(call __simplify,THEOS_PACKAGE_VERSION,$(THEOS_PACKAGE_BASE_VERSION)$(warning THEOS_PACKAGE_VERSION is deprecated. Please migrate to THEOS_PACKAGE_BASE_VERSION.))
+
+THEOS_LINKAGE_TYPE ?= dynamic
 
 $(eval $(call __mod,common.mk))

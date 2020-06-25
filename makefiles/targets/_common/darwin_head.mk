@@ -1,11 +1,10 @@
 # Variables that are common to all Darwin-based targets.
 TARGET_EXE_EXT :=
 TARGET_LIB_EXT := .dylib
+TARGET_AR_EXT := .a
 
 TARGET_LDFLAGS_DYNAMICLIB = -dynamiclib -install_name "$(LOCAL_INSTALL_PATH)/$(1)"
 TARGET_CFLAGS_DYNAMICLIB = 
-
-_THEOS_TARGET_ONLY_OBJCFLAGS := -std=c99
 
 _THEOS_TARGET_SUPPORTS_BUNDLES := 1
 
@@ -69,14 +68,16 @@ TARGET_LIPO ?= $(call __invocation,lipo)
 TARGET_STRIP ?= $(call __invocation,strip)
 TARGET_CODESIGN_ALLOCATE ?= $(call __invocation,codesign_allocate)
 TARGET_LIBTOOL ?= $(call __invocation,libtool)
+TARGET_XCODEBUILD ?= $(call __invocation,xcodebuild)
+TARGET_XCPRETTY ?= $(call __invocation,xcpretty)
 
 TARGET_STRIP_FLAGS ?= -x
 
 ifeq ($(TARGET_DSYMUTIL),)
-ifeq ($(call __executable,$(call __invocation,llvm-dsymutil)),$(_THEOS_TRUE))
-	TARGET_DSYMUTIL = $(call __invocation,llvm-dsymutil)
-else ifeq ($(call __executable,$(call __invocation,dsymutil)),$(_THEOS_TRUE))
+ifeq ($(call __executable,$(call __invocation,dsymutil)),$(_THEOS_TRUE))
 	TARGET_DSYMUTIL = $(call __invocation,dsymutil)
+else ifeq ($(call __executable,$(call __invocation,llvm-dsymutil)),$(_THEOS_TRUE))
+	TARGET_DSYMUTIL = $(call __invocation,llvm-dsymutil)
 endif
 endif
 
