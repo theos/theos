@@ -248,13 +248,13 @@ $(THEOS_OBJ_DIR)/%.ii.$(_THEOS_OBJ_FILE_TAG).o: %.ii
 
 .PHONY: compile-swift
 
-$(THEOS_OBJ_DIR)/output-file-map.json: $(SWIFT_FILES)
+$(THEOS_OBJ_DIR)/output-file-map.$(_THEOS_OBJ_FILE_TAG).json: $(SWIFT_FILES)
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
 	$(ECHO_NOTHING)$(TARGET_SWIFT) $(THEOS_BIN_PATH)/generate-output-file-map.swift $(THEOS_OBJ_DIR) $(_THEOS_OBJ_FILE_TAG) $(SWIFT_FILES) > $@$(ECHO_END)
 
-compile-swift: $(SWIFT_FILES) $(THEOS_OBJ_DIR)/output-file-map.json
+compile-swift: $(SWIFT_FILES) $(THEOS_OBJ_DIR)/output-file-map.$(_THEOS_OBJ_FILE_TAG).json
 	$(ECHO_NOTHING)mkdir -p $(foreach file,$(SWIFT_FILES),$(THEOS_OBJ_DIR)/$(dir $(file))) $(dir $(_SWIFTMODULE_HEADER))$(ECHO_END)
-	$(ECHO_NOTHING)$(TARGET_SWIFTC) -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -output-file-map $(THEOS_OBJ_DIR)/output-file-map.json -emit-objc-header-path $(_SWIFTMODULE_HEADER) -emit-dependencies -emit-module-path $(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE).swiftmodule $(SWIFT_FILES) -parseable-output 2>&1 | $(TARGET_SWIFT) $(THEOS_BIN_PATH)/parse-swiftc-output.swift $(or $(call __theos_bool,$(COLOR)),0) $(THEOS_CURRENT_ARCH)$(ECHO_END)
+	$(ECHO_NOTHING)$(TARGET_SWIFTC) -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -output-file-map $(THEOS_OBJ_DIR)/output-file-map.$(_THEOS_OBJ_FILE_TAG).json -emit-objc-header-path $(_SWIFTMODULE_HEADER) -emit-dependencies -emit-module-path $(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE).swiftmodule $(SWIFT_FILES) -parseable-output 2>&1 | $(TARGET_SWIFT) $(THEOS_BIN_PATH)/parse-swiftc-output.swift $(or $(call __theos_bool,$(COLOR)),0) $(THEOS_CURRENT_ARCH)$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).o: compile-swift
 	@
