@@ -121,12 +121,15 @@ ifneq ($(_THEOS_PLATFORM_CALCULATED),1)
 uname_s := $(shell uname -s)
 uname_o := $(shell uname -o 2>/dev/null)
 
-export _THEOS_PLATFORM = $(if $(uname_o),$(uname_o),$(uname_s))
+export _THEOS_PLATFORM = $(uname_s)
+export _THEOS_OS = $(if $(uname_o),$(uname_o),$(uname_s))
 export _THEOS_PLATFORM_CALCULATED := 1
 endif
 
 -include $(THEOS_MAKE_PATH)/platform/$(_THEOS_PLATFORM).mk
+-include $(THEOS_MAKE_PATH)/platform/$(_THEOS_OS).mk
 $(eval $(call __mod,platform/$(_THEOS_PLATFORM).mk))
+$(eval $(call __mod,platform/$(_THEOS_OS).mk))
 
 ifneq ($(_THEOS_TARGET_CALCULATED),1)
 __TARGET_MAKEFILE := $(shell $(THEOS_BIN_PATH)/target.pl "$(target)" "$(call __schema_var_last,,TARGET)" "$(_THEOS_PLATFORM_DEFAULT_TARGET)")
@@ -140,8 +143,10 @@ _THEOS_TARGET_CALCULATED := 1
 endif
 
 -include $(THEOS_MAKE_PATH)/targets/$(_THEOS_PLATFORM)/$(_THEOS_TARGET).mk
+-include $(THEOS_MAKE_PATH)/targets/$(_THEOS_OS)/$(_THEOS_TARGET).mk
 -include $(THEOS_MAKE_PATH)/targets/$(_THEOS_TARGET).mk
 $(eval $(call __mod,targets/$(_THEOS_PLATFORM)/$(_THEOS_TARGET).mk))
+$(eval $(call __mod,targets/$(_THEOS_OS)/$(_THEOS_TARGET).mk))
 $(eval $(call __mod,targets/$(_THEOS_TARGET).mk))
 
 ifneq ($(_THEOS_TARGET_LOADED),1)
