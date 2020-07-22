@@ -12,6 +12,11 @@ internal-package-check::
 	@echo "$(MAKE) package requires zip."; exit 1
 endif
 
+_THEOS_IPA_COMPRESSION_LEVEL := 1
+ifeq ($(_THEOS_FINAL_PACKAGE),$(_THEOS_TRUE))
+_THEOS_IPA_COMPRESSION_LEVEL := 9
+endif
+
 ifeq ($(_THEOS_IPA_CAN_PACKAGE),$(_THEOS_TRUE)) # Control file found (or layout directory found.)
 THEOS_PACKAGE_NAME := $(shell grep -i "^Package:" "$(_THEOS_IPA_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 THEOS_PACKAGE_BASE_VERSION := $(shell grep -i "^Version:" "$(_THEOS_IPA_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
@@ -19,7 +24,7 @@ THEOS_PACKAGE_BASE_VERSION := $(shell grep -i "^Version:" "$(_THEOS_IPA_PACKAGE_
 _THEOS_ESCAPED_PACKAGE_DIR = $(THEOS_PROJECT_DIR)/$(THEOS_PACKAGE_DIR)
 _THEOS_IPA_PACKAGE_FILENAME = $(_THEOS_ESCAPED_PACKAGE_DIR)/$(THEOS_PACKAGE_NAME)_$(_THEOS_INTERNAL_PACKAGE_VERSION).ipa
 internal-package::
-	$(ECHO_NOTHING)cp -r $(THEOS_STAGING_DIR)/Applications $(THEOS_STAGING_DIR)/Payload; pushd $(THEOS_STAGING_DIR) &> /dev/null; zip -qru "$(_THEOS_IPA_PACKAGE_FILENAME)" Payload; popd &> /dev/null$(ECHO_END)
+	$(ECHO_NOTHING)cp -r $(THEOS_STAGING_DIR)/Applications $(THEOS_STAGING_DIR)/Payload; pushd $(THEOS_STAGING_DIR) &> /dev/null; zip -yqru$(_THEOS_IPA_COMPRESSION_LEVEL) "$(_THEOS_IPA_PACKAGE_FILENAME)" Payload; popd &> /dev/null$(ECHO_END)
 
 # This variable is used in package.mk
 after-package:: __THEOS_LAST_PACKAGE_FILENAME = $(_THEOS_IPA_PACKAGE_FILENAME)
