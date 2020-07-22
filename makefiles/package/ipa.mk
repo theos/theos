@@ -16,7 +16,7 @@ ifeq ($(_THEOS_IPA_CAN_PACKAGE),$(_THEOS_TRUE)) # Control file found (or layout 
 THEOS_PACKAGE_NAME := $(shell grep -i "^Package:" "$(_THEOS_IPA_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 THEOS_PACKAGE_BASE_VERSION := $(shell grep -i "^Version:" "$(_THEOS_IPA_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 
-_THEOS_ESCAPED_PACKAGE_DIR = $(shell readlink -f $(shell pwd)/$(THEOS_PACKAGE_DIR))
+_THEOS_ESCAPED_PACKAGE_DIR = $(THEOS_PROJECT_DIR)/$(THEOS_PACKAGE_DIR)
 _THEOS_IPA_PACKAGE_FILENAME = $(_THEOS_ESCAPED_PACKAGE_DIR)/$(THEOS_PACKAGE_NAME)_$(_THEOS_INTERNAL_PACKAGE_VERSION).ipa
 internal-package::
 	$(ECHO_NOTHING)cp -r $(THEOS_STAGING_DIR)/Applications $(THEOS_STAGING_DIR)/Payload; pushd $(THEOS_STAGING_DIR) &> /dev/null; zip -qru "$(_THEOS_IPA_PACKAGE_FILENAME)" Payload; popd &> /dev/null$(ECHO_END)
