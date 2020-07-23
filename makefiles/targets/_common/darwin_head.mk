@@ -52,7 +52,7 @@ endif
 ifneq ($(PREFIX),)
 	# Linux, Cygwin
 	__invocation = $(PREFIX)$(1)
-else ifeq ($(call __executable,xcrun),$(_THEOS_TRUE))
+else ifeq ($(_THEOS_PLATFORM_HAS_XCODE),$(_THEOS_TRUE))
 	# macOS
 	__invocation = $(shell xcrun -sdk $(_THEOS_TARGET_PLATFORM_NAME) -f $(1) 2>/dev/null)
 else

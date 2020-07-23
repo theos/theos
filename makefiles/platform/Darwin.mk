@@ -20,10 +20,8 @@ endif
 
 _THEOS_PLATFORM_DEFAULT_TARGET := iphone
 
-_THEOS_PLATFORM_DU := du
-
 # Long flags are a GNUism. We can use this to tell whether to use GNU du or BSD du flags.
-ifeq ($(shell $(_THEOS_PLATFORM_DU) --version >/dev/null 2>&1 && echo 1),1)
+ifeq ($(shell du --version >/dev/null 2>&1 && echo 1),1)
 	_THEOS_PLATFORM_DU_EXCLUDE := --exclude
 else
 	_THEOS_PLATFORM_DU_EXCLUDE := -I
