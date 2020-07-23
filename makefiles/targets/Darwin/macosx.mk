@@ -21,7 +21,10 @@ _TARGET_VERSION_GE_10_8 := $(call __simplify,_TARGET_VERSION_GE_10_8,$(shell $(T
 _TARGET_VERSION_GE_10_11 := $(call __simplify,_TARGET_VERSION_GE_10_11,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 10.11))
 _TARGET_VERSION_GE_10_14 := $(call __simplify,_TARGET_VERSION_GE_10_14,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 10.14))
 _TARGET_VERSION_GE_10_15 := $(call __simplify,_TARGET_VERSION_GE_10_15,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 10.15))
-_TARGET_VERSION_GE_11_0 := $(call __simplify,_TARGET_VERSION_GE_11_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 11.0))
+
+# For compatibility reasons, the macOS 11.0 SDK lives a double life, sometimes presenting itself as
+# the macOS 10.16 SDK. Since 11.0 is greater than 10.16, this will catch both version numbers.
+_TARGET_VERSION_GE_11_0 := $(call __simplify,_TARGET_VERSION_GE_11_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 10.16))
 
 ifeq ($(_TARGET_VERSION_GE_10_8),1)
 	_THEOS_TARGET_DEFAULT_OS_DEPLOYMENT_VERSION := 10.6
@@ -44,7 +47,7 @@ ifeq ($(_TARGET_VERSION_GE_10_15),1)
 	_THEOS_DARWIN_CAN_USE_MODULES := $(_THEOS_TRUE)
 endif
 
-ifeq ($(_TARGET_VERSION_GE_13_0),1)
+ifeq ($(_TARGET_VERSION_GE_10_15),1)
 	_THEOS_TARGET_USE_CLANG_TARGET_FLAG := $(_THEOS_TRUE)
 endif
 
