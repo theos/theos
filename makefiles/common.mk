@@ -32,6 +32,9 @@ __exists = $(if $(wildcard $(1)),$(_THEOS_TRUE),$(_THEOS_FALSE))
 __executable = $(if $(shell type "$(1)" > /dev/null 2>&1 && echo 1),$(_THEOS_TRUE),$(_THEOS_FALSE))
 # Static redefinition
 __simplify = $(2)$(eval $(1):=$(2))
+# Sort
+__is_gte = $(if $(filter 1,$(shell expr $(1) \>= $(2))),$(_THEOS_TRUE),$(_THEOS_FALSE))
+__is_lt  = $(if $(call __is_gte,$(1),$(2)),$(_THEOS_FALSE),$(_THEOS_TRUE))
 ###
 
 __THEOS_COMMON_MK_VERSION := 1k

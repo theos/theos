@@ -17,14 +17,14 @@ _THEOS_TARGET_DEFAULT_PACKAGE_FORMAT := pkg
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_head.mk
 
 # We have to figure out the target version here, as we need it in the calculation of the deployment version.
-_TARGET_VERSION_GE_10_8 := $(call __simplify,_TARGET_VERSION_GE_10_8,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 10.8))
-_TARGET_VERSION_GE_10_11 := $(call __simplify,_TARGET_VERSION_GE_10_11,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 10.11))
-_TARGET_VERSION_GE_10_14 := $(call __simplify,_TARGET_VERSION_GE_10_14,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 10.14))
-_TARGET_VERSION_GE_10_15 := $(call __simplify,_TARGET_VERSION_GE_10_15,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 10.15))
+_TARGET_VERSION_GE_10_8 := $(call __simplify,_TARGET_VERSION_GE_10_8,$(call __is_gte,$(_THEOS_TARGET_SDK_VERSION),10.8))
+_TARGET_VERSION_GE_10_11 := $(call __simplify,_TARGET_VERSION_GE_10_11,$(call __is_gte,$(_THEOS_TARGET_SDK_VERSION),10.11))
+_TARGET_VERSION_GE_10_14 := $(call __simplify,_TARGET_VERSION_GE_10_14,$(call __is_gte,$(_THEOS_TARGET_SDK_VERSION),10.14))
+_TARGET_VERSION_GE_10_15 := $(call __simplify,_TARGET_VERSION_GE_10_15,$(call __is_gte,$(_THEOS_TARGET_SDK_VERSION),10.15))
 
 # For compatibility reasons, the macOS 11.0 SDK lives a double life, sometimes presenting itself as
 # the macOS 10.16 SDK. Since 11.0 is greater than 10.16, this will catch both version numbers.
-_TARGET_VERSION_GE_11_0 := $(call __simplify,_TARGET_VERSION_GE_11_0,$(shell $(THEOS_BIN_PATH)/vercmp.pl $(_THEOS_TARGET_SDK_VERSION) ge 10.16))
+_TARGET_VERSION_GE_11_0 := $(call __simplify,_TARGET_VERSION_GE_11_0,$(call __is_gte,$(_THEOS_TARGET_SDK_VERSION),10.16))
 
 ifeq ($(_TARGET_VERSION_GE_10_8),1)
 	_THEOS_TARGET_DEFAULT_OS_DEPLOYMENT_VERSION := 10.6
