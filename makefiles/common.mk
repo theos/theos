@@ -110,8 +110,6 @@ endif
 _THEOS_LOAD_MODULES := $(sort $(call __schema_var_all,,MODULES) $(THEOS_AUTOLOAD_MODULES))
 __mod = -include $$(foreach mod,$$(_THEOS_LOAD_MODULES),$$(THEOS_MODULE_PATH)/$$(mod)/$(1))
 
-include $(THEOS_MAKE_PATH)/legacy.mk
-
 ifneq ($(_THEOS_PLATFORM_CALCULATED),1)
 uname_s := $(shell uname -s)
 uname_o := $(shell uname -o 2>/dev/null)
@@ -255,7 +253,6 @@ ifeq ($(THEOS_CURRENT_INSTANCE),)
 	include $(THEOS_MAKE_PATH)/stage.mk
 	include $(THEOS_MAKE_PATH)/package.mk
 endif
-THEOS_PACKAGE_VERSION = $(call __simplify,THEOS_PACKAGE_VERSION,$(THEOS_PACKAGE_BASE_VERSION)$(warning THEOS_PACKAGE_VERSION is deprecated. Please migrate to THEOS_PACKAGE_BASE_VERSION.))
 
 THEOS_LINKAGE_TYPE ?= dynamic
 
