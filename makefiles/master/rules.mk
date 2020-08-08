@@ -17,13 +17,11 @@ endif
 THEOS_USE_PARALLEL_BUILDING := $(_THEOS_IS_MAKE_GT_4_0)
 endif
 
-ifeq ($(call __theos_bool,$(THEOS_USE_PARALLEL_BUILDING)),$(_THEOS_TRUE))
+ifeq ($(MAKELEVEL)$(call __theos_bool,$(THEOS_USE_PARALLEL_BUILDING)),0$(_THEOS_TRUE))
 # If jobs haven’t already been specified, and we know how to get the number of logical cores on this
 # platform, set jobs to the logical core count (CPU cores multiplied by threads per core).
 ifneq ($(_THEOS_PLATFORM_GET_LOGICAL_CORES),)
-ifeq ($(findstring --jobserver-auth=,$(MAKEFLAGS)),)
-MAKEFLAGS += -j$(shell $(_THEOS_PLATFORM_GET_LOGICAL_CORES)) -Otarget
-endif
+	MAKEFLAGS += -j$(shell $(_THEOS_PLATFORM_GET_LOGICAL_CORES)) -Otarget
 endif
 endif
 
