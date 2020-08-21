@@ -18,6 +18,7 @@ endif
 THEOS_PROJECT_DIR ?= $(shell pwd)
 _THEOS_RELATIVE_DATA_DIR ?= .theos
 _THEOS_LOCAL_DATA_DIR := $(THEOS_PROJECT_DIR)/$(_THEOS_RELATIVE_DATA_DIR)
+_THEOS_SWIFT_SUPPORT_MARKER := $(_THEOS_LOCAL_DATA_DIR)/.swift_support_built
 _THEOS_BUILD_SESSION_FILE = $(_THEOS_LOCAL_DATA_DIR)/build_session
 
 ### Functions
@@ -48,7 +49,7 @@ endif
 ifeq ($(_THEOS_INTERNAL_TRUE_PATH),)
 _THEOS_RELATIVE_MAKE_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
 _THEOS_INTERNAL_TRUE_PATH := $(call __clean_pwd,$(_THEOS_RELATIVE_MAKE_PATH)/..)
-ifneq ($(words $(_THEOS_INTERNAL_TRUE_PATH)),1) # It's a hack, but it works.
+ifneq ($(words $(_THEOS_INTERNAL_TRUE_PATH)),1) # It’s a hack, but it works.
 $(shell unlink /tmp/theos &> /dev/null; ln -Ffs "$(_THEOS_INTERNAL_TRUE_PATH)" /tmp/theos)
 _THEOS_INTERNAL_TRUE_PATH := /tmp/theos
 endif
@@ -62,6 +63,7 @@ THEOS_VENDOR_LIBRARY_PATH := $(THEOS)/vendor/lib
 THEOS_INCLUDE_PATH := $(THEOS)/include
 THEOS_VENDOR_INCLUDE_PATH := $(THEOS)/vendor/include
 THEOS_FALLBACK_INCLUDE_PATH := $(THEOS)/include/_fallback
+THEOS_VENDOR_SWIFT_SUPPORT_PATH := $(THEOS)/vendor/swift-support
 THEOS_MODULE_PATH := $(THEOS)/mod
 THEOS_SDKS_PATH := $(THEOS)/sdks
 export THEOS THEOS_BIN_PATH THEOS_MAKE_PATH THEOS_LIBRARY_PATH THEOS_VENDOR_LIBRARY_PATH THEOS_INCLUDE_PATH THEOS_VENDOR_INCLUDE_PATH THEOS_FALLBACK_INCLUDE_PATH

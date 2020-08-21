@@ -76,6 +76,10 @@ TARGET_XCPRETTY ?= $(call __invocation,xcpretty)
 TARGET_SWIFT ?= $(call __invocation_swift,$(_THEOS_TARGET_SWIFT))
 TARGET_SWIFTC ?= $(call __invocation_swift,$(_THEOS_TARGET_SWIFTC))
 
+# The directory which contains built swift-support tools. See swift-support-builder.pl for
+# more information.
+TARGET_SWIFT_SUPPORT_BIN ?= $(shell $(THEOS_BIN_PATH)/swift-support-builder.pl $(THEOS_VENDOR_SWIFT_SUPPORT_PATH)/.theos_lock $(_THEOS_SWIFT_SUPPORT_MARKER) $(TARGET_SWIFT) build -c release --package-path $(THEOS_VENDOR_SWIFT_SUPPORT_PATH) --build-path $(THEOS_VENDOR_SWIFT_SUPPORT_PATH)/.theos_build >&2 && echo $(THEOS_VENDOR_SWIFT_SUPPORT_PATH)/.theos_build/release)
+
 TARGET_STRIP_FLAGS ?= -x
 
 ifeq ($(TARGET_DSYMUTIL),)
