@@ -30,13 +30,8 @@ ifneq ($(_THEOS_VERBOSE),$(_THEOS_TRUE))
 endif
 endif
 
-ifeq ($(findstring DEBUG,$(THEOS_SCHEMA)),)
-	_THEOS_XCODE_BUILD_CONFIG = Release
-	_THEOS_XCODE_BUILD_COMMAND := archive
-else
-	_THEOS_XCODE_BUILD_CONFIG = Debug
-	_THEOS_XCODE_BUILD_COMMAND := build install
-endif
+_THEOS_XCODE_BUILD_CONFIG = $(if $(findstring DEBUG,$(THEOS_SCHEMA)),Debug,Release)
+_THEOS_XCODE_BUILD_COMMAND := $(if $(_THEOS_FINAL_PACKAGE),archive,build install)
 
 # Try a workspace or project the user has already specified, falling back to figuring out the
 # workspace or project ourselves based on the instance name.
