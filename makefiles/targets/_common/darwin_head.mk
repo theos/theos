@@ -83,11 +83,13 @@ TARGET_SWIFT_SUPPORT_BIN ?= $(call __simplify,TARGET_SWIFT_SUPPORT_BIN,$(shell $
 TARGET_STRIP_FLAGS ?= -x
 
 ifeq ($(TARGET_DSYMUTIL),)
-ifeq ($(call __executable,$(call __invocation,dsymutil)),$(_THEOS_TRUE))
-	TARGET_DSYMUTIL = $(call __invocation,dsymutil)
-else ifeq ($(call __executable,$(call __invocation,llvm-dsymutil)),$(_THEOS_TRUE))
-	TARGET_DSYMUTIL = $(call __invocation,llvm-dsymutil)
-endif
+	TARGET_DSYMUTIL := $(call __invocation,dsymutil)
+	ifneq ($(call __executable,$(TARGET_DSYMUTIL)),$(_THEOS_TRUE))
+		TARGET_DSYMUTIL := $(call __invocation,llvm-dsymutil)
+		ifneq ($(call __executable,$(TARGET_DSYMUTIL)),$(_THEOS_TRUE))
+			TARGET_DSYMUTIL :=
+		endif
+	endif
 endif
 
 # A version specified as a target argument overrides all previous definitions.
