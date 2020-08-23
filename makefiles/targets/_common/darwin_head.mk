@@ -63,18 +63,18 @@ else
 	__invocation_swift = $(call __invocation,$(1))
 endif
 
-TARGET_CC ?= $(call __invocation,$(_THEOS_TARGET_CC))
-TARGET_CXX ?= $(call __invocation,$(_THEOS_TARGET_CXX))
-TARGET_LD ?= $(call __invocation,$(_THEOS_TARGET_CXX))
-TARGET_LIPO ?= $(call __invocation,lipo)
-TARGET_STRIP ?= $(call __invocation,strip)
-TARGET_CODESIGN_ALLOCATE ?= $(call __invocation,codesign_allocate)
-TARGET_LIBTOOL ?= $(call __invocation,libtool)
-TARGET_XCODEBUILD ?= $(call __invocation,xcodebuild)
-TARGET_XCPRETTY ?= $(call __invocation,xcpretty)
+TARGET_CC ?= $(call __simplify,TARGET_CC,$(call __invocation,$(_THEOS_TARGET_CC)))
+TARGET_CXX ?= $(call __simplify,TARGET_CXX,$(call __invocation,$(_THEOS_TARGET_CXX)))
+TARGET_LD ?= $(call __simplify,TARGET_LD,$(call __invocation,$(_THEOS_TARGET_CXX)))
+TARGET_LIPO ?= $(call __simplify,TARGET_LIPO,$(call __invocation,lipo))
+TARGET_STRIP ?= $(call __simplify,TARGET_STRIP,$(call __invocation,strip))
+TARGET_CODESIGN_ALLOCATE ?= $(call __simplify,TARGET_CODESIGN_ALLOCATE,$(call __invocation,codesign_allocate))
+TARGET_LIBTOOL ?= $(call __simplify,TARGET_LIBTOOL,$(call __invocation,libtool))
+TARGET_XCODEBUILD ?= $(call __simplify,TARGET_XCODEBUILD,$(call __invocation,xcodebuild))
+TARGET_XCPRETTY ?= $(call __simplify,TARGET_XCPRETTY,$(call __invocation,xcpretty))
 
-TARGET_SWIFT ?= $(call __invocation_swift,$(_THEOS_TARGET_SWIFT))
-TARGET_SWIFTC ?= $(call __invocation_swift,$(_THEOS_TARGET_SWIFTC))
+TARGET_SWIFT ?= $(call __simplify,TARGET_SWIFT,$(call __invocation_swift,$(_THEOS_TARGET_SWIFT)))
+TARGET_SWIFTC ?= $(call __simplify,TARGET_SWIFTC,$(call __invocation_swift,$(_THEOS_TARGET_SWIFTC)))
 
 # The directory which contains built swift-support tools. See swift-support-builder.pl for
 # more information.
