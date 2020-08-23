@@ -16,6 +16,7 @@ endif
 endif
 THEOS_USE_PARALLEL_BUILDING := $(_THEOS_IS_MAKE_GT_4_0)
 endif
+export THEOS_USE_PARALLEL_BUILDING
 
 ifeq ($(MAKELEVEL)$(call __theos_bool,$(THEOS_USE_PARALLEL_BUILDING)),0$(_THEOS_TRUE))
 # If jobs haven’t already been specified, and we know how to get the number of logical cores on this

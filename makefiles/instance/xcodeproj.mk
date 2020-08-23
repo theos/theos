@@ -4,6 +4,14 @@ endif
 
 .PHONY: internal-xcodeproj-all_ internal-xcodeproj-stage_ internal-xcodeproj-compile
 
+ifeq ($(call __theos_bool,$(THEOS_USE_PARALLEL_BUILDING)),$(_THEOS_TRUE))
+# Don't synchronize xcodeproj output, because doing so results in Make buffering
+# the output and outputting it all at once once the build is finished. It's okay
+# not to synchronize, because the entire compile phase is just one single rule
+# which runs only once.
+MAKEFLAGS += -Onone
+endif
+
 ifeq ($(_THEOS_MAKE_PARALLEL_BUILDING), no)
 internal-xcodeproj-all_:: internal-xcodeproj-compile
 else
