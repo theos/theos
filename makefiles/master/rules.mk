@@ -59,11 +59,6 @@ ifneq ($(call __exists,$(THEOS_PACKAGE_DIR)),$(_THEOS_TRUE))
 endif
 endif
 
-ifeq ($(MAKELEVEL),0)
-# The Swift support marker should be ephemeral to the user's invocation of make
-	$(ECHO_NOTHING)rm -f "$(_THEOS_SWIFT_SUPPORT_MARKER)"$(ECHO_END)
-endif
-
 internal-all::
 
 after-all::
@@ -79,7 +74,7 @@ ifeq ($(call __exists,$(_THEOS_BUILD_SESSION_FILE)),$(_THEOS_TRUE))
 endif
 
 ifeq ($(MAKELEVEL),0)
-	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)" "$(_THEOS_SWIFT_SUPPORT_MARKER)"$(ECHO_END)
+	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)"$(ECHO_END)
 endif
 
 after-clean::
