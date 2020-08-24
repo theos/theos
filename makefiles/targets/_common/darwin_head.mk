@@ -54,7 +54,17 @@ ifneq ($(PREFIX),)
 	__invocation = $(PREFIX)$(1)
 else ifeq ($(_THEOS_PLATFORM_HAS_XCODE),$(_THEOS_TRUE))
 	# macOS
+ifeq ($(__call __theos_bool,$(THEOS_USE_XCRUN)),$(_THEOS_TRUE))
+	# Slow path: Use xcrun.
 	__invocation = $(shell xcrun -sdk $(_THEOS_TARGET_PLATFORM_NAME) -f $(1) 2>/dev/null)
+else
+	# Fast path: Cache the Xcode link and guess the path. Should work in all but edge cases.
+ifeq ($(_THEOS_XCODE_DEVELOPER_PATH),)
+	export _THEOS_XCODE_DEVELOPER_PATH := $(or $(shell readlink /var/db/xcode_select_link 2>/dev/null),/Applications/Xcode.app/Contents/Developer)
+endif
+	_THEOS_XCODE_TOOLCHAIN_BIN_PATH = $(_THEOS_XCODE_DEVELOPER_PATH)/Toolchains/XcodeDefault.xctoolchain/usr/bin
+	__invocation = $(_THEOS_XCODE_TOOLCHAIN_BIN_PATH)/$(1)
+endif
 else
 	# iOS
 	__invocation = $(1)
