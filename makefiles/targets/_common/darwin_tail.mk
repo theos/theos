@@ -36,16 +36,6 @@ _THEOS_TARGET_SWIFT_LDPATHS = $(call __simplify,_THEOS_TARGET_SWIFT_LDPATHS,$(di
 
 ifeq ($(_THEOS_TARGET_USE_APPLE_LIBSWIFT),$(_THEOS_TRUE))
 	_THEOS_TARGET_LDFLAGS += $(foreach path,$(_THEOS_TARGET_SWIFT_LDPATHS),-L$(path))
-else
-ifeq ($(call __executable,$(TARGET_SWIFT)),$(_THEOS_TRUE))
-	_THEOS_TARGET_SWIFT_VERSION = $(call __simplify,_THEOS_TARGET_SWIFT_VERSION,$(shell $(TARGET_SWIFT) --version | head -1 | cut -d'v' -f2 | cut -d' ' -f2 | cut -d'-' -f1))
-ifeq ($(firstword $(subst ., ,$(_THEOS_TARGET_SWIFT_VERSION))),4)
-	_THEOS_TARGET_SWIFT_VERSION_PATH = $(_THEOS_TARGET_SWIFT_VERSION)
-else
-	_THEOS_TARGET_SWIFT_VERSION_PATH = stable
-endif
-	_THEOS_TARGET_SWIFT_LDFLAGS = $(call __simplify,_THEOS_TARGET_SWIFT_LDFLAGS,-rpath /usr/lib/libswift/$(_THEOS_TARGET_SWIFT_VERSION_PATH))
-endif
 endif
 
 ifeq ($(_THEOS_TARGET_DARWIN_BUNDLE_TYPE),hierarchial)
