@@ -25,6 +25,8 @@ endif
 ALL_XCODEFLAGS = $(_THEOS_INTERNAL_XCODEFLAGS) $(ADDITIONAL_XCODEFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,XCODEFLAGS) $(call __schema_var_all,,XCODEFLAGS)
 ALL_XCODEOPTS = $(_THEOS_INTERNAL_XCODEOPTS) $(ADDITIONAL_XCODEOPTS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,XCODEOPTS) $(call __schema_var_all,,XCODEOPTS)
 
+_THEOS_INTERNAL_XCODEOPTS = -sdk $(_THEOS_TARGET_PLATFORM_NAME)
+
 # Xcode strips even debug builds, which is an issue when using lldb because it's unable to 
 # locate the local unstripped copy since it isn't aware of our custom derivedDataPath. While 
 # that underlying issue still needs to be resolved to allow debugging release builds, the 
