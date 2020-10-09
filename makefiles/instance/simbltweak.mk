@@ -39,6 +39,10 @@ internal-simbltweak-all_:: $(_OBJ_DIR_STAMPS) shared-instance-bundle-all
 internal-simbltweak-compile: $(THEOS_OBJ_DIR)/$(_LOCAL_INSTANCE_TARGET)
 endif
 
+# Correct @rpath link paths for bundled frameworks
+internal-simbltweak-all_::
+	$(ECHO_NOTHING)otool -L "$(THEOS_OBJ_DIR)/$(_LOCAL_INSTANCE_TARGET)" | grep @rpath | perl -pe 's/\s*(\@rpath|\(.*\)(\n|$$))//g' | xargs -0 sh -c 'install_name_tool -change "@rpath$$0" "$(LOCAL_INSTALL_PATH)/$(_LOCAL_BUNDLE_FULL_NAME)/Contents/Frameworks$$0" "$(THEOS_OBJ_DIR)/$(_LOCAL_INSTANCE_TARGET)"'$(ECHO_END)
+
 $(eval $(call _THEOS_TEMPLATE_DEFAULT_LINKING_RULE,$(_LOCAL_INSTANCE_TARGET)))
 
 internal-simbltweak-stage_:: shared-instance-bundle-stage
