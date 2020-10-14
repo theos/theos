@@ -181,6 +181,18 @@ else
 	$(ERROR_BEGIN) "You don't have ghost installed. For more information, refer to https://github.com/theos/theos/wiki/Installation#prerequisites." $(ERROR_END)
 endif
 
+# Opens the package keeping the shell's environment intact
+dev::
+ifeq ($(call __executable,osascript),$(_THEOS_TRUE))
+ifeq ($(call __exists,$(THEOS_PROJECT_DIR)/Package.swift),$(_THEOS_TRUE))
+	$(ECHO_NOTHING)osascript -e 'quit app "Xcode"' && sleep 0.2 && open -a Xcode $(THEOS_PROJECT_DIR)/Package.swift$(ECHO_END)
+else
+	$(ERROR_BEGIN) "\`$(MAKE) dev\` requires a Package.swift file in the project's root directory"
+endif
+else
+	$(ERROR_BEGIN) "\`$(MAKE) dev\` requires macOS"
+endif
+
 $(eval $(call __mod,master/rules.mk))
 
 ifeq ($(_THEOS_TOP_INVOCATION_DONE),)

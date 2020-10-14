@@ -1,21 +1,25 @@
 .PHONY: before-$(THEOS_CURRENT_INSTANCE)-all after-$(THEOS_CURRENT_INSTANCE)-all internal-$(_THEOS_CURRENT_TYPE)-all \
 	before-$(THEOS_CURRENT_INSTANCE)-stage after-$(THEOS_CURRENT_INSTANCE)-stage internal-$(_THEOS_CURRENT_TYPE)-stage
 
-__ALL_FILES = $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,FILES) $($(THEOS_CURRENT_INSTANCE)_OBJCC_FILES) $($(THEOS_CURRENT_INSTANCE)_LOGOS_FILES) $($(THEOS_CURRENT_INSTANCE)_OBJC_FILES) $($(THEOS_CURRENT_INSTANCE)_CC_FILES) $($(THEOS_CURRENT_INSTANCE)_C_FILES)
+__USER_FILES = $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,FILES) $($(THEOS_CURRENT_INSTANCE)_OBJCC_FILES) $($(THEOS_CURRENT_INSTANCE)_LOGOS_FILES) $($(THEOS_CURRENT_INSTANCE)_OBJC_FILES) $($(THEOS_CURRENT_INSTANCE)_CC_FILES) $($(THEOS_CURRENT_INSTANCE)_C_FILES)
+__ALL_FILES = $(__USER_FILES) $(__TEMP_FILES)
 __ON_FILES = $(filter-out -%,$(__ALL_FILES))
 __OFF_FILES = $(patsubst -%,%,$(filter -%,$(__ALL_FILES)))
 _FILES = $(strip $(filter-out $(__OFF_FILES),$(__ON_FILES)))
 OBJ_FILES = $(strip $(patsubst %,%.$(_THEOS_OBJ_FILE_TAG).o,$(_FILES)))
 OBJC_FILES = $(filter %.m %.mm %.x %.xm %.xi %.xmi,$(_FILES))
 OBJCC_FILES = $(filter %.mm %.xm %.xmi,$(_FILES))
-SWIFT_FILES = $(filter %.swift %.xswift,$(_FILES))
+SWIFT_FILES = $(filter %.swift,$(_FILES))
+XSWIFT_FILES = $(filter %.x.swift,$(_FILES))
 
 _OBJC_FILE_COUNT = $(words $(OBJC_FILES))
 _OBJCC_FILE_COUNT = $(words $(OBJCC_FILES))
 _SWIFT_FILE_COUNT = $(words $(SWIFT_FILES))
+_XSWIFT_FILE_COUNT = $(words $(XSWIFT_FILES))
 
 # we have to keep this in a subdir so we can add it as a header search path without unexpected consequences
-_SWIFTMODULE_HEADER = $(THEOS_OBJ_DIR)/generated-headers/$(THEOS_CURRENT_INSTANCE)-Swift.h
+_SWIFTMODULE_HEADER = $(THEOS_OBJ_DIR)/generated/$(THEOS_CURRENT_INSTANCE)-Swift.h
+_ORION_GLUE = $(THEOS_OBJ_DIR)/generated/$(THEOS_CURRENT_INSTANCE).xc.swift
 
 # This is := because it would otherwise be evaluated immediately afterwards.
 _SUBPROJECTS := $(strip $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,SUBPROJECTS))
@@ -62,6 +66,15 @@ ifneq ($(_SWIFT_FILE_COUNT),0)
 		_THEOS_SWIFT_SWIFTMODULE_HEADER_FLAG = -emit-objc-header-path $(_SWIFTMODULE_HEADER)
 		_THEOS_INTERNAL_IFLAGS_C += -I$(_THEOS_SWIFTMODULE_HEADER_DIR)
 	endif
+endif
+
+ifneq ($(_XSWIFT_FILE_COUNT),0)
+	# temp files are included in __FILES, but not in __USER_FILES
+	__TEMP_FILES += $(_ORION_GLUE)
+
+	_THEOS_INTERNAL_SWIFTFLAGS += -F$(THEOS_VENDOR_LIBRARY_PATH)
+	_THEOS_INTERNAL_OBJCFLAGS += -F$(THEOS_VENDOR_LIBRARY_PATH)
+	_THEOS_INTERNAL_LDFLAGS += -F$(THEOS_VENDOR_LIBRARY_PATH)
 endif
 
 # If we have a Bridging Header, import it in Swift
@@ -142,6 +155,7 @@ ALL_CCFLAGS = $(_THEOS_INTERNAL_CCFLAGS) $(_THEOS_TARGET_CCFLAGS) $(ADDITIONAL_C
 ALL_OBJCFLAGS = $(_THEOS_INTERNAL_OBJCFLAGS) $(_THEOS_TARGET_OBJCFLAGS) $(ADDITIONAL_OBJCFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,OBJCFLAGS) $(call __schema_var_all,,OBJCFLAGS)
 ALL_OBJCCFLAGS = $(_THEOS_INTERNAL_OBJCCFLAGS) $(ADDITIONAL_OBJCCFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,OBJCCFLAGS) $(call __schema_var_all,,OBJCCFLAGS)
 ALL_SWIFTFLAGS = $(_THEOS_INTERNAL_SWIFTCOLORFLAGS) $(_THEOS_INTERNAL_SWIFTFLAGS) $(_THEOS_TARGET_SWIFTFLAGS) $(ADDITIONAL_SWIFTFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,SWIFTFLAGS) $(call __schema_var_all,,SWIFTFLAGS)
+ALL_ORIONFLAGS = $(_THEOS_INTERNAL_ORIONFLAGS) $(ADDITIONAL_ORIONFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,ORIONFLAGS) $(call __schema_var_all,,ORIONFLAGS)
 ALL_LOGOSFLAGS = $(_THEOS_INTERNAL_LOGOSFLAGS) $(ADDITIONAL_LOGOSFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,LOGOSFLAGS) $(call __schema_var_all,,LOGOSFLAGS)
 
 ALL_LDFLAGS = $(_THEOS_INTERNAL_COLORFLAGS) $(_THEOS_INTERNAL_LDFLAGS) $(ADDITIONAL_LDFLAGS) $(_THEOS_TARGET_LDFLAGS) $(ALL_ARCHFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,LDFLAGS) $(call __schema_var_all,,LDFLAGS)
@@ -164,7 +178,16 @@ DEP_FILES = $(strip $(patsubst %,$(THEOS_OBJ_DIR)/%.$(_THEOS_OBJ_FILE_TAG).Td,$(
 endif
 
 before-$(THEOS_CURRENT_INSTANCE)-all::
-	@for i in $(_FILES); do \
+ifneq ($(_XSWIFT_FILE_COUNT),0)
+ifneq ($(_THEOS_DARWIN_HAS_STABLE_SWIFT),$(_THEOS_TRUE))
+ifeq ($(_THEOS_DARWIN_STABLE_SWIFT_VERSION),)
+	$(ERROR_BEGIN) "The provided target platform does not currently support Orion." $(ERROR_END)
+else
+	$(ERROR_BEGIN) "Cannot use Orion with a deployment target lower than $(_THEOS_DARWIN_STABLE_SWIFT_VERSION) on the provided target platform." $(ERROR_END)
+endif
+endif
+endif
+	@for i in $(__USER_FILES); do \
 		if [[ ! -f "$$i" ]]; then \
 			$(PRINT_FORMAT_ERROR) "File $$i does not exist." $(ERROR_END) \
 		fi; \
@@ -262,6 +285,17 @@ $(THEOS_OBJ_DIR)/output-file-map.$(_THEOS_OBJ_FILE_TAG).json: $(SWIFT_FILES)
 compile-swift: $(SWIFT_FILES) $(THEOS_OBJ_DIR)/output-file-map.$(_THEOS_OBJ_FILE_TAG).json
 	$(ECHO_NOTHING)mkdir -p $(foreach file,$(SWIFT_FILES),$(THEOS_OBJ_DIR)/$(dir $(file))) $(_THEOS_SWIFTMODULE_HEADER_DIR)$(ECHO_END)
 	$(ECHO_NOTHING)$(TARGET_SWIFTC) -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -output-file-map $(THEOS_OBJ_DIR)/output-file-map.$(_THEOS_OBJ_FILE_TAG).json $(_THEOS_SWIFT_SWIFTMODULE_HEADER_FLAG) -emit-dependencies -emit-module-path $(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE).swiftmodule $(SWIFT_FILES) -parseable-output 2>&1 | $(_THEOS_CACHED_SWIFT_SUPPORT_BIN)/parse-swiftc-output $(or $(call __theos_bool,$(COLOR)),0) $(THEOS_CURRENT_ARCH)$(ECHO_END)
+
+$(_ORION_GLUE): $(XSWIFT_FILES)
+ifeq ($(THEOS_CURRENT_ARCH),)
+# We don't actually need the glue file at the top level; generating it is a bug which
+# we should probably look into more
+	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_NOTHING)touch $@$(ECHO_END)
+else
+	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_PREPROCESSING_XSWIFT)$(ECHO_UNBUFFERED)$(_THEOS_CACHED_SWIFT_SUPPORT_BIN)/orion $(ALL_ORIONFLAGS) $(XSWIFT_FILES) > $@$(ECHO_END)
+endif
 
 $(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).o: compile-swift
 	@

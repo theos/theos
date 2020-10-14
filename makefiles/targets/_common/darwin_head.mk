@@ -76,9 +76,13 @@ TARGET_XCPRETTY ?= $(call __simplify,TARGET_XCPRETTY,$(call __invocation,xcprett
 TARGET_SWIFT ?= $(call __simplify,TARGET_SWIFT,$(call __invocation_swift,$(_THEOS_TARGET_SWIFT)))
 TARGET_SWIFTC ?= $(call __simplify,TARGET_SWIFTC,$(call __invocation_swift,$(_THEOS_TARGET_SWIFTC)))
 
+TARGET_SWIFT_SUPPORT_BUILD_COMMAND_BASE = SPM_THEOS_BUILD=1 $(TARGET_SWIFT) build -c release --package-path $(THEOS_VENDOR_SWIFT_SUPPORT_PATH) --build-path $(THEOS_VENDOR_SWIFT_SUPPORT_PATH)/.theos_build
+
+TARGET_SWIFT_SUPPORT_BUILD_COMMAND = $(PRINT_FORMAT_BLUE) "Building Swift support tools (this might take a while)" && $(TARGET_SWIFT_SUPPORT_BUILD_COMMAND_BASE) && $(TARGET_SWIFT_SUPPORT_BUILD_COMMAND_BASE) --product orion
+
 # The directory which contains built swift-support tools. See swift-support-builder.pl for
 # more information.
-TARGET_SWIFT_SUPPORT_BIN ?= $(call __simplify,TARGET_SWIFT_SUPPORT_BIN,$(shell $(THEOS_BIN_PATH)/swift-support-builder.pl $(THEOS_VENDOR_SWIFT_SUPPORT_PATH) $(_THEOS_TARGET_SWIFT_VERSION) '$(PRINT_FORMAT_BLUE) "Building Swift support tools" && $(TARGET_SWIFT) build -c release --package-path $(THEOS_VENDOR_SWIFT_SUPPORT_PATH) --build-path $(THEOS_VENDOR_SWIFT_SUPPORT_PATH)/.theos_build' >&2 && echo $(THEOS_VENDOR_SWIFT_SUPPORT_PATH)/.theos_build/release))
+TARGET_SWIFT_SUPPORT_BIN ?= $(call __simplify,TARGET_SWIFT_SUPPORT_BIN,$(shell $(THEOS_BIN_PATH)/swift-support-builder.pl $(THEOS_VENDOR_SWIFT_SUPPORT_PATH) $(_THEOS_TARGET_SWIFT_VERSION) '$(TARGET_SWIFT_SUPPORT_BUILD_COMMAND)' >&2 && echo $(THEOS_VENDOR_SWIFT_SUPPORT_PATH)/.theos_build/release))
 
 TARGET_STRIP_FLAGS ?= -x
 
