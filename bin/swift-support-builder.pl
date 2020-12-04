@@ -57,7 +57,8 @@ flock($lockfile_fh, LOCK_EX) || die($!);
 check_marker;
 
 # The marker file doesn't exist, and we hold the build lock. Let's run the build command.
-system(join(' ', @ARGV)) == 0 || die;
+my $build_command = join(' ', @ARGV);
+system($build_command) == 0 || die("Failed to build Swift support tools: command failed: $build_command\n");
 
 # Create the marker file with the commit hash to indicate that we're done.
 open(my $marker_fh, '>', $marker);
