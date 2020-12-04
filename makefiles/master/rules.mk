@@ -183,14 +183,14 @@ endif
 
 # Opens the package keeping the shell's environment intact
 dev::
-ifeq ($(call __executable,osascript),$(_THEOS_TRUE))
+ifeq ($(call __executable,osascript)$(call __executable,xed),$(_THEOS_TRUE)$(_THEOS_TRUE))
 ifeq ($(call __exists,$(THEOS_PROJECT_DIR)/Package.swift),$(_THEOS_TRUE))
-	$(ECHO_NOTHING)osascript -e 'quit app "Xcode"' && sleep 0.2 && open -a Xcode $(THEOS_PROJECT_DIR)/Package.swift$(ECHO_END)
+	$(ECHO_NOTHING)osascript -e 'quit app "Xcode"' && xed $(THEOS_PROJECT_DIR)/Package.swift$(ECHO_END)
 else
-	$(ERROR_BEGIN) "\`$(MAKE) dev\` requires a Package.swift file in the project's root directory"
+	$(ERROR_BEGIN) "\`$(MAKE) dev\` requires a Package.swift file in the project's root directory."
 endif
 else
-	$(ERROR_BEGIN) "\`$(MAKE) dev\` requires macOS"
+	$(ERROR_BEGIN) "\`$(MAKE) dev\` requires macOS with Xcode installed."
 endif
 
 $(eval $(call __mod,master/rules.mk))
