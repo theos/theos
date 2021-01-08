@@ -71,10 +71,6 @@ endif
 ifneq ($(_XSWIFT_FILE_COUNT),0)
 	# temp files are included in __FILES, but not in __USER_FILES
 	__TEMP_FILES += $(_ORION_GLUE)
-
-	_THEOS_INTERNAL_SWIFTFLAGS += -F$(THEOS_VENDOR_LIBRARY_PATH)
-	_THEOS_INTERNAL_OBJCFLAGS += -F$(THEOS_VENDOR_LIBRARY_PATH)
-	_THEOS_INTERNAL_LDFLAGS += -F$(THEOS_VENDOR_LIBRARY_PATH)
 endif
 
 # If we have a Bridging Header, import it in Swift
@@ -92,22 +88,8 @@ _THEOS_INTERNAL_LDFLAGS += $(foreach framework,$(call __schema_var_all,$(THEOS_C
 _THEOS_INTERNAL_LDFLAGS += $(foreach library,$($(_THEOS_CURRENT_TYPE)_LIBRARIES),-l$(library))
 _THEOS_INTERNAL_LDFLAGS += $(foreach library,$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,LIBRARIES),-l$(library))
 
-# Add all private frameworks from the type and instance, as well as -F for the private framework dir.
-ifneq ($(words $($(_THEOS_CURRENT_TYPE)_PRIVATE_FRAMEWORKS)$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,PRIVATE_FRAMEWORKS)),0)
-	_THEOS_INTERNAL_OBJCFLAGS += -F$(TARGET_PRIVATE_FRAMEWORK_INCLUDE_PATH)
-	_THEOS_INTERNAL_SWIFTFLAGS += -F$(TARGET_PRIVATE_FRAMEWORK_INCLUDE_PATH)
-	_THEOS_INTERNAL_LDFLAGS += -F$(TARGET_PRIVATE_FRAMEWORK_PATH)
-endif
-
 _THEOS_INTERNAL_LDFLAGS += $(foreach framework,$($(_THEOS_CURRENT_TYPE)_PRIVATE_FRAMEWORKS),-framework $(framework))
 _THEOS_INTERNAL_LDFLAGS += $(foreach framework,$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,PRIVATE_FRAMEWORKS),-framework $(framework))
-
-# Add extra frameworks (ones in $THEOS/lib).
-ifneq ($(words $($(_THEOS_CURRENT_TYPE)_EXTRA_FRAMEWORKS)$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,EXTRA_FRAMEWORKS)),0)
-	_THEOS_INTERNAL_OBJCFLAGS += -F$(THEOS_VENDOR_LIBRARY_PATH) -F$(THEOS_LIBRARY_PATH)
-	_THEOS_INTERNAL_SWIFTFLAGS += -F$(THEOS_VENDOR_LIBRARY_PATH) -F$(THEOS_LIBRARY_PATH)
-	_THEOS_INTERNAL_LDFLAGS += -F$(THEOS_VENDOR_LIBRARY_PATH) -F$(THEOS_LIBRARY_PATH)
-endif
 
 _THEOS_INTERNAL_LDFLAGS += $(foreach framework,$($(_THEOS_CURRENT_TYPE)_EXTRA_FRAMEWORKS),-framework $(framework))
 _THEOS_INTERNAL_LDFLAGS += $(foreach framework,$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,EXTRA_FRAMEWORKS),-framework $(framework))
