@@ -4,6 +4,14 @@ endif
 
 .PHONY: internal-xcodeproj-all_ internal-xcodeproj-stage_ internal-xcodeproj-compile
 
+ifeq ($(call __theos_bool,$(THEOS_USE_PARALLEL_BUILDING)),$(_THEOS_TRUE))
+# Don't synchronize xcodeproj output, because doing so results in Make buffering
+# the output and outputting it all at once once the build is finished. It's okay
+# not to synchronize, because the entire compile phase is just one single rule
+# which runs only once.
+MAKEFLAGS += -Onone
+endif
+
 ifeq ($(_THEOS_MAKE_PARALLEL_BUILDING), no)
 internal-xcodeproj-all_:: internal-xcodeproj-compile
 else
@@ -32,13 +40,8 @@ ifneq ($(_THEOS_VERBOSE),$(_THEOS_TRUE))
 endif
 endif
 
-ifeq ($(findstring DEBUG,$(THEOS_SCHEMA)),)
-	_THEOS_XCODE_BUILD_CONFIG = Release
-	_THEOS_XCODE_BUILD_COMMAND := archive
-else
-	_THEOS_XCODE_BUILD_CONFIG = Debug
-	_THEOS_XCODE_BUILD_COMMAND := build install
-endif
+_THEOS_XCODE_BUILD_CONFIG = $(if $(findstring DEBUG,$(THEOS_SCHEMA)),Debug,Release)
+_THEOS_XCODE_BUILD_COMMAND := $(if $(_THEOS_FINAL_PACKAGE),archive,build install)
 
 # Try a workspace or project the user has already specified, falling back to figuring out the
 # workspace or project ourselves based on the instance name.
