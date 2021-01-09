@@ -6,8 +6,12 @@ endif
 
 # Determine whether we are on a modern enough version of make for us to enable parallel building.
 # --output-sync was added in make 4.0; output is hard to read without it. Xcode includes make 3.81.
+
+ifeq ($(_THEOS_IS_MAKE_GT_4_0),)
+export _THEOS_IS_MAKE_GT_4_0 := $(shell $(THEOS_BIN_PATH)/vercmp.pl $(MAKE_VERSION) gt 4.0)
+endif
+
 ifeq ($(THEOS_USE_PARALLEL_BUILDING),)
-_THEOS_IS_MAKE_GT_4_0 := $(shell $(THEOS_BIN_PATH)/vercmp.pl $(MAKE_VERSION) gt 4.0)
 ifeq ($(_THEOS_IS_MAKE_GT_4_0)$(THEOS_IGNORE_PARALLEL_BUILDING_NOTICE),)
 ifneq ($(shell $(or $(_THEOS_PLATFORM_GET_LOGICAL_CORES),:)),1)
 all::
@@ -18,7 +22,13 @@ THEOS_USE_PARALLEL_BUILDING := $(_THEOS_IS_MAKE_GT_4_0)
 endif
 export THEOS_USE_PARALLEL_BUILDING
 
-ifeq ($(MAKELEVEL)$(call __theos_bool,$(THEOS_USE_PARALLEL_BUILDING)),0$(_THEOS_TRUE))
+# This is effectively THEOS_USE_PARALLEL_BUILDING canonicalized
+ifeq ($(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),)
+_THEOS_INTERNAL_USE_PARALLEL_BUILDING := $(call __theos_bool,$(THEOS_USE_PARALLEL_BUILDING))
+endif
+export _THEOS_INTERNAL_USE_PARALLEL_BUILDING
+
+ifeq ($(MAKELEVEL)$(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),0$(_THEOS_TRUE))
 # If jobs haven’t already been specified, and we know how to get the number of logical cores on this
 # platform, set jobs to the logical core count (CPU cores multiplied by threads per core).
 ifneq ($(_THEOS_PLATFORM_GET_LOGICAL_CORES),)

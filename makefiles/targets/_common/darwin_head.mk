@@ -63,26 +63,29 @@ else
 	__invocation_swift = $(call __invocation,$(1))
 endif
 
-TARGET_CC ?= $(call __simplify,TARGET_CC,$(call __invocation,$(_THEOS_TARGET_CC)))
-TARGET_CXX ?= $(call __simplify,TARGET_CXX,$(call __invocation,$(_THEOS_TARGET_CXX)))
-TARGET_LD ?= $(call __simplify,TARGET_LD,$(call __invocation,$(_THEOS_TARGET_CXX)))
-TARGET_LIPO ?= $(call __simplify,TARGET_LIPO,$(call __invocation,lipo))
-TARGET_STRIP ?= $(call __simplify,TARGET_STRIP,$(call __invocation,strip))
-TARGET_CODESIGN_ALLOCATE ?= $(call __simplify,TARGET_CODESIGN_ALLOCATE,$(call __invocation,codesign_allocate))
-TARGET_LIBTOOL ?= $(call __simplify,TARGET_LIBTOOL,$(call __invocation,libtool))
-TARGET_XCODEBUILD ?= $(call __simplify,TARGET_XCODEBUILD,$(call __invocation,xcodebuild))
-TARGET_XCPRETTY ?= $(call __simplify,TARGET_XCPRETTY,$(call __invocation,xcpretty))
+ifeq ($(_THEOS_IS_MAKE_GT_4_0),)
+# Make 3 has a bug where __simplify ends up truncating text sometimes
+# (root cause presently unknown). Only use __simplify for targets on
+# Make >= 4
+	__target_simplify = $(2)
+else
+	__target_simplify = $(call __simplify,$(1),$(2))
+endif
 
-TARGET_SWIFT ?= $(call __simplify,TARGET_SWIFT,$(call __invocation_swift,$(_THEOS_TARGET_SWIFT)))
-TARGET_SWIFTC ?= $(call __simplify,TARGET_SWIFTC,$(call __invocation_swift,$(_THEOS_TARGET_SWIFTC)))
+TARGET_CC ?= $(call __target_simplify,TARGET_CC,$(call __invocation,$(_THEOS_TARGET_CC)))
+TARGET_CXX ?= $(call __target_simplify,TARGET_CXX,$(call __invocation,$(_THEOS_TARGET_CXX)))
+TARGET_LD ?= $(call __target_simplify,TARGET_LD,$(call __invocation,$(_THEOS_TARGET_CXX)))
+TARGET_LIPO ?= $(call __target_simplify,TARGET_LIPO,$(call __invocation,lipo))
+TARGET_STRIP ?= $(call __target_simplify,TARGET_STRIP,$(call __invocation,strip))
+TARGET_CODESIGN_ALLOCATE ?= $(call __target_simplify,TARGET_CODESIGN_ALLOCATE,$(call __invocation,codesign_allocate))
+TARGET_LIBTOOL ?= $(call __target_simplify,TARGET_LIBTOOL,$(call __invocation,libtool))
+TARGET_XCODEBUILD ?= $(call __target_simplify,TARGET_XCODEBUILD,$(call __invocation,xcodebuild))
+TARGET_XCPRETTY ?= $(call __target_simplify,TARGET_XCPRETTY,$(call __invocation,xcpretty))
 
-TARGET_SWIFT_SUPPORT_BUILD_COMMAND_BASE = SPM_THEOS_BUILD=1 $(TARGET_SWIFT) build -c release --package-path $(THEOS_VENDOR_SWIFT_SUPPORT_PATH) --build-path $(THEOS_VENDOR_SWIFT_SUPPORT_PATH)/.theos_build
+TARGET_SWIFT ?= $(call __target_simplify,TARGET_SWIFT,$(call __invocation_swift,$(_THEOS_TARGET_SWIFT)))
+TARGET_SWIFTC ?= $(call __target_simplify,TARGET_SWIFTC,$(call __invocation_swift,$(_THEOS_TARGET_SWIFTC)))
 
-TARGET_SWIFT_SUPPORT_BUILD_COMMAND = $(PRINT_FORMAT_BLUE) "Building Swift support tools (this might take a while)" && $(TARGET_SWIFT_SUPPORT_BUILD_COMMAND_BASE) && $(TARGET_SWIFT_SUPPORT_BUILD_COMMAND_BASE) --product orion
-
-# The directory which contains built swift-support tools. See swift-support-builder.pl for
-# more information.
-TARGET_SWIFT_SUPPORT_BIN ?= $(call __simplify,TARGET_SWIFT_SUPPORT_BIN,$(shell $(THEOS_BIN_PATH)/swift-support-builder.pl $(THEOS_VENDOR_SWIFT_SUPPORT_PATH) $(_THEOS_TARGET_SWIFT_VERSION) '$(TARGET_SWIFT_SUPPORT_BUILD_COMMAND)' >&2 && echo $(THEOS_VENDOR_SWIFT_SUPPORT_PATH)/.theos_build/release))
+TARGET_SWIFT_SUPPORT_BIN ?= $(THEOS_VENDOR_SWIFT_SUPPORT_PATH)/.theos_build/release
 
 TARGET_STRIP_FLAGS ?= -x
 
