@@ -1,6 +1,6 @@
 .PHONY: before-$(THEOS_CURRENT_INSTANCE)-all after-$(THEOS_CURRENT_INSTANCE)-all internal-$(_THEOS_CURRENT_TYPE)-all \
 	before-$(THEOS_CURRENT_INSTANCE)-stage after-$(THEOS_CURRENT_INSTANCE)-stage internal-$(_THEOS_CURRENT_TYPE)-stage \
-	swift-support
+	internal-$(THEOS_CURRENT_INSTANCE)-swift-support
 
 __USER_FILES = $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,FILES) $($(THEOS_CURRENT_INSTANCE)_OBJCC_FILES) $($(THEOS_CURRENT_INSTANCE)_LOGOS_FILES) $($(THEOS_CURRENT_INSTANCE)_OBJC_FILES) $($(THEOS_CURRENT_INSTANCE)_CC_FILES) $($(THEOS_CURRENT_INSTANCE)_C_FILES) $($(THEOS_CURRENT_INSTANCE)_SWIFT_FILES)
 __ALL_FILES = $(__USER_FILES) $(__TEMP_FILES)
@@ -21,6 +21,7 @@ _XSWIFT_FILE_COUNT = $(words $(XSWIFT_FILES))
 # we have to keep this in a subdir so we can add it as a header search path without unexpected consequences
 _SWIFTMODULE_HEADER = $(THEOS_OBJ_DIR)/generated/$(THEOS_CURRENT_INSTANCE)-Swift.h
 _ORION_GLUE = $(THEOS_OBJ_DIR)/generated/$(THEOS_CURRENT_INSTANCE).xc.swift
+_SWIFT_STAMP = $(THEOS_OBJ_DIR)/.swift-stamp
 
 # This is := because it would otherwise be evaluated immediately afterwards.
 _SUBPROJECTS := $(strip $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,SUBPROJECTS))
@@ -170,7 +171,7 @@ ifeq ($(THEOS_BUILD_SWIFT_SUPPORT),$(_THEOS_TRUE))
 TARGET_SWIFT_SUPPORT_BUILD_COMMAND_BASE = SPM_THEOS_BUILD=1 $(TARGET_SWIFT) build -c release --package-path $(THEOS_VENDOR_SWIFT_SUPPORT_PATH) --build-path $(THEOS_VENDOR_SWIFT_SUPPORT_PATH)/.theos_build
 TARGET_SWIFT_SUPPORT_BUILD_COMMAND = $(PRINT_FORMAT_BLUE) "Building Swift support tools (this might take a while)" && $(TARGET_SWIFT_SUPPORT_BUILD_COMMAND_BASE) && $(TARGET_SWIFT_SUPPORT_BUILD_COMMAND_BASE) --product orion
 
-swift-support::
+internal-$(THEOS_CURRENT_INSTANCE)-swift-support::
 	$(ECHO_NOTHING)$(THEOS_BIN_PATH)/swift-support-builder.pl $(THEOS_VENDOR_SWIFT_SUPPORT_PATH) $(_THEOS_TARGET_SWIFT_VERSION) '$(TARGET_SWIFT_SUPPORT_BUILD_COMMAND)' >&2$(ECHO_END)
 
 ifeq ($(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),$(_THEOS_TRUE))
@@ -180,7 +181,7 @@ MAKEFLAGS += -Onone
 # The Theos Swift Jobserver coordinates output from instances of parse-swiftc-output
 # since Make's own jobserver doesn't have the required granularity due to a lack of
 # information about which Swift file is being compiled
-swift-support::
+internal-$(THEOS_CURRENT_INSTANCE)-swift-support::
 	$(ECHO_NOTHING)mkdir -p $(dir $(_THEOS_SWIFT_JOBSERVER))$(ECHO_END)
 	$(ECHO_NOTHING)rm -f $(_THEOS_SWIFT_JOBSERVER) $(_THEOS_SWIFT_JOBSERVER).pid$(ECHO_END)
 	$(ECHO_NOTHING)$(TARGET_SWIFT_SUPPORT_BIN)/swift-jobserver $(_THEOS_SWIFT_JOBSERVER) $(_TARGET_ARCHS_COUNT) & \
@@ -205,7 +206,7 @@ endif
 	done
 ifneq ($(_SWIFT_FILE_COUNT),0)
 # Build the Swift support tools and start the swift jobserver if needed
-	$(ECHO_NOTHING)$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) swift-support THEOS_BUILD_SWIFT_SUPPORT=$(_THEOS_TRUE)$(ECHO_END)
+	$(ECHO_NOTHING)$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) internal-$(THEOS_CURRENT_INSTANCE)-swift-support THEOS_BUILD_SWIFT_SUPPORT=$(_THEOS_TRUE)$(ECHO_END)
 endif
 
 after-$(THEOS_CURRENT_INSTANCE)-all::
@@ -243,7 +244,7 @@ MDFLAGS = -MP -MT "$@ $(subst .md,.o,$@)" -MM
 
 ifeq ($(_THEOS_GENERATE_SWIFTMODULE_HEADER),$(_THEOS_TRUE))
 # add swiftmodule header as dependency to all objc objects
-$(patsubst %,$(THEOS_OBJ_DIR)/%.$(_THEOS_OBJ_FILE_TAG).o,$(OBJC_FILES)): $(patsubst %,$(THEOS_OBJ_DIR)/%.$(_THEOS_OBJ_FILE_TAG).o,$(SWIFT_FILES))
+$(patsubst %,$(THEOS_OBJ_DIR)/%.$(_THEOS_OBJ_FILE_TAG).o,$(OBJC_FILES)): $(_SWIFTMODULE_HEADER)
 endif
 
 $(THEOS_OBJ_DIR)/%.m.$(_THEOS_OBJ_FILE_TAG).o: %.m
@@ -302,20 +303,6 @@ $(THEOS_OBJ_DIR)/%.ii.$(_THEOS_OBJ_FILE_TAG).o: %.ii
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x c++-cpp-output -c $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $< -o $@$(ECHO_END)
 
-# EASY PERFORMANCE WINS (TBD by somebody?):
-# - Increasing num-threads during WMO builds might also help (see SWIFT_OPTFLAG in common.mk)
-
-.PHONY: compile-swift
-
-$(THEOS_OBJ_DIR)/output-file-map.$(_THEOS_OBJ_FILE_TAG).json: $(SWIFT_FILES)
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
-	$(ECHO_NOTHING)$(TARGET_SWIFT_SUPPORT_BIN)/generate-output-file-map $(THEOS_OBJ_DIR) $(_THEOS_OBJ_FILE_TAG) $(SWIFT_FILES) > $@$(ECHO_END)
-
-compile-swift: $(SWIFT_FILES) $(THEOS_OBJ_DIR)/output-file-map.$(_THEOS_OBJ_FILE_TAG).json
-	$(ECHO_NOTHING)mkdir -p $(foreach file,$(SWIFT_FILES),$(THEOS_OBJ_DIR)/$(dir $(file))) $(_THEOS_SWIFTMODULE_HEADER_DIR)$(ECHO_END)
-	$(ECHO_NOTHING)$(TARGET_SWIFTC) -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -output-file-map $(THEOS_OBJ_DIR)/output-file-map.$(_THEOS_OBJ_FILE_TAG).json $(_THEOS_SWIFT_SWIFTMODULE_HEADER_FLAG) -emit-dependencies -emit-module-path $(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE).swiftmodule $(SWIFT_FILES) -parseable-output 2>&1 \
-	| $(TARGET_SWIFT_SUPPORT_BIN)/parse-swiftc-output $(or $(call __theos_bool,$(COLOR)),0) $(_THEOS_SWIFT_JOBSERVER) $(THEOS_CURRENT_ARCH)$(ECHO_END)
-
 $(_ORION_GLUE): $(XSWIFT_FILES)
 ifeq ($(THEOS_CURRENT_ARCH),)
 # We don't actually need the glue file at the top level; generating it is a bug which
@@ -327,7 +314,26 @@ else
 	$(ECHO_PREPROCESSING_XSWIFT)$(ECHO_UNBUFFERED)$(TARGET_SWIFT_SUPPORT_BIN)/orion $(ALL_ORIONFLAGS) $(XSWIFT_FILES) > $@$(ECHO_END)
 endif
 
-$(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).o: compile-swift
+# EASY PERFORMANCE WINS (TBD by somebody?):
+# - Increasing num-threads during WMO builds might also help (see SWIFT_OPTFLAG in common.mk)
+
+$(THEOS_OBJ_DIR)/output-file-map.$(_THEOS_OBJ_FILE_TAG).json: $(SWIFT_FILES)
+	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_NOTHING)$(TARGET_SWIFT_SUPPORT_BIN)/generate-output-file-map $(THEOS_OBJ_DIR) $(_THEOS_OBJ_FILE_TAG) $(SWIFT_FILES) > $@$(ECHO_END)
+
+# https://www.gnu.org/software/automake/manual/html_node/Multiple-Outputs.html
+$(_SWIFT_STAMP): $(SWIFT_FILES) $(THEOS_OBJ_DIR)/output-file-map.$(_THEOS_OBJ_FILE_TAG).json
+	$(ECHO_NOTHING)rm -f $@.tmp$(ECHO_END)
+	$(ECHO_NOTHING)touch $@.tmp$(ECHO_END)
+	$(ECHO_NOTHING)mkdir -p $(foreach file,$(SWIFT_FILES),$(THEOS_OBJ_DIR)/$(dir $(file))) $(_THEOS_SWIFTMODULE_HEADER_DIR)$(ECHO_END)
+	$(ECHO_NOTHING)$(TARGET_SWIFTC) -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -output-file-map $(THEOS_OBJ_DIR)/output-file-map.$(_THEOS_OBJ_FILE_TAG).json $(_THEOS_SWIFT_SWIFTMODULE_HEADER_FLAG) -emit-dependencies -emit-module-path $(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE).swiftmodule $(SWIFT_FILES) -parseable-output 2>&1 \
+	| $(TARGET_SWIFT_SUPPORT_BIN)/parse-swiftc-output $(or $(call __theos_bool,$(COLOR)),0) $(_THEOS_SWIFT_JOBSERVER) $(THEOS_CURRENT_ARCH)$(ECHO_END)
+	$(ECHO_NOTHING)mv $@.tmp $@$(ECHO_END)
+
+$(_SWIFTMODULE_HEADER): $(_SWIFT_STAMP)
+	@:
+
+$(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).o: $(_SWIFT_STAMP)
 	@:
 
 $(THEOS_OBJ_DIR)/%.x.m: %.x
