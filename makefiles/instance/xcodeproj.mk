@@ -77,7 +77,7 @@ internal-xcodeproj-compile:
 	$(ALL_XCODEOPTS) \
 	$(_THEOS_XCODE_BUILD_COMMAND) \
 	$(ALL_XCODEFLAGS) \
-	$(_THEOS_XCODEBUILD_END)
+	$(_THEOS_XCODEBUILD_END) || exit 1
 ifeq ($(_THEOS_PACKAGE_FORMAT),deb)
 	$(ECHO_NOTHING)find $(THEOS_OBJ_DIR)/install -name 'libswift*.dylib' -delete$(ECHO_END)
 endif

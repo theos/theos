@@ -2,7 +2,7 @@
 	before-$(THEOS_CURRENT_INSTANCE)-stage after-$(THEOS_CURRENT_INSTANCE)-stage internal-$(_THEOS_CURRENT_TYPE)-stage \
 	swift-support
 
-__USER_FILES = $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,FILES) $($(THEOS_CURRENT_INSTANCE)_OBJCC_FILES) $($(THEOS_CURRENT_INSTANCE)_LOGOS_FILES) $($(THEOS_CURRENT_INSTANCE)_OBJC_FILES) $($(THEOS_CURRENT_INSTANCE)_CC_FILES) $($(THEOS_CURRENT_INSTANCE)_C_FILES)
+__USER_FILES = $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,FILES) $($(THEOS_CURRENT_INSTANCE)_OBJCC_FILES) $($(THEOS_CURRENT_INSTANCE)_LOGOS_FILES) $($(THEOS_CURRENT_INSTANCE)_OBJC_FILES) $($(THEOS_CURRENT_INSTANCE)_CC_FILES) $($(THEOS_CURRENT_INSTANCE)_C_FILES) $($(THEOS_CURRENT_INSTANCE)_SWIFT_FILES)
 __ALL_FILES = $(__USER_FILES) $(__TEMP_FILES)
 __ON_FILES = $(filter-out -%,$(__ALL_FILES))
 __OFF_FILES = $(patsubst -%,%,$(filter -%,$(__ALL_FILES)))
@@ -182,8 +182,9 @@ MAKEFLAGS += -Onone
 # information about which Swift file is being compiled
 swift-support::
 	$(ECHO_NOTHING)mkdir -p $(dir $(_THEOS_SWIFT_JOBSERVER))$(ECHO_END)
-	$(ECHO_NOTHING)rm -f $(_THEOS_SWIFT_JOBSERVER)$(ECHO_END)
-	$(ECHO_NOTHING)$(TARGET_SWIFT_SUPPORT_BIN)/swift-jobserver $(_THEOS_SWIFT_JOBSERVER) $(_TARGET_ARCHS_COUNT) &$(ECHO_END)
+	$(ECHO_NOTHING)rm -f $(_THEOS_SWIFT_JOBSERVER) $(_THEOS_SWIFT_JOBSERVER).pid$(ECHO_END)
+	$(ECHO_NOTHING)$(TARGET_SWIFT_SUPPORT_BIN)/swift-jobserver $(_THEOS_SWIFT_JOBSERVER) $(_TARGET_ARCHS_COUNT) & \
+	printf "$$!" > $(_THEOS_SWIFT_JOBSERVER).pid$(ECHO_END)
 endif
 endif
 
@@ -208,6 +209,20 @@ ifneq ($(_SWIFT_FILE_COUNT),0)
 endif
 
 after-$(THEOS_CURRENT_INSTANCE)-all::
+ifneq ($(_SWIFT_FILE_COUNT),0)
+ifeq ($(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),$(_THEOS_TRUE))
+# kill the jobserver if it's still running, which may happen if Make decides to skip
+# building all Swift files in the instance.
+#
+# TODO: While this in combination with passing $(_TARGET_ARCHS_COUNT) to the jobserver 
+# should handle the majority of cases, at least one case isn't handled: if there's two
+# or more architectures and Make only decides to build one, and that one arch has an
+# error while building, this code won't be reached and also the required number of
+# socket connections won't be made so the jobserver will be left running and thus
+# the invocation of make won't terminate
+	$(ECHO_NOTHING)kill $$(cat "$(_THEOS_SWIFT_JOBSERVER).pid") 2>/dev/null || :$(ECHO_END)
+endif
+endif
 	@:
 
 internal-$(_THEOS_CURRENT_TYPE)-all:: before-$(THEOS_CURRENT_INSTANCE)-all internal-$(_THEOS_CURRENT_TYPE)-all_ after-$(THEOS_CURRENT_INSTANCE)-all
