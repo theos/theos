@@ -10,10 +10,12 @@
 use strict;
 use warnings;
 use Fcntl qw(:flock);
+use File::Path qw(rmtree);
 
 my $support_dir = shift;
 my $lockfile = "$support_dir/.theos_lock";
-my $marker = "$support_dir/.theos_build/theos_build_commit";
+my $build_dir = "$support_dir/.theos_build";
+my $marker = "$build_dir/theos_build_commit";
 
 my $swift_version = shift;
 
@@ -23,7 +25,8 @@ chomp($hash);
 
 my $computed_marker_value = "$swift_version $hash";
 
-my $no_cache = defined $ENV{THEOS_NO_SWIFT_CACHE} && $ENV{THEOS_NO_SWIFT_CACHE} == '1';
+my $cache_flag = $ENV{THEOS_NO_SWIFT_CACHE} // '';
+my $no_cache = $cache_flag eq '1' || $cache_flag eq '2';
 
 # The marker file indicates the last version of swift-support that was successfully built
 # (identified by its commit hash). If the last successful build corresponds to the current
@@ -55,6 +58,10 @@ flock($lockfile_fh, LOCK_EX) || die($!);
 # another process had acquired the lock but hadn't yet finished building, or hadn't
 # finished writing to the marker.
 check_marker;
+
+if ($cache_flag ne '1' && -d $build_dir) {
+	rmtree($build_dir);
+}
 
 # The marker file doesn't exist, and we hold the build lock. Let's run the build command.
 my $build_command = join(' ', @ARGV);
