@@ -21,7 +21,10 @@ internal-all internal-clean internal-stage internal-after-install::
 		THEOS_BUILD_DIR="$$lbuilddir" \
 	     ; then\
 	     :; \
-	  else exit $$?; \
+	  else \
+		exit_code=$$?; \
+		$(if $(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),kill $$(cat "$(_THEOS_SWIFT_JOBSERVER).pid") 2>/dev/null || :;) \
+		exit $$exit_code; \
 	  fi; \
 	done;
 endif

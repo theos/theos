@@ -55,28 +55,27 @@ endif
 endif
 
 ifneq ($(_SWIFT_FILE_COUNT),0)
-	# Cache the Swift support bin dir by exporting it to sub-makes, preventing
-	# it from being re-computed by each architecture's make invocation.
-	ifeq ($(_THEOS_SWIFT_JOBSERVER),)
-	ifeq ($(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),$(_THEOS_TRUE))
-		export _THEOS_SWIFT_JOBSERVER := $(THEOS_OBJ_DIR)/swift-jobs/$(THEOS_CURRENT_INSTANCE)
-	else
-		export _THEOS_SWIFT_JOBSERVER := -
-	endif
-	endif
+# $(_THEOS_SWIFT_SUPPORT_MARKER) serves as an atomic marker of whether swift support
+# has been built and the jobserver has been started (if necessary). mkdir is effectively
+# used as a test-and-set to avoid TOCTOU.
+before-$(THEOS_CURRENT_INSTANCE)-all::
+	$(ECHO_NOTHING)if mkdir $(_THEOS_SWIFT_SUPPORT_MARKER) 2>/dev/null; then \
+		$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) internal-$(THEOS_CURRENT_INSTANCE)-swift-support THEOS_START_SWIFT_SUPPORT=$(_THEOS_TRUE); \
+	else :; \
+	fi$(ECHO_END)
 
-	ifneq ($(_OBJC_FILE_COUNT),0)
-		# if both Swift and ObjC files exist
-		_THEOS_GENERATE_SWIFTMODULE_HEADER = $(_THEOS_TRUE)
-		_THEOS_SWIFTMODULE_HEADER_DIR = $(dir $(_SWIFTMODULE_HEADER))
-		_THEOS_SWIFT_SWIFTMODULE_HEADER_FLAG = -emit-objc-header-path $(_SWIFTMODULE_HEADER)
-		_THEOS_INTERNAL_IFLAGS_C += -I$(_THEOS_SWIFTMODULE_HEADER_DIR)
-	endif
+ifneq ($(_OBJC_FILE_COUNT),0)
+# if both Swift and ObjC files exist
+_THEOS_GENERATE_SWIFTMODULE_HEADER = $(_THEOS_TRUE)
+_THEOS_SWIFTMODULE_HEADER_DIR = $(dir $(_SWIFTMODULE_HEADER))
+_THEOS_SWIFT_SWIFTMODULE_HEADER_FLAG = -emit-objc-header-path $(_SWIFTMODULE_HEADER)
+_THEOS_INTERNAL_IFLAGS_C += -I$(_THEOS_SWIFTMODULE_HEADER_DIR)
+endif
 endif
 
 ifneq ($(_XSWIFT_FILE_COUNT),0)
-	# temp files are included in __FILES, but not in __USER_FILES
-	__TEMP_FILES += $(_ORION_GLUE)
+# temp files are included in __FILES, but not in __USER_FILES
+__TEMP_FILES += $(_ORION_GLUE)
 endif
 
 # If we have a Bridging Header, import it in Swift
@@ -167,7 +166,7 @@ DEP_FILES = $(strip $(patsubst %,$(THEOS_OBJ_DIR)/%.$(_THEOS_OBJ_FILE_TAG).Td,$(
 -include $(DEP_FILES)
 endif
 
-ifeq ($(THEOS_BUILD_SWIFT_SUPPORT),$(_THEOS_TRUE))
+ifeq ($(THEOS_START_SWIFT_SUPPORT),$(_THEOS_TRUE))
 TARGET_SWIFT_SUPPORT_BUILD_COMMAND_BASE = SPM_THEOS_BUILD=1 $(TARGET_SWIFT) build -c release --package-path $(THEOS_VENDOR_SWIFT_SUPPORT_PATH) --build-path $(THEOS_VENDOR_SWIFT_SUPPORT_PATH)/.theos_build
 TARGET_SWIFT_SUPPORT_BUILD_COMMAND = $(PRINT_FORMAT_BLUE) "Building Swift support tools (this might take a while)" && $(TARGET_SWIFT_SUPPORT_BUILD_COMMAND_BASE) && $(TARGET_SWIFT_SUPPORT_BUILD_COMMAND_BASE) --product orion
 
@@ -184,7 +183,7 @@ MAKEFLAGS += -Onone
 internal-$(THEOS_CURRENT_INSTANCE)-swift-support::
 	$(ECHO_NOTHING)mkdir -p $(dir $(_THEOS_SWIFT_JOBSERVER))$(ECHO_END)
 	$(ECHO_NOTHING)rm -f $(_THEOS_SWIFT_JOBSERVER) $(_THEOS_SWIFT_JOBSERVER).pid$(ECHO_END)
-	$(ECHO_NOTHING)$(TARGET_SWIFT_SUPPORT_BIN)/swift-jobserver $(_THEOS_SWIFT_JOBSERVER) $(_TARGET_ARCHS_COUNT) & \
+	$(ECHO_NOTHING)$(TARGET_SWIFT_SUPPORT_BIN)/swift-jobserver $(_THEOS_SWIFT_JOBSERVER) -1 & \
 	printf "$$!" > $(_THEOS_SWIFT_JOBSERVER).pid$(ECHO_END)
 endif
 endif
@@ -204,26 +203,8 @@ endif
 			$(PRINT_FORMAT_ERROR) "File $$i does not exist." $(ERROR_END) \
 		fi; \
 	done
-ifneq ($(_SWIFT_FILE_COUNT),0)
-# Build the Swift support tools and start the swift jobserver if needed
-	$(ECHO_NOTHING)$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) internal-$(THEOS_CURRENT_INSTANCE)-swift-support THEOS_BUILD_SWIFT_SUPPORT=$(_THEOS_TRUE)$(ECHO_END)
-endif
 
 after-$(THEOS_CURRENT_INSTANCE)-all::
-ifneq ($(_SWIFT_FILE_COUNT),0)
-ifeq ($(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),$(_THEOS_TRUE))
-# kill the jobserver if it's still running, which may happen if Make decides to skip
-# building all Swift files in the instance.
-#
-# TODO: While this in combination with passing $(_TARGET_ARCHS_COUNT) to the jobserver 
-# should handle the majority of cases, at least one case isn't handled: if there's two
-# or more architectures and Make only decides to build one, and that one arch has an
-# error while building, this code won't be reached and also the required number of
-# socket connections won't be made so the jobserver will be left running and thus
-# the invocation of make won't terminate
-	$(ECHO_NOTHING)kill $$(cat "$(_THEOS_SWIFT_JOBSERVER).pid") 2>/dev/null || :$(ECHO_END)
-endif
-endif
 	@:
 
 internal-$(_THEOS_CURRENT_TYPE)-all:: before-$(THEOS_CURRENT_INSTANCE)-all internal-$(_THEOS_CURRENT_TYPE)-all_ after-$(THEOS_CURRENT_INSTANCE)-all

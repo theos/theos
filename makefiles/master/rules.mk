@@ -36,14 +36,33 @@ ifneq ($(_THEOS_PLATFORM_GET_LOGICAL_CORES),)
 endif
 endif
 
-.PHONY: all before-all internal-all after-all \
+_THEOS_SWIFT_JOBSERVER_FILE = $(_THEOS_LOCAL_DATA_DIR)/swift_jobserver
+
+ifeq ($(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),$(_THEOS_TRUE))
+export _THEOS_SWIFT_JOBSERVER = $(_THEOS_SWIFT_JOBSERVER_FILE)
+else
+export _THEOS_SWIFT_JOBSERVER = -
+endif
+
+export _THEOS_SWIFT_SUPPORT_MARKER = $(_THEOS_LOCAL_DATA_DIR)/swift_support_started
+
+# this must be immediately after internal-all to ensure that all paths through
+# `all` result in the jobserver stopping (otherwise if there's an error in, say,
+# after-all, we'll never reach stop-swift-support).
+stop-swift-support::
+ifeq ($(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),$(_THEOS_TRUE))
+	$(ECHO_NOTHING)kill $$(cat "$(_THEOS_SWIFT_JOBSERVER).pid" 2>/dev/null) 2>/dev/null || :$(ECHO_END)
+endif
+	@:
+
+.PHONY: all before-all internal-all stop-swift-support after-all \
 	clean before-clean internal-clean after-clean \
 	clean-packages before-clean-packages internal-clean-packages after-clean-packages \
 	update-theos
 ifeq ($(THEOS_BUILD_DIR),.)
-all:: $(_THEOS_BUILD_SESSION_FILE) before-all internal-all after-all
+all:: $(_THEOS_BUILD_SESSION_FILE) before-all internal-all stop-swift-support after-all
 else
-all:: $(THEOS_BUILD_DIR) $(_THEOS_BUILD_SESSION_FILE) before-all internal-all after-all
+all:: $(THEOS_BUILD_DIR) $(_THEOS_BUILD_SESSION_FILE) before-all internal-all stop-swift-support after-all
 endif
 
 clean:: before-clean internal-clean after-clean
@@ -70,6 +89,11 @@ ifneq ($(call __exists,$(THEOS_PACKAGE_DIR)),$(_THEOS_TRUE))
 endif
 endif
 
+ifeq ($(_THEOS_SWIFT_JOBSERVER_INIT),)
+	$(ECHO_NOTHING)rm -rf $(_THEOS_SWIFT_SUPPORT_MARKER)$(ECHO_END)
+export _THEOS_SWIFT_JOBSERVER_INIT = $(_THEOS_TRUE)
+endif
+
 internal-all::
 
 after-all::
@@ -85,7 +109,7 @@ ifeq ($(call __exists,$(_THEOS_BUILD_SESSION_FILE)),$(_THEOS_TRUE))
 endif
 
 ifeq ($(MAKELEVEL),0)
-	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)"$(ECHO_END)
+	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)" "$(_THEOS_SWIFT_SUPPORT_MARKER)" "$(_THEOS_SWIFT_JOBSERVER_FILE)" "$(_THEOS_SWIFT_JOBSERVER_FILE).pid"$(ECHO_END)
 endif
 
 after-clean::
@@ -149,7 +173,12 @@ $(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) \
 	_THEOS_CURRENT_TYPE="$(_TYPE)" \
 	THEOS_CURRENT_INSTANCE="$(_INSTANCE)" \
 	_THEOS_CURRENT_OPERATION="$(_OPERATION)" \
-	THEOS_BUILD_DIR="$(_THEOS_ABSOLUTE_BUILD_DIR)"
+	THEOS_BUILD_DIR="$(_THEOS_ABSOLUTE_BUILD_DIR)"; \
+$(if $(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),exit_code=$$?; \
+if [[ $$exit_code != 0 ]]; then \
+	kill $$(cat "$(_THEOS_SWIFT_JOBSERVER).pid" 2>/dev/null) 2>/dev/null || :; \
+	exit $$exit_code; \
+fi)
 
 %.subprojects: _INSTANCE = $(basename $(basename $*))
 %.subprojects: _OPERATION = $(subst .,,$(suffix $(basename $*)))
