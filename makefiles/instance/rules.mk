@@ -1,6 +1,6 @@
 .PHONY: before-$(THEOS_CURRENT_INSTANCE)-all after-$(THEOS_CURRENT_INSTANCE)-all internal-$(_THEOS_CURRENT_TYPE)-all \
 	before-$(THEOS_CURRENT_INSTANCE)-stage after-$(THEOS_CURRENT_INSTANCE)-stage internal-$(_THEOS_CURRENT_TYPE)-stage \
-	internal-$(THEOS_CURRENT_INSTANCE)-swift-support
+	internal-$(THEOS_CURRENT_INSTANCE)-swift-support internal-$(THEOS_CURRENT_INSTANCE)-orion
 
 __USER_FILES = $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,FILES) $($(THEOS_CURRENT_INSTANCE)_OBJCC_FILES) $($(THEOS_CURRENT_INSTANCE)_LOGOS_FILES) $($(THEOS_CURRENT_INSTANCE)_OBJC_FILES) $($(THEOS_CURRENT_INSTANCE)_CC_FILES) $($(THEOS_CURRENT_INSTANCE)_C_FILES) $($(THEOS_CURRENT_INSTANCE)_SWIFT_FILES)
 __ALL_FILES = $(__USER_FILES) $(__TEMP_FILES)
@@ -55,14 +55,20 @@ endif
 endif
 
 ifneq ($(_SWIFT_FILE_COUNT),0)
-# $(_THEOS_SWIFT_SUPPORT_MARKER) serves as an atomic marker of whether swift support
+# The markers/swift_support dir serves as an atomic marker of whether swift support
 # has been built and the jobserver has been started (if necessary). mkdir is effectively
 # used as a test-and-set to avoid TOCTOU.
 before-$(THEOS_CURRENT_INSTANCE)-all::
-	$(ECHO_NOTHING)if mkdir $(_THEOS_SWIFT_SUPPORT_MARKER) 2>/dev/null; then \
+	$(ECHO_NOTHING)if mkdir $(_THEOS_SWIFT_MARKERS_DIR)/swift_support 2>/dev/null; then \
 		$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) internal-$(THEOS_CURRENT_INSTANCE)-swift-support THEOS_START_SWIFT_SUPPORT=$(_THEOS_TRUE); \
 	else :; \
 	fi$(ECHO_END)
+ifneq ($(_XSWIFT_FILE_COUNT),0)
+	$(ECHO_NOTHING)if mkdir $(_THEOS_SWIFT_MARKERS_DIR)/orion 2>/dev/null; then \
+		$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) internal-$(THEOS_CURRENT_INSTANCE)-orion THEOS_BUILD_ORION=$(_THEOS_TRUE); \
+	else :; \
+	fi$(ECHO_END)
+endif
 
 ifneq ($(_OBJC_FILE_COUNT),0)
 # if both Swift and ObjC files exist
@@ -167,11 +173,8 @@ DEP_FILES = $(strip $(patsubst %,$(THEOS_OBJ_DIR)/%.$(_THEOS_OBJ_FILE_TAG).Td,$(
 endif
 
 ifeq ($(THEOS_START_SWIFT_SUPPORT),$(_THEOS_TRUE))
-TARGET_SWIFT_SUPPORT_BUILD_COMMAND_BASE = SPM_THEOS_BUILD=1 $(TARGET_SWIFT) build -c release --package-path $(THEOS_VENDOR_SWIFT_SUPPORT_PATH) --build-path $(THEOS_VENDOR_SWIFT_SUPPORT_PATH)/.theos_build
-TARGET_SWIFT_SUPPORT_BUILD_COMMAND = $(PRINT_FORMAT_BLUE) "Building Swift support tools (this might take a while)" && $(TARGET_SWIFT_SUPPORT_BUILD_COMMAND_BASE) && $(TARGET_SWIFT_SUPPORT_BUILD_COMMAND_BASE) --product orion
-
 internal-$(THEOS_CURRENT_INSTANCE)-swift-support::
-	$(ECHO_NOTHING)$(THEOS_BIN_PATH)/swift-support-builder.pl $(THEOS_VENDOR_SWIFT_SUPPORT_PATH) $(_THEOS_TARGET_SWIFT_VERSION) '$(TARGET_SWIFT_SUPPORT_BUILD_COMMAND)' >&2$(ECHO_END)
+	$(ECHO_NOTHING)$(THEOS_BIN_PATH)/swift-bootstrapper.pl $(_THEOS_PLATFORM_SWIFT) $(THEOS_VENDOR_SWIFT_SUPPORT_PATH) '$(PRINT_FORMAT_BLUE) "Building Swift support tools"' >&2$(ECHO_END)
 
 ifeq ($(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),$(_THEOS_TRUE))
 # Don't buffer/synchronize Swift support builder/server output
@@ -181,10 +184,18 @@ MAKEFLAGS += -Onone
 # since Make's own jobserver doesn't have the required granularity due to a lack of
 # information about which Swift file is being compiled
 internal-$(THEOS_CURRENT_INSTANCE)-swift-support::
-	$(ECHO_NOTHING)mkdir -p $(dir $(_THEOS_SWIFT_JOBSERVER))$(ECHO_END)
 	$(ECHO_NOTHING)rm -f $(_THEOS_SWIFT_JOBSERVER) $(_THEOS_SWIFT_JOBSERVER).pid$(ECHO_END)
 	$(ECHO_NOTHING)$(TARGET_SWIFT_SUPPORT_BIN)/swift-jobserver $(_THEOS_SWIFT_JOBSERVER) -1 & \
 	printf "$$!" > $(_THEOS_SWIFT_JOBSERVER).pid$(ECHO_END)
+endif
+endif
+
+ifeq ($(THEOS_BUILD_ORION),$(_THEOS_TRUE))
+internal-$(THEOS_CURRENT_INSTANCE)-orion::
+	$(ECHO_NOTHING)$(THEOS_BIN_PATH)/swift-bootstrapper.pl $(_THEOS_PLATFORM_SWIFT) $(THEOS_VENDOR_ORION_PATH) '$(PRINT_FORMAT_BLUE) "Building Orion preprocessor (this may take a while)"' >&2$(ECHO_END)
+
+ifeq ($(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),$(_THEOS_TRUE))
+MAKEFLAGS += -Onone
 endif
 endif
 
@@ -292,7 +303,7 @@ ifeq ($(THEOS_CURRENT_ARCH),)
 	$(ECHO_NOTHING)touch $@$(ECHO_END)
 else
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
-	$(ECHO_PREPROCESSING_XSWIFT)$(ECHO_UNBUFFERED)$(TARGET_SWIFT_SUPPORT_BIN)/orion $(ALL_ORIONFLAGS) $(XSWIFT_FILES) > $@$(ECHO_END)
+	$(ECHO_PREPROCESSING_XSWIFT)$(ECHO_UNBUFFERED)$(TARGET_ORION_BIN)/orion $(ALL_ORIONFLAGS) $(XSWIFT_FILES) > $@$(ECHO_END)
 endif
 
 # EASY PERFORMANCE WINS (TBD by somebody?):

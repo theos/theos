@@ -19,3 +19,6 @@
 [submodule "vendor/swift-support"]
 	path = vendor/swift-support
 	url = https://github.com/theos/swift-support.git
+[submodule "vendor/orion"]
+	path = vendor/orion
+	url = https://github.com/theos/orion

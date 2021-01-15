@@ -36,15 +36,15 @@ ifneq ($(_THEOS_PLATFORM_GET_LOGICAL_CORES),)
 endif
 endif
 
-_THEOS_SWIFT_JOBSERVER_FILE = $(_THEOS_LOCAL_DATA_DIR)/swift_jobserver
+_THEOS_SWIFT_AUXILIARY_DIR = $(_THEOS_LOCAL_DATA_DIR)/swift
+_THEOS_SWIFT_JOBSERVER_FILE = $(_THEOS_SWIFT_AUXILIARY_DIR)/jobserver
+export _THEOS_SWIFT_MARKERS_DIR = $(_THEOS_SWIFT_AUXILIARY_DIR)/markers
 
 ifeq ($(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),$(_THEOS_TRUE))
 export _THEOS_SWIFT_JOBSERVER = $(_THEOS_SWIFT_JOBSERVER_FILE)
 else
 export _THEOS_SWIFT_JOBSERVER = -
 endif
-
-export _THEOS_SWIFT_SUPPORT_MARKER = $(_THEOS_LOCAL_DATA_DIR)/swift_support_started
 
 # this must be immediately after internal-all to ensure that all paths through
 # `all` result in the jobserver stopping (otherwise if there's an error in, say,
@@ -89,9 +89,10 @@ ifneq ($(call __exists,$(THEOS_PACKAGE_DIR)),$(_THEOS_TRUE))
 endif
 endif
 
-ifeq ($(_THEOS_SWIFT_JOBSERVER_INIT),)
-	$(ECHO_NOTHING)rm -rf $(_THEOS_SWIFT_SUPPORT_MARKER)$(ECHO_END)
-export _THEOS_SWIFT_JOBSERVER_INIT = $(_THEOS_TRUE)
+ifeq ($(_THEOS_SWIFT_AUXILIARY_INIT),)
+	$(ECHO_NOTHING)rm -rf $(_THEOS_SWIFT_AUXILIARY_DIR)$(ECHO_END)
+	$(ECHO_NOTHING)mkdir -p $(_THEOS_SWIFT_AUXILIARY_DIR) $(_THEOS_SWIFT_MARKERS_DIR)$(ECHO_END)
+export _THEOS_SWIFT_AUXILIARY_INIT = $(_THEOS_TRUE)
 endif
 
 internal-all::
@@ -109,7 +110,7 @@ ifeq ($(call __exists,$(_THEOS_BUILD_SESSION_FILE)),$(_THEOS_TRUE))
 endif
 
 ifeq ($(MAKELEVEL),0)
-	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)" "$(_THEOS_SWIFT_SUPPORT_MARKER)" "$(_THEOS_SWIFT_JOBSERVER_FILE)" "$(_THEOS_SWIFT_JOBSERVER_FILE).pid"$(ECHO_END)
+	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)" "$(_THEOS_SWIFT_AUXILIARY_DIR)"$(ECHO_END)
 endif
 
 after-clean::

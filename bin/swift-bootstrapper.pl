@@ -1,9 +1,9 @@
 #!/usr/bin/perl 
 
-# This is a helper script which invokes a command to build the swift-support 
-# tools, only if necessary.
+# This is a helper script which invokes a command to bootstrap Theos' Swift tools,
+# if and only if necessary.
 #
-# Usage: swift-support-builder.pl </path/to/swift-support> <swift version> <...build command>
+# Usage: swift-bootstrapper.pl </path/to/project> <swift version> <...build command>
 #
 # If THEOS_NO_SWIFT_CACHE is set to 1, the cache is ignored.
 
@@ -11,19 +11,26 @@ use strict;
 use warnings;
 use Fcntl qw(:flock);
 use File::Path qw(rmtree);
+use File::Basename;
 
-my $support_dir = shift;
-my $lockfile = "$support_dir/.theos_lock";
-my $build_dir = "$support_dir/.theos_build";
+my $swift_command = shift;
+my $swift_version = `$swift_command --version`;
+chomp($swift_version);
+$swift_version =~ tr{\n}{ };
+
+my $project_dir = shift;
+my $project_name = basename($project_dir);
+my $lockfile = "$project_dir/.theos_lock";
+my $build_dir = "$project_dir/.theos_build";
 my $marker = "$build_dir/theos_build_commit";
 
-my $swift_version = shift;
+my $print_command = shift;
 
-my $hash = `git -C $support_dir rev-parse HEAD`;
+my $hash = `git -C $project_dir rev-parse HEAD`;
 chomp($hash);
-($? == 0 && length($hash) == 40) || die("$support_dir is not a valid git repo.");
+($? == 0 && length($hash) == 40) || die("$project_dir is not a valid git repo.");
 
-my $computed_marker_value = "$swift_version $hash";
+my $computed_marker_value = "$hash $swift_version";
 
 my $cache_flag = $ENV{THEOS_NO_SWIFT_CACHE} // '';
 my $no_cache = $cache_flag eq '1' || $cache_flag eq '2';
@@ -64,8 +71,9 @@ if ($cache_flag ne '1' && -d $build_dir) {
 }
 
 # The marker file doesn't exist, and we hold the build lock. Let's run the build command.
-my $build_command = join(' ', @ARGV);
-system($build_command) == 0 || die("Failed to build Swift support tools: command failed: $build_command\n");
+my $build_command = "SPM_THEOS_BUILD=1 $swift_command build -c release --package-path $project_dir --build-path $project_dir/.theos_build";
+system($print_command);
+system($build_command) == 0 || die("Failed to build $project_name: command failed: $build_command\n");
 
 # Create the marker file with the commit hash to indicate that we're done.
 open(my $marker_fh, '>', $marker);

@@ -10,7 +10,6 @@ _THEOS_TARGET_SUPPORTS_BUNDLES := 1
 
 _THEOS_TARGET_CC := clang
 _THEOS_TARGET_CXX := clang++
-_THEOS_TARGET_SWIFT := swift
 _THEOS_TARGET_SWIFTC := swiftc
 _THEOS_TARGET_ARG_ORDER := 1 2
 ifeq ($(__THEOS_TARGET_ARG_1),clang)
@@ -81,11 +80,10 @@ TARGET_CODESIGN_ALLOCATE ?= $(call __target_simplify,TARGET_CODESIGN_ALLOCATE,$(
 TARGET_LIBTOOL ?= $(call __target_simplify,TARGET_LIBTOOL,$(call __invocation,libtool))
 TARGET_XCODEBUILD ?= $(call __target_simplify,TARGET_XCODEBUILD,$(call __invocation,xcodebuild))
 TARGET_XCPRETTY ?= $(call __target_simplify,TARGET_XCPRETTY,$(call __invocation,xcpretty))
-
-TARGET_SWIFT ?= $(call __target_simplify,TARGET_SWIFT,$(call __invocation_swift,$(_THEOS_TARGET_SWIFT)))
 TARGET_SWIFTC ?= $(call __target_simplify,TARGET_SWIFTC,$(call __invocation_swift,$(_THEOS_TARGET_SWIFTC)))
 
 TARGET_SWIFT_SUPPORT_BIN ?= $(THEOS_VENDOR_SWIFT_SUPPORT_PATH)/.theos_build/release
+TARGET_ORION_BIN ?= $(THEOS_VENDOR_ORION_PATH)/.theos_build/release
 
 TARGET_STRIP_FLAGS ?= -x
 
