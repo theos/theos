@@ -60,12 +60,12 @@ ifneq ($(_SWIFT_FILE_COUNT),0)
 # used as a test-and-set to avoid TOCTOU.
 before-$(THEOS_CURRENT_INSTANCE)-all::
 	$(ECHO_NOTHING)if mkdir $(_THEOS_SWIFT_MARKERS_DIR)/swift_support 2>/dev/null; then \
-		$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) internal-$(THEOS_CURRENT_INSTANCE)-swift-support THEOS_START_SWIFT_SUPPORT=$(_THEOS_TRUE); \
+		$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) internal-$(THEOS_CURRENT_INSTANCE)-swift-support THEOS_START_SWIFT_SUPPORT=$(_THEOS_TRUE) || exit $$?; \
 	else :; \
 	fi$(ECHO_END)
 ifneq ($(_XSWIFT_FILE_COUNT),0)
 	$(ECHO_NOTHING)if mkdir $(_THEOS_SWIFT_MARKERS_DIR)/orion 2>/dev/null; then \
-		$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) internal-$(THEOS_CURRENT_INSTANCE)-orion THEOS_BUILD_ORION=$(_THEOS_TRUE); \
+		$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) internal-$(THEOS_CURRENT_INSTANCE)-orion THEOS_BUILD_ORION=$(_THEOS_TRUE) || exit $$?; \
 	else :; \
 	fi$(ECHO_END)
 endif
