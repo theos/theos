@@ -121,28 +121,15 @@ include $(THEOS_MAKE_PATH)/legacy.mk
 
 ifneq ($(_THEOS_PLATFORM_CALCULATED),1)
 uname_s := $(shell uname -s)
-uname_p := $(shell uname -p)
 uname_o := $(shell uname -o 2>/dev/null)
 
-ifeq ($(uname_s)-$(uname_p),Darwin-arm64)
-uname_p = arm
-endif
-
-export _THEOS_PLATFORM_ARCH = $(uname_s)-$(uname_p)
 export _THEOS_PLATFORM = $(uname_s)
-export _THEOS_OS = $(uname_o)
-
-ifeq ($(_THEOS_OS),)
-export _THEOS_OS = $(_THEOS_PLATFORM)
-endif
-
+export _THEOS_OS = $(if $(uname_o),$(uname_o),$(uname_s))
 export _THEOS_PLATFORM_CALCULATED := 1
 endif
 
--include $(THEOS_MAKE_PATH)/platform/$(_THEOS_PLATFORM_ARCH).mk
 -include $(THEOS_MAKE_PATH)/platform/$(_THEOS_PLATFORM).mk
 -include $(THEOS_MAKE_PATH)/platform/$(_THEOS_OS).mk
-$(eval $(call __mod,platform/$(_THEOS_PLATFORM_ARCH).mk))
 $(eval $(call __mod,platform/$(_THEOS_PLATFORM).mk))
 $(eval $(call __mod,platform/$(_THEOS_OS).mk))
 
@@ -157,11 +144,9 @@ endif
 _THEOS_TARGET_CALCULATED := 1
 endif
 
--include $(THEOS_MAKE_PATH)/targets/$(_THEOS_PLATFORM_ARCH)/$(_THEOS_TARGET).mk
 -include $(THEOS_MAKE_PATH)/targets/$(_THEOS_PLATFORM)/$(_THEOS_TARGET).mk
 -include $(THEOS_MAKE_PATH)/targets/$(_THEOS_OS)/$(_THEOS_TARGET).mk
 -include $(THEOS_MAKE_PATH)/targets/$(_THEOS_TARGET).mk
-$(eval $(call __mod,targets/$(_THEOS_PLATFORM_ARCH)/$(_THEOS_TARGET).mk))
 $(eval $(call __mod,targets/$(_THEOS_PLATFORM)/$(_THEOS_TARGET).mk))
 $(eval $(call __mod,targets/$(_THEOS_OS)/$(_THEOS_TARGET).mk))
 $(eval $(call __mod,targets/$(_THEOS_TARGET).mk))

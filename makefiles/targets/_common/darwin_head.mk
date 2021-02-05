@@ -24,7 +24,7 @@ ifeq ($(_THEOS_TARGET_PLATFORM_IS_SIMULATOR),$(_THEOS_TRUE))
 	_THEOS_TARGET_LOGOS_DEFAULT_GENERATOR := internal
 
 	TARGET_CODESIGN ?= codesign
-	TARGET_CODESIGN_FLAGS ?= --sign 'iPhone Developer'
+	TARGET_CODESIGN_FLAGS ?= --sign 'Apple Development'
 else
 	TARGET_INSTALL_REMOTE ?= $(_THEOS_TRUE)
 
@@ -47,7 +47,7 @@ endif
 ifneq ($(PREFIX),)
 	# Linux, Cygwin
 	__invocation = $(PREFIX)$(1)
-else ifeq ($(call __executable,xcrun),$(_THEOS_TRUE))
+else ifeq ($(_THEOS_PLATFORM_HAS_XCODE),$(_THEOS_TRUE))
 	# macOS
 	__invocation = $(shell xcrun -sdk $(_THEOS_TARGET_PLATFORM_NAME) -f $(1) 2>/dev/null)
 else

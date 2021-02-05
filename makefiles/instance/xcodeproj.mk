@@ -73,6 +73,10 @@ _THEOS_SIGNABLE_BUNDLE_EXTENSIONS = bundle app framework appex
 _THEOS_SIGNABLE_FILE_EXTENSIONS = dylib
 
 internal-xcodeproj-compile:
+ifneq ($(_THEOS_PLATFORM_HAS_XCODE),$(_THEOS_TRUE))
+	@$(PRINT_FORMAT_ERROR) "The $(THEOS_CURRENT_INSTANCE) target requires Xcode, but the $(THEOS_PLATFORM_NAME) platform does not support Xcode." >&2; \
+		exit 1
+endif
 	$(_THEOS_XCODEBUILD_BEGIN) \
 	$(ALL_XCODEOPTS) \
 	$(_THEOS_XCODE_BUILD_COMMAND) \
