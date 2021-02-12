@@ -15,7 +15,9 @@ ifeq ($(SHELL),/bin/sh)
 export SHELL = bash
 endif
 
-THEOS_PROJECT_DIR ?= $(shell pwd)
+ifeq ($(THEOS_PROJECT_DIR),)
+THEOS_PROJECT_DIR := $(shell pwd)
+endif
 _THEOS_RELATIVE_DATA_DIR ?= .theos
 _THEOS_LOCAL_DATA_DIR := $(THEOS_PROJECT_DIR)/$(_THEOS_RELATIVE_DATA_DIR)
 _THEOS_BUILD_SESSION_FILE = $(_THEOS_LOCAL_DATA_DIR)/build_session
