@@ -108,6 +108,8 @@ __schema_var_all = $(strip $(foreach sch,$(call __schema_all_var_names,$(1),$(2)
 __schema_var_name_last = $(strip $(lastword $(call __schema_defined_var_names,$(1),$(2))))
 __schema_var_last = $(strip $($(lastword $(call __schema_defined_var_names,$(1),$(2)))))
 
+include $(THEOS_MAKE_PATH)/vercmp.mk
+
 THEOS_LAYOUT_DIR_NAME ?= layout
 THEOS_LAYOUT_DIR ?= $(THEOS_PROJECT_DIR)/$(THEOS_LAYOUT_DIR_NAME)
 ifeq ($(_THEOS_HAS_STAGING_LAYOUT),)
