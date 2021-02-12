@@ -36,6 +36,43 @@ __executable = $(if $(shell PATH="$(THEOS_BIN_PATH):$$PATH" type "$(1)" > /dev/n
 __simplify = $(2)$(eval $(1):=$(2))
 ###
 
+empty :=
+space := $(empty) $(empty)
+
+__cmp = $(if $(filter $(1),$(2)),eq,$(if $(filter $(1),$(firstword $(sort $(1) $(2)))),lt,gt))
+
+define __vercmp
+$(if $(eval VERCMP_FIRST := $(subst .,$(space),$(1)))\
+$(eval VERCMP_OP := $(2))\
+$(eval VERCMP_SECOND := $(subst .,$(space),$(3)))\
+$(eval VERCMP_RES := eq)\
+$(call __vercmp_expand_first)\
+$(call __vercmp_expand_second)\
+$(foreach ver1,$(VERCMP_FIRST),$(if $(filter eq,$(VERCMP_RES)),\
+  $(eval ver2:=$(firstword $(VERCMP_SECOND)))\
+  $(eval VERCMP_SECOND:=$(wordlist 2,$(words $(VERCMP_SECOND)),$(VERCMP_SECOND)))\
+  $(if $(filter eq,$(VERCMP_RES)),$(eval VERCMP_RES=$(call __cmp,$(ver1),$(ver2))),)\
+,)),$(if $(filter $(VERCMP_OP),$(VERCMP_RES)),1,),$(error impossibru))
+endef
+
+define __vercmp_expand_first
+$(if $(filter $(words $(VERCMP_FIRST)),$(words $(VERCMP_SECOND))),, \
+$(if $(filter $(words $(VERCMP_SECOND)),$(firstword $(sort $(words $(VERCMP_FIRST)) $(words $(VERCMP_SECOND))))),, \
+$(eval VERCMP_FIRST += 0) \
+$(call __vercmp_expand_first) \
+) \
+)
+endef
+
+define __vercmp_expand_second
+$(if $(filter $(words $(VERCMP_FIRST)),$(words $(VERCMP_SECOND))),, \
+$(if $(filter $(words $(VERCMP_FIRST)),$(firstword $(sort $(words $(VERCMP_FIRST)) $(words $(VERCMP_SECOND))))),, \
+$(eval VERCMP_SECOND += 0) \
+$(call __vercmp_expand_second) \
+) \
+)
+endef
+
 __THEOS_COMMON_MK_VERSION := 1k
 
 ifneq ($(words $(THEOS_PROJECT_DIR)),1)
