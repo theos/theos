@@ -39,20 +39,57 @@ __simplify = $(2)$(eval $(1):=$(2))
 empty :=
 space := $(empty) $(empty)
 
-__cmp = $(if $(filter $(1),$(2)),eq,$(if $(filter $(1),$(firstword $(sort $(1) $(2)))),lt,gt))
+define __cmp
+$(if $(filter $(1),$(2)),eq,$(strip \
+ $(eval __CMP_NUM1:=$(subst 0,0 ,$(subst 1,1 ,$(subst 2,2 ,$(subst 3,3 ,$(subst 4,4 ,$(subst 5,5 ,$(subst 6,6 ,$(subst 7,7 ,$(subst 8,8 ,$(subst 9,9 ,$(1)))))))))))) \
+ $(eval __CMP_NUM2:=$(subst 0,0 ,$(subst 1,1 ,$(subst 2,2 ,$(subst 3,3 ,$(subst 4,4 ,$(subst 5,5 ,$(subst 6,6 ,$(subst 7,7 ,$(subst 8,8 ,$(subst 9,9 ,$(2)))))))))))) \
+ $(if $(filter-out 1,$(words $(__CMP_NUM1)))$(filter-out 1,$(words $(__CMP_NUM2))),$(strip \
+   $(call __vercmp_expand_backward,__CMP_NUM1,$(__CMP_NUM1),$(__CMP_NUM2)) \
+   $(call __vercmp_expand_backward,__CMP_NUM2,$(__CMP_NUM2),$(__CMP_NUM1)) \
+   $(eval __CMP_RES:=eq) \
+   $(call __vercmp_presplit,__CMP_NUM1,__CMP_NUM2,__CMP_RES) \
+   ),$(if $(filter $(1),$(firstword $(sort $(1) $(2)))),lt,gt) \
+  ) \
+))
+endef
 
 define __vercmp
-$(if $(eval VERCMP_FIRST := $(subst .,$(space),$(1)))\
-$(eval VERCMP_OP := $(2))\
-$(eval VERCMP_SECOND := $(subst .,$(space),$(3)))\
-$(eval VERCMP_RES := eq)\
-$(call __vercmp_expand_first)\
-$(call __vercmp_expand_second)\
-$(foreach ver1,$(VERCMP_FIRST),$(if $(filter eq,$(VERCMP_RES)),\
-  $(eval ver2:=$(firstword $(VERCMP_SECOND)))\
-  $(eval VERCMP_SECOND:=$(wordlist 2,$(words $(VERCMP_SECOND)),$(VERCMP_SECOND)))\
-  $(if $(filter eq,$(VERCMP_RES)),$(eval VERCMP_RES=$(call __cmp,$(ver1),$(ver2))),)\
-,)),$(if $(filter $(VERCMP_OP),$(VERCMP_RES)),1,),$(error impossibru))
+$(strip \
+$(eval VERCMP_FIRST := $(subst .,$(space),$(1))) \
+$(eval VERCMP_OP := $(if $(filter ge,$(2)),eq gt,$(if $(filter le,$(2)),eq lt,$(2)))) \
+$(eval VERCMP_SECOND := $(subst .,$(space),$(3))) \
+$(eval VERCMP_RES := eq) \
+$(call __vercmp_expand,VERCMP_FIRST,$(VERCMP_FIRST),$(VERCMP_SECOND)) \
+$(call __vercmp_expand,VERCMP_SECOND,$(VERCMP_SECOND),$(VERCMP_FIRST)) \
+$(if $(filter $(VERCMP_OP),$(call __vercmp_presplit,VERCMP_FIRST,VERCMP_SECOND,VERCMP_RES)),1,) \
+)
+endef
+
+define __vercmp_presplit
+$(strip \
+ $(foreach ver1,$(value $(1)),$(if $(filter eq,$(value $(3))), \
+  $(eval $(3):=$(call __cmp,$(ver1),$(firstword $(value $(2)))$(eval $(2):=$(wordlist 2,$(words $(value $(2))),$(value $(2)))))) \
+ ,)) \
+ $(value $(3)) \
+)
+endef
+
+define __vercmp_expand
+$(if $(filter $(words $(2)),$(words $(3))),, \
+$(if $(filter $(words $(3)),$(firstword $(sort $(words $(2)) $(words $(3))))),, \
+$(eval $(1) += 0) \
+$(call __vercmp_expand,$(1),$(value $(1)),$(3)) \
+) \
+)
+endef
+
+define __vercmp_expand_backward
+$(if $(filter $(words $(2)),$(words $(3))),, \
+$(if $(filter $(words $(3)),$(firstword $(sort $(words $(2)) $(words $(3))))),, \
+$(eval $(1) := 0 $(1)) \
+$(call __vercmp_expand_backward,$(1),$(value $(1)),$(3)) \
+) \
+)
 endef
 
 define __vercmp_expand_first
@@ -72,6 +109,22 @@ $(call __vercmp_expand_second) \
 ) \
 )
 endef
+
+ifeq (0,1)
+# __vercmp test code
+$(info 1.8,gt,1.7: $(call __vercmp,1.8,gt,1.7))
+$(info 1.7,gt,1.8: $(call __vercmp,1.7,gt,1.8))
+$(info 1.8,eq,1.8: $(call __vercmp,1.8,eq,1.8))
+$(info 1.8,eq,1.7: $(call __vercmp,1.8,eq,1.7))
+$(info 1.8,lt,1.9: $(call __vercmp,1.8,lt,1.9))
+$(info 1.8,lt,1.10: $(call __vercmp,1.8,lt,1.10))
+$(info 5.0,ge,5.0.1: $(call __vercmp,5.0,ge,5.0.1))
+$(info 5.0.1,ge,5.0: $(call __vercmp,5.0.1,ge,5.0))
+$(info 5.0,ge,5.0: $(call __vercmp,5.0.1,ge,5.0))
+$(info 5.0,le,5.0.1: $(call __vercmp,5.0,le,5.0.1))
+$(info 5.0,le,5.0: $(call __vercmp,5.0,le,5.0))
+$(info 5.0,le,4.9: $(call __vercmp,5.0.1,le,4.9))
+endif
 
 __THEOS_COMMON_MK_VERSION := 1k
 
