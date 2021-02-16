@@ -296,15 +296,8 @@ $(THEOS_OBJ_DIR)/%.ii.$(_THEOS_OBJ_FILE_TAG).o: %.ii
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x c++-cpp-output -c $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $< -o $@$(ECHO_END)
 
 $(_ORION_GLUE): $(XSWIFT_FILES)
-ifeq ($(THEOS_CURRENT_ARCH),)
-# We don't actually need the glue file at the top level; generating it is a bug which
-# we should probably look into more
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
-	$(ECHO_NOTHING)touch $@$(ECHO_END)
-else
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
 	$(ECHO_PREPROCESSING_XSWIFT)$(ECHO_UNBUFFERED)$(TARGET_ORION_BIN)/orion $(ALL_ORIONFLAGS) $(XSWIFT_FILES) > $@$(ECHO_END)
-endif
 
 # EASY PERFORMANCE WINS (TBD by somebody?):
 # - Increasing num-threads during WMO builds might also help (see SWIFT_OPTFLAG in common.mk)
@@ -362,6 +355,9 @@ $(THEOS_OBJ_DIR)/%.xmi.$(_THEOS_OBJ_FILE_TAG).o: %.xmi $(THEOS_OBJ_DIR)/%.mii
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x objective-c++ -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_CCFLAGS) $(ALL_OBJCCFLAGS) $(THEOS_OBJ_DIR)/$<.mii -o $@$(ECHO_END)
 
+.PHONY: FORCE
+FORCE:
+
 define _THEOS_TEMPLATE_DEFAULT_LINKING_RULE
 ifeq ($(TARGET_LIPO),)
 ifneq ($$(_THEOS_CODESIGN_COMMANDLINE),)
@@ -391,7 +387,10 @@ endif
 else ifeq ($(THEOS_CURRENT_ARCH),)
 
 ARCH_FILES_TO_LINK := $(addsuffix /$(1),$(addprefix $(THEOS_OBJ_DIR)/,$(TARGET_ARCHS)))
-$$(THEOS_OBJ_DIR)/%/$(1): $(__ALL_FILES)
+# It's critical that this always be run because otherwise if there are changes to
+# files listed in the makedeps (*.Td) but this target just depends on __USER_FILES,
+# Make won't reproduce the target
+$$(THEOS_OBJ_DIR)/%/$(1): FORCE
 	@mkdir -p $(THEOS_OBJ_DIR)/$$*
 	$(ECHO_MAKE)$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going \
 		internal-$(_THEOS_CURRENT_TYPE)-$(_THEOS_CURRENT_OPERATION) \
@@ -458,7 +457,7 @@ else ifeq ($(THEOS_CURRENT_ARCH),)
 ifeq ($(_THEOS_LIBRARY_TYPE),static)
 
 ARCH_FILES_TO_LINK := $(addsuffix /$(1),$(addprefix $(THEOS_OBJ_DIR)/,$(TARGET_ARCHS)))
-$$(THEOS_OBJ_DIR)/%/$(1): $(__ALL_FILES)
+$$(THEOS_OBJ_DIR)/%/$(1): FORCE
 	@mkdir -p $(THEOS_OBJ_DIR)/$$*
 	$(ECHO_MAKE)$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going \
 		internal-$(_THEOS_CURRENT_TYPE)-$(_THEOS_CURRENT_OPERATION) \
