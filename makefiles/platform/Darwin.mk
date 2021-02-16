@@ -7,13 +7,17 @@ _THEOS_PLATFORM_HAS_XCODE := $(call __executable,xcode-select)
 THEOS_PLATFORM_NAME := $(if $(_THEOS_PLATFORM_HAS_XCODE),macosx,iphone)
 
 ifneq ($(THEOS_CURRENT_ARCH),)
-ifneq ($(THEOS_PLATFORM_SDK_ROOT_$(THEOS_CURRENT_ARCH)),)
-THEOS_PLATFORM_SDK_ROOT = $(THEOS_PLATFORM_SDK_ROOT_$(THEOS_CURRENT_ARCH))
-endif
+THEOS_PLATFORM_SDK_ROOT := $(or $(call __schema_var_all,,THEOS_PLATFORM_SDK_ROOT_$(THEOS_CURRENT_ARCH)),\
+								$(THEOS_PLATFORM_SDK_ROOT_$(THEOS_CURRENT_ARCH)),\
+								$(call __schema_var_all,,THEOS_PLATFORM_SDK_ROOT),\
+								$(THEOS_PLATFORM_SDK_ROOT))
+else
+THEOS_PLATFORM_SDK_ROOT := $(or $(call __schema_var_all,,THEOS_PLATFORM_SDK_ROOT),\
+								$(THEOS_PLATFORM_SDK_ROOT))
 endif
 
 ifeq ($(_THEOS_PLATFORM_HAS_XCODE),$(_THEOS_TRUE))
-	THEOS_PLATFORM_SDK_ROOT ?= $(shell xcode-select -print-path)
+	THEOS_PLATFORM_SDK_ROOT := $(or $(THEOS_PLATFORM_SDK_ROOT),$(shell xcode-select -print-path))
 	# To have xcrun use our customized THEOS_PLATFORM_SDK_ROOT
 	export DEVELOPER_DIR = $(THEOS_PLATFORM_SDK_ROOT)
 endif
