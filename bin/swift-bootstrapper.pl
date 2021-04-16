@@ -26,9 +26,13 @@ my $marker = "$build_dir/theos_build_commit";
 
 my $print_command = shift;
 
-my $hash = `git -C $project_dir rev-parse HEAD`;
+my $hash = `git -C $project_dir rev-parse HEAD 2>/dev/null`;
 chomp($hash);
-($? == 0 && length($hash) == 40) || die("$project_dir is not a valid git repo.");
+if ($? != 0 || length($hash) != 40) {
+	# Theos should be a git repo but if it isn't this works as a hacky fallback
+	my $hash = `find $project_dir/Sources -type f -print0 | xargs -0 sha1sum | awk '{print \$1}' | sha1sum | head -c 40`;
+	chomp($hash);
+}
 
 my $computed_marker_value = "$hash $swift_version";
 

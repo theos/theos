@@ -38,7 +38,11 @@ _THEOS_TARGET_CCFLAGS := $(_TARGET_LIBCPP_CCFLAGS)
 _THEOS_TARGET_LDFLAGS := -isysroot "$(SYSROOT)" $(VERSIONFLAGS) $(LEGACYFLAGS) -multiply_defined suppress $(_TARGET_LIBCPP_LDFLAGS) $(_TARGET_LIBSWIFT_LDFLAGS)
 
 _THEOS_TARGET_SWIFTFLAGS := -sdk "$(SYSROOT)" $(_THEOS_TARGET_CC_SWIFTFLAGS)
-_THEOS_TARGET_SWIFT_LDPATHS = $(call __simplify,_THEOS_TARGET_SWIFT_LDPATHS,$(dir $(shell type -p $(TARGET_SWIFTC)))../lib/swift/$(_THEOS_TARGET_PLATFORM_NAME) /usr/lib/swift)
+# we *dont* want to readlink here because if the user has a dual toolchain setup then iphone/bin/swiftc
+# might symlink the host one, but we want to use the iphone res dir and not the host one
+_THEOS_TARGET_SWIFT_RESOURCE_DIR := $(dir $(shell type -p $(TARGET_SWIFTC)))../lib/swift
+_THEOS_TARGET_SWIFT_LDPATHS = $(call __simplify,_THEOS_TARGET_SWIFT_LDPATHS,$(_THEOS_TARGET_SWIFT_RESOURCE_DIR)/$(_THEOS_TARGET_PLATFORM_NAME) /usr/lib/swift)
+_THEOS_TARGET_SWIFTFLAGS += -resource-dir $(_THEOS_TARGET_SWIFT_RESOURCE_DIR)
 
 ifeq ($(_THEOS_TARGET_USE_APPLE_LIBSWIFT),$(_THEOS_TRUE))
 	_THEOS_TARGET_LDFLAGS += $(foreach path,$(_THEOS_TARGET_SWIFT_LDPATHS),-L$(path))
