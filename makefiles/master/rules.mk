@@ -58,7 +58,7 @@ endif
 .PHONY: all before-all internal-all stop-swift-support after-all \
 	clean before-clean internal-clean after-clean \
 	clean-packages before-clean-packages internal-clean-packages after-clean-packages \
-	update-theos
+	update-theos spm
 ifeq ($(THEOS_BUILD_DIR),.)
 all:: $(_THEOS_BUILD_SESSION_FILE) before-all internal-all stop-swift-support after-all
 else
@@ -222,17 +222,17 @@ else
 	$(ERROR_BEGIN) "You don't have ghost installed. For more information, refer to https://github.com/theos/theos/wiki/Installation#prerequisites." $(ERROR_END)
 endif
 
-# Opens the package keeping the shell's environment intact
-dev::
-ifeq ($(call __executable,osascript)$(call __executable,xed),$(_THEOS_TRUE)$(_THEOS_TRUE))
-ifeq ($(call __exists,$(THEOS_PROJECT_DIR)/Package.swift),$(_THEOS_TRUE))
-	$(ECHO_NOTHING)osascript -e 'quit app "Xcode"' && xed $(THEOS_PROJECT_DIR)/Package.swift$(ECHO_END)
-else
-	$(ERROR_BEGIN) "\`$(MAKE) dev\` requires a Package.swift file in the project's root directory."
-endif
-else
-	$(ERROR_BEGIN) "\`$(MAKE) dev\` requires macOS with Xcode installed."
-endif
+# The SPM config is a simple key-value file used to pass build settings to Package.swift.
+# Each line is either empty or starts with a (unique) key, followed by an equals sign, 
+# followed by the key's value.
+spm::
+	@$(PRINT_FORMAT_MAKING) "Creating SPM config"
+	@mkdir -p $(_THEOS_LOCAL_DATA_DIR)
+	$(ECHO_NOTHING)rm -f $(_THEOS_SPM_CONFIG_FILE)$(ECHO_END)
+	$(ECHO_NOTHING)echo "theos=$(THEOS)" >> $(_THEOS_SPM_CONFIG_FILE)$(ECHO_END)
+	$(ECHO_NOTHING)echo "sdk=$(SYSROOT)" >> $(_THEOS_SPM_CONFIG_FILE)$(ECHO_END)
+	$(ECHO_NOTHING)echo "deploymentTarget=$(_THEOS_TARGET_OS_DEPLOYMENT_VERSION)" >> $(_THEOS_SPM_CONFIG_FILE)$(ECHO_END)
+	$(ECHO_NOTHING)echo "swiftResourceDir=$(_THEOS_TARGET_SWIFT_RESOURCE_DIR)" >> $(_THEOS_SPM_CONFIG_FILE)$(ECHO_END)
 
 $(eval $(call __mod,master/rules.mk))
 
