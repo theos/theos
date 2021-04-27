@@ -13,7 +13,9 @@ endif
 endif
 
 ifeq ($(_THEOS_PLATFORM_HAS_XCODE),$(_THEOS_TRUE))
-	THEOS_PLATFORM_SDK_ROOT ?= $(shell xcode-select -print-path)
+ifeq ($(THEOS_PLATFORM_SDK_ROOT),)
+	THEOS_PLATFORM_SDK_ROOT := $(shell xcode-select -print-path)
+endif
 	# To have xcrun use our customized THEOS_PLATFORM_SDK_ROOT
 	export DEVELOPER_DIR = $(THEOS_PLATFORM_SDK_ROOT)
 endif

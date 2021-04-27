@@ -8,7 +8,7 @@ endif
 # --output-sync was added in make 4.0; output is hard to read without it. Xcode includes make 3.81.
 
 ifeq ($(_THEOS_IS_MAKE_GT_4_0),)
-export _THEOS_IS_MAKE_GT_4_0 := $(shell $(THEOS_BIN_PATH)/vercmp.pl $(MAKE_VERSION) gt 4.0)
+_THEOS_IS_MAKE_GT_4_0 := $(call __vercmp,$(MAKE_VERSION),gt,4.0)
 endif
 
 ifeq ($(THEOS_USE_PARALLEL_BUILDING),)
