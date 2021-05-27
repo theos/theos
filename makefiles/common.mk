@@ -22,6 +22,8 @@ _THEOS_RELATIVE_DATA_DIR ?= .theos
 _THEOS_LOCAL_DATA_DIR := $(THEOS_PROJECT_DIR)/$(_THEOS_RELATIVE_DATA_DIR)
 _THEOS_BUILD_SESSION_FILE = $(_THEOS_LOCAL_DATA_DIR)/build_session
 _THEOS_SPM_CONFIG_FILE := $(_THEOS_LOCAL_DATA_DIR)/spm_config
+_THEOS_COMPILE_COMMANDS_FILE := $(THEOS_PROJECT_DIR)/compile_commands.json
+_THEOS_TMP_COMPILE_COMMANDS_FILE := $(_THEOS_LOCAL_DATA_DIR)/compile_commands.json.tmp
 
 ### Functions
 # Function for getting a clean absolute path from cd.

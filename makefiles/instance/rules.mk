@@ -125,6 +125,24 @@ endif
 
 _TARGET_ARCHS_COUNT = $(words $(TARGET_ARCHS))
 
+# The magic behind `make commands`: proxy the compile commands for one arch
+# through gen-commands.pl so that we can save them to the commands db
+export THEOS_GEN_COMPILE_COMMANDS
+ifeq ($(THEOS_GEN_COMPILE_COMMANDS) $(THEOS_CURRENT_ARCH),$(_THEOS_TRUE) $(firstword $(TARGET_ARCHS)))
+_TARGET_SWIFTC := $(TARGET_SWIFTC)
+ifneq ($(firstword $(_TARGET_SWIFTC)),$(THEOS_BIN_PATH)/gen-commands.pl)
+define TARGET_SWIFTC
+$(THEOS_BIN_PATH)/gen-commands.pl $(_THEOS_TMP_COMPILE_COMMANDS_FILE) $(THEOS_PROJECT_DIR) swift $(filter $(__USER_FILES),$^) - $(_TARGET_SWIFTC)
+endef
+endif
+_TARGET_CXX := $(TARGET_CXX)
+ifneq ($(firstword $(_TARGET_CXX)),$(THEOS_BIN_PATH)/gen-commands.pl)
+define TARGET_CXX
+$(THEOS_BIN_PATH)/gen-commands.pl $(_THEOS_TMP_COMPILE_COMMANDS_FILE) $(THEOS_PROJECT_DIR) cxx $(filter $(__USER_FILES),$<) - $(_TARGET_CXX)
+endef
+endif
+endif
+
 ifeq ($(TARGET_LIPO),)
 ALL_ARCHFLAGS = $(foreach ARCH,$(TARGET_ARCHS),-arch $(ARCH))
 PREPROCESS_ARCH_FLAGS = $(foreach ARCH,$(NEUTRAL_ARCH),-arch $(ARCH))

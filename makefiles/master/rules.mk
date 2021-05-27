@@ -58,6 +58,7 @@ endif
 .PHONY: all before-all internal-all stop-swift-support after-all \
 	clean before-clean internal-clean after-clean \
 	clean-packages before-clean-packages internal-clean-packages after-clean-packages \
+	before-commands commands \
 	update-theos spm
 ifeq ($(THEOS_BUILD_DIR),.)
 all:: $(_THEOS_BUILD_SESSION_FILE) before-all internal-all stop-swift-support after-all
@@ -110,7 +111,7 @@ ifeq ($(call __exists,$(_THEOS_BUILD_SESSION_FILE)),$(_THEOS_TRUE))
 endif
 
 ifeq ($(MAKELEVEL),0)
-	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)" "$(_THEOS_SWIFT_AUXILIARY_DIR)"$(ECHO_END)
+	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)" "$(_THEOS_SWIFT_AUXILIARY_DIR)" "$(_THEOS_TMP_COMPILE_COMMANDS_FILE)"$(ECHO_END)
 endif
 
 after-clean::
@@ -233,6 +234,13 @@ spm::
 	$(ECHO_NOTHING)echo "sdk=$(SYSROOT)" >> $(_THEOS_SPM_CONFIG_FILE)$(ECHO_END)
 	$(ECHO_NOTHING)echo "deploymentTarget=$(_THEOS_TARGET_OS_DEPLOYMENT_VERSION)" >> $(_THEOS_SPM_CONFIG_FILE)$(ECHO_END)
 	$(ECHO_NOTHING)echo "swiftResourceDir=$(_THEOS_TARGET_SWIFT_RESOURCE_DIR)" >> $(_THEOS_SPM_CONFIG_FILE)$(ECHO_END)
+
+before-commands::
+	@: $(eval export THEOS_GEN_COMPILE_COMMANDS=$(_THEOS_TRUE))
+
+commands:: before-commands clean all
+	@$(PRINT_FORMAT_MAKING) "Writing $(notdir $(_THEOS_COMPILE_COMMANDS_FILE))"
+	$(ECHO_NOTHING)mv -f $(_THEOS_TMP_COMPILE_COMMANDS_FILE) $(_THEOS_COMPILE_COMMANDS_FILE)$(ECHO_END)
 
 $(eval $(call __mod,master/rules.mk))
 
