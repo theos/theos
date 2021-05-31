@@ -26,6 +26,7 @@ include $(THEOS_MAKE_PATH)/instance/shared/bundle.mk
 # End Bundle Setup
 
 _THEOS_INTERNAL_LOGOSFLAGS += -c generator=internal
+_THEOS_INTERNAL_ORIONFLAGS += --backend Internal
 
 ifeq ($(_THEOS_MAKE_PARALLEL_BUILDING), no)
 internal-simbltweak-all_:: $(_OBJ_DIR_STAMPS) shared-instance-bundle-all $(THEOS_OBJ_DIR)/$(_LOCAL_INSTANCE_TARGET)

@@ -5,6 +5,12 @@ THEOS_PLATFORM_NAME := linux
 _THEOS_PLATFORM_DEFAULT_TARGET := iphone
 _THEOS_PLATFORM_DU_EXCLUDE := --exclude
 _THEOS_PLATFORM_MD5SUM := md5sum
+_THEOS_PLATFORM_BIN := $(THEOS)/toolchain/$(THEOS_PLATFORM_NAME)/host/bin
+ifeq ($(call __exists,$(_THEOS_PLATFORM_BIN)),$(_THEOS_TRUE))
+_THEOS_PLATFORM_SWIFT := $(_THEOS_PLATFORM_BIN)/swift
+else
+_THEOS_PLATFORM_SWIFT := swift
+endif
 
 # Determine whether we’re on Windows Subsystem for Linux.
 _THEOS_IS_WSL = $(if $(shell grep Microsoft /proc/version 2>/dev/null),$(_THEOS_TRUE),$(_THEOS_FALSE))

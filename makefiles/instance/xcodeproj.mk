@@ -4,7 +4,7 @@ endif
 
 .PHONY: internal-xcodeproj-all_ internal-xcodeproj-stage_ internal-xcodeproj-compile
 
-ifeq ($(call __theos_bool,$(THEOS_USE_PARALLEL_BUILDING)),$(_THEOS_TRUE))
+ifeq ($(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),$(_THEOS_TRUE))
 # Don't synchronize xcodeproj output, because doing so results in Make buffering
 # the output and outputting it all at once once the build is finished. It's okay
 # not to synchronize, because the entire compile phase is just one single rule
@@ -81,7 +81,7 @@ endif
 	$(ALL_XCODEOPTS) \
 	$(_THEOS_XCODE_BUILD_COMMAND) \
 	$(ALL_XCODEFLAGS) \
-	$(_THEOS_XCODEBUILD_END)
+	$(_THEOS_XCODEBUILD_END) || exit 1
 ifeq ($(_THEOS_PACKAGE_FORMAT),deb)
 	$(ECHO_NOTHING)find $(THEOS_OBJ_DIR)/install -name 'libswift*.dylib' -delete$(ECHO_END)
 endif

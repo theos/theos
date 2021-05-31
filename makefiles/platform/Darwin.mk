@@ -41,4 +41,5 @@ endif
 
 THEOS_SUDO_COMMAND ?= sudo
 _THEOS_PLATFORM_GET_LOGICAL_CORES := sysctl -n hw.ncpu
+_THEOS_PLATFORM_SWIFT ?= swift
 endif

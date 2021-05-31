@@ -6,8 +6,12 @@ endif
 
 # Determine whether we are on a modern enough version of make for us to enable parallel building.
 # --output-sync was added in make 4.0; output is hard to read without it. Xcode includes make 3.81.
-ifeq ($(THEOS_USE_PARALLEL_BUILDING),)
+
+ifeq ($(_THEOS_IS_MAKE_GT_4_0),)
 _THEOS_IS_MAKE_GT_4_0 := $(call __vercmp,$(MAKE_VERSION),gt,4.0)
+endif
+
+ifeq ($(THEOS_USE_PARALLEL_BUILDING),)
 ifeq ($(_THEOS_IS_MAKE_GT_4_0)$(THEOS_IGNORE_PARALLEL_BUILDING_NOTICE),)
 ifneq ($(shell $(or $(_THEOS_PLATFORM_GET_LOGICAL_CORES),:)),1)
 all::
@@ -18,7 +22,13 @@ THEOS_USE_PARALLEL_BUILDING := $(_THEOS_IS_MAKE_GT_4_0)
 endif
 export THEOS_USE_PARALLEL_BUILDING
 
-ifeq ($(MAKELEVEL)$(call __theos_bool,$(THEOS_USE_PARALLEL_BUILDING)),0$(_THEOS_TRUE))
+# This is effectively THEOS_USE_PARALLEL_BUILDING canonicalized
+ifeq ($(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),)
+_THEOS_INTERNAL_USE_PARALLEL_BUILDING := $(call __theos_bool,$(THEOS_USE_PARALLEL_BUILDING))
+endif
+export _THEOS_INTERNAL_USE_PARALLEL_BUILDING
+
+ifeq ($(MAKELEVEL)$(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),0$(_THEOS_TRUE))
 # If jobs haven’t already been specified, and we know how to get the number of logical cores on this
 # platform, set jobs to the logical core count (CPU cores multiplied by threads per core).
 ifneq ($(_THEOS_PLATFORM_GET_LOGICAL_CORES),)
@@ -26,14 +36,33 @@ ifneq ($(_THEOS_PLATFORM_GET_LOGICAL_CORES),)
 endif
 endif
 
-.PHONY: all before-all internal-all after-all \
+_THEOS_SWIFT_AUXILIARY_DIR = $(_THEOS_LOCAL_DATA_DIR)/swift
+_THEOS_SWIFT_JOBSERVER_FILE = $(_THEOS_SWIFT_AUXILIARY_DIR)/jobserver
+export _THEOS_SWIFT_MARKERS_DIR = $(_THEOS_SWIFT_AUXILIARY_DIR)/markers
+
+ifeq ($(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),$(_THEOS_TRUE))
+export _THEOS_SWIFT_JOBSERVER = $(_THEOS_SWIFT_JOBSERVER_FILE)
+else
+export _THEOS_SWIFT_JOBSERVER = -
+endif
+
+# this must be immediately after internal-all to ensure that all paths through
+# `all` result in the jobserver stopping (otherwise if there's an error in, say,
+# after-all, we'll never reach stop-swift-support).
+stop-swift-support::
+ifeq ($(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),$(_THEOS_TRUE))
+	$(ECHO_NOTHING)kill $$(cat "$(_THEOS_SWIFT_JOBSERVER).pid" 2>/dev/null) 2>/dev/null || :$(ECHO_END)
+endif
+	@:
+
+.PHONY: all before-all internal-all stop-swift-support after-all \
 	clean before-clean internal-clean after-clean \
 	clean-packages before-clean-packages internal-clean-packages after-clean-packages \
-	update-theos
+	update-theos spm
 ifeq ($(THEOS_BUILD_DIR),.)
-all:: $(_THEOS_BUILD_SESSION_FILE) before-all internal-all after-all
+all:: $(_THEOS_BUILD_SESSION_FILE) before-all internal-all stop-swift-support after-all
 else
-all:: $(THEOS_BUILD_DIR) $(_THEOS_BUILD_SESSION_FILE) before-all internal-all after-all
+all:: $(THEOS_BUILD_DIR) $(_THEOS_BUILD_SESSION_FILE) before-all internal-all stop-swift-support after-all
 endif
 
 clean:: before-clean internal-clean after-clean
@@ -60,6 +89,12 @@ ifneq ($(call __exists,$(THEOS_PACKAGE_DIR)),$(_THEOS_TRUE))
 endif
 endif
 
+ifeq ($(_THEOS_SWIFT_AUXILIARY_INIT),)
+	$(ECHO_NOTHING)rm -rf $(_THEOS_SWIFT_AUXILIARY_DIR)$(ECHO_END)
+	$(ECHO_NOTHING)mkdir -p $(_THEOS_SWIFT_AUXILIARY_DIR) $(_THEOS_SWIFT_MARKERS_DIR)$(ECHO_END)
+export _THEOS_SWIFT_AUXILIARY_INIT = $(_THEOS_TRUE)
+endif
+
 internal-all::
 
 after-all::
@@ -75,7 +110,7 @@ ifeq ($(call __exists,$(_THEOS_BUILD_SESSION_FILE)),$(_THEOS_TRUE))
 endif
 
 ifeq ($(MAKELEVEL),0)
-	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)"$(ECHO_END)
+	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)" "$(_THEOS_SWIFT_AUXILIARY_DIR)"$(ECHO_END)
 endif
 
 after-clean::
@@ -139,7 +174,12 @@ $(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) \
 	_THEOS_CURRENT_TYPE="$(_TYPE)" \
 	THEOS_CURRENT_INSTANCE="$(_INSTANCE)" \
 	_THEOS_CURRENT_OPERATION="$(_OPERATION)" \
-	THEOS_BUILD_DIR="$(_THEOS_ABSOLUTE_BUILD_DIR)"
+	THEOS_BUILD_DIR="$(_THEOS_ABSOLUTE_BUILD_DIR)"; \
+$(if $(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),exit_code=$$?; \
+if [[ $$exit_code != 0 ]]; then \
+	kill $$(cat "$(_THEOS_SWIFT_JOBSERVER).pid" 2>/dev/null) 2>/dev/null || :; \
+	exit $$exit_code; \
+fi)
 
 %.subprojects: _INSTANCE = $(basename $(basename $*))
 %.subprojects: _OPERATION = $(subst .,,$(suffix $(basename $*)))
@@ -181,6 +221,18 @@ ifeq ($(call __executable,ghost),$(_THEOS_TRUE))
 else
 	$(ERROR_BEGIN) "You don't have ghost installed. For more information, refer to https://github.com/theos/theos/wiki/Installation#prerequisites." $(ERROR_END)
 endif
+
+# The SPM config is a simple key-value file used to pass build settings to Package.swift.
+# Each line is either empty or starts with a (unique) key, followed by an equals sign, 
+# followed by the key's value.
+spm::
+	@$(PRINT_FORMAT_MAKING) "Creating SPM config (beta)"
+	@mkdir -p $(_THEOS_LOCAL_DATA_DIR)
+	$(ECHO_NOTHING)rm -f $(_THEOS_SPM_CONFIG_FILE)$(ECHO_END)
+	$(ECHO_NOTHING)echo "theos=$(THEOS)" >> $(_THEOS_SPM_CONFIG_FILE)$(ECHO_END)
+	$(ECHO_NOTHING)echo "sdk=$(SYSROOT)" >> $(_THEOS_SPM_CONFIG_FILE)$(ECHO_END)
+	$(ECHO_NOTHING)echo "deploymentTarget=$(_THEOS_TARGET_OS_DEPLOYMENT_VERSION)" >> $(_THEOS_SPM_CONFIG_FILE)$(ECHO_END)
+	$(ECHO_NOTHING)echo "swiftResourceDir=$(_THEOS_TARGET_SWIFT_RESOURCE_DIR)" >> $(_THEOS_SPM_CONFIG_FILE)$(ECHO_END)
 
 $(eval $(call __mod,master/rules.mk))
 
