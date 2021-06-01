@@ -37,6 +37,9 @@ if ($? != 0 || length($hash) != 40) {
 my $computed_marker_value = "$hash $swift_version";
 
 my $cache_flag = $ENV{THEOS_NO_SWIFT_CACHE} // '';
+if ($cache_flag eq '3') {
+	exit;
+}
 my $no_cache = $cache_flag eq '1' || $cache_flag eq '2';
 
 # The marker file indicates the last version of swift-support that was successfully built

@@ -7,7 +7,7 @@ $kind = shift;
 @files = ();
 while (true) {
     $curr_file = shift;
-    if ($curr_file eq "-") {
+    if ($curr_file eq "--") {
         last;
     } else {
         push(@files, ($curr_file));

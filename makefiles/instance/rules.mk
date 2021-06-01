@@ -130,16 +130,14 @@ _TARGET_ARCHS_COUNT = $(words $(TARGET_ARCHS))
 export THEOS_GEN_COMPILE_COMMANDS
 ifeq ($(THEOS_GEN_COMPILE_COMMANDS) $(THEOS_CURRENT_ARCH),$(_THEOS_TRUE) $(firstword $(TARGET_ARCHS)))
 _TARGET_SWIFTC := $(TARGET_SWIFTC)
+# we use PWD instead of THEOS_PROJECT_DIR because the latter always refers to the root level project
+# so it isn't correct for subprojects.
 ifneq ($(firstword $(_TARGET_SWIFTC)),$(THEOS_BIN_PATH)/gen-commands.pl)
-define TARGET_SWIFTC
-$(THEOS_BIN_PATH)/gen-commands.pl $(_THEOS_TMP_COMPILE_COMMANDS_FILE) $(THEOS_PROJECT_DIR) swift $(filter $(__USER_FILES),$^) - $(_TARGET_SWIFTC)
-endef
+TARGET_SWIFTC = $(THEOS_BIN_PATH)/gen-commands.pl $(_THEOS_TMP_COMPILE_COMMANDS_FILE) $${PWD} swift $(filter $(__USER_FILES),$^) -- $(_TARGET_SWIFTC)
 endif
 _TARGET_CXX := $(TARGET_CXX)
 ifneq ($(firstword $(_TARGET_CXX)),$(THEOS_BIN_PATH)/gen-commands.pl)
-define TARGET_CXX
-$(THEOS_BIN_PATH)/gen-commands.pl $(_THEOS_TMP_COMPILE_COMMANDS_FILE) $(THEOS_PROJECT_DIR) cxx $(filter $(__USER_FILES),$<) - $(_TARGET_CXX)
-endef
+TARGET_CXX = $(THEOS_BIN_PATH)/gen-commands.pl $(_THEOS_TMP_COMPILE_COMMANDS_FILE) $${PWD} cxx $(filter $(__USER_FILES),$<) -- $(_TARGET_CXX)
 endif
 endif
 
