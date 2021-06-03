@@ -19,22 +19,12 @@
 		#if __has_include(<TargetConditionals.h>)
 			#import <TargetConditionals.h>
 		#endif
-		#ifdef TARGET_OS_IPHONE
-			#ifdef TARGET_OS_SIMULATOR
-				#define _THEOS_IS_SIMULATOR TARGET_OS_SIMULATOR
-			#else
-				#define _THEOS_IS_SIMULATOR TARGET_IPHONE_SIMULATOR
-			#endif
-
-			#if (TARGET_OS_IPHONE || _THEOS_IS_SIMULATOR)
-				#import <theos/BackwardsCompat.h>
-				#import <Foundation/Foundation.h>
-				#import <UIKit/UIKit.h>
-				#import <theos/IOSMacros.h>
-				#import <HBLog.h>
-			#endif
-
-			#undef _THEOS_IS_SIMULATOR
+		#if TARGET_OS_IPHONE
+			#import <theos/BackwardsCompat.h>
+			#import <Foundation/Foundation.h>
+			#import <UIKit/UIKit.h>
+			#import <theos/IOSMacros.h>
+			#import <HBLog.h>
 		#endif
 	#endif
 #endif
