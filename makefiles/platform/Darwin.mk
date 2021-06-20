@@ -17,7 +17,9 @@ THEOS_PLATFORM_SDK_ROOT := $(or $(call __schema_var_all,,THEOS_PLATFORM_SDK_ROOT
 endif
 
 ifeq ($(_THEOS_PLATFORM_HAS_XCODE),$(_THEOS_TRUE))
+ifeq ($(THEOS_PLATFORM_SDK_ROOT),)
 	THEOS_PLATFORM_SDK_ROOT := $(or $(THEOS_PLATFORM_SDK_ROOT),$(shell xcode-select -print-path))
+endif
 	# To have xcrun use our customized THEOS_PLATFORM_SDK_ROOT
 	export DEVELOPER_DIR = $(THEOS_PLATFORM_SDK_ROOT)
 endif
