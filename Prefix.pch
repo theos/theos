@@ -10,6 +10,10 @@
 // has already been removed for other platforms, such as macOS and tvOS, and is not used
 // at all for Swift files.
 
+#if __has_include(<TargetConditionals.h>)
+#include <TargetConditionals.h>
+#endif
+
 #ifdef DEBUG
 	#define __DEBUG__
 #endif

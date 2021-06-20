@@ -15,7 +15,9 @@ ifeq ($(SHELL),/bin/sh)
 export SHELL = bash
 endif
 
-THEOS_PROJECT_DIR ?= $(shell pwd)
+ifeq ($(THEOS_PROJECT_DIR),)
+THEOS_PROJECT_DIR := $(shell pwd)
+endif
 _THEOS_RELATIVE_DATA_DIR ?= .theos
 _THEOS_LOCAL_DATA_DIR := $(THEOS_PROJECT_DIR)/$(_THEOS_RELATIVE_DATA_DIR)
 _THEOS_BUILD_SESSION_FILE = $(_THEOS_LOCAL_DATA_DIR)/build_session
@@ -111,6 +113,8 @@ __schema_defined_var_names = $(foreach tuple,$(filter-out undefined:%,$(foreach 
 __schema_var_all = $(strip $(foreach sch,$(call __schema_all_var_names,$(1),$(2)),$($(sch))))
 __schema_var_name_last = $(strip $(lastword $(call __schema_defined_var_names,$(1),$(2))))
 __schema_var_last = $(strip $($(lastword $(call __schema_defined_var_names,$(1),$(2)))))
+
+include $(THEOS_MAKE_PATH)/vercmp.mk
 
 THEOS_LAYOUT_DIR_NAME ?= layout
 THEOS_LAYOUT_DIR ?= $(THEOS_PROJECT_DIR)/$(THEOS_LAYOUT_DIR_NAME)
