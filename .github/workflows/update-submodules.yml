@@ -1,4 +1,4 @@
-name: Update-Submodules
+name: Update Theos Submodules
 
 on:
   workflow_dispatch:
