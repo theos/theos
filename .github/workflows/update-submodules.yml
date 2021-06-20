@@ -11,4 +11,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Update submodules
-        run: git submodule update --remote --init --recursive
+        run: |
+          git submodule update --remote --init --recursive
+          git commit --all -m "[submodules] Update submodules to the latest commit"
+          git push origin master
