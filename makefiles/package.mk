@@ -11,7 +11,7 @@ ifeq ($(_THEOS_FINAL_PACKAGE),$(_THEOS_TRUE))
 	$(ECHO_NOTHING)find $(THEOS_STAGING_DIR) \( -name \*.plist -or -name \*.strings \) -exec plutil -convert binary1 {} \;$(ECHO_END)
 endif
 internal-package-check::
-	@:
+	$(ECHO_NOTHING)$(THEOS)/bin/theos-lint$(ECHO_END)
 
 # __THEOS_LAST_PACKAGE_FILENAME is to be set by a rule variable in the package format makefile.
 after-package::

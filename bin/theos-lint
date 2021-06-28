@@ -1,0 +1,3 @@
+#!/bin/bash
+
+command -v python3 > /dev/null && python3 $THEOS/vendor/theos-lint/main.py
