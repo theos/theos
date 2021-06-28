@@ -46,7 +46,7 @@ endif
 endif
 
 ifeq ($(_DEPLOY_VERSION_GE_11_0),1) # } Deploy >= 11.0 {
-ifeq ($(_TARGET_VERSION_GE_12_1)$(THEOS_PLATFORM_NAME),1macosx) # >= 12.1, macOS {
+ifeq ($(_TARGET_VERSION_GE_12_1),1) # >= 12.1 {
 	ARCHS ?= arm64 arm64e
 else # } else {
 	ARCHS ?= arm64
