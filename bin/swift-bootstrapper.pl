@@ -14,7 +14,7 @@ use File::Path qw(rmtree);
 use File::Basename;
 
 my $swift_command = shift;
-my $swift_version = `$swift_command --version`;
+my $swift_version = `$swift_command --version 2>/dev/null`;
 chomp($swift_version);
 $swift_version =~ tr{\n}{ };
 
