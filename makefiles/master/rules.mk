@@ -51,7 +51,9 @@ endif
 # after-all, we'll never reach stop-swift-support).
 stop-swift-support::
 ifeq ($(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),$(_THEOS_TRUE))
+ifeq ($(_THEOS_TOP_INVOCATION_DONE),)
 	$(ECHO_NOTHING)kill $$(cat "$(_THEOS_SWIFT_JOBSERVER).pid" 2>/dev/null) 2>/dev/null || :$(ECHO_END)
+endif
 endif
 	@:
 
