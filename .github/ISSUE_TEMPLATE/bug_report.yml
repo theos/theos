@@ -72,6 +72,7 @@ body:
         - macOS
         - Linux/WSL
         - Cygwin
+      multiple: true
     validations:
       required: true
 
@@ -118,6 +119,7 @@ body:
         - macOS
         - Linux/WSL
         - Cygwin
+      multiple: true
     validations:
       required: true
 
