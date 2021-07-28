@@ -6,30 +6,34 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to suggest a new feature! Please make sure you click the link above to view the issue guidelines, then fill out the blanks below.
+        **Thanks for taking the time to suggest a new feature!** Please make sure you read our [issue guidelines](https://github.com/theos/theos/blob/master/.github/CONTRIBUTING.md) first, then fill out the fields below.
+
+        If you feel an open-ended discussion with the community and Theos maintainers would be more suitable to forming the right details for your feature request, you can post in [Discussions](https://github.com/theos/theos/discussions) instead.
 
   - type: textarea
     attributes:
       label: What problem are you trying to solve?
       description: A concise description of what the problem is.
-      placeholder: I have an issue when [...]
+      placeholder: "e.g. I want to …"
     validations:
       required: true
 
   - type: textarea
     attributes:
-      label: "Describe the solution you'd like"
+      label: "Describe the solution you’d like"
     validations:
       required: true
 
   - type: textarea
     attributes:
-      label: "Describe alternatives you've considered"
-    validations:
-      required: true
+      label: "Describe any alternatives you’ve considered"
+      description: |
+        Can Theos already do this, but in a less convenient way?
+        Can you do this using other tools?
+        Do other popular build systems, such as Xcode, have a feature for this?
 
   - type: textarea
     attributes:
-      label: Documentation, Adoption, Migration Strategy
+      label: "Documentation, Adoption, Migration Strategy"
       description: |
         If you can, explain how users will be able to use this and how it might be documented. Maybe a mock-up?

@@ -1,12 +1,14 @@
 name: "🐛 Bug Report"
 description: We broke something, again
 title: "[Bug]: "
-labels: [needs triage]
+labels: ["needs triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting an issue! Please make sure you click the link above to view the issue guidelines, then fill out the fields below.
+        **Thanks for reporting an issue!** Please make sure you read our [issue guidelines](https://github.com/theos/theos/blob/master/.github/CONTRIBUTING.md) first, then fill out the fields below.
+
+        If you’re unsure whether the issue you’re having is a bug, you can post in [Discussions](https://github.com/theos/theos/discussions) instead.
 
   - type: textarea
     id: bug-steps
@@ -14,8 +16,11 @@ body:
       label: What are the steps to reproduce this issue?
       placeholder: |
         1. Make new project
+
         2. Run `make package`
-        3. ...
+
+        3. …
+
         4. See error
     validations:
       required: true
@@ -33,29 +38,30 @@ body:
     attributes:
       label: What were you expecting to happen?
       description: A clear and concise description of what was supposed to happen.
-      value: "A bug happened!"
     validations:
       required: true
 
   - type: textarea
     id: bug-logs
     attributes:
-      label: Any logs, error output, etc
+      label: Paste any relevant logs, error output, etc.
       description: |
         Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
-        (If it’s long, please paste to https://ghostbin.com/ and insert the link here.)
+        (If it’s long, please paste to https://ghostbin.co/ and insert the link here.)
       render: shell
 
   - type: textarea
     id: bug-context
     attributes:
       label: Additional context
-      description: Add any other context about the problem here.
+      description: Add any other context you can provide about the problem here.
 
   - type: markdown
     attributes:
       value: |
-        Details from the host machine (what you use to build and package)
+        ----
+        
+        # Details of your host machine (the device you’re running Theos on)
 
   - type: dropdown
     id: host-os
@@ -73,7 +79,10 @@ body:
     id: host-toolchain
     attributes:
       label: What toolchain and version are you using?
-      placeholder: Xcode on macOS, LLCM+Clang elsewhere
+      description: |
+        If your host machine is running macOS, specify the version of Xcode you’re using here. You can find out by selecting Xcode in Finder, then click File &rarr; Get Info.  
+        Otherwise, specify the toolchain you’re using – either the clang version number, or if you’re not sure, just specify where you downloaded it from.
+      placeholder: "e.g. Xcode 12.5, or clang 12.0.5"
     validations:
       required: true
 
@@ -81,20 +90,34 @@ body:
     id: host-sdk
     attributes:
       label: Which SDK version are you using?
-      placeholder: iOS 14.0
+      placeholder: "e.g. iOS 14.0"
     validations:
       required: true
 
   - type: markdown
     attributes:
       value: |
-        Details from the client device (what you use to test and run)
+        ----
+
+        # Details of your client device (the device you’re attempting to run your code on)
+
+  - type: dropdown
+    id: client-os
+    attributes:
+      label: What OS is your client device running?
+      options:
+        - iOS
+        - macOS
+        - Linux/WSL
+        - Cygwin
+    validations:
+      required: true
 
   - type: input
     id: client-model
     attributes:
       label: Which device model is it?
-      placeholder: iPhone10,6
+      placeholder: "e.g. iPhone X"
     validations:
       required: true
 
@@ -102,14 +125,12 @@ body:
     id: client-os
     attributes:
       label: What OS version does it have installed?
-      placeholder: iOS 14.0
+      placeholder: "e.g. iOS 14.0"
     validations:
       required: true
 
   - type: input
     id: client-jailbreak
     attributes:
-      label: Jailbreak
-      placeholder: checkra1n
-    validations:
-      required: true
+      label: Which jailbreak is it using (if relevant)?
+      placeholder: "e.g. checkra1n"
