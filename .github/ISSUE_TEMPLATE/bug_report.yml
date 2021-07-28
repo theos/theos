@@ -76,6 +76,14 @@ body:
       required: true
 
   - type: input
+    id: host-os-version
+    attributes:
+      label: What OS version does it have installed?
+      placeholder: "e.g. macOS 11.5.1"
+    validations:
+      required: true
+
+  - type: input
     id: host-toolchain
     attributes:
       label: What toolchain and version are you using?
@@ -114,18 +122,18 @@ body:
       required: true
 
   - type: input
-    id: client-model
+    id: client-os-version
     attributes:
-      label: Which device model is it?
-      placeholder: "e.g. iPhone X"
+      label: What OS version does it have installed?
+      placeholder: "e.g. iOS 14.0"
     validations:
       required: true
 
   - type: input
-    id: client-os
+    id: client-model
     attributes:
-      label: What OS version does it have installed?
-      placeholder: "e.g. iOS 14.0"
+      label: Which device model is it?
+      placeholder: "e.g. iPhone X"
     validations:
       required: true
 
