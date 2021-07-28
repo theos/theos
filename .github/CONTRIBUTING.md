@@ -14,7 +14,7 @@ We always encourage users to report bugs as soon as they experience them. In ord
 ## Advice
 If you're sure you've followed all instructions and haven't made any of the common mistakes listed above, here are some guidelines for creating an issue:
 
-* Is this an issue with Theos itself, or a compiler error, or are you looking for help with your code? The Theos issue tracker is for Theos issues only. Try [IRC](http://iphonedevwiki.net/index.php/How_to_use_IRC) or [Reddit](https://www.reddit.com/r/jailbreakdevelopers).
+* Is this an issue with Theos itself, or a compiler error, or are you looking for help with your code? The Theos issue tracker is for Theos issues only. Try the [GitHub Discussions tab](https://github.com/theos/theos/discussions), [Discord](https://theos.dev/discord), or [Reddit](https://www.reddit.com/r/jailbreakdevelopers).
 * When you ask a question, make sure it's not [an XY problem](http://xyproblem.info/).
 * Provide as much information as you possibly can.
 * Use `make troubleshoot` to quickly create a [Gist](https://gist.github.com/) paste containing the output of `make clean all messages=yes`.
@@ -28,7 +28,7 @@ If you're sure you've followed all instructions and haven't made any of the comm
 
 The more information you have, the better. Post as much as you can related to the issues to help us resolve it in a timely matter. If you have multiple issues, please file them as separate issues. This will help us sort them out efficiently.
 
-Don't ask a question not related to the topic of the current issue, especially if it's on someone else's issue. This is known as [thread hijacking](http://www.urbandictionary.com/define.php?term=Thread+Hijacking). You should create a new issue, or ask on [IRC](http://iphonedevwiki.net/index.php/How_to_use_IRC) or [Reddit](https://www.reddit.com/r/jailbreakdevelopers). To contact a specific developer, find their GitHub profile and look for their email address, or Twitter, etc.
+Don't ask a question not related to the topic of the current issue, especially if it's on someone else's issue. This is known as [thread hijacking](http://www.urbandictionary.com/define.php?term=Thread+Hijacking). You should create a new issue, or ask on another discussion forum. To contact a specific developer, find their GitHub profile and look for their email address, or Twitter, etc.
 
 Thanks!
 
