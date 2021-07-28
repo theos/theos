@@ -17,7 +17,7 @@ If you're sure you've followed all instructions and haven't made any of the comm
 * Is this an issue with Theos itself, or a compiler error, or are you looking for help with your code? The Theos issue tracker is for Theos issues only. Try [IRC](http://iphonedevwiki.net/index.php/How_to_use_IRC) or [Reddit](https://www.reddit.com/r/jailbreakdevelopers).
 * When you ask a question, make sure it's not [an XY problem](http://xyproblem.info/).
 * Provide as much information as you possibly can.
-* Use `make troubleshoot` to quickly create a [Ghostbin](https://ghostbin.com/) paste containing the output of `make clean all messages=yes`.
+* Use `make troubleshoot` to quickly create a [Gist](https://gist.github.com/) paste containing the output of `make clean all messages=yes`.
 * Issues are formatted by [Markdown](https://guides.github.com/features/mastering-markdown/). If you paste code into your issue, it will probably end up appearing quite broken because it was interpreted as Markdown. Enclose blocks of code with three backticks (\`\`\`) at the start and end to make it a nicely formatted code block.
 
 ## In your issue, please:

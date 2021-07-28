@@ -47,7 +47,7 @@ body:
       label: Paste any relevant logs, error output, etc.
       description: |
         Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
-        (If it’s long, please paste to https://ghostbin.co/ and insert the link here.)
+        (If it’s long, please paste to https://gist.github.com/ and insert the link here.)
       render: shell
 
   - type: textarea
