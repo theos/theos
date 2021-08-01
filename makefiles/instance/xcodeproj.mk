@@ -32,7 +32,7 @@ _THEOS_INTERNAL_XCODEOPTS = -sdk $(_THEOS_TARGET_PLATFORM_NAME)
 # that underlying issue still needs to be resolved to allow debugging release builds, the 
 # following is a more immediate solution until we get around to solving that – which we could
 # do by, for example, writing a DBGShellCommands script or using DBGFileMappedPaths.
-_THEOS_INTERNAL_XCODEFLAGS += STRIP_INSTALLED_PRODUCT=$(if $(SHOULD_STRIP),YES,NO)
+_THEOS_INTERNAL_XCODEFLAGS += STRIP_INSTALLED_PRODUCT=$(if $(SHOULD_STRIP),YES,NO) ARCHS="$(ARCHS)"
 
 ifneq ($(TARGET_XCPRETTY),)
 ifneq ($(_THEOS_VERBOSE),$(_THEOS_TRUE))
