@@ -42,6 +42,7 @@ endif
 
 _THEOS_XCODE_BUILD_CONFIG = $(if $(findstring DEBUG,$(THEOS_SCHEMA)),Debug,Release)
 _THEOS_XCODE_BUILD_COMMAND := $(if $(_THEOS_FINAL_PACKAGE),archive,build install)
+_THEOS_XCODE_INSTALL_DIR := $(THEOS_OBJ_DIR)/install_$(THEOS_CURRENT_INSTANCE)
 
 # Try a workspace or project the user has already specified, falling back to figuring out the
 # workspace or project ourselves based on the instance name.
@@ -62,7 +63,7 @@ _THEOS_XCODEBUILD_BEGIN = $(ECHO_NOTHING)set -eo pipefail; $(TARGET_XCODEBUILD) 
 	-derivedDataPath $(THEOS_OBJ_DIR)
 _THEOS_XCODEBUILD_END = CODE_SIGNING_ALLOWED=NO \
 	ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES=NO \
-	DSTROOT=$(THEOS_OBJ_DIR)/install \
+	DSTROOT=$(_THEOS_XCODE_INSTALL_DIR) \
 	$(_THEOS_XCODE_XCPRETTY)$(ECHO_END)
 export EXPANDED_CODE_SIGN_IDENTITY =
 export EXPANDED_CODE_SIGN_IDENTITY_NAME =
@@ -83,7 +84,7 @@ endif
 	$(ALL_XCODEFLAGS) \
 	$(_THEOS_XCODEBUILD_END) || exit 1
 ifeq ($(_THEOS_PACKAGE_FORMAT),deb)
-	$(ECHO_NOTHING)find $(THEOS_OBJ_DIR)/install -name 'libswift*.dylib' -delete$(ECHO_END)
+	$(ECHO_NOTHING)find $(_THEOS_XCODE_INSTALL_DIR) -name 'libswift*.dylib' -delete$(ECHO_END)
 endif
 ifneq ($(_THEOS_CODESIGN_COMMANDLINE),)
 	$(ECHO_SIGNING)function process_exec { \
@@ -103,14 +104,14 @@ ifneq ($(_THEOS_CODESIGN_COMMANDLINE),)
 		done; \
 	}; \
 	export -f process_exec process_dir; \
-	process_dir $(THEOS_OBJ_DIR)/install; \
+	process_dir $(_THEOS_XCODE_INSTALL_DIR); \
 	$(ECHO_END)
 endif
 
 ifneq ($($(THEOS_CURRENT_INSTANCE)_INSTALL),0)
 internal-xcodeproj-stage_::
 	$(ECHO_NOTHING)mkdir -p "$(THEOS_STAGING_DIR)"$(ECHO_END)
-	$(ECHO_NOTHING)rsync -a $(THEOS_OBJ_DIR)/install/ "$(THEOS_STAGING_DIR)" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE)$(ECHO_END)
+	$(ECHO_NOTHING)rsync -a $(_THEOS_XCODE_INSTALL_DIR)/ "$(THEOS_STAGING_DIR)" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE)$(ECHO_END)
 endif
 
 $(eval $(call __mod,instance/xcodeproj.mk))
