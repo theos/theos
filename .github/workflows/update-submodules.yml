@@ -1,0 +1,22 @@
+name: Update Theos Submodules
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [org_push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.UPDATE_SUBMODULES_TOKEN }}
+
+      - name: Update submodules
+        run: |
+          git config --global user.name "$GITHUB_ACTOR"
+          git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git submodule update --remote --init --recursive
+          git commit --all -m "[submodules] Update submodules to the latest commit" && git push || echo "No changes were made"

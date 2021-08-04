@@ -14,22 +14,17 @@
 	#define __DEBUG__
 #endif
 
-#ifdef __OBJC__
-	#ifdef TARGET_OS_IPHONE
-		#ifdef TARGET_OS_SIMULATOR
-			#define _THEOS_IS_SIMULATOR TARGET_OS_SIMULATOR
-		#else
-			#define _THEOS_IS_SIMULATOR TARGET_IPHONE_SIMULATOR
+#if !defined(__IPHONE_14_0) && !defined(THEOS_LEAN_AND_MEAN)
+	#ifdef __OBJC__
+		#if __has_include(<TargetConditionals.h>)
+			#import <TargetConditionals.h>
 		#endif
-
-		#if (TARGET_OS_IPHONE || _THEOS_IS_SIMULATOR) && !defined(__IPHONE_14_0) && !defined(THEOS_LEAN_AND_MEAN)
+		#if TARGET_OS_IPHONE
 			#import <theos/BackwardsCompat.h>
 			#import <Foundation/Foundation.h>
 			#import <UIKit/UIKit.h>
 			#import <theos/IOSMacros.h>
 			#import <HBLog.h>
 		#endif
-
-		#undef _THEOS_IS_IOS
 	#endif
 #endif

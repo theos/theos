@@ -1,0 +1,39 @@
+# https://github.com/babel/babel/blob/main/.github/ISSUE_TEMPLATE/feature_request.yml
+name: "🚀 Feature Request"
+description: "I have a specific suggestion for Theos!"
+labels: ["needs triage", "Enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Thanks for taking the time to suggest a new feature!** Please make sure you read our [issue guidelines](https://github.com/theos/theos/blob/master/.github/CONTRIBUTING.md) first, then fill out the fields below.
+
+        If you feel an open-ended discussion with the community and Theos maintainers would be more suitable to forming the right details for your feature request, you can post in [Discussions](https://github.com/theos/theos/discussions) instead.
+
+  - type: textarea
+    attributes:
+      label: What problem are you trying to solve?
+      description: A concise description of what the problem is.
+      placeholder: "e.g. I want to …"
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "Describe the solution you’d like"
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "Describe any alternatives you’ve considered"
+      description: |
+        Can Theos already do this, but in a less convenient way?
+        Can you do this using other tools?
+        Do other popular build systems, such as Xcode, have a feature for this?
+
+  - type: textarea
+    attributes:
+      label: "Documentation, Adoption, Migration Strategy"
+      description: |
+        If you can, explain how users will be able to use this and how it might be documented. Maybe a mock-up?

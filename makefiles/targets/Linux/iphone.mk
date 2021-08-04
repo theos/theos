@@ -18,7 +18,7 @@ else ifeq ($(call __exists, $(SDKBINPATH)/arm64-apple-darwin14-ld),$(_THEOS_TRUE
 _THEOS_TARGET_SDK_BIN_PREFIX ?= arm64-apple-darwin14-
 else
 # toolchain has no prefix so we are responsible of supplying target triple to clang for cross compiling
-_THEOS_TARGET_TRIPLE_FLAG ?= -target arm64-apple-darwin
+_THEOS_TARGET_USE_CLANG_TARGET_FLAG := $(_THEOS_TRUE)
 endif
 endif
 
@@ -28,7 +28,4 @@ include $(THEOS_MAKE_PATH)/targets/_common/darwin_head.mk
 include $(THEOS_MAKE_PATH)/targets/_common/iphone.mk
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_tail.mk
 
-_THEOS_TARGET_CFLAGS += $(_THEOS_TARGET_TRIPLE_FLAG)
-_THEOS_TARGET_CCFLAGS += $(_THEOS_TARGET_TRIPLE_FLAG)
-_THEOS_TARGET_LDFLAGS += $(_THEOS_TARGET_TRIPLE_FLAG)
 endif
