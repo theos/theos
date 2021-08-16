@@ -16,11 +16,8 @@ body:
       label: What are the steps to reproduce this issue?
       placeholder: |
         1. Make new project
-
         2. Run `make package`
-
         3. …
-
         4. See error
     validations:
       required: true
