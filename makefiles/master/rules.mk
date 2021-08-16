@@ -28,6 +28,14 @@ _THEOS_INTERNAL_USE_PARALLEL_BUILDING := $(call __theos_bool,$(THEOS_USE_PARALLE
 endif
 export _THEOS_INTERNAL_USE_PARALLEL_BUILDING
 
+# certain conditions need to execute, semantically, when we're
+# running the first `all`. This is usually when MAKELEVEL == 0
+# but is in fact MAKELEVEL == 1 if we're running `troubleshoot`
+_THEOS_TOP_ALL_MAKELEVEL := $(if $(THEOS_IS_TROUBLESHOOTING),1,0)
+ifeq ($(MAKELEVEL),$(_THEOS_TOP_ALL_MAKELEVEL))
+_THEOS_IS_TOP_ALL := $(_THEOS_TRUE)
+endif
+
 ifeq ($(MAKELEVEL)$(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),0$(_THEOS_TRUE))
 # If jobs haven’t already been specified, and we know how to get the number of logical cores on this
 # platform, set jobs to the logical core count (CPU cores multiplied by threads per core).
@@ -51,7 +59,7 @@ endif
 # after-all, we'll never reach stop-swift-support).
 stop-swift-support::
 ifeq ($(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),$(_THEOS_TRUE))
-ifeq ($(_THEOS_TOP_INVOCATION_DONE),)
+ifeq ($(_THEOS_IS_TOP_ALL),$(_THEOS_TRUE))
 	$(ECHO_NOTHING)kill $$(cat "$(_THEOS_SWIFT_JOBSERVER).pid" 2>/dev/null) 2>/dev/null || :$(ECHO_END)
 endif
 endif
@@ -92,10 +100,9 @@ ifneq ($(call __exists,$(THEOS_PACKAGE_DIR)),$(_THEOS_TRUE))
 endif
 endif
 
-ifeq ($(_THEOS_SWIFT_AUXILIARY_INIT),)
+ifeq ($(_THEOS_IS_TOP_ALL),$(_THEOS_TRUE))
 	$(ECHO_NOTHING)rm -rf $(_THEOS_SWIFT_AUXILIARY_DIR)$(ECHO_END)
 	$(ECHO_NOTHING)mkdir -p $(_THEOS_SWIFT_AUXILIARY_DIR) $(_THEOS_SWIFT_MARKERS_DIR)$(ECHO_END)
-export _THEOS_SWIFT_AUXILIARY_INIT = $(_THEOS_TRUE)
 endif
 
 internal-all::
@@ -215,14 +222,14 @@ update-theos::
 
 troubleshoot::
 	@$(PRINT_FORMAT) "Be sure to check the troubleshooting page at https://github.com/theos/theos/wiki/Troubleshooting first."
-	@$(PRINT_FORMAT) "For support with build errors, ask on IRC: http://iphonedevwiki.net/index.php/IRC. If you think you've found a bug in Theos, check the issue tracker at https://github.com/theos/theos/issues."
+	@$(PRINT_FORMAT) "For support with build errors, ask on Discord: https://theos.dev/discord. If you think you've found a bug in Theos, check the issue tracker at https://github.com/theos/theos/issues."
 	@echo
 
-ifeq ($(call __executable,ghost),$(_THEOS_TRUE))
-	@$(PRINT_FORMAT) "Creating a Ghostbin containing the output of \`make clean all messages=yes\`…"
-	+$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going clean all messages=yes COLOR=yes 2>&1 | ghost -x 2w - ansi
+ifeq ($(call __executable,gh),$(_THEOS_TRUE))
+	@$(PRINT_FORMAT) "Creating a Gist containing the output of \`make clean all messages=yes\`…"
+	+$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going clean all messages=yes COLOR=no THEOS_IS_TROUBLESHOOTING=1 2>&1 | tee /dev/tty | gh gist create - -d "Theos troubleshoot output"
 else
-	$(ERROR_BEGIN) "You don't have ghost installed. For more information, refer to https://github.com/theos/theos/wiki/Installation#prerequisites." $(ERROR_END)
+	$(ERROR_BEGIN) "You don't have the GitHub CLI installed. For more information, refer to https://cli.github.com." $(ERROR_END)
 endif
 
 # The SPM config is a simple key-value file used to pass build settings to Package.swift.
