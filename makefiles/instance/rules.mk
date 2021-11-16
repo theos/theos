@@ -223,8 +223,6 @@ ifeq ($(_THEOS_DARWIN_STABLE_SWIFT_VERSION),)
 else
 	$(ERROR_BEGIN) "Cannot use Orion with a deployment target lower than $(_THEOS_DARWIN_STABLE_SWIFT_VERSION) on the provided target platform." $(ERROR_END)
 endif
-else
-	@$(PRINT_FORMAT_WARNING) "You are using a beta (ABI-unstable) build of Orion. Please do not distribute tweaks that you build with this version."
 endif
 endif
 	@for i in $(__USER_FILES); do \
