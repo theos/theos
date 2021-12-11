@@ -2,11 +2,11 @@
 <p align="center"><strong>A cross-platform build system for creating iOS, macOS, Linux, and Windows programs.</strong></p>
 <p align="center">
 <a href="https://theos.dev/">Home</a> –
-<a href="https://github.com/theos/theos/wiki">Documentation</a> –
+<a href="https://theos.dev/discord">Documentation</a> –
 <a href="https://github.com/theos/theos/releases">Changelogs</a> –
-<a href="https://github.com/theos/theos/wiki/Help">Get Help</a> –
+<a href="https://theos.dev/help">Get Help</a> –
 <a href="https://twitter.com/theosdev">@theosdev</a> –
-<a href="https://iphonedevwiki.net/index.php/How_to_use_IRC">IRC</a>
+<a href="https://theos.dev/discord">Discord</a>
 </p>
 
 ## Contributors
