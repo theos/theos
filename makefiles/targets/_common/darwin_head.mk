@@ -81,8 +81,6 @@ else ifeq ($(call __executable,$(call __invocation,llvm-dsymutil)),$(_THEOS_TRUE
 endif
 endif
 
-_THEOS_TARGET_CC_VERSION = $(shell $(TARGET_CC) --version | head -1 | perl -pe 's/^.*\(clang-(.*)\)$$/$$1/')
-
 # A version specified as a target argument overrides all previous definitions.
 _SDKVERSION := $(or $(__THEOS_TARGET_ARG_$(word 1,$(_THEOS_TARGET_ARG_ORDER))),$(SDKVERSION_$(THEOS_CURRENT_ARCH)),$(SDKVERSION))
 _THEOS_TARGET_SDK_VERSION := $(or $(_SDKVERSION),latest)
