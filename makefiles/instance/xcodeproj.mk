@@ -2,7 +2,7 @@ ifeq ($(_THEOS_RULES_LOADED),)
 include $(THEOS_MAKE_PATH)/rules.mk
 endif
 
-.PHONY: internal-xcodeproj-all_ internal-xcodeproj-stage_ internal-xcodeproj-compile
+.PHONY: internal-xcodeproj-all_ internal-xcodeproj-stage_ internal-xcodeproj-compile internal-xcodeproj-clean
 
 ifeq ($(call __theos_bool,$(THEOS_USE_PARALLEL_BUILDING)),$(_THEOS_TRUE))
 # Don't synchronize xcodeproj output, because doing so results in Make buffering
@@ -14,10 +14,17 @@ endif
 
 ifeq ($(_THEOS_MAKE_PARALLEL_BUILDING), no)
 internal-xcodeproj-all_:: internal-xcodeproj-compile
+internal-clean:: internal-xcodeproj-clean
 else
 internal-xcodeproj-all_::
 	$(ECHO_MAKE)$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) \
 		internal-xcodeproj-compile \
+		_THEOS_CURRENT_TYPE=$(_THEOS_CURRENT_TYPE) THEOS_CURRENT_INSTANCE=$(THEOS_CURRENT_INSTANCE) _THEOS_CURRENT_OPERATION=compile \
+		THEOS_BUILD_DIR="$(THEOS_BUILD_DIR)" _THEOS_MAKE_PARALLEL=yes
+
+internal-clean::
+	$(ECHO_MAKE)$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) \
+		internal-xcodeproj-clean \
 		_THEOS_CURRENT_TYPE=$(_THEOS_CURRENT_TYPE) THEOS_CURRENT_INSTANCE=$(THEOS_CURRENT_INSTANCE) _THEOS_CURRENT_OPERATION=compile \
 		THEOS_BUILD_DIR="$(THEOS_BUILD_DIR)" _THEOS_MAKE_PARALLEL=yes
 endif
@@ -58,8 +65,7 @@ endif
 _THEOS_XCODEBUILD_BEGIN = $(ECHO_NOTHING)set -eo pipefail; $(TARGET_XCODEBUILD) \
 	$(_THEOS_XCODEBUILD_PROJECT_FLAG) \
 	-scheme '$(or $($(THEOS_CURRENT_INSTANCE)_XCODE_SCHEME),$(THEOS_CURRENT_INSTANCE))' \
-	-configuration $(_THEOS_XCODE_BUILD_CONFIG) \
-	-derivedDataPath $(THEOS_OBJ_DIR)
+	-configuration $(_THEOS_XCODE_BUILD_CONFIG)
 _THEOS_XCODEBUILD_END = CODE_SIGNING_ALLOWED=NO \
 	ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES=NO \
 	ENABLE_BITCODE=$(or $($(THEOS_CURRENT_INSTANCE)_ENABLE_BITCODE),NO) \
@@ -79,10 +85,10 @@ ifneq ($(_THEOS_PLATFORM_HAS_XCODE),$(_THEOS_TRUE))
 		exit 1
 endif
 	$(_THEOS_XCODEBUILD_BEGIN) \
-	$(ALL_XCODEOPTS) \
-	$(_THEOS_XCODE_BUILD_COMMAND) \
-	$(ALL_XCODEFLAGS) \
-	$(_THEOS_XCODEBUILD_END)
+		$(ALL_XCODEOPTS) \
+		$(_THEOS_XCODE_BUILD_COMMAND) \
+		$(ALL_XCODEFLAGS) \
+		$(_THEOS_XCODEBUILD_END)
 ifeq ($(_THEOS_PACKAGE_FORMAT),deb)
 	$(ECHO_NOTHING)find $(THEOS_OBJ_DIR)/install -name 'libswift*.dylib' -delete$(ECHO_END)
 endif
@@ -107,6 +113,13 @@ ifneq ($(_THEOS_CODESIGN_COMMANDLINE),)
 	process_dir $(THEOS_OBJ_DIR)/install; \
 	$(ECHO_END)
 endif
+
+internal-xcodeproj-clean::
+	$(_THEOS_XCODEBUILD_BEGIN) \
+		$(ALL_XCODEOPTS) \
+		clean \
+		$(ALL_XCODEFLAGS) \
+		$(_THEOS_XCODEBUILD_END)
 
 ifneq ($($(THEOS_CURRENT_INSTANCE)_INSTALL),0)
 internal-xcodeproj-stage_::

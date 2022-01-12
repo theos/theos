@@ -8,6 +8,8 @@ internal-all:: $(XCODEPROJ_NAME:=.all.xcodeproj.variables);
 
 internal-stage:: $(XCODEPROJ_NAME:=.stage.xcodeproj.variables);
 
+internal-clean:: $(XCODEPROJ_NAME:=.clean.xcodeproj.variables);
+
 XCODEPROJ_WITH_SUBPROJECTS = $(strip $(foreach xcodeproj,$(XCODEPROJ_NAME),$(patsubst %,$(xcodeproj),$(call __schema_var_all,$(xcodeproj)_,SUBPROJECTS))))
 ifneq ($(XCODEPROJ_WITH_SUBPROJECTS),)
 internal-clean:: $(XCODEPROJ_WITH_SUBPROJECTS:=.clean.xcodeproj.subprojects)
