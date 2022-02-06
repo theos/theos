@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 required=0
 persistence=/tmp/dhbxxx
 

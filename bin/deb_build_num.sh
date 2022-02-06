@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 GETONLY=0
 if [[ $1 == "-g" ]]; then
 	GETONLY=1
