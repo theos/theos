@@ -6,8 +6,8 @@ while getopts ":D:" flag; do
         # Assign the arg associated with -D to $directory
         D)	directory="$OPTARG" ;;
         *)	echo "$0: Option -$OPTARG requires an argument." 1>&2
-            exit 1
-            ;;
+			exit 1
+			;;
 	esac
 done
 
@@ -16,10 +16,12 @@ cmd=""
 # Check for plist converters
 if command -v plutil &> /dev/null; then
     cmd="plutil"
+elif command ply &> /dev/null; then
+    cmd="ply"
 elif command -v plistutil &> /dev/null; then
     cmd="plistutil"
 else
-    echo "ERROR: convert_xml.sh: Please install either plutil or libplist-utils."
+    echo "ERROR: convert_xml_plist.sh: Please install either plutil, ply, or libplist-utils."
     exit
 fi
 
@@ -42,6 +44,8 @@ for i in "${results_array[@]}"; do
     if ! [[ ${magic_bytes,,} == "bplist" ]]; then
         if [[ $cmd == "plutil" ]]; then
             plutil -convert binary1 $i
+        elif [[ $cmd == "ply" ]]; then
+            ply -c binary $i
         else
             plistutil -i $i -f bin -o $i
         fi
