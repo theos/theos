@@ -16,7 +16,7 @@ cmd=""
 # Check for plist converters
 if command -v plutil &> /dev/null; then
     cmd="plutil"
-elif command ply &> /dev/null; then
+elif command -v ply &> /dev/null; then
     cmd="ply"
 elif command -v plistutil &> /dev/null; then
     cmd="plistutil"
