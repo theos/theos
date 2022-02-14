@@ -24,7 +24,7 @@ else
 fi
 
 # Get all the .plists and .strings in the project and its sub projects
-results=$(find $directory \( -name \*.plist -o -name \*.strings \))
+results=$(find "$directory" \( -name \*.plist -o -name \*.strings \))
 results_array=($results)
 
 # Check to see if files are in xml format or binary
@@ -41,9 +41,9 @@ for i in "${results_array[@]}"; do
     # If file wasn't in binary format, convert it
     if ! [[ ${magic_bytes,,} == "bplist" ]]; then
         if [[ $cmd == "plutil" ]]; then
-            plutil -convert binary1 $i &> /dev/null
+            plutil -convert binary1 $i
         else
-            plistutil -i $i -f bin -o $i &> /dev/null
+            plistutil -i $i -f bin -o $i
         fi
     fi
 done
