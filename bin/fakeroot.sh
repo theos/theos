@@ -35,8 +35,13 @@ elif type fakeroot-ng &> /dev/null; then
 elif type fauxsu &> /dev/null; then
 	fakeroot="fauxsu -p $persistence -- "
 else
-	echo "ERROR: fakeroot.sh: Please install either fakeroot, fakeroot-ng, or fauxsu."
-	exit 1
+	if [[ $required -eq 1 ]]; then
+		fakeroot=""
+	else
+		fakeroot=": "
+		printf "\e[0;36m==> \e[1;36mNotice:\e[m %s\n" \
+			"fakeroot is not installed (and may not be available for your OS), so the requested fakeroot operation is being ignored."
+	fi
 fi
 
 #echo $fakeroot $cmd
