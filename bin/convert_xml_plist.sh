@@ -21,7 +21,8 @@ elif command -v ply &> /dev/null; then
 elif command -v plistutil &> /dev/null; then
 	cmd="plistutil"
 else
-	echo "ERROR: convert_xml_plist.sh: Please install either plutil, ply, or libplist-utils."
+	printf "\e[0;36m==> \e[1;36mNotice:\e[m %s\n" \
+		"Neither plutil, ply, or libplist-utils are installed, so XML and plist files were not optimized."
 	exit
 fi
 
