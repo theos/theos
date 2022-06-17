@@ -28,7 +28,7 @@ fi
 
 # Get all the .plists and .strings in the project and its sub projects
 results=$(find "$directory" \( -name \*.plist -o -name \*.strings \))
-results_array=($results)
+readarray -t results_array <<< "$results"
 
 # Check to see if files are in xml format or binary
 for i in "${results_array[@]}"; do
