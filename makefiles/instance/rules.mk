@@ -164,6 +164,10 @@ before-$(THEOS_CURRENT_INSTANCE)-all::
 		fi; \
 	done
 
+ifeq ($(GO_EASY_ON_ME).$(DEBUG),1.0)
+	@$(PRINT_FORMAT_WARNING) "GO_EASY_ON_ME quiets all errors, which is bad practice. Please migrate to Clang directives (e.g., -Wno-<blah> or #pragma clang diagnostic)." >&2
+endif
+
 after-$(THEOS_CURRENT_INSTANCE)-all::
 	@:
 
