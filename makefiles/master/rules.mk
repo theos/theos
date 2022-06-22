@@ -174,14 +174,14 @@ update-theos::
 
 troubleshoot::
 	@$(PRINT_FORMAT) "Be sure to check the troubleshooting page at https://theos.dev/docs/troubleshooting first."
-	@$(PRINT_FORMAT) "For support with build errors, ask on Discord: https://theos.dev/discord. If you think you've found a bug in Theos, check the issue tracker at https://github.com/theos/theos/issues."
+	@$(PRINT_FORMAT) "For support with build errors, ask on Discord: https://theos.dev/discord. If you think you've found a bug in Theos, check the issue tracker at: https://github.com/theos/theos/issues"
 	@echo
 
 ifeq ($(call __executable,gh),$(_THEOS_TRUE))
 	@$(PRINT_FORMAT) "Creating a Gist containing the output of \`make clean all messages=yes\`…"
 	+$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going clean all messages=yes COLOR=no THEOS_IS_TROUBLESHOOTING=1 2>&1 | tee /dev/tty | gh gist create - -d "Theos troubleshoot output"
 else
-	$(ERROR_BEGIN) "You don't have the GitHub CLI installed. For more information, refer to https://cli.github.com." $(ERROR_END)
+	$(ERROR_BEGIN) "You don't have the GitHub CLI installed. For more information, refer to: https://cli.github.com/" $(ERROR_END)
 endif
 
 $(eval $(call __mod,master/rules.mk))

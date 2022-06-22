@@ -88,9 +88,9 @@ endif
 	ERROR_BEGIN = @$(PRINT_FORMAT_ERROR) $(NULLSTRING)
 	ERROR_END = $(NULLSTRING) >&2; exit 1;
 
-WARNING_EMPTY_LINKING = @$(PRINT_FORMAT_WARNING) "No files to link. Please check your Makefile! Make sure you set $(THEOS_CURRENT_INSTANCE)_FILES (or similar variables)"
+WARNING_EMPTY_LINKING = @$(PRINT_FORMAT_WARNING) "No files to link. Please check your Makefile! Make sure you set $(THEOS_CURRENT_INSTANCE)_FILES (or similar variables)."
 
 # (bundle)
-NOTICE_EMPTY_LINKING = @$(PRINT_FORMAT_WARNING) "No files to link - creating a bundle containing only resources"
+NOTICE_EMPTY_LINKING = @$(PRINT_FORMAT_WARNING) "No files to link - creating a bundle containing only resources."
 
 $(eval $(call __mod,messages.mk))
