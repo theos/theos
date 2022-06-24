@@ -10,7 +10,11 @@ THEOS_PLATFORM_DEB_COMPRESSION_LEVEL ?= 0
 endif
 
 _THEOS_DEB_PACKAGE_CONTROL_PATH := $(or $(wildcard $(THEOS_PROJECT_DIR)/control),$(wildcard $(THEOS_LAYOUT_DIR)/DEBIAN/control))
-_THEOS_DEB_CAN_PACKAGE := $(if $(_THEOS_DEB_PACKAGE_CONTROL_PATH),$(_THEOS_TRUE),$(_THEOS_FALSE))
+ifneq ("$(wildcard $(_THEOS_DEB_PACKAGE_CONTROL_PATH))","")
+	_THEOS_DEB_CAN_PACKAGE = $(_THEOS_TRUE)
+else
+	_THEOS_DEB_CAN_PACKAGE = $(_THEOS_FALSE)
+endif
 _THEOS_PACKAGE_INC_VERSION_PREFIX := -
 _THEOS_PACKAGE_EXTRA_VERSION_PREFIX := +
 
@@ -21,7 +25,7 @@ internal-package-check::
 	$(ERROR_BEGIN)"$(MAKE) package requires $(_THEOS_PLATFORM_DPKG_DEB)."$(ERROR_END)
 endif
 
-ifeq ($(_THEOS_DEB_CAN_PACKAGE),$(_THEOS_TRUE)) # Control file found (or layout directory found.)
+ifeq ($(_THEOS_DEB_CAN_PACKAGE),$(_THEOS_TRUE)) # Control file found
 THEOS_PACKAGE_NAME := $(shell grep -i "^Package:" "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 THEOS_PACKAGE_ARCH := $(shell grep -i "^Architecture:" "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 THEOS_PACKAGE_BASE_VERSION := $(shell grep -i "^Version:" "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
@@ -63,7 +67,7 @@ after-package:: __THEOS_LAST_PACKAGE_FILENAME = $(_THEOS_DEB_PACKAGE_FILENAME)
 
 else # _THEOS_DEB_CAN_PACKAGE == 0
 internal-package::
-	$(ERROR_BEGIN)"$(MAKE) package requires you to have a layout/ directory in the project root, containing the basic package structure, or a control file in the project root describing the package."$(ERROR_END)
+	$(ERROR_BEGIN)"$(MAKE) package requires you to have a control file either in the layout/ directory or in the project root. The control is used to determine info about the package (e.g., name, arch, and version)."$(ERROR_END)
 
 endif # _THEOS_DEB_CAN_PACKAGE
 endif # _THEOS_PACKAGE_FORMAT_LOADED
