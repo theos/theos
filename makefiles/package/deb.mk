@@ -67,7 +67,7 @@ after-package:: __THEOS_LAST_PACKAGE_FILENAME = $(_THEOS_DEB_PACKAGE_FILENAME)
 
 else # _THEOS_DEB_CAN_PACKAGE == 0
 internal-package::
-	$(ERROR_BEGIN)"$(MAKE) package requires you to have a control file either in the layout/ directory or in the project root. The control is used to determine info about the package (e.g., name, arch, and version)."$(ERROR_END)
+	$(ERROR_BEGIN)"$(MAKE) package requires you to have a control file either in the layout/DEBIAN/ directory or in the project root. The control is used to determine info about the package (e.g., name, arch, and version)."$(ERROR_END)
 
 endif # _THEOS_DEB_CAN_PACKAGE
 endif # _THEOS_PACKAGE_FORMAT_LOADED
