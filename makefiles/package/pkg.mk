@@ -2,7 +2,7 @@ ifeq ($(_THEOS_PACKAGE_FORMAT_LOADED),)
 _THEOS_PACKAGE_FORMAT_LOADED := 1
 
 _THEOS_PKG_PACKAGE_CONTROL_PATH := $(THEOS_PROJECT_DIR)/control
-_THEOS_PKG_CAN_PACKAGE := $(if $(_THEOS_PKG_PACKAGE_CONTROL_PATH),$(_THEOS_TRUE),$(_THEOS_FALSE))
+_THEOS_PKG_CAN_PACKAGE := $(if $(wildcard $(_THEOS_PKG_PACKAGE_CONTROL_PATH)),$(_THEOS_TRUE),$(_THEOS_FALSE))
 _THEOS_PACKAGE_INC_VERSION_PREFIX := -
 _THEOS_PACKAGE_EXTRA_VERSION_PREFIX := +
 
@@ -12,7 +12,7 @@ internal-package-check::
 	$(ERROR_BEGIN)"$(MAKE) package requires pkgbuild."$(ERROR_END)
 endif
 
-ifeq ($(_THEOS_PKG_CAN_PACKAGE),$(_THEOS_TRUE)) # Control file found (or layout directory found.)
+ifeq ($(_THEOS_PKG_CAN_PACKAGE),$(_THEOS_TRUE)) # Control file found
 THEOS_PACKAGE_NAME := $(shell grep -i "^Package:" "$(_THEOS_PKG_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 THEOS_PACKAGE_BASE_VERSION := $(shell grep -i "^Version:" "$(_THEOS_PKG_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 
@@ -25,7 +25,7 @@ after-package:: __THEOS_LAST_PACKAGE_FILENAME = $(_THEOS_PKG_PACKAGE_FILENAME)
 
 else # _THEOS_PKG_CAN_PACKAGE == 0
 internal-package::
-	$(ERROR_BEGIN)"$(MAKE) package requires you to have a control file in the project root describing the package."$(ERROR_END)
+	$(ERROR_BEGIN)"$(MAKE) package requires you to have a control file in the project root. The control is used to determine info about the package (e.g., name and version)."$(ERROR_END)
 
 endif # _THEOS_PKG_CAN_PACKAGE
 endif # _THEOS_PACKAGE_FORMAT_LOADED

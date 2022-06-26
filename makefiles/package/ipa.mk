@@ -2,7 +2,7 @@ ifeq ($(_THEOS_PACKAGE_FORMAT_LOADED),)
 _THEOS_PACKAGE_FORMAT_LOADED := 1
 
 _THEOS_IPA_PACKAGE_CONTROL_PATH := $(THEOS_PROJECT_DIR)/control
-_THEOS_IPA_CAN_PACKAGE := $(if $(_THEOS_IPA_PACKAGE_CONTROL_PATH),$(_THEOS_TRUE),$(_THEOS_FALSE))
+_THEOS_IPA_CAN_PACKAGE := $(if $(wildcard $(_THEOS_IPA_PACKAGE_CONTROL_PATH)),$(_THEOS_TRUE),$(_THEOS_FALSE))
 _THEOS_PACKAGE_INC_VERSION_PREFIX := -
 _THEOS_PACKAGE_EXTRA_VERSION_PREFIX := +
 
@@ -17,7 +17,7 @@ ifeq ($(_THEOS_FINAL_PACKAGE),$(_THEOS_TRUE))
 _THEOS_IPA_COMPRESSION_LEVEL := 9
 endif
 
-ifeq ($(_THEOS_IPA_CAN_PACKAGE),$(_THEOS_TRUE)) # Control file found (or layout directory found.)
+ifeq ($(_THEOS_IPA_CAN_PACKAGE),$(_THEOS_TRUE)) # Control file found
 THEOS_PACKAGE_NAME := $(shell grep -i "^Package:" "$(_THEOS_IPA_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 THEOS_PACKAGE_BASE_VERSION := $(shell grep -i "^Version:" "$(_THEOS_IPA_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 
@@ -31,7 +31,7 @@ after-package:: __THEOS_LAST_PACKAGE_FILENAME = $(_THEOS_IPA_PACKAGE_FILENAME)
 
 else # _THEOS_IPA_CAN_PACKAGE == 0
 internal-package::
-	@echo "$(MAKE) package requires you to have a control file in the project root describing the package."; exit 1
+	@echo "$(MAKE) package requires you to have a control file in the project root. The control is used to determine info about the package (e.g., name and version)."; exit 1
 
 endif # _THEOS_IPA_CAN_PACKAGE
 endif # _THEOS_PACKAGE_FORMAT_LOADED
