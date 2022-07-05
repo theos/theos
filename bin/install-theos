@@ -105,7 +105,7 @@ darwin() {
 
     # Get patched sdks
     update "Checking for patched sdks..."
-    if [[ -d "$THEOS/sdks/" && "$(ls -A "$THEOS/sdks/")" ]]; then
+    if [[ -d "$THEOS/sdks/" && "$(ls -A "$THEOS/sdks/" | grep sdk)" ]]; then
         update "SDKs appear to already be installed."
     else
         update "SDKS do not appear to be installed. Installing now..."
@@ -115,7 +115,7 @@ darwin() {
         mv $TMP/sdks-master/*.sdk $THEOS/sdks
         rm -r master.zip $TMP
 
-        if [[ -d "$THEOS/sdks/" && "$(ls -A "$THEOS/sdks/")" ]]; then
+        if [[ -d "$THEOS/sdks/" && "$(ls -A "$THEOS/sdks/" | grep sdk)" ]]; then
             update "SDKs successfully installed!"
         else
             error "Something appears to have gone wrong. Please try again."
@@ -137,7 +137,7 @@ darwin-mobile() {
     OLD=0
     KERNEL_VER=$(sysctl kern.osrelease | sed 's/[^0-9]*//g')
     if [[ $KERNEL_VER < 1800 ]]; then
-        $OLD=1
+        OLD=1
     fi
 
     # Dependencies
@@ -238,7 +238,7 @@ darwin-mobile() {
 
     # Get patched sdks
     update "Checking for patched sdks..."
-    if [[ -d "$THEOS/sdks/" && "$(ls -A "$THEOS/sdks/")" ]]; then
+    if [[ -d "$THEOS/sdks/" && "$(ls -A "$THEOS/sdks/" | grep sdk)" ]]; then
         update "SDKs appear to already be installed."
     else
         update "SDKS do not appear to be installed. Installing now..."
@@ -248,7 +248,7 @@ darwin-mobile() {
         mv $TMP/sdks-master/*.sdk $THEOS/sdks
         rm -r master.zip $TMP
 
-        if [[ -d "$THEOS/sdks/" && "$(ls -A "$THEOS/sdks/")" ]]; then
+        if [[ -d "$THEOS/sdks/" && "$(ls -A "$THEOS/sdks/" | grep sdk)" ]]; then
             update "SDKs successfully installed!"
         else
             error "Something appears to have gone wrong. Please try again."
@@ -272,7 +272,7 @@ linux() {
     update "Checking for WSL..."
     if [[ "$(uname -r | sed -n 's/.*\( *Microsoft *\).*/\1/ip')" == "microsoft" ]]; then
         VERSION=$(uname -r | sed 's/.*\([[:digit:]]\)[[:space:]]*/\1/')
-        if [[ "$VERSION" == "1" ]]; then
+        if [[ $VERSION == 1 ]]; then
             update "WSL1! Need to fix fakeroot..."
             sudo update-alternatives --set fakeroot /usr/bin/fakeroot-tcp && update "fakeroot fixed!" || (error "fakeroot fix seems to have encountered an error. Please see the log above." && exit 4)
         else
@@ -296,8 +296,8 @@ linux() {
 
         # Set $THEOS and prioritize $THEOS/toolchain
         echo "export THEOS=~/theos" >> "$SHELL_ENV"
-        echo 'export PATH=$THEOS/toolchain/bin:$PATH' >> "$SHELL_ENV"
-        echo 'export LD_LIBRARY_PATH=$THEOS/toolchain/lib:$LD_LIBRARY_PATH' >> "$SHELL_ENV"
+        echo 'export PATH=$THEOS/toolchain/linux/iphone/bin:$PATH' >> "$SHELL_ENV"
+        echo 'export LD_LIBRARY_PATH=$THEOS/toolchain/linux/iphone/lib:$LD_LIBRARY_PATH' >> "$SHELL_ENV"
         source "$SHELL_ENV"
         if [[ "$THEOS" ]]; then
             update "\$THEOS has been successfully set to '$THEOS'!"
@@ -373,7 +373,7 @@ linux() {
 
     # Get patched sdks
     update "Checking for patched sdks..."
-    if [[ -d "$THEOS/sdks/" && "$(ls -A "$THEOS/sdks/")" ]]; then
+    if [[ -d "$THEOS/sdks/" && "$(ls -A "$THEOS/sdks/" | grep sdk)" ]]; then
         update "SDKs appear to already be installed."
     else
         update "SDKS do not appear to be installed. Installing now..."
@@ -383,7 +383,7 @@ linux() {
         mv $TMP/sdks-master/*.sdk $THEOS/sdks
         rm -r master.zip $TMP
 
-        if [[ -d "$THEOS/sdks/" && "$(ls -A "$THEOS/sdks/")" ]]; then
+        if [[ -d "$THEOS/sdks/" && "$(ls -A "$THEOS/sdks/" | grep sdk)" ]]; then
             update "SDKs successfully installed!"
         else
             error "Something appears to have gone wrong. Please try again."
