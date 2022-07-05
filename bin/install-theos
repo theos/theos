@@ -22,8 +22,7 @@ error() {
 # Root is no bueno
 if [[ $EUID -eq 0 ]]; then
     error "Theos should NOT be installed with or run as root (su/sudo)!"
-    error "  - If you've installed Theos as root, please remove the install and reinstall as a non-root user."
-    error "  - If you're using root because you don't have write permission for Theos' parent directory, please either install Theos to a different directory where you do have write permission or, if you're trying to install to /opt, change the directory's ownership before attempting to install Theos as a non-root user."
+    error "  - Please re-run the installer as a non-root user."
     exit 1
 fi
 
