@@ -1,0 +1,200 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Common vars
+PLATFORM=$(uname)
+
+# Pretty print
+special() {
+	printf "\e[0;34m==> \e[1;34mTheos Installer:\e[m %s\n" \
+	"$1"
+}
+
+update() {
+	printf "\n\e[0;36m==> \e[1;36m%s\e[m\n" \
+	"$1"
+}
+
+common() {
+	printf "\n\e[0;37m==> \e[1;37m%s\e[m\n" \
+	"$1"
+}
+
+error() {
+	printf "\e[0;31m==> \e[1;31m%s\e[m\n" \
+	"$1"
+}
+
+
+# The work
+darwin() {
+	common "Platform: Darwin"
+}
+
+darwin-mobile() {
+	common "Platform: Darwin (Mobile)"
+}
+
+linux() {
+	common "Platform: Linux"
+
+	DISTRO="$(cat /etc/*release | grep "^ID=" | sed -e "s/^ID=//")"
+
+	# Dependencies
+													# TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO: arch and fedora
+	update "Preparing to install dependencies. Please enter your password if prompted:"
+	if [[ "${DISTRO,,}" == "debian" ]]; then
+		sudo apt install build-essential fakeroot libtinfo5 libz3-dev rsync curl perl unzip git && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 2)
+	fi
+
+	# Check for WSL
+	update "Checking for WSL..."
+	if [[ "$(uname -r | sed -n 's/.*\( *Microsoft *\).*/\1/ip')" == "microsoft" ]]; then
+		VERSION=$(uname -r | sed 's/.*\([[:digit:]]\)[[:space:]]*/\1/')
+		if [[ "$VERSION" == "1" ]]; then
+			update "WSL1! Need to fix fakeroot..."
+			sudo update-alternatives --set fakeroot /usr/bin/fakeroot-tcp && update "fakeroot fixed!" || (error "fakeroot fix seems to have encountered an error. Please see the log above." && exit 3)
+		else
+			update "WSL2! Nothing to do here."
+		fi
+	else
+		update "Seems you're not using WSL. Moving on..."
+	fi
+
+	# Check for $THEOS env var
+	update "Checking for \$THEOS environment variable..."
+	if [[ "$THEOS" ]]; then
+		update "\$THEOS is already set to '$THEOS'. Nothing to do here."
+	else
+		update "\$THEOS has not been set. Setting now..."
+
+		CSHELL=$(ps -p $$ | tail -1 | grep -o '[^ ]*$' | sed 's/[^[:alpha:]]//g')
+		SHELL_ENV="unknown"
+		common "SHELL IS $CSHELL and shell env is $SHELL_ENV."
+		if [[ "${CSHELL,,}" == "bash" ]]; then
+			SHELL_ENV="~/.profile"
+		elif [[ "${CSHELL,,}" == "zsh" ]]; then
+			SHELL_ENV="~/.zshenv"
+		else
+			error "Current shell is unsupported by this installer. Please set the THEOS environment variable to '~/theos' manually before proceeding."
+			exit 4
+		fi
+
+		# Set $THEOS and prioritize $THEOS/toolchain
+		echo "export THEOS=~/theos" >> "$SHELL_ENV"
+		echo 'export PATH=$THEOS/toolchain/bin:$PATH' >> "$SHELL_ENV"
+		echo 'export LD_LIBRARY_PATH=$THEOS/toolchain/lib:$LD_LIBRARY_PATH' >> "$SHELL_ENV"
+		source "$SHELL_ENV"
+		if [[ "$THEOS" ]]; then
+			update "\$THEOS has been successfully set to '$THEOS'!"
+		else
+			error "\$THEOS is still not set despite our efforts. Try restarting your shell and/or running the installer again. If that doesn't do the trick, you may have to set the THEOS environment variable to '~/theos' manually before proceeding."
+			exit 5
+		fi
+	fi
+
+	# Get Theos
+	update "Checking for Theos install..."
+	if [[ -d "$THEOS" && "$(ls -A "$THEOS")" ]]; then
+		update "Theos appears to already be installed. Checking for updates..."
+		$THEOS/bin/update-theos
+	else
+		update "Theos does not appear to be installed. Cloning now..."
+		git clone --recursive https://github.com/theos/theos.git $THEOS
+	fi
+
+	# Get a toolchain
+	update "Checking for iOS toolchain..."
+	if [[ -d "$THEOS/toolchain/linux/iphone/" && "$(ls -A "$THEOS/toolchain/linux/iphone")" ]]; then
+		update "A toolchain appears to already be installed."
+	else
+		while true; do
+			update "A toolchain does not appear to be installed."
+			read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [Swift/NoSwift]" toolchain
+			if [[ "${toolchain,,}" == "swift" ]]; then
+				read -p "You chose to install the Swift-compatible toolchain. Is this correct? [y/n]" confirm
+				if [[ "${confirm,,}" == "y" || "${confirm,,}" == "yes" ]]; then
+											sudo apt install zstd # ADD SUPPORT FOR ARCH AND FEDORAAAAAAAAAAAAAAAAAAAA
+					curl -LO https://github.com/CRKatri/llvm-project/releases/download/swift-5.3.2-RELEASE/swift-5.3.2-RELEASE-ubuntu20.04.tar.zst
+					TMP=$(mktemp -d)
+					tar -xvf swift-5.3.2-RELEASE-ubuntu20.04.tar.zst -C $TMP
+					mkdir -p $THEOS/toolchain/linux/iphone $THEOS/toolchain/swift
+					mv $TMP/swift-5.3.2-RELEASE-ubuntu20.04/* $THEOS/toolchain/linux/iphone/
+					ln -s $THEOS/toolchain/linux/iphone $THEOS/toolchain/swift
+					rm -r swift-5.3.2-RELEASE-ubuntu20.04.tar.zst $TMP
+
+					# Confirm that toolchain is usable
+					if command -v otool &> /dev/null; then
+						update "Successfully installed the Swift-compatible toolchain!"
+					else
+						error "Something appears to have gone wrong -- the toolchain is not accessible. Please try again."
+						exit 6
+					fi
+					break
+				fi
+			elif [[ "${toolchain,,}" == "noswift" ]]; then
+				read -p "You chose to install the non-Swift-compatible toolchain. Is this correct? [y/n]" confirm
+				if [[ "${confirm,,}" == "y" || "${confirm,,}" == "yes" ]]; then
+					curl -LO https://github.com/sbingner/llvm-project/releases/latest/download/linux-ios-arm64e-clang-toolchain.tar.lzma
+					TMP=$(mktemp -d)
+					tar -xvf linux-ios-arm64e-clang-toolchain.tar.lzma -C $TMP
+					mkdir -p $THEOS/toolchain/linux/iphone
+					mv $TMP/ios-arm64e-clang-toolchain/* $THEOS/toolchain/linux/iphone/
+					rm -r linux-ios-arm64e-clang-toolchain.tar.lzma $TMP
+
+					# Confirm that toolchain is usable
+					if command -v otool &> /dev/null; then
+						update "Successfully installed the non-Swift-compatible toolchain!"
+					else
+						error "Something appears to have gone wrong -- the toolchain is not accessible. Please try again."
+						exit 6
+					fi
+					break
+				fi
+			else
+				common "Please pick your desired toolchain to continue."
+			fi
+		done
+	fi
+
+	# Get patched sdks
+	update "Checking for patched sdks..."
+	if [[ -d "$THEOS/sdks/" && "$(ls -A "$THEOS/sdks/")" ]]; then
+		update "SDKs appear to already be installed."
+	else
+		update "SDKS do not appear to be installed. Installing now..."
+		curl -LO https://github.com/theos/sdks/archive/master.zip
+		TMP=$(mktemp -d)
+		unzip master.zip -d $TMP
+		mv $TMP/sdks-master/*.sdk $THEOS/sdks
+		rm -r master.zip $TMP
+
+		if [[ -d "$THEOS/sdks/" && "$(ls -A "$THEOS/sdks/")" ]]; then
+			update "SDKs successfully installed!"
+		else
+			error "Something appears to have gone wrong. Please try again."
+			exit 7
+		fi
+	fi
+}
+
+# Determine platform and start work
+if [[ "${PLATFORM,,}" == "darwin" ]]; then
+	if [[ "$(uname -m)" =~ "iP" ]]; then
+		special "Starting install..."
+		darwin-mobile
+		special "Theos has been successfully installed! Run \$THEOS/bin/nic.pl to get started."
+	else
+		special "starting install..."
+		darwin
+		special "Theos has been successfully installed! Run \$THEOS/bin/nic.pl to get started."
+	fi
+elif [[ "${PLATFORM,,}" == "linux" ]]; then
+	special "starting install..."
+	linux
+	special "Theos has been successfully installed! Run \$THEOS/bin/nic.pl to get started."
+else
+	error "'$PLATFORM' is currently unsupported by this installer and/or Theos."
+	exit 1
+fi
