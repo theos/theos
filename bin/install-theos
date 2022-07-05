@@ -37,6 +37,11 @@ if [[ "${CSHELL,,}" == "bash" ]]; then
 elif [[ "${CSHELL,,}" == "zsh" ]]; then
     SHELL_ENV="~/.zshenv"
 fi
+# TODO: CI support (non-interactive)
+NONINTERACTIVE=0
+if [[ -z $CI ]]; then
+    NONINTERACTIVE=1
+fi
 
 
 # The work
@@ -55,7 +60,7 @@ darwin() {
     if ! command -v brew &> /dev/null; then
         read -p "Homebrew, which provides tools Theos depends on, is not installed. Would you like to have it installed for you? [y/n]" hbrew
         if [[ "${hbrew,,}" == "y" || "${hbrew,,}" == "yes" ]]; then
-            bash "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" && update "Homebrew has been successfully installed!" || (error "Homebrew install command seems to have encountered an error. Please see the log above." && exit 5)
+            bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" && update "Homebrew has been successfully installed!" || (error "Homebrew install command seems to have encountered an error. Please see the log above." && exit 5)
         else
             error "Homebrew provides tools Theos depends on and thus is mandatory. Please install Homebrew before proceeding with the installation."
             exit 4
@@ -319,8 +324,8 @@ linux() {
     else
         while true; do
             update "A toolchain does not appear to be installed."
-            read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [Swift/NoSwift]" toolchain
-            if [[ "${toolchain,,}" == "swift" ]]; then
+            read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [y/n]" stoolchain
+            if [[ "${stoolchain,,}" == "y" || "${stoolchain,,}" == "yes" ]]; then
                 read -p "You chose to install the Swift-compatible toolchain. Is this correct? [y/n]" confirm
                 if [[ "${confirm,,}" == "y" || "${confirm,,}" == "yes" ]]; then
                     sudo apt install zstd -y
@@ -341,7 +346,7 @@ linux() {
                     fi
                     break
                 fi
-            elif [[ "${toolchain,,}" == "noswift" ]]; then
+            elif [[ "${stoolchain,,}" == "n" || "${stoolchain,,}" == "no" ]]; then
                 read -p "You chose to install the non-Swift-compatible toolchain. Is this correct? [y/n]" confirm
                 if [[ "${confirm,,}" == "y" || "${confirm,,}" == "yes" ]]; then
                     curl -LO https://github.com/sbingner/llvm-project/releases/latest/download/linux-ios-arm64e-clang-toolchain.tar.lzma
