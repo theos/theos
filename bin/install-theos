@@ -19,6 +19,7 @@ error() {
     printf "\e[0;31m==> \e[1;31m%s\e[m\n" "$1"
 }
 
+
 # Root is no bueno
 if [[ $EUID -eq 0 ]]; then
     error "Theos should NOT be installed with or run as root (su/sudo)!"
@@ -26,9 +27,17 @@ if [[ $EUID -eq 0 ]]; then
     exit 1
 fi
 
+
 # Common vars
 PLATFORM=$(uname)
 CSHELL=$(ps -p $$ | tail -1 | grep -o '[^ ]*$' | sed 's/[^[:alpha:]]//g')
+SHELL_ENV="unknown"
+if [[ "${CSHELL,,}" == "bash" ]]; then
+    SHELL_ENV="~/.profile"
+elif [[ "${CSHELL,,}" == "zsh" ]]; then
+    SHELL_ENV="~/.zshenv"
+fi
+
 
 # The work
 darwin() {
@@ -48,7 +57,7 @@ darwin() {
         if [[ "${hbrew,,}" == "y" || "${hbrew,,}" == "yes" ]]; then
             bash "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" && update "Homebrew has been successfully installed!" || (error "Homebrew install command seems to have encountered an error. Please see the log above." && exit 5)
         else
-            error "Homebrew provides tools Theos depends on and thus is mandatory."
+            error "Homebrew provides tools Theos depends on and thus is mandatory. Please install Homebrew before proceeding with the installation."
             exit 4
         fi
     fi
@@ -63,14 +72,8 @@ darwin() {
     else
         update "\$THEOS has not been set. Setting now..."
 
-        SHELL_ENV="unknown"
-        common "SHELL IS $CSHELL and shell env is $SHELL_ENV."
-        if [[ "${CSHELL,,}" == "bash" ]]; then
-            SHELL_ENV="~/.profile"
-        elif [[ "${CSHELL,,}" == "zsh" ]]; then
-            SHELL_ENV="~/.zshenv"
-        else
-            error "Current shell is unsupported by this installer. Please set the THEOS environment variable to '~/theos' manually before proceeding."
+        if [[ "${CSHELL,,}" == "unknown" ]]; then
+            error "Current shell ($CSHELL) is unsupported by this installer. Please set the THEOS environment variable to '~/theos' manually before proceeding."
             exit 7
         fi
 
@@ -92,7 +95,7 @@ darwin() {
         $THEOS/bin/update-theos
     else
         update "Theos does not appear to be installed. Cloning now..."
-        git clone --recursive https://github.com/theos/theos.git $THEOS
+        git clone --recursive https://github.com/theos/theos.git $THEOS && update "Git clone of Theos was successful!" || (error "Theos git clone command seems to have encountered an error. Please see the log above." && exit 9)
     fi
 
     # Get patched sdks
@@ -111,7 +114,7 @@ darwin() {
             update "SDKs successfully installed!"
         else
             error "Something appears to have gone wrong. Please try again."
-            exit 9
+            exit 10
         fi
     fi
 }
@@ -163,6 +166,20 @@ darwin-mobile() {
         fi
     fi
 
+    # Check desire for Swift support
+    update "Checking desire for Swift support..."
+    read -p "Would you like to be able to work with Swift? If so, an additional package will need to be installed. [y/n]" confirm
+    if [[ "${confirm,,}" == "y" || "${confirm,,}" == "yes" ]]; then
+        if [[ -f "/.procursus_strapped" ]]; then
+            sudo apt install swift -y && update "Additional Swift package installation successful!" || (error "Additional Swift package install command seems to have encountered an error. Please see the log above." && exit 4)
+        else
+            sudo apt install swift-toolchain -y && update "Additional Swift package installation successful!" || (error "Additional Swift package install command seems to have encountered an error. Please see the log above." && exit 4)
+        fi
+    else
+        update "Skipping Swift support."
+        common "Note: if you end up wanting to use Swift in the future, just install the 'swift' (Procursus ONLY) or 'swift-toolchain' (all other bootstraps) packages from within your package manager."
+    fi
+
     # Check for $THEOS env var
     update "Checking for \$THEOS environment variable..."
     if [[ "$THEOS" ]]; then
@@ -170,14 +187,8 @@ darwin-mobile() {
     else
         update "\$THEOS has not been set. Setting now..."
 
-        SHELL_ENV="unknown"
-        common "SHELL IS $CSHELL and shell env is $SHELL_ENV."
-        if [[ "${CSHELL,,}" == "bash" ]]; then
-            SHELL_ENV="~/.profile"
-        elif [[ "${CSHELL,,}" == "zsh" ]]; then
-            SHELL_ENV="~/.zshenv"
-        else
-            error "Current shell is unsupported by this installer. Please set the THEOS environment variable to '~/theos' manually before proceeding."
+        if [[ "${CSHELL,,}" == "unknown" ]]; then
+            error "Current shell ($CSHELL) is unsupported by this installer. Please set the THEOS environment variable to '~/theos' manually before proceeding."
             exit 6
         fi
 
@@ -186,7 +197,18 @@ darwin-mobile() {
             # checkra1n has no exec in var, so need to set
             #  up '/opt' for use with Theos as mobile user
             echo "export THEOS=/opt/theos" >> "$SHELL_ENV"
-            sudo install -d -o mobile -g mobile /opt
+            if [[ -d "/opt" ]]; then
+                update "'/opt' already exists. Checking its ownership..."
+                # Check that '/opt' isn't owned by root
+                STATUS="$(stat -c '%U' /opt)"
+                if [[ "${status,,}" == "root" ]]; then
+                    update "Owner of '/opt' is root. Attempting to switch owner to mobile..."
+                    sudo chown mobile /opt && update "Owner of '/opt' successfully transfered to mobile from root!" || (error "Failed to transfer ownership of '/opt' to mobile from root. Please see the log above." && exit 7)
+                fi
+            else
+                update "Creating a special directory to house Theos..."
+                sudo install -d -o mobile -g mobile /opt && update "Special directory for Theos created successfully!" || (error "Special directory create command seems to have encountered an error. Please see the log above." && exit 7)
+            fi
         else
             echo "export THEOS=~/theos" >> "$SHELL_ENV"
         fi
@@ -195,7 +217,7 @@ darwin-mobile() {
             update "\$THEOS has been successfully set to '$THEOS'!"
         else
             error "\$THEOS is still not set despite our efforts. Try restarting your shell and/or running the installer again. If that doesn't do the trick, you may have to set the THEOS environment variable to '~/theos' manually before proceeding."
-            exit 7
+            exit 8
         fi
     fi
 
@@ -206,12 +228,8 @@ darwin-mobile() {
         $THEOS/bin/update-theos
     else
         update "Theos does not appear to be installed. Cloning now..."
-        git clone --recursive https://github.com/theos/theos.git $THEOS
+        git clone --recursive https://github.com/theos/theos.git $THEOS && update "Git clone of Theos was successful!" || (error "Theos git clone command seems to have encountered an error. Please see the log above." && exit 9)
     fi
-
-    # Note about Swift support
-    # TODO: add prompt for this to be resolved automatically?
-    common "Please note: your install will *NOT* support Swift out-of-the-box. If you want to be able to work with Swift code, please install 'swift' (Procursus ONLY) or 'swift-toolchain' (all other bootstraps)."
 
     # Get patched sdks
     update "Checking for patched sdks..."
@@ -229,7 +247,7 @@ darwin-mobile() {
             update "SDKs successfully installed!"
         else
             error "Something appears to have gone wrong. Please try again."
-            exit 8
+            exit 10
         fi
     fi
 }
@@ -240,10 +258,9 @@ linux() {
     DISTRO="$(cat /etc/*release | grep "^ID=" | sed -e "s/^ID=//")"
 
     # Dependencies
-                                                    # TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO: arch and fedora
     update "Preparing to install dependencies. Please enter your password if prompted:"
     if [[ "${DISTRO,,}" == "debian" ]]; then
-        sudo apt install build-essential fakeroot libtinfo5 libz3-dev rsync curl perl unzip git && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 3)
+        sudo apt install build-essential fakeroot libtinfo5 libz3-dev rsync curl perl unzip git -y && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 3)
     fi
 
     # Check for WSL
@@ -267,14 +284,8 @@ linux() {
     else
         update "\$THEOS has not been set. Setting now..."
 
-        SHELL_ENV="unknown"
-        common "SHELL IS $CSHELL and shell env is $SHELL_ENV."
-        if [[ "${CSHELL,,}" == "bash" ]]; then
-            SHELL_ENV="~/.profile"
-        elif [[ "${CSHELL,,}" == "zsh" ]]; then
-            SHELL_ENV="~/.zshenv"
-        else
-            error "Current shell is unsupported by this installer. Please set the THEOS environment variable to '~/theos' manually before proceeding."
+        if [[ "${CSHELL,,}" == "unknown" ]]; then
+            error "Current shell ($CSHELL) is unsupported by this installer. Please set the THEOS environment variable to '~/theos' manually before proceeding."
             exit 5
         fi
 
@@ -298,7 +309,7 @@ linux() {
         $THEOS/bin/update-theos
     else
         update "Theos does not appear to be installed. Cloning now..."
-        git clone --recursive https://github.com/theos/theos.git $THEOS
+        git clone --recursive https://github.com/theos/theos.git $THEOS && update "Git clone of Theos was successful!" || (error "Theos git clone command seems to have encountered an error. Please see the log above." && exit 7)
     fi
 
     # Get a toolchain
@@ -312,7 +323,7 @@ linux() {
             if [[ "${toolchain,,}" == "swift" ]]; then
                 read -p "You chose to install the Swift-compatible toolchain. Is this correct? [y/n]" confirm
                 if [[ "${confirm,,}" == "y" || "${confirm,,}" == "yes" ]]; then
-                                            sudo apt install zstd # ADD SUPPORT FOR ARCH AND FEDORAAAAAAAAAAAAAAAAAAAA
+                    sudo apt install zstd -y
                     curl -LO https://github.com/CRKatri/llvm-project/releases/download/swift-5.3.2-RELEASE/swift-5.3.2-RELEASE-ubuntu20.04.tar.zst
                     TMP=$(mktemp -d)
                     tar -xvf swift-5.3.2-RELEASE-ubuntu20.04.tar.zst -C $TMP
@@ -326,7 +337,7 @@ linux() {
                         update "Successfully installed the Swift-compatible toolchain!"
                     else
                         error "Something appears to have gone wrong -- the toolchain is not accessible. Please try again."
-                        exit 7
+                        exit 8
                     fi
                     break
                 fi
@@ -376,17 +387,16 @@ linux() {
     fi
 }
 
+
 # Determine platform and start work
 if [[ "${PLATFORM,,}" == "darwin" ]]; then
+    special "Starting install..."
     if [[ "$(uname -m)" =~ "iP" ]]; then
-        special "Starting install..."
         darwin-mobile
-        special "Theos has been successfully installed! Run \$THEOS/bin/nic.pl to get started."
     else
-        special "starting install..."
         darwin
-        special "Theos has been successfully installed! Run \$THEOS/bin/nic.pl to get started."
     fi
+    special "Theos has been successfully installed! Run \$THEOS/bin/nic.pl to get started."
 elif [[ "${PLATFORM,,}" == "linux" ]]; then
     special "starting install..."
     linux
