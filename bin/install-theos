@@ -30,7 +30,7 @@ fi
 
 # Common vars
 PLATFORM=$(uname)
-CSHELL=$(ps -p $$ | tail -1 | grep -o '[^ ]*$' | sed 's/[^[:alpha:]]//g')
+CSHELL="${SHELL##*/}"
 SHELL_ENV="unknown"
 if [[ "${CSHELL,,}" == "bash" ]]; then
     SHELL_ENV="$HOME/.profile"
