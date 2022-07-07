@@ -32,9 +32,9 @@ fi
 PLATFORM=$(uname)
 CSHELL="${SHELL##*/}"
 SHELL_ENV="unknown"
-if [[ "${CSHELL,,}" == "sh" || "${CSHELL,,}" == "bash" ]]; then
+if [[ "$CSHELL" == "sh" || "$CSHELL" == "bash" ]]; then
     SHELL_ENV="$HOME/.profile"
-elif [[ "${CSHELL,,}" == "zsh" ]]; then
+elif [[ "$CSHELL" == "zsh" ]]; then
     SHELL_ENV="$HOME/.zshenv"
 fi
 # TODO: CI support (non-interactive)
@@ -49,8 +49,8 @@ darwin() {
     common "Platform: Darwin"
 
     # Check for Xcode
-    XCODE=$(xcode-select -p)
-    if ! [[ "${XCODE}" == "/Applications/Xcode.app/Contents/Developer" ]]; then
+    XCODE="/Applications/Xcode.app/"
+    if ! [[ -d "$XCODE" && "$(ls -A "$XCODE")" ]]; then
         error "Xcode is mandatory. The Command Line Tools package isn't sufficient for Theos to work. Xcode provides toolchains for all Apple platforms."
         exit 3
     fi
@@ -59,7 +59,7 @@ darwin() {
     update "Preparing to install dependencies..."
     if ! command -v brew &> /dev/null; then
         read -p "Homebrew, which provides tools Theos depends on, is not installed. Would you like to have it installed for you? [y/n]" hbrew
-        if [[ "${hbrew,,}" == "y" || "${hbrew,,}" == "yes" ]]; then
+        if [[ "$hbrew" == "y" || "$hbrew" == "yes" || "$hbrew" == "Y" || "$hbrew" == "Yes" ]]; then
             bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" && update "Homebrew has been successfully installed!" || (error "Homebrew install command seems to have encountered an error. Please see the log above." && exit 5)
         else
             error "Homebrew provides tools Theos depends on and thus is mandatory. Please install Homebrew before proceeding with the installation."
@@ -77,7 +77,7 @@ darwin() {
     else
         update "\$THEOS has not been set. Setting now..."
 
-        if [[ "${CSHELL,,}" == "unknown" ]]; then
+        if [[ "$CSHELL" == "unknown" ]]; then
             error "Current shell ($CSHELL) is unsupported by this installer. Please set the THEOS environment variable to '~/theos' manually before proceeding."
             exit 7
         fi
@@ -415,7 +415,7 @@ linux() {
 
 
 # Determine platform and start work
-if [[ "${PLATFORM,,}" == "darwin" ]]; then
+if [[ "$PLATFORM" == "Darwin" ]]; then
     special "Starting install..."
     if [[ "$(uname -m)" =~ "iP" ]]; then
         darwin-mobile
