@@ -77,7 +77,7 @@ darwin() {
 	else
 		update "\$THEOS has not been set. Setting now..."
 
-		if [[ "$CSHELL" == "unknown" ]]; then
+		if [[ "$SHELL_ENV" == "unknown" ]]; then
 			error "Current shell ($CSHELL) is unsupported by this installer. Please set the THEOS environment variable to '~/theos' manually before proceeding."
 			exit 7
 		fi
@@ -192,7 +192,7 @@ darwin-mobile() {
 	else
 		update "\$THEOS has not been set. Setting now..."
 
-		if [[ "${CSHELL,,}" == "unknown" ]]; then
+		if [[ "$SHELL_ENV" == "unknown" ]]; then
 			error "Current shell ($CSHELL) is unsupported by this installer. Please set the THEOS environment variable to '~/theos' manually before proceeding."
 			exit 6
 		fi
@@ -318,7 +318,7 @@ linux() {
 	else
 		update "\$THEOS has not been set. Setting now..."
 
-		if [[ "${CSHELL,,}" == "unknown" ]]; then
+		if [[ "$SHELL_ENV" == "unknown" ]]; then
 			error "Current shell ($CSHELL) is unsupported by this installer. Please set the THEOS environment variable to '~/theos' manually before proceeding."
 			exit 6
 		fi
@@ -454,7 +454,7 @@ freebsd() {
 	else
 		update "\$THEOS has not been set. Setting now..."
 
-		if [[ "${CSHELL,,}" == "unknown" ]]; then
+		if [[ "$SHELL_ENV" == "unknown" ]]; then
 			error "Current shell ($CSHELL) is unsupported by this installer. Please set the THEOS environment variable to '~/theos' manually before proceeding."
 			exit 5
 		fi
@@ -535,6 +535,7 @@ freebsd() {
 			fi
 		done
 	fi
+
 	# Get patched sdks
 	update "Checking for patched sdks..."
 	if [[ -d "$THEOS/sdks/" && "$(ls -A "$THEOS/sdks/" | grep sdk)" ]]; then
