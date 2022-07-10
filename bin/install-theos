@@ -373,7 +373,7 @@ linux() {
 					rm -r swift-5.3.2-RELEASE-ubuntu20.04.tar.zst $TMP
 
 					# Confirm that toolchain is usable
-					if command -v otool &> /dev/null; then
+					if [[ -x "$(command -v otool)" ]]; then
 						update "Successfully installed the Swift-compatible toolchain!"
 					else
 						error "Something appears to have gone wrong -- the toolchain is not accessible. Please try again."
@@ -392,7 +392,7 @@ linux() {
 					rm -r linux-ios-arm64e-clang-toolchain.tar.lzma $TMP
 
 					# Confirm that toolchain is usable
-					if command -v otool &> /dev/null; then
+					if [[ -x "$(command -v otool)" ]]; then
 						update "Successfully installed the non-Swift-compatible toolchain!"
 					else
 						error "Something appears to have gone wrong -- the toolchain is not accessible. Please try again."
@@ -504,7 +504,7 @@ freebsd() {
 					rm -r swift-5.3.2-RELEASE-ubuntu20.04.tar.zst $TMP
 
 					# Confirm that toolchain is usable
-					if command -v otool &> /dev/null; then
+					if [[ -x "$(command -v otool)" ]]; then
 						update "Successfully installed the Swift-compatible toolchain!"
 					else
 						error "Something appears to have gone wrong -- the toolchain is not accessible. Please try again."
@@ -522,7 +522,7 @@ freebsd() {
 					mv $TMP/ios-arm64e-clang-toolchain/* $THEOS/toolchain/linux/iphone/
 					rm -r linux-ios-arm64e-clang-toolchain.tar.lzma $TMP
 					# Confirm that toolchain is usable
-					if command -v otool &> /dev/null; then
+					if [[ -x "$(command -v otool)" ]]; then
 						update "Successfully installed the non-Swift-compatible toolchain!"
 					else
 						error "Something appears to have gone wrong -- the toolchain is not accessible. Please try again."
