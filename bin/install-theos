@@ -1,5 +1,18 @@
 #!/usr/bin/env bash
 
+# Error codes + association:
+# 1 - Running as root
+# 2 - Unsupported platform
+# 3 - Dependency issue
+# 4 - Unsupported shell
+# 5 - Setting $THEOS failed
+# 6 - Theos clone failed
+# 7 - Toolchain install failed
+# 8 - SDK install failed
+# 9 - Checkra1n '/opt' setup failed
+# 10 - WSL1 fakeroot->fakeroot-tcp failed
+# 11 - Enabling Linux binary compat on FreeBSD failed
+
 set -e
 
 # Pretty print
@@ -45,54 +58,7 @@ fi
 
 
 # The work
-darwin() {
-	common "Platform: Darwin"
-
-	# Check for Xcode
-	XCODE="/Applications/Xcode.app/"
-	if ! [[ -d "$XCODE" && "$(ls -A "$XCODE")" ]]; then
-		error "Xcode is mandatory. The Command Line Tools package isn't sufficient for Theos to work. Xcode provides toolchains for all Apple platforms."
-		exit 3
-	fi
-
-	# Check for Homebrew
-	update "Preparing to install dependencies..."
-	if ! command -v brew &> /dev/null; then
-		read -p "Homebrew, which provides tools Theos depends on, is not installed. Would you like to have it installed for you? [y/n]" hbrew
-		if [[ "$hbrew" == "y" || "$hbrew" == "yes" || "$hbrew" == "Y" || "$hbrew" == "Yes" ]]; then
-			bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" && update "Homebrew has been successfully installed!" || (error "Homebrew install command seems to have encountered an error. Please see the log above." && exit 5)
-		else
-			error "Homebrew provides tools Theos depends on and thus is mandatory. Please install Homebrew before proceeding with the installation."
-			exit 4
-		fi
-	fi
-
-	# Dependencies
-	brew install ldid xz && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 6)
-
-	# Check for $THEOS env var
-	update "Checking for \$THEOS environment variable..."
-	if [[ "$THEOS" ]]; then
-		update "\$THEOS is already set to '$THEOS'. Nothing to do here."
-	else
-		update "\$THEOS has not been set. Setting now..."
-
-		if [[ "$SHELL_ENV" == "unknown" ]]; then
-			error "Current shell ($CSHELL) is unsupported by this installer. Please set the THEOS environment variable to '~/theos' manually before proceeding."
-			exit 7
-		fi
-
-		# Set $THEOS
-		echo "export THEOS=~/theos" >> "$SHELL_ENV"
-		source "$SHELL_ENV"
-		if [[ "$THEOS" ]]; then
-			update "\$THEOS has been successfully set to '$THEOS'!"
-		else
-			error "\$THEOS is still not set despite our efforts. Try restarting your shell and/or running the installer again. If that doesn't do the trick, you may have to set the THEOS environment variable to '~/theos' manually before proceeding."
-			exit 8
-		fi
-	fi
-
+get-theos() {
 	# Get Theos
 	update "Checking for Theos install..."
 	if [[ -d "$THEOS" && "$(ls -A "$THEOS")" ]]; then
@@ -100,9 +66,11 @@ darwin() {
 		$THEOS/bin/update-theos
 	else
 		update "Theos does not appear to be installed. Cloning now..."
-		git clone --recursive https://github.com/theos/theos.git $THEOS && update "Git clone of Theos was successful!" || (error "Theos git clone command seems to have encountered an error. Please see the log above." && exit 9)
+		git clone --recursive https://github.com/theos/theos.git $THEOS && update "Git clone of Theos was successful!" || (error "Theos git clone command seems to have encountered an error. Please see the log above." && exit 6)
 	fi
+}
 
+get-sdks() {
 	# Get patched sdks
 	update "Checking for patched sdks..."
 	if [[ -d "$THEOS/sdks/" && "$(ls -A "$THEOS/sdks/" | grep sdk)" ]]; then
@@ -119,21 +87,71 @@ darwin() {
 			update "SDKs successfully installed!"
 		else
 			error "Something appears to have gone wrong. Please try again."
-			exit 10
+			exit 8
 		fi
 	fi
 }
 
-darwin-mobile() {
-	common "Platform: Darwin (Mobile)"
+darwin() {
+	# Check for Xcode
+	XCODE="/Applications/Xcode.app/"
+	if ! [[ -d "$XCODE" && "$(ls -A "$XCODE")" ]]; then
+		error "Xcode is mandatory. The Command Line Tools package isn't sufficient for Theos to work. Xcode provides toolchains for all Apple platforms."
+		exit 3
+	fi
 
+	# Check for Homebrew
+	update "Preparing to install dependencies..."
+	if ! [[ -x "$(command -v brew)" ]]; then
+		read -p "Homebrew, which provides tools Theos depends on, is not installed. Would you like to have it installed for you? [y/n]" hbrew
+		if [[ "$hbrew" == "y" || "$hbrew" == "yes" || "$hbrew" == "Y" || "$hbrew" == "Yes" ]]; then
+			bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" && update "Homebrew has been successfully installed!" || (error "Homebrew install command seems to have encountered an error. Please see the log above." && exit 3)
+		else
+			error "Homebrew provides tools Theos depends on and thus is mandatory. Please install Homebrew before proceeding with the installation."
+			exit 3
+		fi
+	fi
+
+	# Dependencies
+	brew install ldid xz && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 3)
+
+	# Check for $THEOS env var
+	update "Checking for \$THEOS environment variable..."
+	if [[ "$THEOS" ]]; then
+		update "\$THEOS is already set to '$THEOS'. Nothing to do here."
+	else
+		update "\$THEOS has not been set. Setting now..."
+
+		if [[ "$SHELL_ENV" == "unknown" ]]; then
+			error "Current shell ($CSHELL) is unsupported by this installer. Please set the THEOS environment variable to '~/theos' manually before proceeding."
+			exit 4
+		fi
+
+		# Set $THEOS
+		echo "export THEOS=~/theos" >> "$SHELL_ENV"
+		source "$SHELL_ENV"
+		if [[ "$THEOS" ]]; then
+			update "\$THEOS has been successfully set to '$THEOS'!"
+		else
+			error "\$THEOS is still not set despite our efforts. Try restarting your shell and/or running the installer again. If that doesn't do the trick, you may have to set the THEOS environment variable to '~/theos' manually before proceeding."
+			exit 5
+		fi
+	fi
+
+	get-theos
+	get-sdks
+}
+
+darwin-mobile() {
 	# Check for sudo (not installed by default on some jbs)
-	if ! command -v sudo &> /dev/null; then
+	if ! [[ -x "$(command -v sudo)" ]]; then
 		error "Please install 'sudo' in your package manager before proceeding with the installation."
 		exit 3
 	fi
 
-	# Determine iOS version
+	# Categorize iOS version
+	# Earlier than iOS 12 is old!
+	# https://www.theiphonewiki.com/wiki/Kernel
 	OLD=0
 	KERNEL_VER=$(sysctl kern.osrelease | sed 's/[^0-9]*//g')
 	if [[ $KERNEL_VER < 1800 ]]; then
@@ -145,28 +163,28 @@ darwin-mobile() {
 	if [[ $OLD == 1 ]]; then
 		read -p "Do you have 'https://coolstar.org/publicrepo/', 'https://repo.bingner.com/', and 'http://apt.thebigboss.org/repofiles/cydia/' installed in the sources of your jailbreak's primary package manager? [y/n]" ready
 		if [[ "${ready,,}" == "y" || "${ready,,}" == "yes" ]]; then
-			sudo apt install org.theos.dependencies -y --allow-unauthenticated --allow-downgrades && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 5)
+			sudo apt install org.theos.dependencies -y --allow-unauthenticated --allow-downgrades && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 3)
 		else
 			error "Please install the repos mentioned above before proceeding."
-			exit 4
+			exit 3
 		fi
 	else
 		# Dependencies pkg is outdated, so need to cater install for Procursus vs Elucubratus
 		if [[ -f "/.procursus_strapped" ]]; then
 			read -p "Do you have 'https://apt.procursus.us' installed in the sources of your jailbreak's primary package manager? [y/n]" ready
 			if [[ "${ready,,}" == "y" || "${ready,,}" == "yes" ]]; then
-				sudo apt install ca-certificates clang coreutils curl dpkg git grep ldid make odcctools perl plutil rsync unzip xz-utils -y --allow-unauthenticated --allow-downgrades && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 5)
+				sudo apt install ca-certificates clang coreutils curl dpkg git grep ldid make odcctools perl plutil rsync unzip xz-utils -y --allow-unauthenticated --allow-downgrades && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 3)
 			else
 				error "Please install the repo mentioned above before proceeding."
-				exit 4
+				exit 3
 			fi
 		else
 			read -p "Do you have 'https://apt.bingner.com' installed in the sources of your jailbreak's primary package manager? [y/n]" ready
 			if [[ "${ready,,}" == "y" || "${ready,,}" == "yes" ]]; then
-				sudo apt install ca-certificates clang coreutils curl dpkg git grep ldid make odcctools perl com.bingner.plutil rsync unzip xz -y --allow-unauthenticated --allow-downgrades && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 5)
+				sudo apt install ca-certificates clang coreutils curl dpkg git grep ldid make odcctools perl com.bingner.plutil rsync unzip xz -y --allow-unauthenticated --allow-downgrades && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 3)
 			else
 				error "Please install the repo mentioned above before proceeding."
-				exit 4
+				exit 3
 			fi
 		fi
 	fi
@@ -176,9 +194,9 @@ darwin-mobile() {
 	read -p "Would you like to be able to work with Swift? If so, an additional package will need to be installed. [y/n]" confirm
 	if [[ "${confirm,,}" == "y" || "${confirm,,}" == "yes" ]]; then
 		if [[ -f "/.procursus_strapped" ]]; then
-			sudo apt install swift -y --allow-unauthenticated --allow-downgrades && update "Additional Swift package installation successful!" || (error "Additional Swift package install command seems to have encountered an error. Please see the log above." && exit 4)
+			sudo apt install swift -y --allow-unauthenticated --allow-downgrades && update "Additional Swift package installation successful!" || (error "Additional Swift package install command seems to have encountered an error. Please see the log above." && exit 3)
 		else
-			sudo apt install com.kabiroberai.swift-toolchain -y --allow-unauthenticated --allow-downgrades && update "Additional Swift package installation successful!" || (error "Additional Swift package install command seems to have encountered an error. Please see the log above." && exit 4)
+			sudo apt install com.kabiroberai.swift-toolchain -y --allow-unauthenticated --allow-downgrades && update "Additional Swift package installation successful!" || (error "Additional Swift package install command seems to have encountered an error. Please see the log above." && exit 3)
 		fi
 	else
 		update "Skipping Swift support."
@@ -194,7 +212,7 @@ darwin-mobile() {
 
 		if [[ "$SHELL_ENV" == "unknown" ]]; then
 			error "Current shell ($CSHELL) is unsupported by this installer. Please set the THEOS environment variable to '~/theos' manually before proceeding."
-			exit 6
+			exit 4
 		fi
 
 		# Set $THEOS
@@ -208,11 +226,11 @@ darwin-mobile() {
 				OWNER="$(stat -c '%U' /opt)"
 				if [[ "${OWNER,,}" == "root" ]]; then
 					update "Owner of '/opt' is root. Attempting to switch owner to mobile..."
-					sudo chown mobile /opt && update "Owner of '/opt' successfully transfered to mobile from root!" || (error "Failed to transfer ownership of '/opt' to mobile from root. Please see the log above." && exit 7)
+					sudo chown mobile /opt && update "Owner of '/opt' successfully transfered to mobile from root!" || (error "Failed to transfer ownership of '/opt' to mobile from root. Please see the log above." && exit 9)
 				fi
 			else
 				update "Creating a special directory to house Theos..."
-				sudo install -d -o mobile -g mobile /opt && update "Special directory for Theos created successfully!" || (error "Special directory create command seems to have encountered an error. Please see the log above." && exit 7)
+				sudo install -d -o mobile -g mobile /opt && update "Special directory for Theos created successfully!" || (error "Special directory create command seems to have encountered an error. Please see the log above." && exit 9)
 			fi
 		else
 			echo "export THEOS=~/theos" >> "$SHELL_ENV"
@@ -222,46 +240,17 @@ darwin-mobile() {
 			update "\$THEOS has been successfully set to '$THEOS'!"
 		else
 			error "\$THEOS is still not set despite our efforts. Try restarting your shell and/or running the installer again. If that doesn't do the trick, you may have to set the THEOS environment variable to '~/theos' manually before proceeding."
-			exit 8
+			exit 5
 		fi
 	fi
 
-	# Get Theos
-	update "Checking for Theos install..."
-	if [[ -d "$THEOS" && "$(ls -A "$THEOS")" ]]; then
-		update "Theos appears to already be installed. Checking for updates..."
-		$THEOS/bin/update-theos
-	else
-		update "Theos does not appear to be installed. Cloning now..."
-		git clone --recursive https://github.com/theos/theos.git $THEOS && update "Git clone of Theos was successful!" || (error "Theos git clone command seems to have encountered an error. Please see the log above." && exit 9)
-	fi
-
-	# Get patched sdks
-	update "Checking for patched sdks..."
-	if [[ -d "$THEOS/sdks/" && "$(ls -A "$THEOS/sdks/" | grep sdk)" ]]; then
-		update "SDKs appear to already be installed."
-	else
-		update "SDKS do not appear to be installed. Installing now..."
-		curl -LO https://github.com/theos/sdks/archive/master.zip
-		TMP=$(mktemp -d)
-		unzip master.zip -d $TMP
-		mv $TMP/sdks-master/*.sdk $THEOS/sdks
-		rm -r master.zip $TMP
-
-		if [[ -d "$THEOS/sdks/" && "$(ls -A "$THEOS/sdks/" | grep sdk)" ]]; then
-			update "SDKs successfully installed!"
-		else
-			error "Something appears to have gone wrong. Please try again."
-			exit 10
-		fi
-	fi
+	get-theos
+	get-sdks
 }
 
 linux() {
-	common "Platform: Linux"
-
 	# Check for sudo (not installed by default on some distros)
-	if ! command -v sudo &> /dev/null; then
+	if ! [[ -x "$(command -v sudo)" ]]; then
 		error "Please install 'sudo' before proceeding with the installation."
 		exit 3
 	fi
@@ -281,9 +270,9 @@ linux() {
 	# Dependencies
 	update "Preparing to install dependencies. Please enter your password if prompted:"
 	if [[ "$DISTRO" == "debian" ]]; then
-		sudo apt install build-essential fakeroot libtinfo5 libz3-dev rsync curl perl unzip git -y && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 4)
+		sudo apt install build-essential fakeroot libtinfo5 libz3-dev rsync curl perl unzip git -y && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 3)
 	elif [[ "$DISTRO" == "arch" ]]; then
-		sudo pacman -S --needed --noconfirm base-devel libbsd fakeroot openssl rsync curl perl unzip git z3 -y && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 4)
+		sudo pacman -S --needed --noconfirm base-devel libbsd fakeroot openssl rsync curl perl unzip git z3 -y && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 3)
 		# libtinfo5 equivalent (get from AUR)
 		if ! pacman -Qs ncurses5-compat-libs > /dev/null; then
 			git clone https://aur.archlinux.org/ncurses5-compat-libs.git
@@ -295,14 +284,14 @@ linux() {
 		LATEST_LIBZ3="$(ls -v /usr/lib/ | grep libz3 | tail -n 1)"
 		sudo ln -sf /usr/lib/$LATEST_LIBZ3 /usr/lib/libz3.so.4
 	elif [[ "$DISTRO" == "redhat" ]]; then
-		sudo dnf group install -y "C Development Tools and Libraries" && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 4)
-		sudo dnf install -y fakeroot z3-libs ncurses-compat-libs lzma libbsd rsync curl perl unzip git && update "Other dependencies have been successfully installed!" || (error "Other dependency install command seems to have encountered an error. Please see the log above." && exit 4)
+		sudo dnf group install -y "C Development Tools and Libraries" && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 3)
+		sudo dnf install -y fakeroot z3-libs ncurses-compat-libs lzma libbsd rsync curl perl unzip git && update "Other dependencies have been successfully installed!" || (error "Other dependency install command seems to have encountered an error. Please see the log above." && exit 3)
 		# libz3-dev equivalent is z3-libs and we need to create lib version queried
 		LATEST_LIBZ3="$(ls -v /usr/lib64/ | grep libz3 | tail -n 1)"
 		sudo ln -sf /usr/lib64/$LATEST_LIBZ3 /usr/lib64/libz3.so.4
 	elif [[ "$DISTRO" == "suse" ]]; then
-		sudo zypper install -y -t pattern devel_basis && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 4)
-		sudo zypper install -y fakeroot libz3-4_8 libbsd0 libncurses5 rsync curl perl unzip git && update "Other dependencies have been successfully installed!" || (error "Other dependency install command seems to have encountered an error. Please see the log above." && exit 4)
+		sudo zypper install -y -t pattern devel_basis && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 3)
+		sudo zypper install -y fakeroot libz3-4_8 libbsd0 libncurses5 rsync curl perl unzip git && update "Other dependencies have been successfully installed!" || (error "Other dependency install command seems to have encountered an error. Please see the log above." && exit 3)
 		# libz3-dev equivalent is libz3-4_8 and we need to create lib version queried
 		LATEST_LIBZ3="$(ls -v /usr/lib64/ | grep libz3 | tail -n 1)"
 		sudo ln -sf /usr/lib64/$LATEST_LIBZ3 /usr/lib64/libz3.so.4
@@ -317,7 +306,7 @@ linux() {
 		VERSION=$(uname -r | sed 's/.*\([[:digit:]]\)[[:space:]]*/\1/')
 		if [[ $VERSION == 1 ]]; then
 			update "WSL1! Need to fix fakeroot..."
-			sudo update-alternatives --set fakeroot /usr/bin/fakeroot-tcp && update "fakeroot fixed!" || (error "fakeroot fix seems to have encountered an error. Please see the log above." && exit 5)
+			sudo update-alternatives --set fakeroot /usr/bin/fakeroot-tcp && update "fakeroot fixed!" || (error "fakeroot fix seems to have encountered an error. Please see the log above." && exit 10)
 		else
 			update "WSL2! Nothing to do here."
 		fi
@@ -334,7 +323,7 @@ linux() {
 
 		if [[ "$SHELL_ENV" == "unknown" ]]; then
 			error "Current shell ($CSHELL) is unsupported by this installer. Please set the THEOS environment variable to '~/theos' manually before proceeding."
-			exit 6
+			exit 4
 		fi
 
 		# Set $THEOS and prioritize $THEOS/toolchain
@@ -346,19 +335,11 @@ linux() {
 			update "\$THEOS has been successfully set to '$THEOS'!"
 		else
 			error "\$THEOS is still not set despite our efforts. Try restarting your shell and/or running the installer again. If that doesn't do the trick, you may have to set the THEOS environment variable to '~/theos' manually before proceeding."
-			exit 7
+			exit 5
 		fi
 	fi
 
-	# Get Theos
-	update "Checking for Theos install..."
-	if [[ -d "$THEOS" && "$(ls -A "$THEOS")" ]]; then
-		update "Theos appears to already be installed. Checking for updates..."
-		$THEOS/bin/update-theos
-	else
-		update "Theos does not appear to be installed. Cloning now..."
-		git clone --recursive https://github.com/theos/theos.git $THEOS && update "Git clone of Theos was successful!" || (error "Theos git clone command seems to have encountered an error. Please see the log above." && exit 8)
-	fi
+	get-theos
 
 	# Get a toolchain
 	update "Checking for iOS toolchain..."
@@ -393,7 +374,7 @@ linux() {
 						update "Successfully installed the Swift-compatible toolchain!"
 					else
 						error "Something appears to have gone wrong -- the toolchain is not accessible. Please try again."
-						exit 9
+						exit 7
 					fi
 					break
 				fi
@@ -412,7 +393,7 @@ linux() {
 						update "Successfully installed the non-Swift-compatible toolchain!"
 					else
 						error "Something appears to have gone wrong -- the toolchain is not accessible. Please try again."
-						exit 9
+						exit 7
 					fi
 					break
 				fi
@@ -422,44 +403,25 @@ linux() {
 		done
 	fi
 
-	# Get patched sdks
-	update "Checking for patched sdks..."
-	if [[ -d "$THEOS/sdks/" && "$(ls -A "$THEOS/sdks/" | grep sdk)" ]]; then
-		update "SDKs appear to already be installed."
-	else
-		update "SDKS do not appear to be installed. Installing now..."
-		curl -LO https://github.com/theos/sdks/archive/master.zip
-		TMP=$(mktemp -d)
-		unzip master.zip -d $TMP
-		mv $TMP/sdks-master/*.sdk $THEOS/sdks
-		rm -r master.zip $TMP
-
-		if [[ -d "$THEOS/sdks/" && "$(ls -A "$THEOS/sdks/" | grep sdk)" ]]; then
-			update "SDKs successfully installed!"
-		else
-			error "Something appears to have gone wrong. Please try again."
-			exit 10
-		fi
-	fi
+	get-sdks
 }
 
 freebsd() {
-	common "Platform: FreeBSD"
-
 	# Check for sudo (not installed by default)
-	if ! command -v sudo &> /dev/null; then
+	if ! [[ -x "$(command -v sudo)" ]]; then
 		error "Please install 'sudo' before proceeding with the installation."
 		exit 3
 	fi
 
 	# Dependencies
 	update "Preparing to install dependencies. Please enter your password if prompted:"
-	sudo pkg install -y bash curl gmake ncurses fakeroot git rsync curl unzip && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 4)
+	sudo pkg install -y bash curl gmake ncurses fakeroot git rsync curl unzip && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 3)
 
 	# Enable linux binary compatibility
+	update "Enabling Linux binary compatibility..."
 	sudo sysrc linux_enable=YES
 	sudo service linux start
-	sudo pkg install -y linux_base-c7
+	sudo pkg install -y linux_base-c7 && update "Linux binary compatibility successfully enabled!" || (error "Linux binary compatibility command seems to have encountered an error. Please see the log above." && exit 11)
 
 	# Compatibility with common Theos commands
 	echo "alias make=gmake" >> "$SHELL_ENV"
@@ -473,7 +435,7 @@ freebsd() {
 
 		if [[ "$SHELL_ENV" == "unknown" ]]; then
 			error "Current shell ($CSHELL) is unsupported by this installer. Please set the THEOS environment variable to '~/theos' manually before proceeding."
-			exit 5
+			exit 4
 		fi
 
 		# Set $THEOS and prioritize $THEOS/toolchain
@@ -486,19 +448,11 @@ freebsd() {
 			update "\$THEOS has been successfully set to '$THEOS'!"
 		else
 			error "\$THEOS is still not set despite our efforts. Try restarting your shell and/or running the installer again. If that doesn't do the trick, you may have to set the THEOS environment variable to '~/theos' manually before proceeding."
-			exit 6
+			exit 5
 		fi
 	fi
 
-	# Get Theos
-	update "Checking for Theos install..."
-	if [[ -d "$THEOS" && "$(ls -A "$THEOS")" ]]; then
-		update "Theos appears to already be installed. Checking for updates..."
-		$THEOS/bin/update-theos
-	else
-		update "Theos does not appear to be installed. Cloning now..."
-		git clone --recursive https://github.com/theos/theos.git $THEOS && update "Git clone of Theos was successful!" || (error "Theos git clone command seems to have encountered an error. Please see the log above." && exit 7)
-	fi
+	get-theos
 
 	# Get a toolchain
 	update "Checking for iOS toolchain..."
@@ -525,7 +479,7 @@ freebsd() {
 						update "Successfully installed the Swift-compatible toolchain!"
 					else
 						error "Something appears to have gone wrong -- the toolchain is not accessible. Please try again."
-						exit 8
+						exit 7
 					fi
 					break
 				fi
@@ -544,7 +498,7 @@ freebsd() {
 						update "Successfully installed the non-Swift-compatible toolchain!"
 					else
 						error "Something appears to have gone wrong -- the toolchain is not accessible. Please try again."
-						exit 8
+						exit 7
 					fi
 					break
 				fi
@@ -554,45 +508,25 @@ freebsd() {
 		done
 	fi
 
-	# Get patched sdks
-	update "Checking for patched sdks..."
-	if [[ -d "$THEOS/sdks/" && "$(ls -A "$THEOS/sdks/" | grep sdk)" ]]; then
-		update "SDKs appear to already be installed."
-	else
-		update "SDKS do not appear to be installed. Installing now..."
-		curl -LO https://github.com/theos/sdks/archive/master.zip
-		TMP=$(mktemp -d)
-		unzip master.zip -d $TMP
-		mv $TMP/sdks-master/*.sdk $THEOS/sdks
-		rm -r master.zip $TMP
-		if [[ -d "$THEOS/sdks/" && "$(ls -A "$THEOS/sdks/" | grep sdk)" ]]; then
-			update "SDKs successfully installed!"
-		else
-			error "Something appears to have gone wrong. Please try again."
-			exit 9
-		fi
-	fi
+	get-sdks
 }
 
 
 # Determine platform and start work
+special "Starting install..."
+common "Platform: $PLATFORM"
 if [[ "$PLATFORM" == "Darwin" ]]; then
-	special "Starting install..."
 	if [[ "$(uname -m)" =~ "iP" ]]; then
 		darwin-mobile
 	else
 		darwin
 	fi
-	special "Theos has been successfully installed! Restart your shell and then run \$THEOS/bin/nic.pl to get started."
 elif [[ "${PLATFORM,,}" == "linux" ]]; then
-	special "starting install..."
 	linux
-	special "Theos has been successfully installed! Restart your shell and then run \$THEOS/bin/nic.pl to get started."
 elif [[ "${PLATFORM,,}" == "freebsd" ]]; then
-	special "starting install..."
 	freebsd
-	special "Theos has been successfully installed! Restart your shell and then run \$THEOS/bin/nic.pl to get started."
 else
 	error "'$PLATFORM' is currently unsupported by this installer and/or Theos."
 	exit 2
 fi
+special "Theos has been successfully installed! Restart your shell and then run \$THEOS/bin/nic.pl to get started."
