@@ -274,6 +274,8 @@ linux() {
 		DISTRO="arch"
 	elif [[ -x "$(command -v dnf)" ]]; then
 		DISTRO="redhat"
+	elif [[ -x "$(command -v zypper)" ]]; then
+		DISTRO="suse"
 	fi
 
 	# Dependencies
@@ -296,6 +298,12 @@ linux() {
 		sudo dnf group install -y "C Development Tools and Libraries" && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 4)
 		sudo dnf install -y fakeroot z3-libs ncurses-compat-libs lzma libbsd rsync curl perl unzip git && update "Other dependencies have been successfully installed!" || (error "Other dependency install command seems to have encountered an error. Please see the log above." && exit 4)
 		# libz3-dev equivalent is z3-libs and we need to create lib version queried
+		LATEST_LIBZ3="$(ls -v /usr/lib64/ | grep libz3 | tail -n 1)"
+		sudo ln -sf /usr/lib64/$LATEST_LIBZ3 /usr/lib64/libz3.so.4
+	elif [[ "$DISTRO" == "suse" ]]; then
+		sudo zypper install -y -t pattern devel_basis && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 4)
+		sudo zypper install -y fakeroot libz3-4_8 libncurses5 rsync curl perl unzip git && update "Other dependencies have been successfully installed!" || (error "Other dependency install command seems to have encountered an error. Please see the log above." && exit 4)
+		# libz3-dev equivalent is libz3-4_8 and we need to create lib version queried
 		LATEST_LIBZ3="$(ls -v /usr/lib64/ | grep libz3 | tail -n 1)"
 		sudo ln -sf /usr/lib64/$LATEST_LIBZ3 /usr/lib64/libz3.so.4
 	else
@@ -369,6 +377,8 @@ linux() {
 						sudo pacman -S --needed --noconfirm zstd
 					elif [[ "$DISTRO" == "redhat" ]]; then
 						sudo dnf install -y zstd
+					elif [[ "$DISTRO" == "suse" ]]; then
+						sudo zypper install -y zstd
 					fi
 					curl -LO https://github.com/CRKatri/llvm-project/releases/download/swift-5.3.2-RELEASE/swift-5.3.2-RELEASE-ubuntu20.04.tar.zst
 					TMP=$(mktemp -d)
