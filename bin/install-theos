@@ -107,7 +107,8 @@ darwin() {
 	# Check for Xcode
 	XCODE="$(xcode-select -p)"
 	if [[ $XCODE != *.app/Contents/Developer ]]; then
-		error "Xcode is mandatory. The Command Line Tools package isn't sufficient for Theos to work. Xcode provides toolchains for all Apple platforms."
+		error "Xcode, not just the Command Line Tools, is required for Theos to function properly. Please install Xcode before continuing with the installation."
+		common "We recommend that you install Xcode from https://developer.apple.com/download/applications/ instead of from the Mac App Store as it's much faster."
 		exit 3
 	fi
 
