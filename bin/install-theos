@@ -266,14 +266,21 @@ linux() {
 		exit 3
 	fi
 
-	# TODO: make work for derivative distros
-	DISTRO="$(cat /etc/*release | grep "^ID=" | sed -e "s/^ID=//")"
+	# Determine distro
+	DISTRO="unknown"
+	if [[ -x "$(command -v apt)" ]]; then
+		DISTRO="debian"
+	elif [[ -x "$(command -v pacman)" ]]; then
+		DISTRO="arch"
+	elif [[ -x "$(command -v dnf)" ]]; then
+		DISTRO="redhat"
+	fi
 
 	# Dependencies
 	update "Preparing to install dependencies. Please enter your password if prompted:"
-	if [[ "${DISTRO,,}" == "debian" ]]; then
+	if [[ "$DISTRO" == "debian" ]]; then
 		sudo apt install build-essential fakeroot libtinfo5 libz3-dev rsync curl perl unzip git -y && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 4)
-	elif [[ "${DISTRO,,}" == "arch" ]]; then
+	elif [[ "$DISTRO" == "arch" ]]; then
 		sudo pacman -S --needed --noconfirm base-devel libbsd fakeroot openssl rsync curl perl unzip git z3 -y && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 4)
 		# libtinfo5 equivalent (get from AUR)
 		if ! pacman -Qs ncurses5-compat-libs > /dev/null; then
@@ -285,16 +292,15 @@ linux() {
 		# libz3-dev equivalent is z3 and we need to create lib version queried
 		LATEST_LIBZ3="$(ls -v /usr/lib/ | grep libz3 | tail -n 1)"
 		sudo ln -sf /usr/lib/$LATEST_LIBZ3 /usr/lib/libz3.so.4
-	elif [[ "${DISTRO,,}" == "fedora" ]]; then
+	elif [[ "$DISTRO" == "redhat" ]]; then
 		sudo dnf group install -y "C Development Tools and Libraries" && update "Dependencies have been successfully installed!" || (error "Dependency install command seems to have encountered an error. Please see the log above." && exit 4)
 		sudo dnf install -y fakeroot z3-libs ncurses-compat-libs lzma libbsd rsync curl perl unzip git && update "Other dependencies have been successfully installed!" || (error "Other dependency install command seems to have encountered an error. Please see the log above." && exit 4)
 		# libz3-dev equivalent is z3-libs and we need to create lib version queried
 		LATEST_LIBZ3="$(ls -v /usr/lib64/ | grep libz3 | tail -n 1)"
 		sudo ln -sf /usr/lib64/$LATEST_LIBZ3 /usr/lib64/libz3.so.4
 	else
-		error "The dependencies for $DISTRO are unknown. Note that these will need to be determined before Theos can be installed."
+		error "The dependencies for your distro are unknown to this installer. Note that they will need to be determined before Theos can be installed and/or function properly."
 		common "On Debian-based distros, the necessary dependencies are: build-essential fakeroot libtinfo5 libz3-dev rsync curl perl unzip git. Additional dependencies may also be required depending on what your distro provides."
-		exit 4
 	fi
 
 	# Check for WSL
@@ -357,11 +363,11 @@ linux() {
 			if [[ "${stoolchain,,}" == "y" || "${stoolchain,,}" == "yes" ]]; then
 				read -p "You chose to install the Swift-compatible toolchain. Is this correct? [y/n]" confirm
 				if [[ "${confirm,,}" == "y" || "${confirm,,}" == "yes" ]]; then
-					if [[ "${DISTRO,,}" == "debian" ]]; then
+					if [[ "$DISTRO" == "debian" ]]; then
 						sudo apt install zstd -y
-					elif [[ "${DISTRO,,}" == "arch" ]]; then
+					elif [[ "$DISTRO" == "arch" ]]; then
 						sudo pacman -S --needed --noconfirm zstd
-					elif [[ "${DISTRO,,}" == "fedora" ]]; then
+					elif [[ "$DISTRO" == "redhat" ]]; then
 						sudo dnf install -y zstd
 					fi
 					curl -LO https://github.com/CRKatri/llvm-project/releases/download/swift-5.3.2-RELEASE/swift-5.3.2-RELEASE-ubuntu20.04.tar.zst
