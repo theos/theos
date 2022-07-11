@@ -397,15 +397,12 @@ linux() {
 		update "A toolchain does not appear to be installed."
 		read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [y/n]" stoolchain
 		if theos-bool $stoolchain; then
-			if [[ $DISTRO == debian ]]; then
-				sudo apt install zstd -y
-			elif [[ $DISTRO == arch ]]; then
-				sudo pacman -S --needed --noconfirm zstd
-			elif [[ $DISTRO == redhat ]]; then
-				sudo dnf install -y zstd
-			elif [[ $DISTRO == suse ]]; then
-				sudo zypper install -y zstd
-			fi
+			case $DISTRO in
+				debian) sudo apt install zstd -y ;;
+				arch) sudo pacman -S --needed --noconfirm zstd ;;
+				redhat) sudo dnf install -y zstd ;;
+				suse) sudo zypper install -y zstd ;;
+			esac
 			curl -LO https://github.com/CRKatri/llvm-project/releases/download/swift-5.3.2-RELEASE/swift-5.3.2-RELEASE-ubuntu20.04.tar.zst
 			TMP=$(mktemp -d)
 			tar -xvf swift-5.3.2-RELEASE-ubuntu20.04.tar.zst -C $TMP
