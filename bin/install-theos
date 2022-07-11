@@ -138,7 +138,7 @@ darwin() {
 
 		# Set $THEOS
 		echo "export THEOS=~/theos" >> "$SHELL_ENV"
-		source "$SHELL_ENV"
+		local THEOS=~/theos
 		if [[ $THEOS ]]; then
 			update "\$THEOS has been successfully set to '$THEOS'!"
 		else
@@ -229,6 +229,7 @@ darwin-mobile() {
 			# checkra1n has no exec in var, so need to set
 			#  up '/opt' for use with Theos as mobile user
 			echo "export THEOS=/opt/theos" >> "$SHELL_ENV"
+			local THEOS=/opt/theos
 			if [[ -d /opt ]]; then
 				update "'/opt' already exists. Checking its ownership..."
 				# Check that '/opt' isn't owned by root
@@ -243,8 +244,8 @@ darwin-mobile() {
 			fi
 		else
 			echo "export THEOS=~/theos" >> "$SHELL_ENV"
+			local THEOS=~/theos
 		fi
-		source "$SHELL_ENV"
 		if [[ $THEOS ]]; then
 			update "\$THEOS has been successfully set to '$THEOS'!"
 		else
@@ -339,7 +340,9 @@ linux() {
 		echo "export THEOS=~/theos" >> "$SHELL_ENV"
 		echo 'export PATH=$THEOS/toolchain/linux/iphone/bin:$PATH' >> "$SHELL_ENV"
 		echo 'export LD_LIBRARY_PATH=$THEOS/toolchain/linux/iphone/lib:$LD_LIBRARY_PATH' >> "$SHELL_ENV"
-		source "$SHELL_ENV"
+		local THEOS=~/theos
+		local PATH=$THEOS/toolchain/linux/iphone/bin:$PATH
+		local LD_LIBRARY_PATH=$THEOS/toolchain/linux/iphone/lib:$LD_LIBRARY_PATH
 		if [[ $THEOS ]]; then
 			update "\$THEOS has been successfully set to '$THEOS'!"
 		else
@@ -432,7 +435,9 @@ freebsd() {
 		echo "export THEOS=~/theos" >> "$SHELL_ENV"
 		echo 'export PATH=$THEOS/toolchain/linux/iphone/bin:$PATH' >> "$SHELL_ENV"
 		echo 'export LD_LIBRARY_PATH=$THEOS/toolchain/linux/iphone/lib:$LD_LIBRARY_PATH' >> "$SHELL_ENV"
-		. "$SHELL_ENV"
+		local THEOS=~/theos
+		local PATH=$THEOS/toolchain/linux/iphone/bin:$PATH
+		local LD_LIBRARY_PATH=$THEOS/toolchain/linux/iphone/lib:$LD_LIBRARY_PATH
 		if [[ $THEOS ]]; then
 			update "\$THEOS has been successfully set to '$THEOS'!"
 		else
