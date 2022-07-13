@@ -112,24 +112,34 @@ darwin() {
 		exit 3
 	fi
 
-	# Check for Homebrew
+	# Dependencies
 	update "Preparing to install dependencies..."
-	if ! [[ -x $(command -v brew) ]]; then
+	if [[ -x $(command -v apt) && -f /opt/procursus/.procursus_strapped ]]; then
+		sudo apt install -y ldid xz-utils \
+			&& update "Dependencies have been successfully installed!" \
+			|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
+	elif [[ -x $(command -v port) ]]; then
+		yes | sudo port install ldid xz \
+			&& update "Dependencies have been successfully installed!" \
+			|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
+	elif [[ -x $(command -v brew) ]]; then
+		brew install ldid xz \
+			&& update "Dependencies have been successfully installed!" \
+			|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
+	else
 		read -p "Homebrew, which provides tools Theos depends on, is not installed. Would you like to have it installed for you? [y/n]" hbrew
 		if theos-bool $hbrew; then
 			bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" \
 				&& update "Homebrew has been successfully installed!" \
 				|| (error "Homebrew install command seems to have encountered an error. Please see the log above."; exit 3)
+			brew install ldid xz \
+				&& update "Dependencies have been successfully installed!" \
+				|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 		else
 			error "Homebrew provides tools Theos depends on and thus is mandatory. Please install Homebrew before proceeding with the installation."
 			exit 3
 		fi
 	fi
-
-	# Dependencies
-	brew install ldid xz \
-		&& update "Dependencies have been successfully installed!" \
-		|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 
 	# Check for $THEOS env var
 	update "Checking for \$THEOS environment variable..."
