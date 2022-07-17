@@ -58,7 +58,7 @@ fi
 
 
 # The work
-theos-bool() {
+theos_bool() {
 	AFFIRMATIVE=(Y y YES yes TRUE true)
 	if [[ ${AFFIRMATIVE[*]} =~ $1 ]]; then
 		return 0
@@ -67,7 +67,7 @@ theos-bool() {
 	fi
 }
 
-get-theos() {
+get_theos() {
 	# Get Theos
 	update "Checking for Theos install..."
 	if [[ -d $THEOS && $(ls -A "$THEOS") ]]; then
@@ -81,7 +81,7 @@ get-theos() {
 	fi
 }
 
-get-sdks() {
+get_sdks() {
 	# Get patched sdks
 	update "Checking for patched sdks..."
 	if [[ -d $THEOS/sdks/ && $(ls -A "$THEOS/sdks/" | grep sdk) ]]; then
@@ -128,7 +128,7 @@ darwin() {
 			|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 	else
 		read -p "Homebrew, which provides tools Theos depends on, is not installed. Would you like to have it installed for you? [y/n]" hbrew
-		if theos-bool $hbrew; then
+		if theos_bool $hbrew; then
 			bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" \
 				&& update "Homebrew has been successfully installed!" \
 				|| (error "Homebrew install command seems to have encountered an error. Please see the log above."; exit 3)
@@ -143,7 +143,7 @@ darwin() {
 
 	# Check for $THEOS env var
 	update "Checking for \$THEOS environment variable..."
-	if [[ $THEOS ]]; then
+	if ! [[ -z $THEOS ]]; then
 		update "\$THEOS is already set to '$THEOS'. Nothing to do here."
 	else
 		update "\$THEOS has not been set. Setting now..."
@@ -156,7 +156,7 @@ darwin() {
 		# Set $THEOS
 		echo "export THEOS=~/theos" >> "$SHELL_ENV"
 		local THEOS=~/theos
-		if [[ $THEOS ]]; then
+		if ! [[ -z $THEOS ]]; then
 			update "\$THEOS has been successfully set to '$THEOS'!"
 		else
 			error "\$THEOS is still not set despite our efforts. Try restarting your shell and/or running the installer again. If that doesn't do the trick, you may have to set the THEOS environment variable to '~/theos' manually before proceeding."
@@ -164,11 +164,11 @@ darwin() {
 		fi
 	fi
 
-	get-theos
-	get-sdks
+	get_theos
+	get_sdks
 }
 
-darwin-mobile() {
+darwin_mobile() {
 	# Check for sudo (not installed by default on some jbs)
 	if ! [[ -x $(command -v sudo) ]]; then
 		error "Please install 'sudo' in your package manager before proceeding with the installation."
@@ -188,8 +188,8 @@ darwin-mobile() {
 	update "Preparing to install dependencies. Please enter your password if prompted:"
 	if [[ $LEGACY -eq 1 ]]; then
 		read -p "Do you have 'https://coolstar.org/publicrepo/', 'https://repo.bingner.com/', and 'http://apt.thebigboss.org/repofiles/cydia/' installed in the sources of your jailbreak's primary package manager? [y/n]" ready
-		if theos-bool $ready; then
-			sudo apt-get install org.theos.dependencies -y --allow-unauthenticated --allow-downgrades \
+		if theos_bool $ready; then
+			sudo apt-get install -y --allow-unauthenticated --allow-downgrades org.theos.dependencies \
 				&& update "Dependencies have been successfully installed!" \
 				|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 		else
@@ -200,8 +200,8 @@ darwin-mobile() {
 		# Up-to-date dependencies pkg is exclusive to Procursus, so need to cater install accordingly
 		if [[ -f /.procursus_strapped ]]; then
 			read -p "Do you have 'https://apt.procursus.us' installed in the sources of your jailbreak's primary package manager? [y/n]" ready
-			if theos-bool $ready; then
-				sudo apt install theos-dependencies -y --allow-downgrades \
+			if theos_bool $ready; then
+				sudo apt install -y --allow-downgrades theos-dependencies \
 					&& update "Dependencies have been successfully installed!" \
 					|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 			else
@@ -210,8 +210,8 @@ darwin-mobile() {
 			fi
 		else
 			read -p "Do you have 'https://apt.bingner.com' installed in the sources of your jailbreak's primary package manager? [y/n]" ready
-			if theos-bool $ready; then
-				sudo apt install ca-certificates clang coreutils curl dpkg git grep ldid make odcctools perl com.bingner.plutil rsync unzip xz -y --allow-downgrades \
+			if theos_bool $ready; then
+				sudo apt install -y --allow-downgrades ca-certificates clang coreutils curl dpkg git grep ldid make odcctools perl com.bingner.plutil rsync unzip xz \
 					&& update "Dependencies have been successfully installed!" \
 					|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 			else
@@ -224,13 +224,13 @@ darwin-mobile() {
 	# Check desire for Swift support
 	update "Checking desire for Swift support..."
 	read -p "Would you like to be able to work with Swift? If so, an additional package will need to be installed. [y/n]" confirm
-	if theos-bool $confirm; then
+	if theos_bool $confirm; then
 		if [[ -f /.procursus_strapped ]]; then
-			sudo apt install swift -y --allow-downgrades \
+			sudo apt install -y --allow-downgrades swift \
 				&& update "Additional Swift package installation successful!" \
 				|| (error "Additional Swift package install command seems to have encountered an error. Please see the log above."; exit 3)
 		else
-			sudo apt install com.kabiroberai.swift-toolchain -y --allow-downgrades \
+			sudo apt install -y --allow-downgrades com.kabiroberai.swift-toolchain \
 				&& update "Additional Swift package installation successful!" \
 				|| (error "Additional Swift package install command seems to have encountered an error. Please see the log above."; exit 3)
 		fi
@@ -241,7 +241,7 @@ darwin-mobile() {
 
 	# Check for $THEOS env var
 	update "Checking for \$THEOS environment variable..."
-	if [[ $THEOS ]]; then
+	if ! [[ -z $THEOS ]]; then
 		update "\$THEOS is already set to '$THEOS'. Nothing to do here."
 	else
 		update "\$THEOS has not been set. Setting now..."
@@ -266,6 +266,8 @@ darwin-mobile() {
 					sudo chown mobile /opt \
 						&& update "Owner of '/opt' successfully transfered to mobile from root!" \
 						|| (error "Failed to transfer ownership of '/opt' to mobile from root. Please see the log above."; exit 9)
+				else
+					update "Owner of '/opt' is not root. We should be good to go!"
 				fi
 			else
 				update "Creating a special directory to house Theos..."
@@ -277,7 +279,7 @@ darwin-mobile() {
 			echo "export THEOS=~/theos" >> "$SHELL_ENV"
 			local THEOS=~/theos
 		fi
-		if [[ $THEOS ]]; then
+		if ! [[ -z $THEOS ]]; then
 			update "\$THEOS has been successfully set to '$THEOS'!"
 		else
 			error "\$THEOS is still not set despite our efforts. Try restarting your shell and/or running the installer again. If that doesn't do the trick, you may have to set the THEOS environment variable to '~/theos' manually before proceeding."
@@ -285,8 +287,8 @@ darwin-mobile() {
 		fi
 	fi
 
-	get-theos
-	get-sdks
+	get_theos
+	get_sdks
 }
 
 linux() {
@@ -311,11 +313,11 @@ linux() {
 	# Dependencies
 	update "Preparing to install dependencies. Please enter your password if prompted:"
 	if [[ $DISTRO == debian ]]; then
-		sudo apt install build-essential fakeroot libtinfo5 libz3-dev rsync curl perl unzip git -y \
+		sudo apt install -y build-essential fakeroot libtinfo5 libz3-dev rsync curl perl unzip git \
 			&& update "Dependencies have been successfully installed!" \
 			|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 	elif [[ $DISTRO == arch ]]; then
-		sudo pacman -S --needed --noconfirm base-devel libbsd fakeroot openssl rsync curl perl unzip git z3 -y \
+		sudo pacman -S --needed --noconfirm base-devel libbsd fakeroot openssl rsync curl perl unzip git z3 \
 			&& update "Dependencies have been successfully installed!" \
 			|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 		# libtinfo5 equivalent (get from AUR)
@@ -373,7 +375,7 @@ linux() {
 
 	# Check for $THEOS env var
 	update "Checking for \$THEOS environment variable..."
-	if [[ $THEOS ]]; then
+	if ! [[ -z $THEOS ]]; then
 		update "\$THEOS is already set to '$THEOS'. Nothing to do here."
 	else
 		update "\$THEOS has not been set. Setting now..."
@@ -390,7 +392,7 @@ linux() {
 		local THEOS=~/theos
 		local PATH=$THEOS/toolchain/linux/iphone/bin:$PATH
 		local LD_LIBRARY_PATH=$THEOS/toolchain/linux/iphone/lib:$LD_LIBRARY_PATH
-		if [[ $THEOS ]]; then
+		if ! [[ -z $THEOS ]]; then
 			update "\$THEOS has been successfully set to '$THEOS'!"
 		else
 			error "\$THEOS is still not set despite our efforts. Try restarting your shell and/or running the installer again. If that doesn't do the trick, you may have to set the THEOS environment variable to '~/theos' manually before proceeding."
@@ -398,7 +400,7 @@ linux() {
 		fi
 	fi
 
-	get-theos
+	get_theos
 
 	# Get a toolchain
 	update "Checking for iOS toolchain..."
@@ -407,9 +409,9 @@ linux() {
 	else
 		update "A toolchain does not appear to be installed."
 		read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [y/n]" stoolchain
-		if theos-bool $stoolchain; then
+		if theos_bool $stoolchain; then
 			case $DISTRO in
-				debian) sudo apt install zstd -y ;;
+				debian) sudo apt install -y zstd ;;
 				arch) sudo pacman -S --needed --noconfirm zstd ;;
 				redhat) sudo dnf install -y zstd ;;
 				suse) sudo zypper install -y zstd ;;
@@ -439,7 +441,7 @@ linux() {
 		fi
 	fi
 
-	get-sdks
+	get_sdks
 }
 
 freebsd() {
@@ -468,7 +470,7 @@ freebsd() {
 
 	# Check for $THEOS env var
 	update "Checking for \$THEOS environment variable..."
-	if [[ $THEOS ]]; then
+	if ! [[ -z $THEOS ]]; then
 		update "\$THEOS is already set to '$THEOS'. Nothing to do here."
 	else
 		update "\$THEOS has not been set. Setting now..."
@@ -486,7 +488,7 @@ freebsd() {
 		local THEOS=~/theos
 		local PATH=$THEOS/toolchain/linux/iphone/bin:$PATH
 		local LD_LIBRARY_PATH=$THEOS/toolchain/linux/iphone/lib:$LD_LIBRARY_PATH
-		if [[ $THEOS ]]; then
+		if ! [[ -z $THEOS ]]; then
 			update "\$THEOS has been successfully set to '$THEOS'!"
 		else
 			error "\$THEOS is still not set despite our efforts. Try restarting your shell and/or running the installer again. If that doesn't do the trick, you may have to set the THEOS environment variable to '~/theos' manually before proceeding."
@@ -494,7 +496,7 @@ freebsd() {
 		fi
 	fi
 
-	get-theos
+	get_theos
 
 	# Get a toolchain
 	update "Checking for iOS toolchain..."
@@ -503,7 +505,7 @@ freebsd() {
 	else
 		update "A toolchain does not appear to be installed."
 		read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [y/n]" stoolchain
-		if theos-bool $stoolchain; then
+		if theos_bool $stoolchain; then
 			sudo pkg install -y zstd
 			curl -LO https://github.com/CRKatri/llvm-project/releases/download/swift-5.3.2-RELEASE/swift-5.3.2-RELEASE-ubuntu20.04.tar.zst
 			TMP=$(mktemp -d)
@@ -530,7 +532,7 @@ freebsd() {
 		fi
 	fi
 
-	get-sdks
+	get_sdks
 }
 
 
@@ -541,7 +543,7 @@ if [[ $PLATFORM == Darwin ]]; then
 	if [[ -x $(command -v xcode-select) ]]; then
 		darwin
 	else
-		darwin-mobile
+		darwin_mobile
 	fi
 elif [[ ${PLATFORM,,} == linux ]]; then
 	linux
