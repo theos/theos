@@ -91,6 +91,10 @@ ifeq ($(call __exists,$(_THEOS_INTERNAL_SWIFT_BRIDGING_HEADER)),$(_THEOS_TRUE))
 endif
 _THEOS_INTERNAL_SWIFTFLAGS += -swift-version $(or $($(THEOS_CURRENT_INSTANCE)_SWIFT_VERSION),5)
 
+ifeq ($(filter main.swift,$(notdir $(SWIFT_FILES))),)
+_THEOS_INTERNAL_SWIFTFLAGS += -parse-as-library
+endif
+
 # Add all frameworks from the type and instance.
 _THEOS_INTERNAL_LDFLAGS += $(foreach framework,$($(_THEOS_CURRENT_TYPE)_FRAMEWORKS),-framework $(framework))
 _THEOS_INTERNAL_LDFLAGS += $(foreach framework,$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,FRAMEWORKS),-framework $(framework))
