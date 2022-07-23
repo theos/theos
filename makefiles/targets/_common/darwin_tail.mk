@@ -46,7 +46,12 @@ _THEOS_TARGET_SWIFTFLAGS := -sdk "$(SYSROOT)" $(_THEOS_TARGET_CC_SWIFTFLAGS)
 # might symlink the host one, but we want to use the iphone res dir and not the host one
 _THEOS_TARGET_SWIFT_RESOURCE_DIR := $(dir $(shell type -p $(TARGET_SWIFTC)))../lib/swift
 _THEOS_TARGET_SWIFT_LDPATHS = $(call __simplify,_THEOS_TARGET_SWIFT_LDPATHS,$(_THEOS_TARGET_SWIFT_RESOURCE_DIR)/$(_THEOS_TARGET_PLATFORM_NAME) /usr/lib/swift)
+
+ifeq ($(call __exists,$(_THEOS_TARGET_SWIFT_RESOURCE_DIR)),$(_THEOS_TRUE))
 _THEOS_TARGET_SWIFTFLAGS += -resource-dir $(_THEOS_TARGET_SWIFT_RESOURCE_DIR)
+_THEOS_TARGET_CFLAGS += -resource-dir $(_THEOS_TARGET_SWIFT_RESOURCE_DIR)/clang
+_THEOS_TARGET_LDFLAGS += -resource-dir $(_THEOS_TARGET_SWIFT_RESOURCE_DIR)/clang
+endif
 
 ifeq ($(_THEOS_TARGET_USE_APPLE_LIBSWIFT),$(_THEOS_TRUE))
 	_THEOS_TARGET_LDFLAGS += $(foreach path,$(_THEOS_TARGET_SWIFT_LDPATHS),-L$(path))
