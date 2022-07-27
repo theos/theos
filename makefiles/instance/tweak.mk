@@ -15,6 +15,9 @@ _THEOS_INTERNAL_LOGOSFLAGS += -c generator=$(_LOCAL_LOGOS_DEFAULT_GENERATOR)
 ifeq ($(_LOCAL_LOGOS_DEFAULT_GENERATOR),MobileSubstrate)
 _THEOS_INTERNAL_LDFLAGS += -F$(THEOS_VENDOR_LIBRARY_PATH) -framework CydiaSubstrate
 endif
+ifeq ($(_LOCAL_LOGOS_DEFAULT_GENERATOR),libhooker)
+_THEOS_INTERNAL_LDFLAGS += -lhooker -lblackjack -rpath /usr/lib -rpath /var/jb/usr/lib/
+endif
 
 include $(THEOS_MAKE_PATH)/instance/library.mk
 
