@@ -2,7 +2,7 @@
 We always encourage users to report bugs as soon as they experience them. In order to keep everything organized here are some questions you should ask yourself before reporting:
 
 ## Common mistakes
-* Have you followed everything on https://github.com/theos/theos/wiki/Installation?
+* Have you followed everything on <https://theos.dev/install>?
 * Have you set up your environment variables? Most importantly, `$THEOS` must be set or nothing will work.
 * Do you have an SDK and toolchain installed? If you're using OS X and building for iOS, OS X, Apple Watch, or Apple TV, Xcode provides both of these.
 * When you `git clone`d Theos, did you use `--recursive`? Theos uses Git submodules, so if you don't clone the submodules, you're missing a lot. Try running `make update-theos` from a Theos project.

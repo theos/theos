@@ -14,6 +14,10 @@
 	#define __DEBUG__
 #endif
 
+#if __has_include(<AvailabilityVersions.h>)
+	#import <AvailabilityVersions.h>
+#endif
+
 #if !defined(__IPHONE_14_0) && !defined(THEOS_LEAN_AND_MEAN)
 	#ifdef __OBJC__
 		#if __has_include(<TargetConditionals.h>)

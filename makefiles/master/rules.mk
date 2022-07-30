@@ -15,7 +15,7 @@ ifeq ($(THEOS_USE_PARALLEL_BUILDING),)
 ifeq ($(_THEOS_IS_MAKE_GT_4_0)$(THEOS_IGNORE_PARALLEL_BUILDING_NOTICE),)
 ifneq ($(shell $(or $(_THEOS_PLATFORM_GET_LOGICAL_CORES),:)),1)
 all::
-	@$(PRINT_FORMAT) "Build may be slow as Theos isn’t using all available CPU cores on this computer. Consider upgrading GNU Make: https://github.com/theos/theos/wiki/Parallel-Building"
+	@$(PRINT_FORMAT) "Build may be slow as Theos isn’t using all available CPU cores on this computer. Consider upgrading GNU Make: https://theos.dev/docs/parallel-building"
 endif
 endif
 THEOS_USE_PARALLEL_BUILDING := $(_THEOS_IS_MAKE_GT_4_0)
@@ -90,7 +90,7 @@ endif
 
 # If a vendored path is missing, bail out.
 ifneq ($(call __exists,$(THEOS_VENDOR_INCLUDE_PATH)/.git)$(call __exists,$(THEOS_VENDOR_LIBRARY_PATH)/.git),$(_THEOS_TRUE)$(_THEOS_TRUE))
-	$(ERROR_BEGIN) "The vendor/include and/or vendor/lib directories are missing. Please run \`$(THEOS)/bin/update-theos\`. More information: https://github.com/theos/theos/wiki/Installation." $(ERROR_END)
+	$(ERROR_BEGIN) "The vendor/include and/or vendor/lib directories are missing. Please run \`$(THEOS)/bin/update-theos\`. More information: https://theos.dev/install." $(ERROR_END)
 endif
 
 ifeq ($(call __exists,$(THEOS_LEGACY_PACKAGE_DIR)),$(_THEOS_TRUE))
@@ -221,7 +221,7 @@ update-theos::
 	$(ECHO_NOTHING)$(THEOS_BIN_PATH)/update-theos$(ECHO_END)
 
 troubleshoot::
-	@$(PRINT_FORMAT) "Be sure to check the troubleshooting page at https://github.com/theos/theos/wiki/Troubleshooting first."
+	@$(PRINT_FORMAT) "Be sure to check the troubleshooting page at https://theos.dev/docs/troubleshooting first."
 	@$(PRINT_FORMAT) "For support with build errors, ask on Discord: https://theos.dev/discord. If you think you've found a bug in Theos, check the issue tracker at https://github.com/theos/theos/issues."
 	@echo
 

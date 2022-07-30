@@ -114,6 +114,7 @@ __schema_var_name_last = $(strip $(lastword $(call __schema_defined_var_names,$(
 __schema_var_last = $(strip $($(lastword $(call __schema_defined_var_names,$(1),$(2)))))
 
 include $(THEOS_MAKE_PATH)/vercmp.mk
+include $(THEOS_MAKE_PATH)/target.mk
 
 THEOS_LAYOUT_DIR_NAME ?= layout
 THEOS_LAYOUT_DIR ?= $(THEOS_PROJECT_DIR)/$(THEOS_LAYOUT_DIR_NAME)
@@ -141,9 +142,7 @@ $(eval $(call __mod,platform/$(_THEOS_PLATFORM).mk))
 $(eval $(call __mod,platform/$(_THEOS_OS).mk))
 
 ifneq ($(_THEOS_TARGET_CALCULATED),1)
-__TARGET_MAKEFILE := $(shell $(THEOS_BIN_PATH)/target.pl "$(target)" "$(call __schema_var_last,,TARGET)" "$(_THEOS_PLATFORM_DEFAULT_TARGET)")
--include $(__TARGET_MAKEFILE)
-$(shell rm -f $(__TARGET_MAKEFILE) > /dev/null 2>&1)
+$(call __eval_target,$(target),$(call __schema_var_last,,TARGET),$(_THEOS_PLATFORM_DEFAULT_TARGET))
 export _THEOS_TARGET := $(__THEOS_TARGET_ARG_0)
 ifeq ($(_THEOS_TARGET),)
 $(error You did not specify a target, and the "$(THEOS_PLATFORM_NAME)" platform does not define a default target)
@@ -246,7 +245,6 @@ THEOS_STAGING_DIR_NAME ?= _
 THEOS_STAGING_DIR ?= $(_THEOS_LOCAL_DATA_DIR)/$(THEOS_STAGING_DIR_NAME)
 _SPACE := $(subst x,,x x)
 _COMMA := ,
-_THEOS_ESCAPED_STAGING_DIR = $(subst $(_SPACE),\ ,$(THEOS_STAGING_DIR))
 
 THEOS_PACKAGE_DIR_NAME ?= packages
 THEOS_PACKAGE_DIR ?= $(THEOS_BUILD_DIR)/$(THEOS_PACKAGE_DIR_NAME)
