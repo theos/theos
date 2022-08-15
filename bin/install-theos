@@ -67,6 +67,50 @@ theos_bool() {
 	fi
 }
 
+set_theos() {
+	# Check for $THEOS env var
+	update "Checking for \$THEOS environment variable..."
+	if ! [[ -z $THEOS ]]; then
+		update "\$THEOS is already set to '$THEOS'. Nothing to do here."
+	else
+		update "\$THEOS has not been set. Setting now..."
+
+		if [[ $SHELL_ENV == unknown ]]; then
+			error "Current shell ($CSHELL) is unsupported by this installer. Please set the THEOS environment variable to '~/theos' manually before proceeding."
+			exit 4
+		fi
+
+		# Set $THEOS
+		if [[ $PLATFORM == Darwin && ! -x $(command -v xcode-select) && -f /.bootstrapped ]]; then
+			# checkra1n has no exec in var, so need to set
+			#  up '/opt' for use with Theos as mobile user
+			echo "export THEOS=/opt/theos" >> "$SHELL_ENV"
+			export THEOS=/opt/theos
+			if [[ -d /opt ]]; then
+				update "'/opt' already exists. Checking its ownership..."
+				# Check that '/opt' isn't owned by root
+				OWNER="$(stat -c '%U' /opt)"
+				if [[ ${OWNER,,} == root ]]; then
+					update "Owner of '/opt' is root. Attempting to switch owner to mobile..."
+					sudo chown mobile /opt \
+						&& update "Owner of '/opt' successfully transfered to mobile from root!" \
+						|| (error "Failed to transfer ownership of '/opt' to mobile from root. Please see the log above."; exit 9)
+				else
+					update "Owner of '/opt' is not root. We should be good to go!"
+				fi
+			else
+				update "Creating a special directory to house Theos..."
+				sudo install -d -o mobile -g mobile /opt \
+					&& update "Special directory for Theos created successfully!" \
+					|| (error "Special directory create command seems to have encountered an error. Please see the log above."; exit 9)
+			fi
+		else
+			echo "export THEOS=~/theos" >> "$SHELL_ENV"
+			export THEOS=~/theos
+		fi
+	fi
+}
+
 get_theos() {
 	# Get Theos
 	update "Checking for Theos install..."
@@ -141,40 +185,12 @@ darwin() {
 		fi
 	fi
 
-	# Check for $THEOS env var
-	update "Checking for \$THEOS environment variable..."
-	if ! [[ -z $THEOS ]]; then
-		update "\$THEOS is already set to '$THEOS'. Nothing to do here."
-	else
-		update "\$THEOS has not been set. Setting now..."
-
-		if [[ $SHELL_ENV == unknown ]]; then
-			error "Current shell ($CSHELL) is unsupported by this installer. Please set the THEOS environment variable to '~/theos' manually before proceeding."
-			exit 4
-		fi
-
-		# Set $THEOS
-		echo "export THEOS=~/theos" >> "$SHELL_ENV"
-		local THEOS=~/theos
-		if ! [[ -z $THEOS ]]; then
-			update "\$THEOS has been successfully set to '$THEOS'!"
-		else
-			error "\$THEOS is still not set despite our efforts. Try restarting your shell and/or running the installer again. If that doesn't do the trick, you may have to set the THEOS environment variable to '~/theos' manually before proceeding."
-			exit 5
-		fi
-	fi
-
+	set_theos
 	get_theos
 	get_sdks
 }
 
 darwin_mobile() {
-	# Check for sudo (not installed by default on some jbs)
-	if ! [[ -x $(command -v sudo) ]]; then
-		error "Please install 'sudo' in your package manager before proceeding with the installation."
-		exit 3
-	fi
-
 	# Categorize iOS version
 	# Earlier than iOS 12 is old!
 	# https://www.theiphonewiki.com/wiki/Kernel
@@ -182,6 +198,12 @@ darwin_mobile() {
 	KERNEL_VER=$(sysctl kern.osrelease | sed 's/[^0-9]*//g')
 	if [[ $KERNEL_VER < 1800 ]]; then
 		LEGACY=1
+	fi
+
+	# Check for sudo (not installed by default on some jbs)
+	if ! [[ -x $(command -v sudo) ]]; then
+		error "Please install 'sudo' in your package manager before proceeding with the installation."
+		exit 3
 	fi
 
 	# Dependencies
@@ -239,65 +261,12 @@ darwin_mobile() {
 		common "Note: if you end up wanting to use Swift in the future, just install the 'swift' (Procursus ONLY) or 'swift-toolchain' (all other bootstraps) packages from within your package manager."
 	fi
 
-	# Check for $THEOS env var
-	update "Checking for \$THEOS environment variable..."
-	if ! [[ -z $THEOS ]]; then
-		update "\$THEOS is already set to '$THEOS'. Nothing to do here."
-	else
-		update "\$THEOS has not been set. Setting now..."
-
-		if [[ $SHELL_ENV == unknown ]]; then
-			error "Current shell ($CSHELL) is unsupported by this installer. Please set the THEOS environment variable to '~/theos' manually before proceeding."
-			exit 4
-		fi
-
-		# Set $THEOS
-		if [[ -f /.bootstrapped ]]; then
-			# checkra1n has no exec in var, so need to set
-			#  up '/opt' for use with Theos as mobile user
-			echo "export THEOS=/opt/theos" >> "$SHELL_ENV"
-			local THEOS=/opt/theos
-			if [[ -d /opt ]]; then
-				update "'/opt' already exists. Checking its ownership..."
-				# Check that '/opt' isn't owned by root
-				OWNER="$(stat -c '%U' /opt)"
-				if [[ ${OWNER,,} == root ]]; then
-					update "Owner of '/opt' is root. Attempting to switch owner to mobile..."
-					sudo chown mobile /opt \
-						&& update "Owner of '/opt' successfully transfered to mobile from root!" \
-						|| (error "Failed to transfer ownership of '/opt' to mobile from root. Please see the log above."; exit 9)
-				else
-					update "Owner of '/opt' is not root. We should be good to go!"
-				fi
-			else
-				update "Creating a special directory to house Theos..."
-				sudo install -d -o mobile -g mobile /opt \
-					&& update "Special directory for Theos created successfully!" \
-					|| (error "Special directory create command seems to have encountered an error. Please see the log above."; exit 9)
-			fi
-		else
-			echo "export THEOS=~/theos" >> "$SHELL_ENV"
-			local THEOS=~/theos
-		fi
-		if ! [[ -z $THEOS ]]; then
-			update "\$THEOS has been successfully set to '$THEOS'!"
-		else
-			error "\$THEOS is still not set despite our efforts. Try restarting your shell and/or running the installer again. If that doesn't do the trick, you may have to set the THEOS environment variable to '~/theos' manually before proceeding."
-			exit 5
-		fi
-	fi
-
+	set_theos
 	get_theos
 	get_sdks
 }
 
 linux() {
-	# Check for sudo (not installed by default on some distros)
-	if ! [[ -x $(command -v sudo) ]]; then
-		error "Please install 'sudo' before proceeding with the installation."
-		exit 3
-	fi
-
 	# Determine distro
 	DISTRO="unknown"
 	if [[ -x $(command -v apt) ]]; then
@@ -308,6 +277,12 @@ linux() {
 		DISTRO="redhat"
 	elif [[ -x $(command -v zypper) ]]; then
 		DISTRO="suse"
+	fi
+
+	# Check for sudo (not installed by default on some distros)
+	if ! [[ -x $(command -v sudo) ]]; then
+		error "Please install 'sudo' before proceeding with the installation."
+		exit 3
 	fi
 
 	# Dependencies
@@ -373,29 +348,7 @@ linux() {
 		update "Seems you're not using WSL. Moving on..."
 	fi
 
-	# Check for $THEOS env var
-	update "Checking for \$THEOS environment variable..."
-	if ! [[ -z $THEOS ]]; then
-		update "\$THEOS is already set to '$THEOS'. Nothing to do here."
-	else
-		update "\$THEOS has not been set. Setting now..."
-
-		if [[ $SHELL_ENV == unknown ]]; then
-			error "Current shell ($CSHELL) is unsupported by this installer. Please set the THEOS environment variable to '~/theos' manually before proceeding."
-			exit 4
-		fi
-
-		# Set $THEOS
-		echo "export THEOS=~/theos" >> "$SHELL_ENV"
-		local THEOS=~/theos
-		if ! [[ -z $THEOS ]]; then
-			update "\$THEOS has been successfully set to '$THEOS'!"
-		else
-			error "\$THEOS is still not set despite our efforts. Try restarting your shell and/or running the installer again. If that doesn't do the trick, you may have to set the THEOS environment variable to '~/theos' manually before proceeding."
-			exit 5
-		fi
-	fi
-
+	set_theos
 	get_theos
 
 	# Get a toolchain
@@ -464,29 +417,7 @@ freebsd() {
 	# Compatibility with common Theos commands
 	echo "alias make=gmake" >> "$SHELL_ENV"
 
-	# Check for $THEOS env var
-	update "Checking for \$THEOS environment variable..."
-	if ! [[ -z $THEOS ]]; then
-		update "\$THEOS is already set to '$THEOS'. Nothing to do here."
-	else
-		update "\$THEOS has not been set. Setting now..."
-
-		if [[ $SHELL_ENV == unknown ]]; then
-			error "Current shell ($CSHELL) is unsupported by this installer. Please set the THEOS environment variable to '~/theos' manually before proceeding."
-			exit 4
-		fi
-
-		# Set $THEOS
-		echo "export THEOS=~/theos" >> "$SHELL_ENV"
-		local THEOS=~/theos
-		if ! [[ -z $THEOS ]]; then
-			update "\$THEOS has been successfully set to '$THEOS'!"
-		else
-			error "\$THEOS is still not set despite our efforts. Try restarting your shell and/or running the installer again. If that doesn't do the trick, you may have to set the THEOS environment variable to '~/theos' manually before proceeding."
-			exit 5
-		fi
-	fi
-
+	set_theos
 	get_theos
 
 	# Get a toolchain
