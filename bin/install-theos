@@ -50,9 +50,8 @@ if [[ $CSHELL == sh || $CSHELL == bash ]]; then
 elif [[ $CSHELL == zsh ]]; then
 	SHELL_ENV="$HOME/.zshenv"
 fi
-# TODO: CI support (non-interactive)
 NONINTERACTIVE=0
-if [[ -z $CI ]]; then
+if ! [[ -z $CI ]]; then
 	NONINTERACTIVE=1
 fi
 
@@ -357,7 +356,10 @@ linux() {
 		update "A toolchain appears to already be installed."
 	else
 		update "A toolchain does not appear to be installed."
-		read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [y/n]" stoolchain
+		stoolchain="n"
+		if [[ $NONINTERACTIVE -eq 0 ]]; then
+			read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [y/n]" stoolchain
+		fi
 		if theos_bool $stoolchain; then
 			case $DISTRO in
 				debian) sudo apt install -y zstd ;;
@@ -426,7 +428,10 @@ freebsd() {
 		update "A toolchain appears to already be installed."
 	else
 		update "A toolchain does not appear to be installed."
-		read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [y/n]" stoolchain
+		stoolchain="n"
+		if [[ $NONINTERACTIVE -eq 0 ]]; then
+			read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [y/n]" stoolchain
+		fi
 		if theos_bool $stoolchain; then
 			sudo pkg install -y zstd
 			curl -LO https://github.com/CRKatri/llvm-project/releases/download/swift-5.3.2-RELEASE/swift-5.3.2-RELEASE-ubuntu20.04.tar.zst
