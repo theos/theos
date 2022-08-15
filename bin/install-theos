@@ -385,13 +385,9 @@ linux() {
 			exit 4
 		fi
 
-		# Set $THEOS and prioritize $THEOS/toolchain
+		# Set $THEOS
 		echo "export THEOS=~/theos" >> "$SHELL_ENV"
-		echo 'export PATH=$THEOS/toolchain/linux/iphone/bin:$PATH' >> "$SHELL_ENV"
-		echo 'export LD_LIBRARY_PATH=$THEOS/toolchain/linux/iphone/lib:$LD_LIBRARY_PATH' >> "$SHELL_ENV"
 		local THEOS=~/theos
-		local PATH=$THEOS/toolchain/linux/iphone/bin:$PATH
-		local LD_LIBRARY_PATH=$THEOS/toolchain/linux/iphone/lib:$LD_LIBRARY_PATH
 		if ! [[ -z $THEOS ]]; then
 			update "\$THEOS has been successfully set to '$THEOS'!"
 		else
@@ -433,8 +429,8 @@ linux() {
 		fi
 
 		# Confirm that toolchain is usable
-		if [[ -x $(command -v otool) ]]; then
-			update "Successfully installed the Swift-compatible toolchain!"
+		if [[ -x $THEOS/toolchain/linux/iphone/bin/clang ]]; then
+			update "Successfully installed the toolchain!"
 		else
 			error "Something appears to have gone wrong -- the toolchain is not accessible. Please try again."
 			exit 7
@@ -480,14 +476,9 @@ freebsd() {
 			exit 4
 		fi
 
-		# Set $THEOS and prioritize $THEOS/toolchain
-		# TODO: FreeBSD unique toolchain path != /linux/ ?
+		# Set $THEOS
 		echo "export THEOS=~/theos" >> "$SHELL_ENV"
-		echo 'export PATH=$THEOS/toolchain/linux/iphone/bin:$PATH' >> "$SHELL_ENV"
-		echo 'export LD_LIBRARY_PATH=$THEOS/toolchain/linux/iphone/lib:$LD_LIBRARY_PATH' >> "$SHELL_ENV"
 		local THEOS=~/theos
-		local PATH=$THEOS/toolchain/linux/iphone/bin:$PATH
-		local LD_LIBRARY_PATH=$THEOS/toolchain/linux/iphone/lib:$LD_LIBRARY_PATH
 		if ! [[ -z $THEOS ]]; then
 			update "\$THEOS has been successfully set to '$THEOS'!"
 		else
@@ -524,8 +515,9 @@ freebsd() {
 		fi
 
 		# Confirm that toolchain is usable
-		if [[ -x $(command -v otool) ]]; then
-			update "Successfully installed the Swift-compatible toolchain!"
+		# TODO: FreeBSD unique toolchain path != /linux/ ?
+		if [[ -x $THEOS/toolchain/linux/iphone/bin/clang ]]; then
+			update "Successfully installed the toolchain!"
 		else
 			error "Something appears to have gone wrong -- the toolchain is not accessible. Please try again."
 			exit 7
