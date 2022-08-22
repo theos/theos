@@ -162,14 +162,17 @@ darwin() {
 	# Dependencies
 	update "Preparing to install dependencies..."
 	if [[ -x $(command -v apt) && -f /opt/procursus/.procursus_strapped ]]; then
+		sudo apt update
 		sudo apt install -y ldid xz-utils \
 			&& update "Dependencies have been successfully installed!" \
 			|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 	elif [[ -x $(command -v port) ]]; then
+		sudo port selfupdate
 		yes | sudo port install ldid xz \
 			&& update "Dependencies have been successfully installed!" \
 			|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 	elif [[ -x $(command -v brew) ]]; then
+		brew update
 		brew install ldid xz \
 			&& update "Dependencies have been successfully installed!" \
 			|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
@@ -214,6 +217,7 @@ darwin_mobile() {
 	if [[ $LEGACY -eq 1 ]]; then
 		read -p "Do you have 'https://coolstar.org/publicrepo/', 'https://repo.bingner.com/', and 'http://apt.thebigboss.org/repofiles/cydia/' installed in the sources of your jailbreak's primary package manager? [y/n]" ready
 		if theos_bool $ready; then
+			sudo apt-get update
 			sudo apt-get install -y --allow-unauthenticated --allow-downgrades org.theos.dependencies \
 				&& update "Dependencies have been successfully installed!" \
 				|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
@@ -226,6 +230,7 @@ darwin_mobile() {
 		if [[ -f /.procursus_strapped ]]; then
 			read -p "Do you have 'https://apt.procursus.us' installed in the sources of your jailbreak's primary package manager? [y/n]" ready
 			if theos_bool $ready; then
+				sudo apt update
 				sudo apt install -y --allow-downgrades theos-dependencies \
 					&& update "Dependencies have been successfully installed!" \
 					|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
@@ -236,6 +241,7 @@ darwin_mobile() {
 		else
 			read -p "Do you have 'https://apt.bingner.com' installed in the sources of your jailbreak's primary package manager? [y/n]" ready
 			if theos_bool $ready; then
+				sudo apt update
 				sudo apt install -y --allow-downgrades ca-certificates clang coreutils curl dpkg git grep ldid make odcctools perl com.bingner.plutil rsync unzip xz \
 					&& update "Dependencies have been successfully installed!" \
 					|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
@@ -291,10 +297,12 @@ linux() {
 	# Dependencies
 	update "Preparing to install dependencies. Please enter your password if prompted:"
 	if [[ $DISTRO == debian ]]; then
+		sudo apt update
 		sudo apt install -y build-essential fakeroot libtinfo5 libz3-dev rsync curl perl unzip git \
 			&& update "Dependencies have been successfully installed!" \
 			|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 	elif [[ $DISTRO == arch ]]; then
+		sudo pacman -Syy
 		sudo pacman -S --needed --noconfirm base-devel libbsd fakeroot openssl rsync curl perl unzip git z3 \
 			&& update "Dependencies have been successfully installed!" \
 			|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
@@ -311,6 +319,7 @@ linux() {
 		LATEST_LIBZ3="$(ls -v /usr/lib/ | grep libz3 | tail -n 1)"
 		sudo ln -sf /usr/lib/$LATEST_LIBZ3 /usr/lib/libz3.so.4
 	elif [[ $DISTRO == redhat ]]; then
+		sudo dnf check-update
 		sudo dnf group install -y "C Development Tools and Libraries" \
 			&& update "Dependencies have been successfully installed!" \
 			|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
@@ -321,6 +330,7 @@ linux() {
 		LATEST_LIBZ3="$(ls -v /usr/lib64/ | grep libz3 | tail -n 1)"
 		sudo ln -sf /usr/lib64/$LATEST_LIBZ3 /usr/lib64/libz3.so.4
 	elif [[ $DISTRO == suse ]]; then
+		sudo zypper refresh
 		sudo zypper install -y -t pattern devel_basis \
 			&& update "Dependencies have been successfully installed!" \
 			|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
@@ -408,6 +418,7 @@ freebsd() {
 
 	# Dependencies
 	update "Preparing to install dependencies. Please enter your password if prompted:"
+	sudo pkg update
 	sudo pkg install -y bash curl gmake ncurses fakeroot git rsync curl unzip \
 		&& update "Dependencies have been successfully installed!" \
 		|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
@@ -421,6 +432,7 @@ freebsd() {
 		|| (error "Linux binary compatibility command seems to have encountered an error. Please see the log above."; exit 11)
 
 	# Compatibility with common Theos commands
+	# TODO: Should we be doing this?
 	echo "alias make=gmake" >> "$SHELL_ENV"
 
 	set_theos
