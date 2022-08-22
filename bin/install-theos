@@ -49,10 +49,10 @@ if [[ $CSHELL == sh || $CSHELL == bash || $CSHELL == dash ]]; then
 	SHELL_ENV="$HOME/.profile"
 elif [[ $CSHELL == zsh ]]; then
 	SHELL_ENV="$HOME/.zshenv"
-elif [[ $CSHELL == csh ]]; then
-	SHELL_ENV="$HOME/.cshrc"
-elif [[ $CSHELL == fish ]]; then
-	SHELL_ENV="$HOME/.config/fish/fish_variables"
+# elif [[ $CSHELL == csh ]]; then
+# 	SHELL_ENV="$HOME/.cshrc"
+# elif [[ $CSHELL == fish ]]; then
+#	SHELL_ENV="$HOME/.config/fish/fish_variables"
 fi
 NONINTERACTIVE=0
 if ! [[ -z $CI ]]; then
