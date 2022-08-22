@@ -298,12 +298,12 @@ linux() {
 	update "Preparing to install dependencies. Please enter your password if prompted:"
 	if [[ $DISTRO == debian ]]; then
 		sudo apt update
-		sudo apt install -y build-essential fakeroot libtinfo5 libz3-dev rsync curl perl unzip git \
+		sudo apt install -y build-essential fakeroot libtinfo5 libz3-dev rsync curl perl unzip git libxml2 \
 			&& update "Dependencies have been successfully installed!" \
 			|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 	elif [[ $DISTRO == arch ]]; then
 		sudo pacman -Syy
-		sudo pacman -S --needed --noconfirm base-devel libbsd fakeroot openssl rsync curl perl unzip git z3 \
+		sudo pacman -S --needed --noconfirm base-devel libbsd fakeroot openssl rsync curl perl unzip git libxml2 z3 \
 			&& update "Dependencies have been successfully installed!" \
 			|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 		# libtinfo5 equivalent (get from AUR)
@@ -323,7 +323,7 @@ linux() {
 		sudo dnf group install -y "C Development Tools and Libraries" \
 			&& update "Dependencies have been successfully installed!" \
 			|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
-		sudo dnf install -y fakeroot z3-libs ncurses-compat-libs lzma libbsd rsync curl perl unzip git \
+		sudo dnf install -y fakeroot z3-libs ncurses-compat-libs lzma libbsd rsync curl perl unzip git libxml2 \
 			&& update "Other dependencies have been successfully installed!" \
 			|| (error "Other dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 		# libz3-dev equivalent is z3-libs and we need to create lib version queried
@@ -334,7 +334,7 @@ linux() {
 		sudo zypper install -y -t pattern devel_basis \
 			&& update "Dependencies have been successfully installed!" \
 			|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
-		sudo zypper install -y fakeroot libz3-4_8 libbsd0 libncurses5 rsync curl perl unzip git \
+		sudo zypper install -y fakeroot libz3-4_8 libbsd0 libncurses5 rsync curl perl unzip git libxml2 \
 			&& update "Other dependencies have been successfully installed!" \
 			|| (error "Other dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 		# libz3-dev equivalent is libz3-4_8 and we need to create lib version queried
