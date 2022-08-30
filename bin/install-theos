@@ -388,8 +388,8 @@ linux() {
 					sudo ln -sf /usr/lib64/$LATEST_LIBZ3 /usr/lib64/libz3.so.4
 					;;
 				suse)
-					sudo zypper install -y libz3-4_8 zstd
-					# libz3-dev equivalent is libz3-4_8 and ...
+					sudo zypper install -y $(zypper search libz3 | tail -n 1 | cut -d "|" -f2) zstd
+					# libz3-dev equivalent is libz3-* and ...
 					LATEST_LIBZ3="$(ls -v /usr/lib64/ | grep libz3 | tail -n 1)"
 					sudo ln -sf /usr/lib64/$LATEST_LIBZ3 /usr/lib64/libz3.so.4
 					;;
