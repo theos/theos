@@ -49,10 +49,9 @@ if [[ $CSHELL == sh || $CSHELL == bash || $CSHELL == dash ]]; then
 	SHELL_ENV="$HOME/.profile"
 elif [[ $CSHELL == zsh ]]; then
 	SHELL_ENV="$HOME/.zshenv"
+# TODO
 # elif [[ $CSHELL == csh ]]; then
 # 	SHELL_ENV="$HOME/.cshrc"
-# elif [[ $CSHELL == fish ]]; then
-#	SHELL_ENV="$HOME/.config/fish/fish_variables"
 fi
 NONINTERACTIVE=0
 if ! [[ -z $CI ]]; then
@@ -409,75 +408,76 @@ linux() {
 	get_sdks
 }
 
-freebsd() {
-	# Check for sudo (not installed by default)
-	if ! [[ -x $(command -v sudo) ]]; then
-		error "Please install 'sudo' before proceeding with the installation."
-		exit 3
-	fi
+# TODO
+# freebsd() {
+# 	# Check for sudo (not installed by default)
+# 	if ! [[ -x $(command -v sudo) ]]; then
+# 		error "Please install 'sudo' before proceeding with the installation."
+# 		exit 3
+# 	fi
 
-	# Dependencies
-	update "Preparing to install dependencies. Please enter your password if prompted:"
-	sudo pkg update
-	sudo pkg install -y bash curl gmake ncurses fakeroot git rsync curl unzip \
-		&& update "Dependencies have been successfully installed!" \
-		|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
+# 	# Dependencies
+# 	update "Preparing to install dependencies. Please enter your password if prompted:"
+# 	sudo pkg update
+# 	sudo pkg install -y bash curl gmake ncurses fakeroot git rsync curl unzip \
+# 		&& update "Dependencies have been successfully installed!" \
+# 		|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 
-	# Enable linux binary compatibility
-	update "Enabling Linux binary compatibility..."
-	sudo sysrc linux_enable=YES
-	sudo service linux start
-	sudo pkg install -y linux_base-c7 \
-		&& update "Linux binary compatibility successfully enabled!" \
-		|| (error "Linux binary compatibility command seems to have encountered an error. Please see the log above."; exit 11)
+# 	# Enable linux binary compatibility
+# 	update "Enabling Linux binary compatibility..."
+# 	sudo sysrc linux_enable=YES
+# 	sudo service linux start
+# 	sudo pkg install -y linux_base-c7 \
+# 		&& update "Linux binary compatibility successfully enabled!" \
+# 		|| (error "Linux binary compatibility command seems to have encountered an error. Please see the log above."; exit 11)
 
-	# Compatibility with common Theos commands
-	# TODO: Should we be doing this?
-	echo "alias make=gmake" >> "$SHELL_ENV"
+# 	# Compatibility with common Theos commands
+# 	# TODO: Should we be doing this?
+# 	echo "alias make=gmake" >> "$SHELL_ENV"
 
-	set_theos
-	get_theos
+# 	set_theos
+# 	get_theos
 
-	# Get a toolchain
-	update "Checking for iOS toolchain..."
-	if [[ -d $THEOS/toolchain/linux/iphone/ && $(ls -A "$THEOS/toolchain/linux/iphone") ]]; then
-		update "A toolchain appears to already be installed."
-	else
-		update "A toolchain does not appear to be installed."
-		stoolchain="n"
-		if [[ $NONINTERACTIVE -eq 0 ]]; then
-			read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [y/n]" stoolchain
-		fi
-		if theos_bool $stoolchain; then
-			sudo pkg install -y zstd
-			curl -LO https://github.com/CRKatri/llvm-project/releases/download/swift-5.3.2-RELEASE/swift-5.3.2-RELEASE-ubuntu20.04.tar.zst
-			TMP=$(mktemp -d)
-			tar -xvf swift-5.3.2-RELEASE-ubuntu20.04.tar.zst -C $TMP
-			mkdir -p $THEOS/toolchain/linux/iphone $THEOS/toolchain/swift
-			mv $TMP/swift-5.3.2-RELEASE-ubuntu20.04/* $THEOS/toolchain/linux/iphone/
-			ln -s $THEOS/toolchain/linux/iphone $THEOS/toolchain/swift
-			rm -r swift-5.3.2-RELEASE-ubuntu20.04.tar.zst $TMP
-		else
-			curl -LO https://github.com/sbingner/llvm-project/releases/latest/download/linux-ios-arm64e-clang-toolchain.tar.lzma
-			TMP=$(mktemp -d)
-			tar -xvf linux-ios-arm64e-clang-toolchain.tar.lzma -C $TMP
-			mkdir -p $THEOS/toolchain/linux/iphone
-			mv $TMP/ios-arm64e-clang-toolchain/* $THEOS/toolchain/linux/iphone/
-			rm -r linux-ios-arm64e-clang-toolchain.tar.lzma $TMP
-		fi
+# 	# Get a toolchain
+# 	update "Checking for iOS toolchain..."
+# 	if [[ -d $THEOS/toolchain/linux/iphone/ && $(ls -A "$THEOS/toolchain/linux/iphone") ]]; then
+# 		update "A toolchain appears to already be installed."
+# 	else
+# 		update "A toolchain does not appear to be installed."
+# 		stoolchain="n"
+# 		if [[ $NONINTERACTIVE -eq 0 ]]; then
+# 			read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [y/n]" stoolchain
+# 		fi
+# 		if theos_bool $stoolchain; then
+# 			sudo pkg install -y zstd
+# 			curl -LO https://github.com/CRKatri/llvm-project/releases/download/swift-5.3.2-RELEASE/swift-5.3.2-RELEASE-ubuntu20.04.tar.zst
+# 			TMP=$(mktemp -d)
+# 			tar -xvf swift-5.3.2-RELEASE-ubuntu20.04.tar.zst -C $TMP
+# 			mkdir -p $THEOS/toolchain/linux/iphone $THEOS/toolchain/swift
+# 			mv $TMP/swift-5.3.2-RELEASE-ubuntu20.04/* $THEOS/toolchain/linux/iphone/
+# 			ln -s $THEOS/toolchain/linux/iphone $THEOS/toolchain/swift
+# 			rm -r swift-5.3.2-RELEASE-ubuntu20.04.tar.zst $TMP
+# 		else
+# 			curl -LO https://github.com/sbingner/llvm-project/releases/latest/download/linux-ios-arm64e-clang-toolchain.tar.lzma
+# 			TMP=$(mktemp -d)
+# 			tar -xvf linux-ios-arm64e-clang-toolchain.tar.lzma -C $TMP
+# 			mkdir -p $THEOS/toolchain/linux/iphone
+# 			mv $TMP/ios-arm64e-clang-toolchain/* $THEOS/toolchain/linux/iphone/
+# 			rm -r linux-ios-arm64e-clang-toolchain.tar.lzma $TMP
+# 		fi
 
-		# Confirm that toolchain is usable
-		# TODO: FreeBSD unique toolchain path != /linux/ ?
-		if [[ -x $THEOS/toolchain/linux/iphone/bin/clang ]]; then
-			update "Successfully installed the toolchain!"
-		else
-			error "Something appears to have gone wrong -- the toolchain is not accessible. Please try again."
-			exit 7
-		fi
-	fi
+# 		# Confirm that toolchain is usable
+# 		# TODO: FreeBSD unique toolchain path != /linux/ ?
+# 		if [[ -x $THEOS/toolchain/linux/iphone/bin/clang ]]; then
+# 			update "Successfully installed the toolchain!"
+# 		else
+# 			error "Something appears to have gone wrong -- the toolchain is not accessible. Please try again."
+# 			exit 7
+# 		fi
+# 	fi
 
-	get_sdks
-}
+# 	get_sdks
+# }
 
 
 # Determine platform and start work
@@ -491,8 +491,8 @@ if [[ $PLATFORM == Darwin ]]; then
 	fi
 elif [[ ${PLATFORM,,} == linux ]]; then
 	linux
-elif [[ ${PLATFORM,,} == freebsd ]]; then
-	freebsd
+# elif [[ ${PLATFORM,,} == freebsd ]]; then
+# 	freebsd
 else
 	error "'$PLATFORM' is currently unsupported by this installer and/or Theos."
 	exit 2
