@@ -298,7 +298,7 @@ linux() {
 	case $DISTRO in
 		debian)
 			sudo apt update
-			sudo apt install -y build-essential fakeroot libtinfo5 rsync curl perl unzip git libxml2 \
+			sudo apt install -y build-essential fakeroot rsync curl perl unzip git libxml2 \
 				&& update "Dependencies have been successfully installed!" \
 				|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 			;;
@@ -307,22 +307,13 @@ linux() {
 			sudo pacman -S --needed --noconfirm base-devel libbsd fakeroot openssl rsync curl perl unzip git libxml2 \
 				&& update "Dependencies have been successfully installed!" \
 				|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
-			# libtinfo5 equivalent (get from AUR)
-			if ! pacman -Qs ncurses5-compat-libs > /dev/null; then
-				git clone https://aur.archlinux.org/ncurses5-compat-libs.git
-				cd ncurses5-compat-libs
-				gpg --recv-keys "$(cat PKGBUILD | grep validpgp | grep -oP "(?<=').*(?=')")"
-				MAKEFLAGS="-j$(nproc --all)" makepkg -sir --noconfirm \
-					&& cd .. \
-					&& rm -rf ncurses5-compat-libs
-			fi
 			;;
 		redhat)
 			sudo dnf check-update
 			sudo dnf group install -y "C Development Tools and Libraries" \
 				&& update "Dependencies have been successfully installed!" \
 				|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
-			sudo dnf install -y fakeroot ncurses-compat-libs lzma libbsd rsync curl perl unzip git libxml2 \
+			sudo dnf install -y fakeroot lzma libbsd rsync curl perl unzip git libxml2 \
 				&& update "Other dependencies have been successfully installed!" \
 				|| (error "Other dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 			;;
@@ -331,13 +322,14 @@ linux() {
 			sudo zypper install -y -t pattern devel_basis \
 				&& update "Dependencies have been successfully installed!" \
 				|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
-			sudo zypper install -y fakeroot libbsd0 libncurses5 rsync curl perl unzip git libxml2 \
+			sudo zypper install -y fakeroot libbsd0 rsync curl perl unzip git libxml2 \
 				&& update "Other dependencies have been successfully installed!" \
 				|| (error "Other dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 			;;
 		*)
 			error "The dependencies for your distro are unknown to this installer. Note that they will need to be determined before Theos can be installed and/or function properly."
-			common "On Debian-based distros, the necessary dependencies are: build-essential fakeroot libtinfo5 libz3-dev rsync curl perl unzip git libxml2. Additional dependencies may also be required depending on what your distro provides."
+			common "On Debian-based distros, the necessary dependencies are: build-essential fakeroot rsync curl perl unzip git libxml2 and libtinfo5 (non-swift toolchain) or libz3-dev (swift toolchain)."
+			common "Additional dependencies may also be required depending on what your distro provides."
 			;;
 	esac
 
@@ -380,7 +372,7 @@ linux() {
 					# libz3-dev equivalent is z3 and we need to create lib version queried
 					LATEST_LIBZ3="$(ls -v /usr/lib/ | grep libz3 | tail -n 1)"
 					sudo ln -sf /usr/lib/$LATEST_LIBZ3 /usr/lib/libz3.so.4
-					# toolchain looks for specific libedit
+					# toolchain looks for a specific libedit
 					LATEST_LIBEDIT="$(ls -v /usr/lib/ | grep libedit | tail -n 1)"
 					sudo ln -sf /usr/lib/$LATEST_LIBEDIT /usr/lib/libedit.so.2
 					;;
@@ -389,7 +381,7 @@ linux() {
 					# libz3-dev equivalent is z3-libs and ...
 					LATEST_LIBZ3="$(ls -v /usr/lib64/ | grep libz3 | tail -n 1)"
 					sudo ln -sf /usr/lib64/$LATEST_LIBZ3 /usr/lib64/libz3.so.4
-					# toolchain looks for specific libedit
+					# toolchain looks for a specific libedit
 					LATEST_LIBEDIT="$(ls -v /usr/lib64/ | grep libedit | tail -n 1)"
 					sudo ln -sf /usr/lib64/$LATEST_LIBEDIT /usr/lib64/libedit.so.2
 					;;
@@ -398,7 +390,7 @@ linux() {
 					# libz3-dev equivalent is libz3-* and ...
 					LATEST_LIBZ3="$(ls -v /usr/lib64/ | grep libz3 | tail -n 1)"
 					sudo ln -sf /usr/lib64/$LATEST_LIBZ3 /usr/lib64/libz3.so.4
-					# toolchain looks for specific libedit
+					# toolchain looks for a specific libedit
 					LATEST_LIBEDIT="$(ls -v /usr/lib64/ | grep libedit | tail -n 1)"
 					sudo ln -sf /usr/lib64/$LATEST_LIBEDIT /usr/lib64/libedit.so.2
 					;;
@@ -411,6 +403,28 @@ linux() {
 			ln -s $THEOS/toolchain/linux/iphone $THEOS/toolchain/swift
 			rm -r swift-5.3.2-RELEASE-ubuntu20.04.tar.zst $TMP
 		else
+			case $DISTRO in
+				debian)
+					sudo apt install -y libtinfo5
+					;;
+				arch)
+					# get source for libtinfo5 equivalent from AUR and build
+					if ! pacman -Qs ncurses5-compat-libs > /dev/null; then
+						git clone https://aur.archlinux.org/ncurses5-compat-libs.git
+						cd ncurses5-compat-libs
+						gpg --recv-keys "$(cat PKGBUILD | grep validpgp | grep -oP "(?<=').*(?=')")"
+						MAKEFLAGS="-j$(nproc --all)" makepkg -sir --noconfirm \
+							&& cd .. \
+							&& rm -rf ncurses5-compat-libs
+					fi
+					;;
+				redhat)
+					sudo dnf install -y ncurses-compat-libs
+					;;
+				suse)
+					sudo zypper install -y libncurses5
+					;;
+			esac
 			curl -LO https://github.com/sbingner/llvm-project/releases/latest/download/linux-ios-arm64e-clang-toolchain.tar.lzma
 			TMP=$(mktemp -d)
 			tar -xvf linux-ios-arm64e-clang-toolchain.tar.lzma -C $TMP
