@@ -30,6 +30,7 @@ else
 	_THEOS_TARGET_DEFAULT_OS_DEPLOYMENT_VERSION := 3.0
 endif
 
+_DEPLOY_VERSION_GE_14_0 = $(call __simplify,_DEPLOY_VERSION_GE_14_0,$(call __vercmp,$(_THEOS_TARGET_OS_DEPLOYMENT_VERSION),ge,14.0))
 _DEPLOY_VERSION_GE_11_0 = $(call __simplify,_DEPLOY_VERSION_GE_11_0,$(call __vercmp,$(_THEOS_TARGET_OS_DEPLOYMENT_VERSION),ge,11.0))
 _DEPLOY_VERSION_GE_9_0 = $(call __simplify,_DEPLOY_VERSION_GE_9_0,$(call __vercmp,$(_THEOS_TARGET_OS_DEPLOYMENT_VERSION),ge,9.0))
 _DEPLOY_VERSION_GE_5_0 = $(call __simplify,_DEPLOY_VERSION_GE_5_0,$(call __vercmp,$(_THEOS_TARGET_OS_DEPLOYMENT_VERSION),ge,5.0))
@@ -82,6 +83,18 @@ endif
 # must now be compiled with -Wl,-segalign,4000.” https://twitter.com/saurik/status/654198997024796672
 ifneq ($(filter armv6 armv7 armv7s,$(THEOS_CURRENT_ARCH)),)
 	LEGACYFLAGS := -Xlinker -segalign -Xlinker 4000
+endif
+
+# Warn about using clang >=12.0.0 when deploying for arm64e before iOS 14.0, which uses an old ABI
+# not supported by newer clang releases.
+ifneq ($(_DEPLOY_VERSION_GE_14_0),1)
+ifneq ($(filter arm64e,$(ARCHS)),)
+_TARGET_CC_VERSION_GE_1200 := $(call __vercmp,$(_THEOS_TARGET_CC_VERSION),ge,12.0.0)
+ifeq ($(_TARGET_CC_VERSION_GE_1200),1)
+before-all::
+	@$(PRINT_FORMAT_WARNING) "Building for iOS $(_THEOS_TARGET_OS_DEPLOYMENT_VERSION), but the current toolchain can’t produce arm64e binaries for iOS earlier than 14.0. More information: https://theos.dev/docs/arm64e-deployment" >&2
+endif
+endif
 endif
 
 # Use of __DATA_CONST causes broken binaries on iOS < 9.
