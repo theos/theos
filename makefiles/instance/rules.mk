@@ -150,7 +150,7 @@ ALL_STRIP_FLAGS = $(or $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,STRIP_
 _THEOS_OBJ_FILE_TAG = $(call __simplify,_THEOS_OBJ_FILE_TAG,$(shell echo "$(_THEOS_INTERNAL_IFLAGS_C) $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_CCFLAGS) $(ALL_OBJCCFLAGS) $(ALL_LOGOSFLAGS)" | $(_THEOS_PLATFORM_MD5SUM) | cut -c1-8))
 _THEOS_OUT_FILE_TAG = $(call __simplify,_THEOS_OUT_FILE_TAG,$(shell echo "$(ALL_STRIP_FLAGS) $(_THEOS_CODESIGN_COMMANDLINE)" | $(_THEOS_PLATFORM_MD5SUM) | cut -c1-8))
 
-ifeq ($(call __theos_bool,$(or $(USE_DEPS),1)),$(_THEOS_TRUE))
+ifeq ($(call __theos_bool,$(or $(USE_DEPS),$(_THEOS_TRUE))),$(_THEOS_TRUE))
 ALL_DEPFLAGS = -MT $@ -MMD -MP -MF "$(THEOS_OBJ_DIR)/$<.$(_THEOS_OBJ_FILE_TAG).Td"
 ALL_DEPFLAGS_SWIFT = -emit-dependencies-path "$(THEOS_OBJ_DIR)/$<.$(_THEOS_OBJ_FILE_TAG).Td"
 DEP_FILES = $(strip $(patsubst %,$(THEOS_OBJ_DIR)/%.$(_THEOS_OBJ_FILE_TAG).Td,$(_FILES)))

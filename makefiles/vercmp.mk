@@ -46,7 +46,7 @@ endef
 # ___vercmp_presplit TEMP_VERSION_ARRAY_VARIABLE1 TEMP_VERSION_ARRAY_VARIABLE2 TEMP_RESULT_VARIABLE
 # 1. Iterates over each word in TEMP_VERSION_ARRAY_VARIABLE1 and, if the current result was eq,
 #    1. Extracts the first remaining word from TEMP_VERSION_ARRAY_VARIABLE2 (call it CURRENT_WORD2
-#       in this pseudocode) and reoves the first word from TEMP_VERSION_ARRAY_VARIABLE2
+#       in this pseudocode) and removes the first word from TEMP_VERSION_ARRAY_VARIABLE2
 #    2. Updates the comparison result to be the result of __cmp CURRENT_WORD CURRENT_WORD2
 # 2. Evaluates to the value of TEMP_RESULT_VARIABLE
 define ___vercmp_presplit
@@ -63,7 +63,7 @@ endef
 # Pads WORDLIST1 with trailing 0 words to be as long as WORDLIST2
 #
 # 1. Abort if WORDLIST1 already has the same number of words as WORDLIST2
-# 2. Abort if WORDLIST1 has less words than WORDLIST2
+# 2. Abort if WORDLIST1 has fewer words than WORDLIST2
 # 3. Add a trailing 0 to WORDLIST1 and call itself again
 define ___vercmp_expand
 $(if $(filter $(words $(2)),$(words $(3))),, \
@@ -79,7 +79,7 @@ endef
 # Pads WORDLIST1 with leading 0 words to be as long as WORDLIST2
 #
 # 1. Abort if WORDLIST1 already has the same number of words as WORDLIST2
-# 2. Abort if WORDLIST1 has less words than WORDLIST2
+# 2. Abort if WORDLIST1 has fewer words than WORDLIST2
 # 3. Add a leading 0 to WORDLIST1 and call itself again
 define ___vercmp_expand_backward
 $(if $(filter $(words $(2)),$(words $(3))),, \

@@ -9,10 +9,10 @@ _THEOS_TARGET_PLATFORM_SWIFT_NAME := apple-ios
 
 # Determine toolchain to use based on file existence.
 ifeq ($(SDKTARGET),)
-ifeq ($(wildcard $(THEOS)/toolchain/$(THEOS_PLATFORM_NAME)/$(THEOS_TARGET_NAME)/bin/arm64-apple-darwin14-ld),)
-SDKTARGET ?= armv7-apple-darwin11
-else
+ifeq ($(call __exists,$(THEOS)/toolchain/$(THEOS_PLATFORM_NAME)/$(THEOS_TARGET_NAME)/bin/arm64-apple-darwin14-ld),$(_THEOS_TRUE))
 SDKTARGET ?= arm64-apple-darwin14
+else
+SDKTARGET ?= armv7-apple-darwin11
 endif
 endif
 
