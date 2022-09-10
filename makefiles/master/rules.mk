@@ -6,7 +6,7 @@ endif
 
 # Determine whether we are on a modern enough version of make for us to enable parallel building.
 # --output-sync was added in make 4.0; output is hard to read without it. Xcode includes make 3.81.
-ifeq ($(THEOS_USE_PARALLEL_BUILDING),)
+ifeq ($(THEOS_USE_PARALLEL_BUILDING),$(_THEOS_FALSE))
 _THEOS_IS_MAKE_GT_4_0 := $(call __vercmp,$(MAKE_VERSION),gt,4.0)
 ifeq ($(_THEOS_IS_MAKE_GT_4_0)$(THEOS_IGNORE_PARALLEL_BUILDING_NOTICE),)
 ifneq ($(shell $(or $(_THEOS_PLATFORM_GET_LOGICAL_CORES),:)),1)
@@ -184,6 +184,6 @@ endif
 
 $(eval $(call __mod,master/rules.mk))
 
-ifeq ($(_THEOS_TOP_INVOCATION_DONE),)
+ifeq ($(_THEOS_TOP_INVOCATION_DONE),$(_THEOS_FALSE))
 export _THEOS_TOP_INVOCATION_DONE = 1
 endif
