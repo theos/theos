@@ -42,7 +42,9 @@ do:: all package install
 
 before-all::
 # If the sysroot is set but doesn’t exist, bail out.
-ifneq ($(SYSROOT),)
+ifeq ($(SYSROOT),)
+	$(ERROR_BEGIN) "A SYSROOT could not be found. For instructions on installing an SDK: https://theos.dev/docs/installation" $(ERROR_END)
+else
 ifneq ($(call __exists,$(SYSROOT)),$(_THEOS_TRUE))
 	$(ERROR_BEGIN) "Your current SYSROOT, “$(SYSROOT)”, appears to be missing." $(ERROR_END)
 endif
@@ -50,7 +52,7 @@ endif
 
 # If a vendored path is missing, bail out.
 ifneq ($(call __exists,$(THEOS_VENDOR_INCLUDE_PATH)/.git)$(call __exists,$(THEOS_VENDOR_LIBRARY_PATH)/.git),$(_THEOS_TRUE)$(_THEOS_TRUE))
-	$(ERROR_BEGIN) "The vendor/include and/or vendor/lib directories are missing. Please run \`$(THEOS)/bin/update-theos\`. More information: https://theos.dev/install." $(ERROR_END)
+	$(ERROR_BEGIN) "The vendor/include and/or vendor/lib directories are missing. Please run \`$(THEOS)/bin/update-theos\`. More information: https://theos.dev/install" $(ERROR_END)
 endif
 
 ifeq ($(call __exists,$(THEOS_LEGACY_PACKAGE_DIR)),$(_THEOS_TRUE))
