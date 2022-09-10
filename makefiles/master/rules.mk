@@ -46,6 +46,10 @@ ifneq ($(SYSROOT),)
 ifneq ($(call __exists,$(SYSROOT)),$(_THEOS_TRUE))
 	$(ERROR_BEGIN) "Your current SYSROOT, “$(SYSROOT)”, appears to be missing." $(ERROR_END)
 endif
+# SYSROOT existence check failed so
+# it's now blank and we're bailing out
+else
+	$(ERROR_BEGIN) "Your current SYSROOT does not exist." $(ERROR_END)
 endif
 
 # If a vendored path is missing, bail out.
