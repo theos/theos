@@ -34,9 +34,9 @@ ALL_XCODEOPTS = $(_THEOS_INTERNAL_XCODEOPTS) $(ADDITIONAL_XCODEOPTS) $(call __sc
 
 _THEOS_INTERNAL_XCODEOPTS = -sdk $(_THEOS_TARGET_PLATFORM_NAME)
 
-# Xcode strips even debug builds, which is an issue when using lldb because it's unable to 
-# locate the local unstripped copy since it isn't aware of our custom derivedDataPath. While 
-# that underlying issue still needs to be resolved to allow debugging release builds, the 
+# Xcode strips even debug builds, which is an issue when using lldb because it's unable to
+# locate the local unstripped copy since it isn't aware of our custom derivedDataPath. While
+# that underlying issue still needs to be resolved to allow debugging release builds, the
 # following is a more immediate solution until we get around to solving that – which we could
 # do by, for example, writing a DBGShellCommands script or using DBGFileMappedPaths.
 _THEOS_INTERNAL_XCODEFLAGS += STRIP_INSTALLED_PRODUCT=$(if $(SHOULD_STRIP),YES,NO)
