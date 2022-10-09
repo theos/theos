@@ -46,7 +46,12 @@ PLATFORM=$(uname)
 CSHELL="${SHELL##*/}"
 SHELL_ENV="unknown"
 if [[ $CSHELL == sh || $CSHELL == bash || $CSHELL == dash ]]; then
-	SHELL_ENV="$HOME/.profile"
+	# Arch doesn't have/read from .profile :/
+	if [[ -f $HOME/.bash_profile && ! -f $HOME/.profile ]]; then
+		SHELL_ENV="$HOME/.bash_profile"
+	else
+		SHELL_ENV="$HOME/.profile"
+	fi
 elif [[ $CSHELL == zsh ]]; then
 	SHELL_ENV="$HOME/.zshenv"
 # TODO
