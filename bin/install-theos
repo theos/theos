@@ -139,11 +139,11 @@ get_sdks() {
 		update "SDKs appear to already be installed."
 	else
 		update "SDKS do not appear to be installed. Installing now..."
-		curl -LO https://github.com/theos/sdks/archive/master.zip
+		curl -L https://api.github.com/repos/theos/sdks/tarball -o sdks.tar.gz
 		TMP=$(mktemp -d)
-		unzip master.zip -d $TMP
-		mv $TMP/sdks-master/*.sdk $THEOS/sdks
-		rm -r master.zip $TMP
+		tar -xvf sdks.tar.gz --strip=1 -C $TMP
+		mv $TMP/*.sdk $THEOS/sdks
+		rm -r sdks.tar.gz $TMP
 
 		if [[ -d $THEOS/sdks/ && $(ls -A "$THEOS/sdks/" | grep sdk) ]]; then
 			update "SDKs successfully installed!"
@@ -246,7 +246,7 @@ darwin_mobile() {
 			read -p "Do you have 'https://apt.bingner.com' installed in the sources of your jailbreak's primary package manager? [y/n]" ready
 			if theos_bool $ready; then
 				sudo apt update --allow-insecure-repositories
-				sudo apt install -y --allow-downgrades ca-certificates clang coreutils curl dpkg git grep ldid make odcctools perl com.bingner.plutil rsync unzip xz \
+				sudo apt install -y --allow-downgrades ca-certificates clang coreutils curl dpkg git grep ldid make odcctools perl com.bingner.plutil rsync xz \
 					&& update "Dependencies have been successfully installed!" \
 					|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 			else
@@ -303,13 +303,13 @@ linux() {
 	case $DISTRO in
 		debian)
 			sudo apt update
-			sudo apt install -y build-essential fakeroot rsync curl perl zip unzip git libxml2 \
+			sudo apt install -y build-essential fakeroot rsync curl perl zip git libxml2 \
 				&& update "Dependencies have been successfully installed!" \
 				|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 			;;
 		arch)
 			sudo pacman -Syy
-			sudo pacman -S --needed --noconfirm base-devel libbsd fakeroot openssl rsync curl perl zip unzip git libxml2 \
+			sudo pacman -S --needed --noconfirm base-devel libbsd fakeroot openssl rsync curl perl zip git libxml2 \
 				&& update "Dependencies have been successfully installed!" \
 				|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 			;;
@@ -318,7 +318,7 @@ linux() {
 			sudo dnf group install -y "C Development Tools and Libraries" \
 				&& update "Dependencies have been successfully installed!" \
 				|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
-			sudo dnf install -y fakeroot lzma libbsd rsync curl perl zip unzip git libxml2 \
+			sudo dnf install -y fakeroot lzma libbsd rsync curl perl zip git libxml2 \
 				&& update "Other dependencies have been successfully installed!" \
 				|| (error "Other dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 			;;
@@ -327,13 +327,13 @@ linux() {
 			sudo zypper install -y -t pattern devel_basis \
 				&& update "Dependencies have been successfully installed!" \
 				|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
-			sudo zypper install -y fakeroot libbsd0 rsync curl perl zip unzip git libxml2 \
+			sudo zypper install -y fakeroot libbsd0 rsync curl perl zip git libxml2 \
 				&& update "Other dependencies have been successfully installed!" \
 				|| (error "Other dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 			;;
 		*)
 			error "The dependencies for your distro are unknown to this installer. Note that they will need to be determined before Theos can be installed and/or function properly."
-			common "On Debian-based distros, the necessary dependencies are: build-essential fakeroot rsync curl perl unzip git libxml2 and libtinfo5 (non-swift toolchain) or libz3-dev (swift toolchain)."
+			common "On Debian-based distros, the necessary dependencies are: build-essential fakeroot rsync curl perl git libxml2 and libtinfo5 (non-swift toolchain) or libz3-dev (swift toolchain)."
 			common "Additional dependencies may also be required depending on what your distro provides."
 			;;
 	esac
@@ -461,7 +461,7 @@ linux() {
 # 	# Dependencies
 # 	update "Preparing to install dependencies. Please enter your password if prompted:"
 # 	sudo pkg update
-# 	sudo pkg install -y bash curl gmake ncurses fakeroot git rsync curl zip unzip \
+# 	sudo pkg install -y bash curl gmake ncurses fakeroot git rsync curl zip \
 # 		&& update "Dependencies have been successfully installed!" \
 # 		|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 
