@@ -54,7 +54,7 @@ $(THEOS_MAKE_PATH)/targets/%/%.mk: ;
 
 ifneq ($(THEOS_PACKAGE_DIR_NAME),)
 $(THEOS_PACKAGE_DIR):
-	@cd $(THEOS_BUILD_DIR); mkdir -p $(THEOS_PACKAGE_DIR_NAME)
+	@mkdir -p $(THEOS_PACKAGE_DIR)
 endif
 
 endif
