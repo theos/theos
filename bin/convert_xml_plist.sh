@@ -33,7 +33,7 @@ readarray -t results_array <<< "$results"
 # Check to see if files are in xml format or binary
 for i in "${results_array[@]}"; do
 	# Grab printable characters from file's bytes
-	head=$(od -c $i | head)
+	head=$(od -c "$i" | head)
 	# Strip any non-letter charcters
 	clean_head=${head//[^[:alpha:]]/}
 	# bplist's have an 8 byte header ([bplist##] where ## is the version)
@@ -44,11 +44,11 @@ for i in "${results_array[@]}"; do
 	# If file wasn't in binary format, convert it
 	if ! [[ ${magic_bytes,,} == "bplist" ]]; then
 		if [[ $cmd == "plutil" ]]; then
-			plutil -convert binary1 $i
+			plutil -convert binary1 "$i"
 		elif [[ $cmd == "ply" ]]; then
-			ply -c binary $i
+			ply -c binary "$i"
 		else
-			plistutil -i $i -f bin -o $i
+			plistutil -i "$i" -f bin -o "$i"
 		fi
 	fi
 done
