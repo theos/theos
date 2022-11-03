@@ -46,11 +46,11 @@ find "$directory" \( -name \*.plist -o -name \*.strings \) | while read i; do
 	# If file wasn't in binary format, convert it
 	if ! [[ $magic_bytes == bplist ]]; then
 		if [[ $cmd == plutil ]]; then
-			plutil -convert binary1 $i
+			plutil -convert binary1 "$i"
 		elif [[ $cmd == ply ]]; then
-			ply -c binary $i
+			ply -c binary "$i"
 		else
-			plistutil -i $i -f bin -o $i
+			plistutil -i "$i" -f bin -o "$i"
 		fi
 	fi
 done
