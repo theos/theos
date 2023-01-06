@@ -44,8 +44,11 @@ FW_PACKAGE_NAME = $(THEOS_PACKAGE_NAME)$(warning FW_PACKAGE_NAME is deprecated. 
 FW_PACKAGE_ARCH = $(THEOS_PACKAGE_ARCH)$(warning FW_PACKAGE_ARCH is deprecated. Please migrate to THEOS_PACKAGE_ARCH.)
 FW_PACKAGE_VERSION = $(THEOS_PACKAGE_BASE_VERSION)$(warning FW_PACKAGE_VERSION is deprecated. Please migrate to THEOS_PACKAGE_BASE_VERSION.)
 FW_PACKAGE_DEBVERSION = $(THEOS_PACKAGE_VERSION)$(warning FW_PACKAGE_DEBVERSION is deprecated. Please migrate to THEOS_PACKAGE_VERSION.)
-FW_PACKAGE_FILENAME = $(THEOS_PACKAGE_FILENAME)$(warning FW_PACKAGE_FILENAME is deprecated. Please migrate to THEOS_PACKAGE_FILENAME.)
 FW_PACKAGE_STAGING_DIR = $(THEOS_STAGING_DIR)$(warning FW_PACKAGE_STAGING_DIR is deprecated. Please migrate to THEOS_STAGING_DIR.)
+
+ifneq ($(FW_PACKAGE_FILENAME),)
+$(warning FW_PACKAGE_FILENAME is deprecated and there is no replacement. Theos will now obtain the filename automatically.)
+endif
 
 ifdef FW_DEVICE_TUNNEL
 $(warning FW_DEVICE_TUNNEL is deprecated. Please migrate to THEOS_DEVICE_IP and THEOS_DEVICE_PORT.)
