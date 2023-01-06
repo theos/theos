@@ -23,7 +23,14 @@ endif
 
 ifeq ($(_THEOS_DEB_CAN_PACKAGE),$(_THEOS_TRUE)) # Control file found
 THEOS_PACKAGE_NAME := $(shell grep -i "^Package:" "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
+
+ifeq ($(call __theos_bool,$(ROOTLESS)),$(_THEOS_TRUE))
+THEOS_PACKAGE_ARCH := iphoneos-arm64
+THEOS_ROOTLESS_PREFIX ?= /var/jb
+else
 THEOS_PACKAGE_ARCH := $(shell grep -i "^Architecture:" "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
+endif
+
 THEOS_PACKAGE_BASE_VERSION := $(shell grep -i "^Version:" "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 
 $(THEOS_STAGING_DIR)/DEBIAN:
@@ -56,6 +63,14 @@ before-package:: $(THEOS_STAGING_DIR)/DEBIAN/control
 _THEOS_DEB_PACKAGE_FILENAME = $(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_NAME)_$(_THEOS_INTERNAL_PACKAGE_VERSION)_$(THEOS_PACKAGE_ARCH).deb
 
 internal-package::
+	$(ECHO_NOTHING)perl -i -pe s/iphoneos-arm/$(THEOS_PACKAGE_ARCH)/ "$(THEOS_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
+ifeq ($(call __theos_bool,$(ROOTLESS)),$(_THEOS_TRUE))
+	$(ECHO_NOTHING)mkdir -p "$(THEOS_STAGING_DIR)$(THEOS_ROOTLESS_PREFIX)"$(ECHO_END)
+	$(ECHO_NOTHING)rsync -a "$(THEOS_STAGING_DIR)/" "$(THEOS_STAGING_DIR)$(THEOS_ROOTLESS_PREFIX)" --exclude "DEBIAN" --exclude "$(THEOS_ROOTLESS_PREFIX)" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE) $(ECHO_END)
+# Delete everything except DEBIAN/ and /var
+	$(ECHO_NOTHING)find "$(THEOS_STAGING_DIR)" -mindepth 1 -maxdepth 1 ! -name DEBIAN ! -name "var" -exec rm -rf {} \;$(ECHO_END)
+	$(ECHO_NOTHING)rmdir "$(THEOS_STAGING_DIR)$(THEOS_ROOTLESS_PREFIX)/var" >/dev/null || true$(ECHO_END)
+endif
 	$(ECHO_NOTHING)COPYFILE_DISABLE=1 $(FAKEROOT) -r $(_THEOS_PLATFORM_DPKG_DEB) -Z$(_THEOS_PLATFORM_DPKG_DEB_COMPRESSION) -z$(THEOS_PLATFORM_DEB_COMPRESSION_LEVEL) -b "$(THEOS_STAGING_DIR)" "$(_THEOS_DEB_PACKAGE_FILENAME)"$(ECHO_END)
 
 # This variable is used in package.mk
