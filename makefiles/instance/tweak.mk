@@ -13,8 +13,7 @@ _LOCAL_LOGOS_DEFAULT_GENERATOR = $(or $($(THEOS_CURRENT_INSTANCE)_LOGOS_DEFAULT_
 _THEOS_INTERNAL_LOGOSFLAGS += -c generator=$(_LOCAL_LOGOS_DEFAULT_GENERATOR)
 
 ifeq ($(_LOCAL_LOGOS_DEFAULT_GENERATOR),MobileSubstrate)
-_THEOS_INTERNAL_LDFLAGS += -F$(THEOS_VENDOR_LIBRARY_PATH) -framework CydiaSubstrate -rpath /Library/Frameworks/CydiaSubstrate.framework -rpath /var/jb/Library/Frameworks/CydiaSubstrate.framework/
-else ifeq ($(_LOCAL_LOGOS_DEFAULT_GENERATOR),libhooker)
+_THEOS_INTERNAL_LDFLAGS += -F$(THEOS_VENDOR_LIBRARY_PATH) -framework CydiaSubstrate -rpath /Library/Frameworks/CydiaSubstrate.framework -rpath /var/jb/Library/Frameworks/CydiaSubstrate.framework
 _THEOS_INTERNAL_LDFLAGS += -rpath /usr/lib -rpath /var/jb/usr/lib
 endif
 
