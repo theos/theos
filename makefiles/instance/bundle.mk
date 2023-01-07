@@ -8,6 +8,8 @@ ifeq ($(call __theos_bool,$(or $($(THEOS_CURRENT_INSTANCE)_DYNAMIC_LIBRARY),$(_T
 _THEOS_INTERNAL_LDFLAGS += -dynamiclib
 endif
 
+_THEOS_INTERNAL_LDFLAGS += -rpath /Library/Frameworks -rpath /var/jb/Library/Frameworks -rpath /usr/lib -rpath /var/jb/usr/lib
+
 # Bundle Setup
 LOCAL_BUNDLE_NAME = $(or $($(THEOS_CURRENT_INSTANCE)_BUNDLE_NAME),$(THEOS_CURRENT_INSTANCE))
 LOCAL_BUNDLE_EXTENSION = $(or $($(THEOS_CURRENT_INSTANCE)_BUNDLE_EXTENSION),bundle)
