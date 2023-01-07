@@ -56,7 +56,7 @@ endif
 
 ifneq ($(_SWIFT_FILE_COUNT),0)
 # The markers/swift_support dir serves as an atomic marker of whether swift support
-# has been built and the jobserver has been started (if necessary). mkdir is effectively
+# has been built and the io mutex has been created (if necessary). mkdir is effectively
 # used as a test-and-set to avoid TOCTOU.
 before-$(THEOS_CURRENT_INSTANCE)-all::
 	$(ECHO_NOTHING)if mkdir $(_THEOS_SWIFT_MARKERS_DIR)/swift_support 2>/dev/null; then \
@@ -200,13 +200,12 @@ ifeq ($(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),$(_THEOS_TRUE))
 # Don't buffer/synchronize Swift support builder/server output
 MAKEFLAGS += -Onone
 
-# The Theos Swift Jobserver coordinates output from instances of parse-swiftc-output
+# The Theos Swift Output Mutex coordinates output from instances of parse-swiftc-output
 # since Make's own jobserver doesn't have the required granularity due to a lack of
 # information about which Swift file is being compiled
 internal-$(THEOS_CURRENT_INSTANCE)-swift-support::
-	$(ECHO_NOTHING)rm -f $(_THEOS_SWIFT_JOBSERVER) $(_THEOS_SWIFT_JOBSERVER).pid$(ECHO_END)
-	$(ECHO_NOTHING)$(TARGET_SWIFT_SUPPORT_BIN)/swift-jobserver $(_THEOS_SWIFT_JOBSERVER) -1 & \
-	printf "$$!" > $(_THEOS_SWIFT_JOBSERVER).pid$(ECHO_END)
+	$(ECHO_NOTHING)rm -f $(_THEOS_SWIFT_MUTEX)$(ECHO_END)
+	$(ECHO_NOTHING)touch $(_THEOS_SWIFT_MUTEX)$(ECHO_END)
 endif
 endif
 
@@ -330,13 +329,24 @@ $(THEOS_OBJ_DIR)/output-file-map.$(_THEOS_OBJ_FILE_TAG).json: $(SWIFT_FILES)
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
 	$(ECHO_NOTHING)$(TARGET_SWIFT_SUPPORT_BIN)/generate-output-file-map $(THEOS_OBJ_DIR) $(_THEOS_OBJ_FILE_TAG) $(SWIFT_FILES) > $@$(ECHO_END)
 
+ifeq ($(THEOS_BUILD_SWIFT),$(_THEOS_TRUE))
+MAKEFLAGS += -Onone
+internal-swift-$(THEOS_CURRENT_INSTANCE)-$(THEOS_CURRENT_ARCH):
+	$(ECHO_NOTHING)$(TARGET_SWIFTC) -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -output-file-map $(THEOS_OBJ_DIR)/output-file-map.$(_THEOS_OBJ_FILE_TAG).json $(_THEOS_SWIFT_SWIFTMODULE_HEADER_FLAG) -emit-dependencies -emit-module-path $(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE).swiftmodule $(SWIFT_FILES) -parseable-output 2>&1 \
+	| $(TARGET_SWIFT_SUPPORT_BIN)/parse-swiftc-output $(or $(call __theos_bool,$(COLOR)),0) $(_THEOS_SWIFT_MUTEX) $(THEOS_CURRENT_ARCH)$(ECHO_END)
+endif
+
 # https://www.gnu.org/software/automake/manual/html_node/Multiple-Outputs.html
 $(_SWIFT_STAMP): $(SWIFT_FILES) $(THEOS_OBJ_DIR)/output-file-map.$(_THEOS_OBJ_FILE_TAG).json
 	$(ECHO_NOTHING)rm -f $@.tmp$(ECHO_END)
 	$(ECHO_NOTHING)touch $@.tmp$(ECHO_END)
 	$(ECHO_NOTHING)mkdir -p $(foreach file,$(SWIFT_FILES),$(THEOS_OBJ_DIR)/$(dir $(file))) $(_THEOS_SWIFTMODULE_HEADER_DIR)$(ECHO_END)
-	$(ECHO_NOTHING)$(TARGET_SWIFTC) -c $(_THEOS_INTERNAL_IFLAGS_SWIFT) $(ALL_SWIFTFLAGS) -target $(THEOS_CURRENT_ARCH)-$(_THEOS_TARGET_SWIFT_TARGET) -output-file-map $(THEOS_OBJ_DIR)/output-file-map.$(_THEOS_OBJ_FILE_TAG).json $(_THEOS_SWIFT_SWIFTMODULE_HEADER_FLAG) -emit-dependencies -emit-module-path $(THEOS_OBJ_DIR)/$(THEOS_CURRENT_INSTANCE).swiftmodule $(SWIFT_FILES) -parseable-output 2>&1 \
-	| $(TARGET_SWIFT_SUPPORT_BIN)/parse-swiftc-output $(or $(call __theos_bool,$(COLOR)),0) $(_THEOS_SWIFT_JOBSERVER) $(THEOS_CURRENT_ARCH)$(ECHO_END)
+	$(ECHO_NOTHING)$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going \
+		internal-swift-$(THEOS_CURRENT_INSTANCE)-$(THEOS_CURRENT_ARCH) \
+		THEOS_BUILD_SWIFT="$(_THEOS_TRUE)" \
+		THEOS_CURRENT_INSTANCE="$(THEOS_CURRENT_INSTANCE)" \
+		THEOS_BUILD_DIR="$(THEOS_BUILD_DIR)" \
+		THEOS_CURRENT_ARCH="$(THEOS_CURRENT_ARCH)"$(ECHO_END)
 	$(ECHO_NOTHING)mv -f $@.tmp $@$(ECHO_END)
 
 $(_SWIFTMODULE_HEADER): $(_SWIFT_STAMP)

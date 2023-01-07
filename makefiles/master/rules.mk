@@ -44,35 +44,24 @@ endif
 endif
 
 _THEOS_SWIFT_AUXILIARY_DIR = $(_THEOS_LOCAL_DATA_DIR)/swift
-_THEOS_SWIFT_JOBSERVER_FILE = $(_THEOS_SWIFT_AUXILIARY_DIR)/jobserver
+_THEOS_SWIFT_MUTEX_FILE = $(_THEOS_SWIFT_AUXILIARY_DIR)/output.lock
 export _THEOS_SWIFT_MARKERS_DIR = $(_THEOS_SWIFT_AUXILIARY_DIR)/markers
 
 ifeq ($(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),$(_THEOS_TRUE))
-export _THEOS_SWIFT_JOBSERVER = $(_THEOS_SWIFT_JOBSERVER_FILE)
+export _THEOS_SWIFT_MUTEX = $(_THEOS_SWIFT_MUTEX_FILE)
 else
-export _THEOS_SWIFT_JOBSERVER = -
+export _THEOS_SWIFT_MUTEX = -
 endif
 
-# this must be immediately after internal-all to ensure that all paths through
-# `all` result in the jobserver stopping (otherwise if there's an error in, say,
-# after-all, we'll never reach stop-swift-support).
-stop-swift-support::
-ifeq ($(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),$(_THEOS_TRUE))
-ifeq ($(_THEOS_IS_TOP_ALL),$(_THEOS_TRUE))
-	$(ECHO_NOTHING)kill $$(cat "$(_THEOS_SWIFT_JOBSERVER).pid" 2>/dev/null) 2>/dev/null || :$(ECHO_END)
-endif
-endif
-	@:
-
-.PHONY: all before-all internal-all stop-swift-support after-all \
+.PHONY: all before-all internal-all after-all \
 	clean before-clean internal-clean after-clean \
 	clean-packages before-clean-packages internal-clean-packages after-clean-packages \
 	before-commands commands \
 	update-theos spm
 ifeq ($(THEOS_BUILD_DIR),.)
-all:: $(_THEOS_BUILD_SESSION_FILE) before-all internal-all stop-swift-support after-all
+all:: $(_THEOS_BUILD_SESSION_FILE) before-all internal-all after-all
 else
-all:: $(THEOS_BUILD_DIR) $(_THEOS_BUILD_SESSION_FILE) before-all internal-all stop-swift-support after-all
+all:: $(THEOS_BUILD_DIR) $(_THEOS_BUILD_SESSION_FILE) before-all internal-all after-all
 endif
 
 clean:: before-clean internal-clean after-clean
@@ -185,12 +174,7 @@ $(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) \
 	_THEOS_CURRENT_TYPE="$(_TYPE)" \
 	THEOS_CURRENT_INSTANCE="$(_INSTANCE)" \
 	_THEOS_CURRENT_OPERATION="$(_OPERATION)" \
-	THEOS_BUILD_DIR="$(_THEOS_ABSOLUTE_BUILD_DIR)"; \
-$(if $(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),exit_code=$$?; \
-if [[ $$exit_code != 0 ]]; then \
-	kill $$(cat "$(_THEOS_SWIFT_JOBSERVER).pid" 2>/dev/null) 2>/dev/null || :; \
-	exit $$exit_code; \
-fi)
+	THEOS_BUILD_DIR="$(_THEOS_ABSOLUTE_BUILD_DIR)"
 
 %.subprojects: _INSTANCE = $(basename $(basename $*))
 %.subprojects: _OPERATION = $(subst .,,$(suffix $(basename $*)))
