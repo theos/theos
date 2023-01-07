@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 if [[ $TARGET_INSTALL_REMOTE == 1 ]]; then
 	args=(ssh)
 

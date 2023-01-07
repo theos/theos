@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 # Ensure $THEOS is set and is a directory.
@@ -10,4 +10,4 @@ fi
 cd "$THEOS"
 
 printf "\n\e[0;36m==> \e[1;36mNotice:\e[m %s\n" \
-	"Visit https://github.com/theos/theos/releases to see the changelog."
+	"Visit https://github.com/theos/theos/commits/master to view recent changes."

@@ -1,4 +1,4 @@
-ifeq ($(_THEOS_PACKAGE_RULES_LOADED),)
+ifeq ($(_THEOS_PACKAGE_RULES_LOADED),$(_THEOS_FALSE))
 _THEOS_PACKAGE_RULES_LOADED := 1
 
 ## Packaging Core Rules
@@ -8,7 +8,7 @@ package:: internal-package-check stage before-package internal-package after-pac
 before-package:: $(THEOS_PACKAGE_DIR)
 internal-package::
 ifeq ($(_THEOS_FINAL_PACKAGE),$(_THEOS_TRUE))
-	$(ECHO_NOTHING)find $(THEOS_STAGING_DIR) \( -name \*.plist -or -name \*.strings \) -exec plutil -convert binary1 {} \;$(ECHO_END)
+	$(ECHO_NOTHING)$(THEOS_BIN_PATH)/convert_xml_plist.sh -D $(THEOS_STAGING_DIR)$(ECHO_END)
 endif
 internal-package-check::
 	@:
@@ -55,7 +55,7 @@ ifeq ($(_THEOS_FINAL_PACKAGE),$(_THEOS_TRUE))
 VERSION.EXTRAVERSION = $(if $(PACKAGE_BUILDNAME),+$(PACKAGE_BUILDNAME))
 _THEOS_PACKAGE_DEFAULT_VERSION_FORMAT = $(THEOS_PACKAGE_BASE_VERSION)$(VERSION.EXTRAVERSION)
 else
-VERSION.INC_BUILD_NUMBER = $(shell THEOS_PROJECT_DIR="$(THEOS_PROJECT_DIR)" "$(THEOS_BIN_PATH)/package_version.sh" -N "$(THEOS_PACKAGE_NAME)" -V "$(__BASEVER_FOR_BUILDNUM)")
+VERSION.INC_BUILD_NUMBER = $(shell THEOS_PROJECT_DIR="$(THEOS_PROJECT_DIR)" _THEOS_LOCAL_DATA_DIR="$(_THEOS_LOCAL_DATA_DIR)" "$(THEOS_BIN_PATH)/package_version.sh" -N "$(THEOS_PACKAGE_NAME)" -V "$(__BASEVER_FOR_BUILDNUM)")
 _THEOS_PACKAGE_DEFAULT_VERSION_FORMAT = $(THEOS_PACKAGE_BASE_VERSION)-$(VERSION.INC_BUILD_NUMBER)$(VERSION.EXTRAVERSION)
 endif
 

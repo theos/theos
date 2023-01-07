@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # exit if anything fails
 set -e
 

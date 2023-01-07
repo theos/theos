@@ -1,18 +1,18 @@
-ifeq ($(_THEOS_STAGING_RULES_LOADED),)
+ifeq ($(_THEOS_STAGING_RULES_LOADED),$(_THEOS_FALSE))
 _THEOS_STAGING_RULES_LOADED := 1
 
 .PHONY: stage before-stage internal-stage after-stage
 
 # For the toplevel invocation of make, mark 'all' and the *-stage rules as prerequisites.
 # We do not do this for anything else, because otherwise, all the staging rules would run for every subproject.
-ifeq ($(_THEOS_TOP_INVOCATION_DONE),)
+ifeq ($(_THEOS_TOP_INVOCATION_DONE),$(_THEOS_FALSE))
 stage:: all before-stage internal-stage after-stage
 else # _THEOS_TOP_INVOCATION_DONE
 stage:: internal-stage
 endif
 
 # Only do the master staging rules if we're the toplevel make invocation.
-ifeq ($(_THEOS_TOP_INVOCATION_DONE),)
+ifeq ($(_THEOS_TOP_INVOCATION_DONE),$(_THEOS_FALSE))
 before-stage::
 	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)"$(ECHO_END)
 	$(ECHO_NOTHING)$(FAKEROOT) -c$(ECHO_END)

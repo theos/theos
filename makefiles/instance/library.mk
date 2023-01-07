@@ -1,4 +1,4 @@
-ifeq ($(_THEOS_RULES_LOADED),)
+ifeq ($(_THEOS_RULES_LOADED),$(_THEOS_FALSE))
 include $(THEOS_MAKE_PATH)/rules.mk
 endif
 

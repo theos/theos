@@ -186,7 +186,7 @@ ALL_STRIP_FLAGS = $(or $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,STRIP_
 _THEOS_OBJ_FILE_TAG = $(call __simplify,_THEOS_OBJ_FILE_TAG,$(shell echo "$(_THEOS_INTERNAL_IFLAGS_C) $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_CCFLAGS) $(ALL_OBJCCFLAGS) $(ALL_LOGOSFLAGS) $(ALL_SWIFTFLAGS) $(ALL_ORIONFLAGS)" | $(_THEOS_PLATFORM_MD5SUM) | cut -c1-8))
 _THEOS_OUT_FILE_TAG = $(call __simplify,_THEOS_OUT_FILE_TAG,$(shell echo "$(ALL_STRIP_FLAGS) $(_THEOS_CODESIGN_COMMANDLINE)" | $(_THEOS_PLATFORM_MD5SUM) | cut -c1-8))
 
-ifeq ($(call __theos_bool,$(or $(USE_DEPS),1)),$(_THEOS_TRUE))
+ifeq ($(call __theos_bool,$(or $(USE_DEPS),$(_THEOS_TRUE))),$(_THEOS_TRUE))
 ALL_DEPFLAGS = -MT $@ -MMD -MP -MF "$(THEOS_OBJ_DIR)/$<.$(_THEOS_OBJ_FILE_TAG).Td"
 DEP_FILES = $(strip $(patsubst %,$(THEOS_OBJ_DIR)/%.$(_THEOS_OBJ_FILE_TAG).Td,$(_FILES)))
 -include $(DEP_FILES)
@@ -234,6 +234,10 @@ endif
 			$(PRINT_FORMAT_ERROR) "File $$i does not exist." $(ERROR_END) \
 		fi; \
 	done
+
+ifeq ($(GO_EASY_ON_ME).$(DEBUG),1.0)
+	@$(PRINT_FORMAT_WARNING) "GO_EASY_ON_ME quiets all errors, which is bad practice. Please migrate to Clang directives (e.g., -Wno-<blah> or #pragma clang diagnostic)." >&2
+endif
 
 after-$(THEOS_CURRENT_INSTANCE)-all::
 	@:
@@ -285,7 +289,7 @@ $(THEOS_OBJ_DIR)/%.i.$(_THEOS_OBJ_FILE_TAG).o: %.i
 
 $(THEOS_OBJ_DIR)/%.s.$(_THEOS_OBJ_FILE_TAG).o: %.s
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
-	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x assembler -c $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $< -o $@$(ECHO_END)
+	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x assembler-with-cpp -c $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $< -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.S.$(_THEOS_OBJ_FILE_TAG).o: %.S
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)

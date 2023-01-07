@@ -19,7 +19,7 @@ ifeq ($(THEOS_PROJECT_DIR),)
 THEOS_PROJECT_DIR := $(shell pwd)
 endif
 _THEOS_RELATIVE_DATA_DIR ?= .theos
-_THEOS_LOCAL_DATA_DIR := $(THEOS_PROJECT_DIR)/$(_THEOS_RELATIVE_DATA_DIR)
+_THEOS_LOCAL_DATA_DIR ?= $(THEOS_PROJECT_DIR)/$(_THEOS_RELATIVE_DATA_DIR)
 _THEOS_BUILD_SESSION_FILE = $(_THEOS_LOCAL_DATA_DIR)/build_session
 _THEOS_SPM_CONFIG_FILE := $(_THEOS_LOCAL_DATA_DIR)/spm_config
 _THEOS_COMPILE_COMMANDS_FILE := $(THEOS_PROJECT_DIR)/compile_commands.json
@@ -127,7 +127,7 @@ __mod = -include $$(foreach mod,$$(_THEOS_LOAD_MODULES),$$(THEOS_MODULE_PATH)/$$
 
 include $(THEOS_MAKE_PATH)/legacy.mk
 
-ifneq ($(_THEOS_PLATFORM_CALCULATED),1)
+ifneq ($(_THEOS_PLATFORM_CALCULATED),$(_THEOS_TRUE))
 uname_s := $(shell uname -s)
 uname_o := $(shell uname -o 2>/dev/null)
 
@@ -141,7 +141,7 @@ endif
 $(eval $(call __mod,platform/$(_THEOS_PLATFORM).mk))
 $(eval $(call __mod,platform/$(_THEOS_OS).mk))
 
-ifneq ($(_THEOS_TARGET_CALCULATED),1)
+ifneq ($(_THEOS_TARGET_CALCULATED),$(_THEOS_TRUE))
 $(call __eval_target,$(target),$(call __schema_var_last,,TARGET),$(_THEOS_PLATFORM_DEFAULT_TARGET))
 export _THEOS_TARGET := $(__THEOS_TARGET_ARG_0)
 ifeq ($(_THEOS_TARGET),)
@@ -157,7 +157,7 @@ $(eval $(call __mod,targets/$(_THEOS_PLATFORM)/$(_THEOS_TARGET).mk))
 $(eval $(call __mod,targets/$(_THEOS_OS)/$(_THEOS_TARGET).mk))
 $(eval $(call __mod,targets/$(_THEOS_TARGET).mk))
 
-ifneq ($(_THEOS_TARGET_LOADED),1)
+ifneq ($(_THEOS_TARGET_LOADED),$(_THEOS_TRUE))
 $(error The "$(_THEOS_TARGET)" target is not supported on the "$(THEOS_PLATFORM_NAME)" platform)
 endif
 
@@ -209,7 +209,7 @@ _THEOS_INTERNAL_IFLAGS_BASE = $(if $(_THEOS_TARGET_HAS_INCLUDE_PATH),-I$(THEOS_T
 _THEOS_INTERNAL_IFLAGS_C = $(_THEOS_INTERNAL_IFLAGS_BASE) -include $(THEOS)/Prefix.pch -iquote $(THEOS_PROJECT_DIR)
 _THEOS_INTERNAL_IFLAGS_SWIFT = $(_THEOS_INTERNAL_IFLAGS_BASE)
 
-ifneq ($(GO_EASY_ON_ME),1)
+ifneq ($(GO_EASY_ON_ME),$(_THEOS_TRUE))
 	_THEOS_INTERNAL_LOGOSFLAGS += -c warnings=error
 	_THEOS_INTERNAL_CFLAGS += -Werror
 endif

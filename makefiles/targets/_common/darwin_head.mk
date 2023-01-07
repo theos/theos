@@ -4,7 +4,7 @@ TARGET_LIB_EXT := .dylib
 TARGET_AR_EXT := .a
 
 TARGET_LDFLAGS_DYNAMICLIB = -dynamiclib -install_name "$(LOCAL_INSTALL_PATH)/$(1)"
-TARGET_CFLAGS_DYNAMICLIB = 
+TARGET_CFLAGS_DYNAMICLIB =
 
 _THEOS_TARGET_SUPPORTS_BUNDLES := 1
 
@@ -96,6 +96,8 @@ ifeq ($(TARGET_DSYMUTIL),)
 		endif
 	endif
 endif
+
+_THEOS_TARGET_CC_VERSION = $(shell $(TARGET_CC) -dumpversion)
 
 # A version specified as a target argument overrides all previous definitions.
 _SDKVERSION := $(or $(__THEOS_TARGET_ARG_$(word 1,$(_THEOS_TARGET_ARG_ORDER))),$(SDKVERSION_$(THEOS_CURRENT_ARCH)),$(SDKVERSION))

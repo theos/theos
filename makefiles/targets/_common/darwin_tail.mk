@@ -41,6 +41,11 @@ _THEOS_TARGET_CFLAGS := -isysroot "$(ISYSROOT)" $(VERSIONFLAGS) $(_THEOS_TARGET_
 _THEOS_TARGET_CCFLAGS := $(_TARGET_LIBCPP_CCFLAGS)
 _THEOS_TARGET_LDFLAGS := -isysroot "$(SYSROOT)" $(VERSIONFLAGS) $(LEGACYFLAGS) -multiply_defined suppress $(_TARGET_LIBCPP_LDFLAGS) $(_TARGET_LIBSWIFT_LDFLAGS)
 
+# if toolchain has prefix, point clang to the ld we want to use
+ifneq ($(_THEOS_TARGET_SDK_BIN_PREFIX),)
+_THEOS_TARGET_LDFLAGS += -fuse-ld=$(SDKBINPATH)/$(_THEOS_TARGET_SDK_BIN_PREFIX)ld
+endif
+
 _THEOS_TARGET_SWIFTFLAGS := -sdk "$(SYSROOT)" $(_THEOS_TARGET_CC_SWIFTFLAGS)
 # we *dont* want to readlink here because if the user has a dual toolchain setup then iphone/bin/swiftc
 # might symlink the host one, but we want to use the iphone res dir and not the host one
