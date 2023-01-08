@@ -16,7 +16,12 @@ ifeq ($(_LOCAL_LOGOS_DEFAULT_GENERATOR),MobileSubstrate)
 _THEOS_INTERNAL_LDFLAGS += -F$(THEOS_VENDOR_LIBRARY_PATH) -framework CydiaSubstrate 
 endif
 
-_THEOS_INTERNAL_LDFLAGS += -rpath /Library/Frameworks -rpath /var/jb/Library/Frameworks -rpath /usr/lib -rpath /var/jb/usr/lib
+ifeq ($(call __theos_bool,$(ROOTLESS)),$(_THEOS_TRUE))
+THEOS_ROOTLESS_PREFIX ?= /var/jb
+_THEOS_INTERNAL_LDFLAGS += -rpath $(THEOS_ROOTLESS_PREFIX)/Library/Frameworks -rpath $(THEOS_ROOTLESS_PREFIX)/usr/lib
+else 
+_THEOS_INTERNAL_LDFLAGS += -rpath /Library/Frameworks -rpath /usr/lib 
+endif
 
 include $(THEOS_MAKE_PATH)/instance/library.mk
 
