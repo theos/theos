@@ -340,7 +340,7 @@ linux() {
 
 	# Check for WSL
 	update "Checking for WSL..."
-	if [[ $(uname -r | sed -n 's/.*\( *Microsoft *\).*/\1/ip') == microsoft ]]; then
+	if [[ $(uname -r | sed -n 's/.*\( *Microsoft *\).*/\L\1/ip') == microsoft ]]; then
 		VERSION=$(uname -r | sed 's/.*\([[:digit:]]\)[[:space:]]*/\1/')
 		if [[ $VERSION -eq 1 ]]; then
 			update "WSL1! Need to fix fakeroot..."
