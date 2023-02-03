@@ -431,12 +431,9 @@ linux() {
 					sudo zypper install -y libncurses5
 					;;
 			esac
-			curl -LO https://github.com/sbingner/llvm-project/releases/latest/download/linux-ios-arm64e-clang-toolchain.tar.lzma
-			TMP=$(mktemp -d)
-			tar -xvf linux-ios-arm64e-clang-toolchain.tar.lzma -C $TMP
-			mkdir -p $THEOS/toolchain/linux/iphone
-			mv $TMP/ios-arm64e-clang-toolchain/* $THEOS/toolchain/linux/iphone/
-			rm -r linux-ios-arm64e-clang-toolchain.tar.lzma $TMP
+			curl -LO https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain.tar.xz
+			tar -xvf iOSToolchain.tar.xz -C $THEOS/toolchain/
+			rm iOSToolchain.tar.xz
 		fi
 
 		# Confirm that toolchain is usable
