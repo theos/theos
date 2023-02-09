@@ -134,7 +134,7 @@ get_sdks() {
 	if [[ -d $THEOS/sdks/ && $(ls -A "$THEOS/sdks/" | grep sdk) ]]; then
 		update "SDKs appear to already be installed."
 	else
-		update "SDKS do not appear to be installed. Installing now..."
+		update "SDKs do not appear to be installed. Installing now..."
 		curl -L https://api.github.com/repos/theos/sdks/tarball -o sdks.tar.gz
 		TMP=$(mktemp -d)
 		tar -xvf sdks.tar.gz --strip=1 -C $TMP
