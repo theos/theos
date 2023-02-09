@@ -58,10 +58,6 @@ elif [[ $CSHELL == zsh ]]; then
 # elif [[ $CSHELL == csh ]]; then
 # 	SHELL_ENV="$HOME/.cshrc"
 fi
-NONINTERACTIVE=0
-if ! [[ -z $CI ]]; then
-	NONINTERACTIVE=1
-fi
 
 
 # The work
@@ -97,7 +93,7 @@ set_theos() {
 				update "'/opt' already exists. Checking its ownership..."
 				# Check that '/opt' isn't owned by root
 				OWNER="$(stat -c '%U' /opt)"
-				if [[ ${OWNER,,} == root ]]; then
+				if [[ $OWNER == root ]]; then
 					update "Owner of '/opt' is root. Attempting to switch owner to mobile..."
 					sudo chown mobile /opt \
 						&& update "Owner of '/opt' successfully transfered to mobile from root!" \
@@ -365,7 +361,7 @@ linux() {
 	else
 		update "A toolchain does not appear to be installed."
 		stoolchain="n"
-		if [[ $NONINTERACTIVE -eq 0 ]]; then
+		if [[ -z $CI ]]; then
 			read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [y/n]" stoolchain
 		fi
 		if theos_bool $stoolchain; then
@@ -480,12 +476,13 @@ linux() {
 
 # 	# Get a toolchain
 # 	update "Checking for iOS toolchain..."
+# 	# TODO: FreeBSD unique toolchain path != /linux/ ?
 # 	if [[ -d $THEOS/toolchain/linux/iphone/ && $(ls -A "$THEOS/toolchain/linux/iphone") ]]; then
 # 		update "A toolchain appears to already be installed."
 # 	else
 # 		update "A toolchain does not appear to be installed."
 # 		stoolchain="n"
-# 		if [[ $NONINTERACTIVE -eq 0 ]]; then
+#		if [[ -z $CI ]]; then
 # 			read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [y/n]" stoolchain
 # 		fi
 # 		if theos_bool $stoolchain; then
@@ -498,16 +495,12 @@ linux() {
 # 			ln -s $THEOS/toolchain/linux/iphone $THEOS/toolchain/swift
 # 			rm -r swift-5.3.2-RELEASE-ubuntu20.04.tar.zst $TMP
 # 		else
-# 			curl -LO https://github.com/sbingner/llvm-project/releases/latest/download/linux-ios-arm64e-clang-toolchain.tar.lzma
-# 			TMP=$(mktemp -d)
-# 			tar -xvf linux-ios-arm64e-clang-toolchain.tar.lzma -C $TMP
-# 			mkdir -p $THEOS/toolchain/linux/iphone
-# 			mv $TMP/ios-arm64e-clang-toolchain/* $THEOS/toolchain/linux/iphone/
-# 			rm -r linux-ios-arm64e-clang-toolchain.tar.lzma $TMP
+#			curl -LO https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain.tar.xz
+#			tar -xvf iOSToolchain.tar.xz -C $THEOS/toolchain/
+#			rm iOSToolchain.tar.xz
 # 		fi
 
 # 		# Confirm that toolchain is usable
-# 		# TODO: FreeBSD unique toolchain path != /linux/ ?
 # 		if [[ -x $THEOS/toolchain/linux/iphone/bin/clang ]]; then
 # 			update "Successfully installed the toolchain!"
 # 		else
