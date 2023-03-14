@@ -153,8 +153,15 @@ get_sdks() {
 darwin() {
 	# Check for Xcode
 	XCODE="$(xcode-select -p)"
-	if [[ $XCODE != *.app/Contents/Developer ]]; then
+	if [[ $XCODE == /Library/Developer/CommandLineTools && ! -d /Applications/Xcode.app/Contents/Developer/ ]]; then
 		error "Xcode, not just the Command Line Tools, is required for Theos to function properly. Please install Xcode before continuing with the installation."
+		common "We recommend that you install Xcode from https://developer.apple.com/download/applications/ instead of from the Mac App Store as it's much faster."
+		exit 3
+	elif [[ $XCODE == /Library/Developer/CommandLineTools && -d /Applications/Xcode.app/Contents/Developer/ ]]; then
+		common "Xcode developer directory is currently $XCODE; switching to /Applications/Xcode.app/Contents/Developer/..."
+		sudo xcode-select -s /Applications/Xcode.app/Contents/Developer/
+	elif [[ $XCODE != *.app/Contents/Developer ]]; then
+		error "Xcode is required for Theos to function properly. Please install Xcode before continuing with the installation."
 		common "We recommend that you install Xcode from https://developer.apple.com/download/applications/ instead of from the Mac App Store as it's much faster."
 		common "If you already have Xcode installed, check the output of 'xcode-select -p'; you may need to change your developer directory via 'sudo xcode-select -s <path>'."
 		exit 3
