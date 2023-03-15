@@ -232,7 +232,7 @@ darwin_mobile() {
 	else
 		# Up-to-date dependencies pkg is exclusive to Procursus, so need to cater install accordingly
 		if [[ -f /.procursus_strapped ]]; then
-			read -p "Do you have 'https://apt.procurs.us' installed in the sources of your jailbreak's primary package manager? [y/n]" ready
+			read -p "Do you have 'https://apt.procursus.us' installed in the sources of your jailbreak's primary package manager? [y/n]" ready
 			if theos_bool $ready; then
 				sudo apt update --allow-insecure-repositories
 				sudo apt install -y --allow-downgrades theos-dependencies \
