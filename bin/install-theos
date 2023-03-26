@@ -58,10 +58,6 @@ elif [[ $CSHELL == zsh ]]; then
 # elif [[ $CSHELL == csh ]]; then
 # 	SHELL_ENV="$HOME/.cshrc"
 fi
-NONINTERACTIVE=0
-if ! [[ -z $CI ]]; then
-	NONINTERACTIVE=1
-fi
 
 
 # The work
@@ -97,7 +93,7 @@ set_theos() {
 				update "'/opt' already exists. Checking its ownership..."
 				# Check that '/opt' isn't owned by root
 				OWNER="$(stat -c '%U' /opt)"
-				if [[ ${OWNER,,} == root ]]; then
+				if [[ $OWNER == root ]]; then
 					update "Owner of '/opt' is root. Attempting to switch owner to mobile..."
 					sudo chown mobile /opt \
 						&& update "Owner of '/opt' successfully transfered to mobile from root!" \
@@ -134,11 +130,11 @@ get_theos() {
 
 get_sdks() {
 	# Get patched sdks
-	update "Checking for patched sdks..."
+	update "Checking for patched SDKs..."
 	if [[ -d $THEOS/sdks/ && $(ls -A "$THEOS/sdks/" | grep sdk) ]]; then
 		update "SDKs appear to already be installed."
 	else
-		update "SDKS do not appear to be installed. Installing now..."
+		update "SDKs do not appear to be installed. Installing now..."
 		curl -L https://api.github.com/repos/theos/sdks/tarball -o sdks.tar.gz
 		TMP=$(mktemp -d)
 		tar -xvf sdks.tar.gz --strip=1 -C $TMP
@@ -157,9 +153,17 @@ get_sdks() {
 darwin() {
 	# Check for Xcode
 	XCODE="$(xcode-select -p)"
-	if [[ $XCODE != *.app/Contents/Developer ]]; then
+	if [[ $XCODE == /Library/Developer/CommandLineTools && ! -d /Applications/Xcode.app/Contents/Developer/ ]]; then
 		error "Xcode, not just the Command Line Tools, is required for Theos to function properly. Please install Xcode before continuing with the installation."
 		common "We recommend that you install Xcode from https://developer.apple.com/download/applications/ instead of from the Mac App Store as it's much faster."
+		exit 3
+	elif [[ $XCODE == /Library/Developer/CommandLineTools && -d /Applications/Xcode.app/Contents/Developer/ ]]; then
+		common "Xcode developer directory is currently $XCODE; switching to /Applications/Xcode.app/Contents/Developer/..."
+		sudo xcode-select -s /Applications/Xcode.app/Contents/Developer/
+	elif [[ $XCODE != *.app/Contents/Developer ]]; then
+		error "Xcode is required for Theos to function properly. Please install Xcode before continuing with the installation."
+		common "We recommend that you install Xcode from https://developer.apple.com/download/applications/ instead of from the Mac App Store as it's much faster."
+		common "If you already have Xcode installed, check the output of 'xcode-select -p'; you may need to change your developer directory via 'sudo xcode-select -s <path>'."
 		exit 3
 	fi
 
@@ -340,7 +344,7 @@ linux() {
 
 	# Check for WSL
 	update "Checking for WSL..."
-	if [[ $(uname -r | sed -n 's/.*\( *Microsoft *\).*/\1/ip') == microsoft ]]; then
+	if [[ $(uname -r | sed -n 's/.*\( *Microsoft *\).*/\L\1/ip') == microsoft ]]; then
 		VERSION=$(uname -r | sed 's/.*\([[:digit:]]\)[[:space:]]*/\1/')
 		if [[ $VERSION -eq 1 ]]; then
 			update "WSL1! Need to fix fakeroot..."
@@ -364,7 +368,7 @@ linux() {
 	else
 		update "A toolchain does not appear to be installed."
 		stoolchain="n"
-		if [[ $NONINTERACTIVE -eq 0 ]]; then
+		if [[ -z $CI ]]; then
 			read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [y/n]" stoolchain
 		fi
 		if theos_bool $stoolchain; then
@@ -430,12 +434,9 @@ linux() {
 					sudo zypper install -y libncurses5
 					;;
 			esac
-			curl -LO https://github.com/sbingner/llvm-project/releases/latest/download/linux-ios-arm64e-clang-toolchain.tar.lzma
-			TMP=$(mktemp -d)
-			tar -xvf linux-ios-arm64e-clang-toolchain.tar.lzma -C $TMP
-			mkdir -p $THEOS/toolchain/linux/iphone
-			mv $TMP/ios-arm64e-clang-toolchain/* $THEOS/toolchain/linux/iphone/
-			rm -r linux-ios-arm64e-clang-toolchain.tar.lzma $TMP
+			curl -LO https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain.tar.xz
+			tar -xvf iOSToolchain.tar.xz -C $THEOS/toolchain/
+			rm iOSToolchain.tar.xz
 		fi
 
 		# Confirm that toolchain is usable
@@ -482,12 +483,13 @@ linux() {
 
 # 	# Get a toolchain
 # 	update "Checking for iOS toolchain..."
+# 	# TODO: FreeBSD unique toolchain path != /linux/ ?
 # 	if [[ -d $THEOS/toolchain/linux/iphone/ && $(ls -A "$THEOS/toolchain/linux/iphone") ]]; then
 # 		update "A toolchain appears to already be installed."
 # 	else
 # 		update "A toolchain does not appear to be installed."
 # 		stoolchain="n"
-# 		if [[ $NONINTERACTIVE -eq 0 ]]; then
+#		if [[ -z $CI ]]; then
 # 			read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [y/n]" stoolchain
 # 		fi
 # 		if theos_bool $stoolchain; then
@@ -500,16 +502,12 @@ linux() {
 # 			ln -s $THEOS/toolchain/linux/iphone $THEOS/toolchain/swift
 # 			rm -r swift-5.3.2-RELEASE-ubuntu20.04.tar.zst $TMP
 # 		else
-# 			curl -LO https://github.com/sbingner/llvm-project/releases/latest/download/linux-ios-arm64e-clang-toolchain.tar.lzma
-# 			TMP=$(mktemp -d)
-# 			tar -xvf linux-ios-arm64e-clang-toolchain.tar.lzma -C $TMP
-# 			mkdir -p $THEOS/toolchain/linux/iphone
-# 			mv $TMP/ios-arm64e-clang-toolchain/* $THEOS/toolchain/linux/iphone/
-# 			rm -r linux-ios-arm64e-clang-toolchain.tar.lzma $TMP
+#			curl -LO https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain.tar.xz
+#			tar -xvf iOSToolchain.tar.xz -C $THEOS/toolchain/
+#			rm iOSToolchain.tar.xz
 # 		fi
 
 # 		# Confirm that toolchain is usable
-# 		# TODO: FreeBSD unique toolchain path != /linux/ ?
 # 		if [[ -x $THEOS/toolchain/linux/iphone/bin/clang ]]; then
 # 			update "Successfully installed the toolchain!"
 # 		else
