@@ -22,6 +22,10 @@ THEOS_PACKAGE_ARCH :=
 THEOS_PACKAGE_BASE_VERSION :=
 # THEOS_PACKAGE_VERSION is set in common.mk (to give its warning.)
 
+ifeq ($(THEOS_PACKAGE_SCHEME),rootless)
+	THEOS_PACKAGE_INSTALL_PREFIX ?= /var/jb
+endif
+
 -include $(THEOS_MAKE_PATH)/package/$(_THEOS_PACKAGE_FORMAT).mk
 $(eval $(call __mod,package/$(_THEOS_PACKAGE_FORMAT).mk))
 
