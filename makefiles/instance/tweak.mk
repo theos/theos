@@ -13,7 +13,13 @@ _LOCAL_LOGOS_DEFAULT_GENERATOR = $(or $($(THEOS_CURRENT_INSTANCE)_LOGOS_DEFAULT_
 _THEOS_INTERNAL_LOGOSFLAGS += -c generator=$(_LOCAL_LOGOS_DEFAULT_GENERATOR)
 
 ifeq ($(_LOCAL_LOGOS_DEFAULT_GENERATOR),MobileSubstrate)
-_THEOS_INTERNAL_LDFLAGS += -F$(THEOS_VENDOR_LIBRARY_PATH) -framework CydiaSubstrate
+	# TODO: We should be able to unify this vendor library path logic somehow
+	ifeq ($(THEOS_PACKAGE_SCHEME),)
+		_THEOS_INTERNAL_LDFLAGS += -F$(THEOS_VENDOR_LIBRARY_PATH)
+	endif
+	_THEOS_INTERNAL_LDFLAGS += \
+		-F$(THEOS_VENDOR_LIBRARY_PATH)/$(THEOS_TARGET_NAME)/$(or $(THEOS_PACKAGE_SCHEME),rootful) \
+		-framework CydiaSubstrate
 endif
 
 include $(THEOS_MAKE_PATH)/instance/library.mk
