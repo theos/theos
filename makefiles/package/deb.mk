@@ -69,6 +69,9 @@ ifeq ($(THEOS_PACKAGE_SCHEME),rootless)
 # Delete everything except DEBIAN/ and /var
 	$(ECHO_NOTHING)find "$(THEOS_STAGING_DIR)" -mindepth 1 -maxdepth 1 ! -name DEBIAN ! -name "var" -exec rm -rf {} \;$(ECHO_END)
 	$(ECHO_NOTHING)rmdir "$(THEOS_STAGING_DIR)$(THEOS_PACKAGE_INSTALL_PREFIX)/var" >/dev/null || true$(ECHO_END)
+# Delete $(THEOS_PACKAGE_INSTALL_PREFIX) directory if it's empty
+	$(ECHO_NOTHING)[ "$(ls -A "$(THEOS_STAGING_DIR)$(THEOS_PACKAGE_INSTALL_PREFIX)")" ] || rmdir "$(THEOS_STAGING_DIR)$(THEOS_PACKAGE_INSTALL_PREFIX)" 2>/dev/null || true$(ECHO_END)
+	$(ECHO_NOTHING)[ "$(ls -A "$(THEOS_STAGING_DIR)/var")" ] || rmdir "$(THEOS_STAGING_DIR)/var" 2>/dev/null || true$(ECHO_END)
 endif
 	$(ECHO_NOTHING)COPYFILE_DISABLE=1 $(FAKEROOT) -r $(_THEOS_PLATFORM_DPKG_DEB) -Z$(_THEOS_PLATFORM_DPKG_DEB_COMPRESSION) -z$(THEOS_PLATFORM_DEB_COMPRESSION_LEVEL) -b "$(THEOS_STAGING_DIR)" "$(_THEOS_DEB_PACKAGE_FILENAME)"$(ECHO_END)
 
