@@ -15,7 +15,10 @@ _LOCAL_INSTANCE_TARGET := $(_LOCAL_BUNDLE_FULL_NAME)$(_THEOS_TARGET_BUNDLE_BINAR
 include $(THEOS_MAKE_PATH)/instance/shared/bundle.mk
 
 ifeq ($(call __theos_bool,$(or $($(THEOS_CURRENT_INSTANCE)_DYNAMIC_LIBRARY),$(_THEOS_TRUE))),$(_THEOS_TRUE))
-_THEOS_INTERNAL_LDFLAGS += -dynamiclib -install_name "@rpath/$(_LOCAL_INSTANCE_TARGET)"
+_THEOS_INTERNAL_LDFLAGS += -dynamiclib
+ifeq ($(_TARGET_VERSION_GE_8_4),1)
+_THEOS_INTERNAL_LDFLAGS += -install_name "@rpath/$(_LOCAL_INSTANCE_TARGET)"
+endif
 endif
 # End Bundle Setup
 
