@@ -55,13 +55,6 @@ ifneq ($(call __exists,$(THEOS_VENDOR_INCLUDE_PATH)/.git)$(call __exists,$(THEOS
 	$(ERROR_BEGIN) "The vendor/include and/or vendor/lib directories are missing. Please run \`$(THEOS)/bin/update-theos\`. More information: https://theos.dev/install" $(ERROR_END)
 endif
 
-ifeq ($(call __exists,$(THEOS_LEGACY_PACKAGE_DIR)),$(_THEOS_TRUE))
-ifneq ($(call __exists,$(THEOS_PACKAGE_DIR)),$(_THEOS_TRUE))
-	@$(PRINT_FORMAT) "The \"debs\" directory has been renamed to \"packages\". Moving it." >&2
-	$(ECHO_NOTHING)mv "$(THEOS_LEGACY_PACKAGE_DIR)" "$(THEOS_PACKAGE_DIR)"$(ECHO_END)
-endif
-endif
-
 internal-all::
 
 after-all::
