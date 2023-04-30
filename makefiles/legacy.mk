@@ -63,11 +63,16 @@ $(warning FW_DEVICE_PORT is deprecated. Please migrate to THEOS_DEVICE_PORT.)
 THEOS_DEVICE_PORT ?= $(FW_DEVICE_PORT)
 endif
 
-THEOS_PACKAGE_VERSION = $(call __simplify,THEOS_PACKAGE_VERSION,$(THEOS_PACKAGE_BASE_VERSION)$(warning THEOS_PACKAGE_VERSION is deprecated. Please migrate to THEOS_PACKAGE_BASE_VERSION.))
+THEOS_PACKAGE_VERSION = $(call __simplify,THEOS_PACKAGE_VERSION,$(THEOS_PACKAGE_BASE_VERSION)$(warning THEOS_PACKAGE_VERSION is deprecated. Please migrate to THEOS_PACKAGE_BASE_VERSION.)
 
 ifeq ($(call __exists,$(THEOS_BUILD_DIR)/debs),$(_THEOS_TRUE))
 ifneq ($(call __exists,$(THEOS_BUILD_DIR)/packages),$(_THEOS_TRUE))
 $(warning The "debs" directory has been renamed to "packages." Moving it.)
 $(shell mv "$(THEOS_BUILD_DIR)/debs" "$(THEOS_BUILD_DIR)/packages")
 endif
+endif
+
+ifneq ($(ADDITIONAL_CPPFLAGS),)
+$(warning ADDITIONAL_CPPFLAGS is deprecated. Please migrate to ADDITIONAL_CCFLAGS.)
+ADDITIONAL_CCFLAGS += $(ADDITIONAL_CPPFLAGS)
 endif
