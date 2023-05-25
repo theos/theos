@@ -144,7 +144,7 @@ _TARGET_SWIFTC := $(TARGET_SWIFTC)
 # we use PWD instead of THEOS_PROJECT_DIR because the latter always refers to the root level project
 # so it isn't correct for subprojects.
 ifneq ($(firstword $(_TARGET_SWIFTC)),$(THEOS_BIN_PATH)/gen-commands.pl)
-TARGET_SWIFTC = $(THEOS_BIN_PATH)/gen-commands.pl $(_THEOS_TMP_COMPILE_COMMANDS_FILE) $${PWD} swift $(filter $(__USER_FILES),$^) -- $(_TARGET_SWIFTC)
+TARGET_SWIFTC = $(THEOS_BIN_PATH)/gen-commands.pl $(_THEOS_TMP_COMPILE_COMMANDS_FILE) $${PWD} swift $(filter $(__USER_FILES),$(SWIFT_FILES)) -- $(_TARGET_SWIFTC)
 endif
 _TARGET_CXX := $(TARGET_CXX)
 ifneq ($(firstword $(_TARGET_CXX)),$(THEOS_BIN_PATH)/gen-commands.pl)
