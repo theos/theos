@@ -307,9 +307,7 @@ $(THEOS_OBJ_DIR)/%.mi: %.xi
 $(THEOS_OBJ_DIR)/%.xi.$(_THEOS_OBJ_FILE_TAG).o: %.xi $(THEOS_OBJ_DIR)/%.mi
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x objective-c -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(THEOS_OBJ_DIR)/$<.mi -o $@$(ECHO_END)
-ifeq ($(KEEP_LOGOS_INTERMEDIATES), $(_THEOS_TRUE))
-.PRECIOUS: $(THEOS_OBJ_DIR)/%.xi.mi
-else
+ifneq ($(KEEP_LOGOS_INTERMEDIATES), $(_THEOS_TRUE))
 	$(ECHO_NOTHING)rm $(THEOS_OBJ_DIR)/$<.mi$(ECHO_END)
 endif
 
@@ -322,9 +320,7 @@ $(THEOS_OBJ_DIR)/%.mii: %.xmi
 $(THEOS_OBJ_DIR)/%.xmi.$(_THEOS_OBJ_FILE_TAG).o: %.xmi $(THEOS_OBJ_DIR)/%.mii
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x objective-c++ -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_CCFLAGS) $(ALL_OBJCCFLAGS) $(THEOS_OBJ_DIR)/$<.mii -o $@$(ECHO_END)
-ifeq ($(KEEP_LOGOS_INTERMEDIATES), $(_THEOS_TRUE))
-.PRECIOUS: $(THEOS_OBJ_DIR)/%.xmi.mii
-else
+ifneq ($(KEEP_LOGOS_INTERMEDIATES), $(_THEOS_TRUE))
 	$(ECHO_NOTHING)rm $(THEOS_OBJ_DIR)/$<.mii$(ECHO_END)
 endif
 
