@@ -49,6 +49,13 @@ endif
 
 _THEOS_XCODE_BUILD_CONFIG = $(if $(findstring DEBUG,$(THEOS_SCHEMA)),Debug,Release)
 _THEOS_XCODE_BUILD_COMMAND := $(if $(_THEOS_FINAL_PACKAGE),archive,build install)
+_THEOS_XCODE_VERSION := $(shell xcodebuild -version | head -n1 | cut -d' ' -f2)
+_THEOS_XCODE_VERSION_GE_14_3 := $(call __vercmp,$(_THEOS_XCODE_VERSION),ge,14.3)
+ifeq ($(_THEOS_XCODE_VERSION_GE_14_3),1)
+	_THEOS_XCODEBUILD_PROJECT_DEST := INSTALL_ROOT=$(THEOS_OBJ_DIR)/install
+else
+	_THEOS_XCODEBUILD_PROJECT_DEST := DSTROOT=$(THEOS_OBJ_DIR)/install
+endif
 
 # Try a workspace or project the user has already specified, falling back to figuring out the
 # workspace or project ourselves based on the instance name.
@@ -69,7 +76,7 @@ _THEOS_XCODEBUILD_BEGIN = $(ECHO_NOTHING)set -eo pipefail; $(TARGET_XCODEBUILD) 
 _THEOS_XCODEBUILD_END = CODE_SIGNING_ALLOWED=NO \
 	ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES=NO \
 	ENABLE_BITCODE=$(or $($(THEOS_CURRENT_INSTANCE)_ENABLE_BITCODE),NO) \
-	DSTROOT=$(THEOS_OBJ_DIR)/install \
+	$(_THEOS_XCODEBUILD_PROJECT_DEST) \
 	$(_THEOS_XCODE_XCPRETTY)$(ECHO_END)
 export EXPANDED_CODE_SIGN_IDENTITY =
 export EXPANDED_CODE_SIGN_IDENTITY_NAME =
