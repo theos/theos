@@ -49,36 +49,41 @@ ifeq ($(call __executable,$(SWIFTBINPATH)/swift),$(_THEOS_TRUE))
 endif
 
 # __invocation returns the command-line invocation for the tool specified as its argument.
-ifneq ($(PREFIX),)
+_THEOS_TARGET_PREFIX := $(or $(call __schema_var_all,,PREFIX),$(PREFIX))
+ifneq ($(_THEOS_TARGET_PREFIX),)
 	# Linux, Cygwin
-	__invocation = $(PREFIX)$(1)
+	__invocation = $(_THEOS_TARGET_PREFIX)$(1)
 else ifeq ($(_THEOS_PLATFORM_HAS_XCODE),$(_THEOS_TRUE))
 	# macOS
-	__invocation = $(shell xcrun -sdk $(_THEOS_TARGET_PLATFORM_NAME) -f $(1) 2>/dev/null)
+	__invocation = $(shell DEVELOPER_DIR=$(THEOS_PLATFORM_SDK_ROOT) xcrun -sdk $(_THEOS_TARGET_PLATFORM_NAME) -f $(1) 2>/dev/null)
 else
 	# iOS
 	__invocation = $(1)
 endif
 
-TARGET_CC ?= $(call __invocation,$(_THEOS_TARGET_CC))
-TARGET_CXX ?= $(call __invocation,$(_THEOS_TARGET_CXX))
-TARGET_LD ?= $(call __invocation,$(_THEOS_TARGET_CXX))
-TARGET_SWIFT ?= $(call __invocation,$(_THEOS_TARGET_SWIFT))
-TARGET_LIPO ?= $(call __invocation,lipo)
-TARGET_STRIP ?= $(call __invocation,strip)
-TARGET_CODESIGN_ALLOCATE ?= $(call __invocation,codesign_allocate)
-TARGET_LIBTOOL ?= $(call __invocation,libtool)
-TARGET_XCODEBUILD ?= $(call __invocation,xcodebuild)
-TARGET_XCPRETTY ?= $(call __invocation,xcpretty)
+__target = $(or $(call __schema_var_all,,$(1)),$($(1)),$(call __invocation,$(2)))
+
+TARGET_CC := $(call __target,TARGET_CC,$(_THEOS_TARGET_CC))
+TARGET_CXX := $(call __target,TARGET_CXX,$(_THEOS_TARGET_CXX))
+TARGET_LD := $(call __target,TARGET_LD,$(_THEOS_TARGET_CXX))
+TARGET_SWIFT := $(call __target,TARGET_SWIFT,$(_THEOS_TARGET_SWIFT))
+TARGET_LIPO := $(call __target,TARGET_LIPO,lipo)
+TARGET_STRIP := $(call __target,TARGET_STRIP,strip)
+TARGET_CODESIGN_ALLOCATE := $(call __target,TARGET_CODESIGN_ALLOCATE,codesign_allocate)
+TARGET_LIBTOOL := $(call __target,TARGET_LIBTOOL,libtool)
+TARGET_XCODEBUILD := $(call __target,TARGET_XCODEBUILD,xcodebuild)
+TARGET_XCPRETTY := $(call __target,TARGET_XCPRETTY,xcpretty)
+
+# note: we could slightly optimize invocation calculations by exporting them but
+# that would disallow overriding particular tools for particular arch schemas
+# and so on
 
 TARGET_STRIP_FLAGS ?= -x
 
-ifeq ($(TARGET_DSYMUTIL),)
 ifeq ($(call __executable,$(call __invocation,dsymutil)),$(_THEOS_TRUE))
-	TARGET_DSYMUTIL = $(call __invocation,dsymutil)
+	TARGET_DSYMUTIL := $(call __target,TARGET_DSYMUTIL,dsymutil)
 else ifeq ($(call __executable,$(call __invocation,llvm-dsymutil)),$(_THEOS_TRUE))
-	TARGET_DSYMUTIL = $(call __invocation,llvm-dsymutil)
-endif
+	TARGET_DSYMUTIL := $(call __target,TARGET_DSYMUTIL,llvm-dsymutil)
 endif
 
 _THEOS_TARGET_CC_VERSION = $(shell $(TARGET_CC) -dumpversion)
