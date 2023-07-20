@@ -46,14 +46,23 @@ PLATFORM=$(uname)
 CSHELL="${SHELL##*/}"
 SHELL_ENV="unknown"
 if [[ $CSHELL == sh || $CSHELL == bash || $CSHELL == dash ]]; then
-	# Arch doesn't have/read from .profile :/
-	if [[ -f $HOME/.bash_profile && ! -f $HOME/.profile ]]; then
+	# Bash prioritizes bashrc > bash_profile > profile
+	if [[ -f $HOME/.bashrc ]]; then
+		SHELL_ENV="$HOME/.bashrc"
+	elif [[ -f $HOME/.bash_profile ]]; then
 		SHELL_ENV="$HOME/.bash_profile"
 	else
 		SHELL_ENV="$HOME/.profile"
 	fi
 elif [[ $CSHELL == zsh ]]; then
-	SHELL_ENV="$HOME/.zshenv"
+	# Zsh prioritizes zshenv > zprofile > zshrc
+	if [[ -f $HOME/.zshenv ]]; then
+		SHELL_ENV="$HOME/.zshenv"
+	elif [[ -f $HOME/.zprofile ]]; then
+		SHELL_ENV="$HOME/.zprofile"
+	else
+		SHELL_ENV="$HOME/.zshrc"
+	fi
 # TODO
 # elif [[ $CSHELL == csh ]]; then
 # 	SHELL_ENV="$HOME/.cshrc"
