@@ -62,7 +62,7 @@ endif
 
 TARGET_CC ?= $(call __invocation,$(_THEOS_TARGET_CC))
 TARGET_CXX ?= $(call __invocation,$(_THEOS_TARGET_CXX))
-TARGET_LD ?= $(call __invocation,$(_THEOS_TARGET_CXX))
+TARGET_LD ?= $(call __invocation,$(_THEOS_TARGET_CC))
 TARGET_SWIFT ?= $(call __invocation,$(_THEOS_TARGET_SWIFT))
 TARGET_LIPO ?= $(call __invocation,lipo)
 TARGET_STRIP ?= $(call __invocation,strip)

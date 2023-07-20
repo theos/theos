@@ -27,6 +27,12 @@ endif
 
 OBJ_FILES_TO_LINK = $(strip $(addprefix $(THEOS_OBJ_DIR)/,$(OBJ_FILES)) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,OBJ_FILES) $(SUBPROJECT_OBJ_FILES))
 _OBJ_DIR_STAMPS = $(sort $(foreach o,$(filter $(THEOS_OBJ_DIR)%,$(OBJ_FILES_TO_LINK)),$(dir $o).stamp))
+ifneq ($(OBJ_FILES_TO_LINK),)
+_THEOS_CXX_FILE_TYPES = .mm .mii .cc .cp .cxx .cpp .ii .xm .xmi
+ifneq ($(strip $(foreach type,$(_THEOS_CXX_FILE_TYPES),$(findstring $(type),$(OBJ_FILES_TO_LINK)))),)
+TARGET_LD = $(TARGET_CXX)
+endif
+endif
 
 ADDITIONAL_CPPFLAGS += $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,CPPFLAGS)
 
