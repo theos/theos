@@ -47,14 +47,8 @@ jobs:
           # "/docs/" is for the docs root which is "./docs/index.html" since need relative links
           sed -i 's/<a href="\/docs\/">Home<\/a>/<a href="\/docs\/index.html">Home<\/a>/g' docs/*.html
 
-          # need to mask http "/docs/" links so we can modify for "/docs/*.html"
-          sed -i 's/href="https:\/\/theos.dev\/docs\//href="https:\/\/mask/g' docs/*.html
-
-          # the actual modification target "/docs/" to "./"
+          # make rest of the links relative "/docs/" to "./"
           sed -i 's/href="\/docs\//href=".\//g' docs/*.html
-
-          # undoing the http masking mentioned above
-          sed -i 's/href="https:\/\/mask/href="https:\/\/theos.dev\/docs\//g' docs/*.html
 
           # this is local, so not deployed anywhere
           sed -i 's/ Deployed on <a href="https:\/\/netlify.com">Netlify<\/a>.//g' docs/*.html
