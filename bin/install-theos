@@ -411,6 +411,7 @@ linux() {
 			mv $TMP/swift-5.3.2-RELEASE-ubuntu20.04/* $THEOS/toolchain/linux/iphone/
 			ln -s $THEOS/toolchain/linux/iphone $THEOS/toolchain/swift
 			rm -r swift-5.3.2-RELEASE-ubuntu20.04.tar.zst $TMP
+			curl -L https://github.com/ProcursusTeam/ldid/releases/latest/download/ldid_linux_x86_64 -o $THEOS/toolchain/linux/iphone/bin/ldid
 		else
 			case $DISTRO in
 				debian)
