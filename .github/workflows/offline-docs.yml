@@ -1,0 +1,35 @@
+name: Update Offline Docs
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'master'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.7.2'
+
+      - name: Build docs
+        run: |
+          git clone --depth=1 --recursive https://github.com/theos/theos.dev tmp
+          cd tmp
+          make all
+          cp -av _site/docs/ ../
+          rm -rf tmp
+
+      - name: Update docs
+        run: |
+          git config --global user.name "$GITHUB_ACTOR"
+          git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git add docs
+          git commit --all -m "[docs] Update offline docs to the latest commit" && git push || echo "No changes were made"
