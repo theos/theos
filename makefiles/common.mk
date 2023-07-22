@@ -15,13 +15,6 @@ ifeq ($(SHELL),/bin/sh)
 export SHELL = bash
 endif
 
-ifeq ($(THEOS_PROJECT_DIR),)
-THEOS_PROJECT_DIR := $(shell pwd)
-endif
-_THEOS_RELATIVE_DATA_DIR ?= .theos
-_THEOS_LOCAL_DATA_DIR ?= $(THEOS_PROJECT_DIR)/$(_THEOS_RELATIVE_DATA_DIR)
-_THEOS_BUILD_SESSION_FILE = $(_THEOS_LOCAL_DATA_DIR)/build_session
-
 ### Functions
 # Function for getting a clean absolute path from cd.
 __clean_pwd = $(shell (unset CDPATH; cd "$(1)"; pwd))
@@ -34,13 +27,22 @@ __exists = $(if $(wildcard $(1)),$(_THEOS_TRUE),$(_THEOS_FALSE))
 __executable = $(if $(shell PATH="$(THEOS_BIN_PATH):$$PATH" type "$(1)" > /dev/null 2>&1 && echo 1),$(_THEOS_TRUE),$(_THEOS_FALSE))
 # Static redefinition
 __simplify = $(2)$(eval $(1):=$(2))
+# Path validation
+__format_validate = $(shell [ $(words $(1)) -eq 1 ] && echo 1)
+__validate = $(and $(call __format_validate,$(1)),$(call __exists,$(1)))
 ###
 
 __THEOS_COMMON_MK_VERSION := 1k
 
-ifneq ($(words $(THEOS_PROJECT_DIR)),1)
-$(error Your project is located at “$(THEOS_PROJECT_DIR)”, which contains spaces. Spaces are not supported in the project path)
+ifeq ($(THEOS_PROJECT_DIR),)
+THEOS_PROJECT_DIR := $(shell pwd)
 endif
+ifneq ($(call __validate,$(THEOS_PROJECT_DIR)),$(_THEOS_TRUE))
+$(error Your project is located at “$(THEOS_PROJECT_DIR)”, which either contains spaces or does not exist)
+endif
+_THEOS_RELATIVE_DATA_DIR ?= .theos
+_THEOS_LOCAL_DATA_DIR ?= $(THEOS_PROJECT_DIR)/$(_THEOS_RELATIVE_DATA_DIR)
+_THEOS_BUILD_SESSION_FILE = $(_THEOS_LOCAL_DATA_DIR)/build_session
 
 ifeq ($(_THEOS_PROJECT_MAKEFILE_NAME),)
 _THEOS_STATIC_MAKEFILE_LIST := $(filter-out $(lastword $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
@@ -66,6 +68,27 @@ THEOS_VENDOR_INCLUDE_PATH := $(THEOS)/vendor/include
 THEOS_FALLBACK_INCLUDE_PATH := $(THEOS)/include/_fallback
 THEOS_MODULE_PATH := $(THEOS)/mod
 THEOS_SDKS_PATH := $(THEOS)/sdks
+
+ifneq ($(call __validate,$(THEOS_MAKE_PATH)),$(_THEOS_TRUE))
+$(error “$(THEOS_MAKE_PATH)” either contains spaces or does not exist)
+else ifneq ($(call __validate,$(THEOS_BIN_PATH)),$(_THEOS_TRUE))
+$(error “$(THEOS_BIN_PATH)” either contains spaces or does not exist)
+else ifneq ($(call __validate,$(THEOS_LIBRARY_PATH)),$(_THEOS_TRUE))
+$(error “$(THEOS_LIBRARY_PATH)” either contains spaces or does not exist)
+else ifneq ($(call __validate,$(THEOS_VENDOR_LIBRARY_PATH)),$(_THEOS_TRUE))
+$(error “$(THEOS_VENDOR_LIBRARY_PATH)” either contains spaces or does not exist)
+else ifneq ($(call __validate,$(THEOS_INCLUDE_PATH)),$(_THEOS_TRUE))
+$(error “$(THEOS_INCLUDE_PATH)” either contains spaces or does not exist)
+else ifneq ($(call __validate,$(THEOS_VENDOR_INCLUDE_PATH)),$(_THEOS_TRUE))
+$(error “$(THEOS_VENDOR_INCLUDE_PATH)” either contains spaces or does not exist)
+else ifneq ($(call __format_validate,$(THEOS_FALLBACK_INCLUDE_PATH)),$(_THEOS_TRUE))
+$(error “$(THEOS_FALLBACK_INCLUDE_PATH)” contains spaces which are not supported in project paths)
+else ifneq ($(call __validate,$(THEOS_MODULE_PATH)),$(_THEOS_TRUE))
+$(error “$(THEOS_MODULE_PATH)” either contains spaces or does not exist)
+else ifneq ($(call __validate,$(THEOS_SDKS_PATH)),$(_THEOS_TRUE))
+$(error “$(THEOS_SDKS_PATH)” either contains spaces or does not exist)
+endif
+
 export THEOS THEOS_BIN_PATH THEOS_MAKE_PATH THEOS_LIBRARY_PATH THEOS_VENDOR_LIBRARY_PATH THEOS_INCLUDE_PATH THEOS_VENDOR_INCLUDE_PATH THEOS_FALLBACK_INCLUDE_PATH
 export THEOS_PROJECT_DIR
 
@@ -114,7 +137,7 @@ include $(THEOS_MAKE_PATH)/target.mk
 THEOS_LAYOUT_DIR_NAME ?= layout
 THEOS_LAYOUT_DIR ?= $(THEOS_PROJECT_DIR)/$(THEOS_LAYOUT_DIR_NAME)
 ifeq ($(_THEOS_HAS_STAGING_LAYOUT),)
-_THEOS_HAS_STAGING_LAYOUT := $(call __exists,$(THEOS_LAYOUT_DIR))
+_THEOS_HAS_STAGING_LAYOUT := $(call __validate,$(THEOS_LAYOUT_DIR))
 endif
 
 _THEOS_LOAD_MODULES := $(sort $(call __schema_var_all,,MODULES) $(THEOS_AUTOLOAD_MODULES))
@@ -162,8 +185,8 @@ export TARGET_CC TARGET_CXX TARGET_LD TARGET_STRIP TARGET_CODESIGN_ALLOCATE TARG
 
 THEOS_TARGET_INCLUDE_PATH := $(THEOS_INCLUDE_PATH)/$(THEOS_TARGET_NAME)
 THEOS_TARGET_LIBRARY_PATH := $(THEOS_LIBRARY_PATH)/$(THEOS_TARGET_NAME)
-_THEOS_TARGET_HAS_INCLUDE_PATH := $(call __exists,$(THEOS_TARGET_INCLUDE_PATH))
-_THEOS_TARGET_HAS_LIBRARY_PATH := $(call __exists,$(THEOS_TARGET_LIBRARY_PATH))
+_THEOS_TARGET_HAS_INCLUDE_PATH := $(call __validate,$(THEOS_TARGET_INCLUDE_PATH))
+_THEOS_TARGET_HAS_LIBRARY_PATH := $(call __validate,$(THEOS_TARGET_LIBRARY_PATH))
 
 # Package Format requires Target default and falls back to `none'.
 _THEOS_PACKAGE_FORMAT := $(or $(call __schema_var_last,,$(_THEOS_TARGET_NAME_DEFINE)_PACKAGE_FORMAT),$(call __schema_var_last,,PACKAGE_FORMAT),$(_THEOS_TARGET_DEFAULT_PACKAGE_FORMAT),none)
@@ -248,6 +271,16 @@ THEOS_STAGING_DIR ?= $(_THEOS_LOCAL_DATA_DIR)/$(THEOS_STAGING_DIR_NAME)
 THEOS_PACKAGE_DIR_NAME ?= packages
 THEOS_PACKAGE_DIR ?= $(THEOS_BUILD_DIR)/$(THEOS_PACKAGE_DIR_NAME)
 THEOS_LEGACY_PACKAGE_DIR = $(THEOS_BUILD_DIR)/debs
+
+ifneq ($(call __validate,$(THEOS_BUILD_DIR)),$(_THEOS_TRUE))
+$(error “$(THEOS_BUILD_DIR)” either contains spaces or does not exist)
+else ifneq ($(call __format_validate,$(THEOS_OBJ_DIR)),$(_THEOS_TRUE))
+$(error “$(THEOS_OBJ_DIR)” contains spaces which are not supported in project paths)
+else ifneq ($(call __format_validate,$(THEOS_STAGING_DIR)),$(_THEOS_TRUE))
+$(error “$(THEOS_STAGING_DIR)” contains spaces which are not supported in project paths)
+else ifneq ($(call __format_validate,$(THEOS_PACKAGE_DIR)),$(_THEOS_TRUE))
+$(error “$(THEOS_PACKAGE_DIR)” contains spaces which are not supported in project paths)
+endif
 
 THEOS_SUBPROJECT_PRODUCT = subproject.a
 

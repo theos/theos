@@ -10,6 +10,12 @@ _THEOS_TARGET_PLATFORM_SWIFT_NAME := apple-ios
 SWIFTBINPATH ?= $(THEOS)/toolchain/swift/bin
 SDKBINPATH ?= $(THEOS)/toolchain/$(THEOS_PLATFORM_NAME)/$(THEOS_TARGET_NAME)/bin
 
+ifneq ($(call __format_validate,$(SWIFTBINPATH)),$(_THEOS_TRUE))
+$(ERROR_BEGIN)"$(SWIFTBINPATH) contains spaces which are not allowed in project paths."$(ERROR_END)
+else ifneq ($(call __format_validate,$(SDKBINPATH)),$(_THEOS_TRUE))
+$(ERROR_BEGIN)"$(SDKBINPATH) contains spaces which are not allowed in project paths."$(ERROR_END)
+endif
+
 # Determine toolchain to use based on file existence.
 ifeq ($(_THEOS_TARGET_SDK_BIN_PREFIX),)
 ifeq ($(call __exists,$(SDKBINPATH)/armv7-apple-darwin11-ld),$(_THEOS_TRUE))

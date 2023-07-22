@@ -45,7 +45,7 @@ before-all::
 ifeq ($(SYSROOT),)
 	$(ERROR_BEGIN) "A SYSROOT could not be found. For instructions on installing an SDK: https://theos.dev/docs/installation" $(ERROR_END)
 else
-ifneq ($(call __exists,$(SYSROOT)),$(_THEOS_TRUE))
+ifneq ($(call __validate,$(SYSROOT)),$(_THEOS_TRUE))
 	$(ERROR_BEGIN) "Your current SYSROOT, “$(SYSROOT)”, appears to be missing." $(ERROR_END)
 endif
 endif
