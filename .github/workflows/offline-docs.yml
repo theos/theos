@@ -32,12 +32,12 @@ jobs:
         run: |
           make -C tmp all
           cp -av tmp/_site/docs/ .
-          cp -av tmp/_site/assets/ docs/
+          cp -av tmp/_site/assets/*.css docs/
           rm -rf tmp
 
       - name: Cleanup broken formatting
         run: |
-          sed -i 's/\/assets\//\/docs\/assets\//g' docs/*.html
+          sed -i 's/\/assets\//\/docs\//g' docs/*.html
           sed -i '/<svg.*12.*/,/<\/svg>/d' docs/*.html
           sed -i 's/ Deployed on <a href="https:\/\/netlify.com">Netlify<\/a>.//g' docs/*.html
 
