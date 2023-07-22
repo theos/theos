@@ -11,7 +11,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout theos/theos
+        uses: actions/checkout@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -19,13 +20,19 @@ jobs:
         with:
           ruby-version: '2.7.2'
 
+      - name: Checkout theos/theos.dev
+        uses: actions/checkout@v3
+        with:
+          repository: theos/theos.dev
+          path: tmp
+          submodules: recursive
+          fetch-depth: 1
+
       - name: Build docs
         run: |
-          git clone --depth=1 --recursive https://github.com/theos/theos.dev tmp
-          cd tmp
-          make all
-          cp -av _site/docs/ ../
-          rm -rf tmp
+          make -C tmp all
+          cp -av tmp/_site/docs/ .
+          rm -rvf tmp
 
       - name: Cleanup broken formatting
         run: |
@@ -37,4 +44,4 @@ jobs:
           git config --global user.name "$GITHUB_ACTOR"
           git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
           git add docs
-          git commit --all -m "[docs] Update offline docs to the latest commit" && git push || echo "No changes were made"
+          git commit -m "[docs] Update offline docs to the latest commit" && git push || echo "No changes were made"
