@@ -27,6 +27,11 @@ jobs:
           cp -av _site/docs/ ../
           rm -rf tmp
 
+      - name: Cleanup broken formatting
+        run: |
+          sed -i '/<svg.*12.*/,/<\/svg>/d' docs/*.html
+          sed -i 's/ Deployed on <a href="https:\/\/netlify.com">Netlify<\/a>.//g' docs/*.html
+
       - name: Update docs
         run: |
           git config --global user.name "$GITHUB_ACTOR"
