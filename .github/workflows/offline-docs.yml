@@ -31,14 +31,32 @@ jobs:
       - name: Build docs
         run: |
           make -C tmp all
-          cp -av tmp/_site/docs/ .
-          cp -av tmp/_site/assets/*.css docs/
-          rm -rf tmp
+          mkdir -pv docs/assets/
+          cp -av tmp/_site/docs/* docs/
+          cp -av tmp/_site/assets/*.css docs/assets/
+          rm -rvf tmp
 
       - name: Cleanup broken formatting
         run: |
-          sed -i 's/\/assets\//\/docs\//g' docs/*.html
-          sed -i '/<svg.*12.*/,/<\/svg>/d' docs/*.html
+          # "/assets/" is only used for stylesheet in offline docs, so make simple "assets/"
+          sed -i 's/href="\/assets\//href="assets\//g' docs/*.html
+
+          # "/" is for the site root, which we don't copy, so ignore "#"
+          sed -i 's/<a href="\/">/<a href="#">/g' docs/*.html
+
+          # "/docs/" is for the docs root which is "./docs/index.html" since need relative links
+          sed -i 's/<a href="\/docs\/">Home<\/a>/<a href="\/docs\/index.html">Home<\/a>/g' docs/*.html
+
+          # need to mask http "/docs/" links so we can modify for "/docs/*.html"
+          sed -i 's/href="https:\/\/theos.dev\/docs\//href="https:\/\/mask/g' docs/*.html
+
+          # the actual modification target "/docs/" to "./"
+          sed -i 's/href="\/docs\//href=".\//g' docs/*.html
+
+          # undoing the http masking mentioned above
+          sed -i 's/href="https:\/\/mask/href="https:\/\/theos.dev\/docs\//g' docs/*.html
+
+          # this is local, so not deployed anywhere
           sed -i 's/ Deployed on <a href="https:\/\/netlify.com">Netlify<\/a>.//g' docs/*.html
 
       - name: Update docs
