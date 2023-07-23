@@ -38,6 +38,11 @@ jobs:
 
       - name: Cleanup broken formatting
         run: |
+          # not deploying, so don't need metadata tags or footer note
+          sed -i '/Begin Jekyll SEO tag/,/End Jekyll SEO tag/d' docs/*.html
+          sed -i '/type="application\/atom+xml/d' docs/*.html
+          sed -i 's/ Deployed on <a href="https:\/\/netlify.com">Netlify<\/a>.//g' docs/*.html
+
           # "/assets/" is only used for stylesheet in offline docs, so make simple "assets/"
           sed -i 's/href="\/assets\//href="assets\//g' docs/*.html
 
@@ -49,9 +54,6 @@ jobs:
 
           # make rest of the links relative "/docs/" to "./"
           sed -i 's/href="\/docs\//href=".\//g' docs/*.html
-
-          # this is local, so not deployed anywhere
-          sed -i 's/ Deployed on <a href="https:\/\/netlify.com">Netlify<\/a>.//g' docs/*.html
 
       - name: Update docs
         run: |
