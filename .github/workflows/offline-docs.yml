@@ -33,7 +33,7 @@ jobs:
           make -C tmp all
           mkdir -pv docs/assets/
           cp -av tmp/_site/docs/* docs/
-          cp -av tmp/_site/assets/*.css docs/assets/
+          cp -av tmp/_site/assets/*.css tmp/_site/assets/*.svg docs/assets/
           rm -rvf tmp
 
       - name: Cleanup broken formatting
