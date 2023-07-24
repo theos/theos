@@ -264,6 +264,8 @@ internal-$(_THEOS_CURRENT_TYPE)-stage:: before-$(THEOS_CURRENT_INSTANCE)-stage i
 
 MDFLAGS = -MP -MT "$@ $(subst .md,.o,$@)" -MM
 
+KEEP_LOGOS_INTERMEDIATES ?= $(_THEOS_FALSE)
+
 ifeq ($(_THEOS_GENERATE_SWIFTMODULE_HEADER),$(_THEOS_TRUE))
 # add swiftmodule header as dependency to all objc objects
 $(patsubst %,$(THEOS_OBJ_DIR)/%.$(_THEOS_OBJ_FILE_TAG).o,$(OBJC_FILES)): $(_SWIFTMODULE_HEADER)
@@ -371,7 +373,11 @@ $(THEOS_OBJ_DIR)/%.x.m: %.x
 $(THEOS_OBJ_DIR)/%.x.$(_THEOS_OBJ_FILE_TAG).o: %.x $(THEOS_OBJ_DIR)/%.x.m
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x objective-c -c -I"$(call __clean_pwd,$(dir $<))" $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(THEOS_OBJ_DIR)/$<.m -o $@$(ECHO_END)
+ifeq ($(KEEP_LOGOS_INTERMEDIATES), $(_THEOS_TRUE))
+.PRECIOUS: $(THEOS_OBJ_DIR)/%.x.m
+else
 	$(ECHO_NOTHING)rm $(THEOS_OBJ_DIR)/$<.m$(ECHO_END)
+endif
 
 $(THEOS_OBJ_DIR)/%.xm.mm: %.xm
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
@@ -380,7 +386,11 @@ $(THEOS_OBJ_DIR)/%.xm.mm: %.xm
 $(THEOS_OBJ_DIR)/%.xm.$(_THEOS_OBJ_FILE_TAG).o: %.xm $(THEOS_OBJ_DIR)/%.xm.mm
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x objective-c++ -c -I"$(call __clean_pwd,$(dir $<))" $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_CCFLAGS) $(ALL_OBJCCFLAGS) $(THEOS_OBJ_DIR)/$<.mm -o $@$(ECHO_END)
+ifeq ($(KEEP_LOGOS_INTERMEDIATES), $(_THEOS_TRUE))
+.PRECIOUS: $(THEOS_OBJ_DIR)/%.xm.mm
+else
 	$(ECHO_NOTHING)rm $(THEOS_OBJ_DIR)/$<.mm$(ECHO_END)
+endif
 
 $(THEOS_OBJ_DIR)/%.mi: %.xi
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
@@ -390,7 +400,10 @@ $(THEOS_OBJ_DIR)/%.mi: %.xi
 $(THEOS_OBJ_DIR)/%.xi.$(_THEOS_OBJ_FILE_TAG).o: %.xi $(THEOS_OBJ_DIR)/%.mi
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x objective-c -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(THEOS_OBJ_DIR)/$<.mi -o $@$(ECHO_END)
-	$(ECHO_NOTHING)rm $(THEOS_OBJ_DIR)/$*.mi$(ECHO_END)
+ifneq ($(KEEP_LOGOS_INTERMEDIATES), $(_THEOS_TRUE))
+	$(ECHO_NOTHING)rm $(THEOS_OBJ_DIR)/$<.mi$(ECHO_END)
+endif
+
 
 $(THEOS_OBJ_DIR)/%.mii: %.xmi
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
@@ -400,7 +413,9 @@ $(THEOS_OBJ_DIR)/%.mii: %.xmi
 $(THEOS_OBJ_DIR)/%.xmi.$(_THEOS_OBJ_FILE_TAG).o: %.xmi $(THEOS_OBJ_DIR)/%.mii
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x objective-c++ -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_CCFLAGS) $(ALL_OBJCCFLAGS) $(THEOS_OBJ_DIR)/$<.mii -o $@$(ECHO_END)
-	$(ECHO_NOTHING)rm $(THEOS_OBJ_DIR)/$*.mii$(ECHO_END)
+ifneq ($(KEEP_LOGOS_INTERMEDIATES), $(_THEOS_TRUE))
+	$(ECHO_NOTHING)rm $(THEOS_OBJ_DIR)/$<.mii$(ECHO_END)
+endif
 
 .PHONY: FORCE
 FORCE:
