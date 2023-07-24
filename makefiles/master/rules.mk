@@ -221,7 +221,7 @@ endif
 # Each line is either empty or starts with a (unique) key, followed by an equals sign, 
 # followed by the key's value.
 spm::
-	@$(PRINT_FORMAT_MAKING) "Creating SPM config (beta)"
+	@$(PRINT_FORMAT_MAKING) "Creating SPM config"
 	@mkdir -p $(_THEOS_LOCAL_DATA_DIR)
 	$(ECHO_NOTHING)rm -f $(_THEOS_SPM_CONFIG_FILE)$(ECHO_END)
 	$(ECHO_NOTHING)echo "theos=$(THEOS)" >> $(_THEOS_SPM_CONFIG_FILE)$(ECHO_END)
