@@ -244,7 +244,7 @@ darwin_mobile() {
 		fi
 	else
 		# Up-to-date dependencies pkg is exclusive to Procursus, so need to cater install accordingly
-		if [[ -f /.procursus_strapped ]]; then
+		if [[ -f /.procursus_strapped || -f /var/jb/.procursus_strapped ]]; then
 			read -p "Do you have 'https://apt.procurs.us' installed in the sources of your jailbreak's primary package manager? [y/n]" ready
 			if theos_bool $ready; then
 				sudo apt update --allow-insecure-repositories
@@ -273,7 +273,7 @@ darwin_mobile() {
 	update "Checking desire for Swift support..."
 	read -p "Would you like to be able to work with Swift? If so, an additional package will need to be installed. [y/n]" confirm
 	if theos_bool $confirm; then
-		if [[ -f /.procursus_strapped ]]; then
+		if [[ -f /.procursus_strapped || -f /var/jb/.procursus_strapped ]]; then
 			sudo apt install -y --allow-downgrades swift \
 				&& update "Additional Swift package installation successful!" \
 				|| (error "Additional Swift package install command seems to have encountered an error. Please see the log above."; exit 3)
