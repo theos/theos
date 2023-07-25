@@ -222,10 +222,10 @@ darwin_mobile() {
 
 	# Compatbility check
 	APTVER="$(apt-get --version | head -n1 | cut -d' ' -f2)"
-	if [[ $(dpkg --compare-versions $APTVER ge 1.1; echo $?) == 0 ]]; then
+	if dpkg --compare-versions $APTVER ge 1.1; then
 		uFLAGS=(--allow-insecure-repositories)
 		iFLAGS=(--allow-unauthenticated --allow-downgrades)
-	elif [[ $(dpkg --compare-versions $APTVER ge 0.6.8; echo $?) == 0 ]]; then
+	elif dpkg --compare-versions $APTVER ge 0.6.8; then
 		uFLAGS=()
 		iFLAGS=(--allow-unauthenticated)
 	else
