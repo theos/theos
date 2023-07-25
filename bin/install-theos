@@ -61,34 +61,6 @@ fi
 
 
 # The work
-ver_compare() {
-	# sanity check
-	if [[ -z $1 || -z $2 ]]; then
-		return 1
-	fi
-
-	# split num string (e.g., 0.6.8)
-	have=(${1//./ })
-	want=(${2//./ })
-
-	# get longest
-	count="${#have[@]}"
-	if [[ ${#want[@]} > ${#have[@]} ]]; then
-		count="${#want[@]}"
-	fi
-
-	# compare
-	for (( i=0; i<$count; i++ )); do
-		if [[ ${want[$i]} > ${have[$i]} ]]; then
-			return 1
-		elif [[ ${want[$i]} < ${have[$i]} ]]; then
-			return 0
-		else
-			continue
-		fi
-	done
-}
-
 theos_bool() {
 	AFFIRMATIVE=(Y y YES yes TRUE true)
 	if [[ ${AFFIRMATIVE[*]} =~ $1 ]]; then
@@ -250,10 +222,10 @@ darwin_mobile() {
 
 	# Compatbility check
 	APTVER="$(apt-get --version | head -n1 | cut -d' ' -f2)"
-	if ver_compare $APTVER 1.1; then
+	if [[ $(dpkg --compare-versions $APTVER ge 1.1; echo $?) == 0 ]]; then
 		uFLAGS=(--allow-insecure-repositories)
 		iFLAGS=(--allow-unauthenticated --allow-downgrades)
-	elif ver_compare $APTVER 0.6.8; then
+	elif [[ $(dpkg --compare-versions $APTVER ge 0.6.8; echo $?) == 0 ]]; then
 		uFLAGS=()
 		iFLAGS=(--allow-unauthenticated)
 	else
