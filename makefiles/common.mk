@@ -37,7 +37,9 @@ __THEOS_COMMON_MK_VERSION := 1k
 ifeq ($(THEOS_PROJECT_DIR),)
 THEOS_PROJECT_DIR := $(shell pwd)
 endif
-ifneq ($(call __validate,$(THEOS_PROJECT_DIR)),$(_THEOS_TRUE))
+ifneq ($(call __validate,$(THEOS)),$(_THEOS_TRUE))
+$(error Your Theos install is located at “$(THEOS)”, which either contains spaces or does not exist)
+else ifneq ($(call __validate,$(THEOS_PROJECT_DIR)),$(_THEOS_TRUE))
 $(error Your project is located at “$(THEOS_PROJECT_DIR)”, which either contains spaces or does not exist)
 endif
 _THEOS_RELATIVE_DATA_DIR ?= .theos
@@ -68,26 +70,6 @@ THEOS_VENDOR_INCLUDE_PATH := $(THEOS)/vendor/include
 THEOS_FALLBACK_INCLUDE_PATH := $(THEOS)/include/_fallback
 THEOS_MODULE_PATH := $(THEOS)/mod
 THEOS_SDKS_PATH := $(THEOS)/sdks
-
-ifneq ($(call __validate,$(THEOS_MAKE_PATH)),$(_THEOS_TRUE))
-$(error “$(THEOS_MAKE_PATH)” either contains spaces or does not exist)
-else ifneq ($(call __validate,$(THEOS_BIN_PATH)),$(_THEOS_TRUE))
-$(error “$(THEOS_BIN_PATH)” either contains spaces or does not exist)
-else ifneq ($(call __validate,$(THEOS_LIBRARY_PATH)),$(_THEOS_TRUE))
-$(error “$(THEOS_LIBRARY_PATH)” either contains spaces or does not exist)
-else ifneq ($(call __validate,$(THEOS_VENDOR_LIBRARY_PATH)),$(_THEOS_TRUE))
-$(error “$(THEOS_VENDOR_LIBRARY_PATH)” either contains spaces or does not exist)
-else ifneq ($(call __validate,$(THEOS_INCLUDE_PATH)),$(_THEOS_TRUE))
-$(error “$(THEOS_INCLUDE_PATH)” either contains spaces or does not exist)
-else ifneq ($(call __validate,$(THEOS_VENDOR_INCLUDE_PATH)),$(_THEOS_TRUE))
-$(error “$(THEOS_VENDOR_INCLUDE_PATH)” either contains spaces or does not exist)
-else ifneq ($(call __format_validate,$(THEOS_FALLBACK_INCLUDE_PATH)),$(_THEOS_TRUE))
-$(error “$(THEOS_FALLBACK_INCLUDE_PATH)” contains spaces which are not supported in project paths)
-else ifneq ($(call __validate,$(THEOS_MODULE_PATH)),$(_THEOS_TRUE))
-$(error “$(THEOS_MODULE_PATH)” either contains spaces or does not exist)
-else ifneq ($(call __validate,$(THEOS_SDKS_PATH)),$(_THEOS_TRUE))
-$(error “$(THEOS_SDKS_PATH)” either contains spaces or does not exist)
-endif
 
 export THEOS THEOS_BIN_PATH THEOS_MAKE_PATH THEOS_LIBRARY_PATH THEOS_VENDOR_LIBRARY_PATH THEOS_INCLUDE_PATH THEOS_VENDOR_INCLUDE_PATH THEOS_FALLBACK_INCLUDE_PATH
 export THEOS_PROJECT_DIR
