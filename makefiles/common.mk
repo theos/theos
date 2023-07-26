@@ -28,7 +28,7 @@ __executable = $(if $(shell PATH="$(THEOS_BIN_PATH):$$PATH" type "$(1)" > /dev/n
 # Static redefinition
 __simplify = $(2)$(eval $(1):=$(2))
 # Path validation
-__format_validate = $(shell [ $(words $(1)) -eq 1 ] && echo 1)
+__format_validate = $(if $(filter 1,$(words $1)),$(_THEOS_TRUE),$(_THEOS_FALSE))
 __validate = $(and $(call __format_validate,$(1)),$(call __exists,$(1)))
 ###
 
