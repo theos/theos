@@ -386,10 +386,10 @@ linux() {
 					# sudo apt install -y libz3-dev zstd
 					;;
 				arch)
-					# sudo pacman -S --needed --noconfirm libedit z3 zstd
-					# toolchain looks for a specific libedit
-					# LATEST_LIBEDIT="$(ls -v /usr/lib/ | grep libedit | tail -n 1)"
-					# sudo ln -sf /usr/lib/$LATEST_LIBEDIT /usr/lib/libedit.so.2
+					sudo pacman -S --needed --noconfirm ncurses
+					# toolchain looks for a specific libncurses
+					LATEST_LIBCURSES="$(ls -v /usr/lib/ | grep libncurses.*so | tail -n1)"
+					sudo ln -sf /usr/lib/$LATEST_LIBCURSES /usr/lib/libncurses.so.6
 					;;
 				redhat)
 					# sudo dnf install -y z3-libs zstd
