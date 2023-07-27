@@ -383,43 +383,30 @@ linux() {
 		if theos_bool $stoolchain; then
 			case $DISTRO in
 				debian)
-					sudo apt install -y libz3-dev zstd
+					# sudo apt install -y libz3-dev zstd
 					;;
 				arch)
-					sudo pacman -S --needed --noconfirm libedit z3 zstd
-					# libz3-dev equivalent is z3 and we need to create lib version queried
-					LATEST_LIBZ3="$(ls -v /usr/lib/ | grep libz3 | tail -n 1)"
-					sudo ln -sf /usr/lib/$LATEST_LIBZ3 /usr/lib/libz3.so.4
+					# sudo pacman -S --needed --noconfirm libedit z3 zstd
 					# toolchain looks for a specific libedit
-					LATEST_LIBEDIT="$(ls -v /usr/lib/ | grep libedit | tail -n 1)"
-					sudo ln -sf /usr/lib/$LATEST_LIBEDIT /usr/lib/libedit.so.2
+					# LATEST_LIBEDIT="$(ls -v /usr/lib/ | grep libedit | tail -n 1)"
+					# sudo ln -sf /usr/lib/$LATEST_LIBEDIT /usr/lib/libedit.so.2
 					;;
 				redhat)
-					sudo dnf install -y z3-libs zstd
-					# libz3-dev equivalent is z3-libs and ...
-					LATEST_LIBZ3="$(ls -v /usr/lib64/ | grep libz3 | tail -n 1)"
-					sudo ln -sf /usr/lib64/$LATEST_LIBZ3 /usr/lib64/libz3.so.4
+					# sudo dnf install -y z3-libs zstd
 					# toolchain looks for a specific libedit
-					LATEST_LIBEDIT="$(ls -v /usr/lib64/ | grep libedit | tail -n 1)"
-					sudo ln -sf /usr/lib64/$LATEST_LIBEDIT /usr/lib64/libedit.so.2
+					# LATEST_LIBEDIT="$(ls -v /usr/lib64/ | grep libedit | tail -n 1)"
+					# sudo ln -sf /usr/lib64/$LATEST_LIBEDIT /usr/lib64/libedit.so.2
 					;;
 				suse)
-					sudo zypper install -y $(zypper search libz3 | tail -n 1 | cut -d "|" -f2) zstd
-					# libz3-dev equivalent is libz3-* and ...
-					LATEST_LIBZ3="$(ls -v /usr/lib64/ | grep libz3 | tail -n 1)"
-					sudo ln -sf /usr/lib64/$LATEST_LIBZ3 /usr/lib64/libz3.so.4
+					# sudo zypper install -y $(zypper search libz3 | tail -n 1 | cut -d "|" -f2) zstd
 					# toolchain looks for a specific libedit
-					LATEST_LIBEDIT="$(ls -v /usr/lib64/ | grep libedit | tail -n 1)"
-					sudo ln -sf /usr/lib64/$LATEST_LIBEDIT /usr/lib64/libedit.so.2
+					# LATEST_LIBEDIT="$(ls -v /usr/lib64/ | grep libedit | tail -n 1)"
+					# sudo ln -sf /usr/lib64/$LATEST_LIBEDIT /usr/lib64/libedit.so.2
 					;;
 			esac
-			curl -LO https://github.com/CRKatri/llvm-project/releases/download/swift-5.3.2-RELEASE/swift-5.3.2-RELEASE-ubuntu20.04.tar.zst
-			TMP=$(mktemp -d)
-			tar -xvf swift-5.3.2-RELEASE-ubuntu20.04.tar.zst -C $TMP
-			mkdir -p $THEOS/toolchain/linux/iphone $THEOS/toolchain/swift
-			mv $TMP/swift-5.3.2-RELEASE-ubuntu20.04/* $THEOS/toolchain/linux/iphone/
-			ln -s $THEOS/toolchain/linux/iphone $THEOS/toolchain/swift
-			rm -r swift-5.3.2-RELEASE-ubuntu20.04.tar.zst $TMP
+			curl -LO https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubuntu20.04.tar.xz
+			tar -xvf swift-5.8-ubuntu20.04.tar.xz -C $THEOS/toolchain/
+			rm swift-5.8-ubuntu20.04.tar.xz
 		else
 			case $DISTRO in
 				debian)
