@@ -144,11 +144,10 @@ get_sdks() {
 		update "SDKs appear to already be installed."
 	else
 		update "SDKs do not appear to be installed. Installing now..."
-		curl -L https://api.github.com/repos/theos/sdks/tarball -o sdks.tar.gz
 		TMP=$(mktemp -d)
-		tar -xvf sdks.tar.gz --strip=1 -C $TMP
+		curl -sL https://api.github.com/repos/theos/sdks/tarball | tar -xzvf - --strip=1 -C $TMP
 		mv $TMP/*.sdk $THEOS/sdks
-		rm -r sdks.tar.gz $TMP
+		rm -r $TMP
 
 		if [[ -d $THEOS/sdks/ && $(ls -A "$THEOS/sdks/" | grep sdk) ]]; then
 			update "SDKs successfully installed!"
@@ -403,9 +402,7 @@ linux() {
 					# sudo ln -sf /usr/lib64/$LATEST_LIBEDIT /usr/lib64/libedit.so.2
 					;;
 			esac
-			curl -LO https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubuntu20.04.tar.xz
-			tar -xvf swift-5.8-ubuntu20.04.tar.xz -C $THEOS/toolchain/
-			rm swift-5.8-ubuntu20.04.tar.xz
+			curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubuntu20.04.tar.xz | tar -xJvf - -C $THEOS/toolchain/
 		else
 			# case $DISTRO in
 			# 	debian)
@@ -417,9 +414,7 @@ linux() {
 			# 	suse)
 			# 		;;
 			# esac
-			curl -LO https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain.tar.xz
-			tar -xvf iOSToolchain.tar.xz -C $THEOS/toolchain/
-			rm iOSToolchain.tar.xz
+			curl -sL https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain.tar.xz | tar -xJvf - -C $THEOS/toolchain/
 		fi
 
 		# Confirm that toolchain is usable
