@@ -383,7 +383,6 @@ linux() {
 		if theos_bool $stoolchain; then
 			case $DISTRO in
 				debian)
-					# sudo apt install -y libz3-dev zstd
 					;;
 				arch)
 					sudo pacman -S --needed --noconfirm ncurses
@@ -408,28 +407,16 @@ linux() {
 			tar -xvf swift-5.8-ubuntu20.04.tar.xz -C $THEOS/toolchain/
 			rm swift-5.8-ubuntu20.04.tar.xz
 		else
-			case $DISTRO in
-				debian)
-					sudo apt install -y libtinfo5
-					;;
-				arch)
-					# get source for libtinfo5 equivalent from AUR and build
-					if ! pacman -Qs ncurses5-compat-libs > /dev/null; then
-						git clone https://aur.archlinux.org/ncurses5-compat-libs.git
-						cd ncurses5-compat-libs
-						gpg --recv-keys "$(cat PKGBUILD | grep validpgp | grep -oP "(?<=').*(?=')")"
-						MAKEFLAGS="-j$(nproc --all)" makepkg -sir --noconfirm \
-							&& cd .. \
-							&& rm -rf ncurses5-compat-libs
-					fi
-					;;
-				redhat)
-					sudo dnf install -y ncurses-compat-libs
-					;;
-				suse)
-					sudo zypper install -y libncurses5
-					;;
-			esac
+			# case $DISTRO in
+			# 	debian)
+			# 		;;
+			# 	arch)
+			# 		;;
+			# 	redhat)
+			# 		;;
+			# 	suse)
+			# 		;;
+			# esac
 			curl -LO https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain.tar.xz
 			tar -xvf iOSToolchain.tar.xz -C $THEOS/toolchain/
 			rm iOSToolchain.tar.xz
