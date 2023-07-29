@@ -23,6 +23,12 @@ ifeq ($(_THEOS_DARWIN_CAN_USE_MODULES),$(_THEOS_TRUE))
 		-fmodules-prune-after=345600 -fmodules-prune-interval=86400 -fmodules-validate-once-per-build-session
 endif
 
+ifneq ($(_THEOS_DARWIN_STABLE_SWIFT_VERSION),)
+ifeq ($(call __vercmp,$(_THEOS_TARGET_OS_DEPLOYMENT_VERSION),ge,$(_THEOS_DARWIN_STABLE_SWIFT_VERSION)),1)
+	_THEOS_DARWIN_HAS_STABLE_SWIFT := $(_THEOS_TRUE)
+endif
+endif
+
 _THEOS_TARGET_SWIFT_TARGET := $(_THEOS_TARGET_PLATFORM_SWIFT_NAME)$(_THEOS_TARGET_OS_DEPLOYMENT_VERSION)$(_THEOS_TARGET_PLATFORM_SWIFT_SUFFIX)
 
 ifeq ($(_THEOS_TARGET_USE_CLANG_TARGET_FLAG),$(_THEOS_TRUE))
@@ -41,13 +47,22 @@ _THEOS_TARGET_LDFLAGS += -fuse-ld=$(SDKBINPATH)/$(_THEOS_TARGET_SDK_BIN_PREFIX)l
 endif
 
 _THEOS_TARGET_SWIFTFLAGS := -sdk "$(SYSROOT)" $(_THEOS_TARGET_CC_SWIFTFLAGS)
-_THEOS_TARGET_SWIFT_LDPATHS = $(call __simplify,_THEOS_TARGET_SWIFT_LDPATHS,$(dir $(shell type -p $(TARGET_SWIFT)))../lib/swift/$(_THEOS_TARGET_PLATFORM_NAME) /usr/lib/swift)
+# we *dont* want to readlink here because if the user has a dual toolchain setup then iphone/bin/swiftc
+# might symlink the host one, but we want to use the iphone res dir and not the host one
+_THEOS_TARGET_SWIFT_RESOURCE_DIR := $(dir $(shell type -p $(TARGET_SWIFTC)))../lib/swift
+_THEOS_TARGET_SWIFT_LDPATHS = $(call __simplify,_THEOS_TARGET_SWIFT_LDPATHS,$(_THEOS_TARGET_SWIFT_RESOURCE_DIR)/$(_THEOS_TARGET_PLATFORM_NAME) /usr/lib/swift)
+
+ifeq ($(call __exists,$(_THEOS_TARGET_SWIFT_RESOURCE_DIR)),$(_THEOS_TRUE))
+_THEOS_TARGET_SWIFTFLAGS += -resource-dir $(_THEOS_TARGET_SWIFT_RESOURCE_DIR)
+_THEOS_TARGET_CFLAGS += -resource-dir $(_THEOS_TARGET_SWIFT_RESOURCE_DIR)/clang
+_THEOS_TARGET_LDFLAGS += -resource-dir $(_THEOS_TARGET_SWIFT_RESOURCE_DIR)/clang
+endif
 
 ifeq ($(_THEOS_TARGET_USE_APPLE_LIBSWIFT),$(_THEOS_TRUE))
 	_THEOS_TARGET_LDFLAGS += $(foreach path,$(_THEOS_TARGET_SWIFT_LDPATHS),-L$(path))
 else
-ifeq ($(call __executable,$(TARGET_SWIFT)),$(_THEOS_TRUE))
-	_THEOS_TARGET_SWIFT_VERSION = $(call __simplify,_THEOS_TARGET_SWIFT_VERSION,$(shell $(TARGET_SWIFT) --version 2>/dev/null | head -1 | cut -d'v' -f2 | cut -d' ' -f2 | cut -d'-' -f1))
+ifeq ($(call __executable,$(TARGET_SWIFTC)),$(_THEOS_TRUE))
+	_THEOS_TARGET_SWIFT_VERSION = $(call __simplify,_THEOS_TARGET_SWIFT_VERSION,$(shell $(TARGET_SWIFTC) --version 2>/dev/null | head -1 | cut -d'v' -f2 | cut -d' ' -f2 | cut -d'-' -f1))
 ifeq ($(firstword $(subst ., ,$(_THEOS_TARGET_SWIFT_VERSION))),4)
 	_THEOS_TARGET_SWIFT_VERSION_PATH = $(_THEOS_TARGET_SWIFT_VERSION)
 else
