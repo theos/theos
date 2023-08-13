@@ -91,6 +91,9 @@ internal-install-check::
 
 export TARGET_INSTALL_REMOTE
 _THEOS_INSTALL_TYPE := local
+ifneq ($(THEOS_DEVICE_IP),)
+TARGET_INSTALL_REMOTE = $(_THEOS_TRUE)
+endif # THEOS_DEVICE_IP != ""
 ifeq ($(TARGET_INSTALL_REMOTE),$(_THEOS_TRUE))
 _THEOS_INSTALL_TYPE := remote
 ifeq ($(THEOS_DEVICE_IP),)
