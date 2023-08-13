@@ -34,8 +34,6 @@ endif
 OBJ_FILES_TO_LINK = $(strip $(addprefix $(THEOS_OBJ_DIR)/,$(OBJ_FILES)) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,OBJ_FILES) $(SUBPROJECT_OBJ_FILES))
 _OBJ_DIR_STAMPS = $(sort $(foreach o,$(filter $(THEOS_OBJ_DIR)%,$(OBJ_FILES_TO_LINK)),$(dir $o).stamp))
 
-ADDITIONAL_CPPFLAGS += $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,CPPFLAGS)
-
 # If we have any Objective-C objects, link Foundation and libobjc.
 ifneq ($(_OBJC_FILE_COUNT)$(_SWIFT_FILE_COUNT),00)
 	_THEOS_INTERNAL_LDFLAGS += -lobjc -framework Foundation -framework CoreFoundation
@@ -172,6 +170,12 @@ ifneq ($(TARGET_LIPO),)
 ALL_PFLAGS += $($(THEOS_CURRENT_ARCH)_CFLAGS)
 _THEOS_INTERNAL_LDFLAGS += $($(THEOS_CURRENT_ARCH)_LDFLAGS)
 endif
+
+_THEOS_ADDITIONAL_CPPFLAGS = $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,CPPFLAGS)
+ifneq ($(_THEOS_ADDITIONAL_CPPFLAGS),)
+ADDITIONAL_CCFLAGS += $(_THEOS_ADDITIONAL_CPPFLAGS)$(warning $(THEOS_CURRENT_INSTANCE)_CPPFLAGS is deprecated. Please migrate to ADDITIONAL_CCFLAGS.)
+endif
+
 ALL_CFLAGS = $(ALL_PFLAGS) $(ALL_ARCHFLAGS)
 ALL_CCFLAGS = $(_THEOS_INTERNAL_CCFLAGS) $(_THEOS_TARGET_CCFLAGS) $(ADDITIONAL_CCFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,CCFLAGS) $(call __schema_var_all,,CCFLAGS)
 ALL_OBJCFLAGS = $(_THEOS_INTERNAL_OBJCFLAGS) $(_THEOS_TARGET_OBJCFLAGS) $(ADDITIONAL_OBJCFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,OBJCFLAGS) $(call __schema_var_all,,OBJCFLAGS)
