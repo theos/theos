@@ -327,8 +327,7 @@ linux() {
 				|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 			;;
 		redhat)
-			sudo dnf check-update
-			sudo dnf group install -y "C Development Tools and Libraries" \
+			sudo dnf group install -y "C Development Tools and Libraries" --refresh \
 				&& update "Dependencies have been successfully installed!" \
 				|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 			sudo dnf install -y fakeroot lzma libbsd rsync curl perl zip git libxml2 \
