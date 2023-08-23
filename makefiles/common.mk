@@ -261,7 +261,6 @@ _COMMA := ,
 
 THEOS_PACKAGE_DIR_NAME ?= packages
 THEOS_PACKAGE_DIR ?= $(THEOS_BUILD_DIR)/$(THEOS_PACKAGE_DIR_NAME)
-THEOS_LEGACY_PACKAGE_DIR = $(THEOS_BUILD_DIR)/debs
 
 ifneq ($(call __validate,$(THEOS_BUILD_DIR)),$(_THEOS_TRUE))
 $(error “$(THEOS_BUILD_DIR)” either contains spaces or does not exist)
@@ -298,7 +297,6 @@ ifeq ($(THEOS_CURRENT_INSTANCE),)
 	include $(THEOS_MAKE_PATH)/stage.mk
 	include $(THEOS_MAKE_PATH)/package.mk
 endif
-THEOS_PACKAGE_VERSION = $(call __simplify,THEOS_PACKAGE_VERSION,$(THEOS_PACKAGE_BASE_VERSION)$(warning THEOS_PACKAGE_VERSION is deprecated. Please migrate to THEOS_PACKAGE_BASE_VERSION.))
 
 THEOS_LINKAGE_TYPE ?= dynamic
 
