@@ -4,7 +4,7 @@ endif
 
 .PHONY: internal-xcodeproj-all_ internal-xcodeproj-stage_ internal-xcodeproj-compile internal-xcodeproj-clean
 
-ifeq ($(call __theos_bool,$(THEOS_USE_PARALLEL_BUILDING)),$(_THEOS_TRUE))
+ifeq ($(_THEOS_INTERNAL_USE_PARALLEL_BUILDING),$(_THEOS_TRUE))
 # Don't synchronize xcodeproj output, because doing so results in Make buffering
 # the output and outputting it all at once once the build is finished. It's okay
 # not to synchronize, because the entire compile phase is just one single rule
@@ -39,7 +39,7 @@ _THEOS_INTERNAL_XCODEOPTS = -sdk $(_THEOS_TARGET_PLATFORM_NAME)
 # that underlying issue still needs to be resolved to allow debugging release builds, the
 # following is a more immediate solution until we get around to solving that – which we could
 # do by, for example, writing a DBGShellCommands script or using DBGFileMappedPaths.
-_THEOS_INTERNAL_XCODEFLAGS += STRIP_INSTALLED_PRODUCT=$(if $(SHOULD_STRIP),YES,NO)
+_THEOS_INTERNAL_XCODEFLAGS += STRIP_INSTALLED_PRODUCT=$(if $(SHOULD_STRIP),YES,NO) ARCHS="$(ARCHS)"
 
 ifneq ($(TARGET_XCPRETTY),)
 ifneq ($(_THEOS_VERBOSE),$(_THEOS_TRUE))
@@ -49,6 +49,8 @@ endif
 
 _THEOS_XCODE_BUILD_CONFIG = $(if $(findstring DEBUG,$(THEOS_SCHEMA)),Debug,Release)
 _THEOS_XCODE_BUILD_COMMAND := $(if $(_THEOS_FINAL_PACKAGE),archive,build install)
+_THEOS_XCODE_INSTALL_DIR_BASE := $(THEOS_OBJ_DIR)/install_$(THEOS_CURRENT_INSTANCE)$(if $(_THEOS_FINAL_PACKAGE),.xcarchive)
+_THEOS_XCODE_INSTALL_DIR := $(_THEOS_XCODE_INSTALL_DIR_BASE)$(if $(_THEOS_FINAL_PACKAGE),/Products)
 
 # Try a workspace or project the user has already specified, falling back to figuring out the
 # workspace or project ourselves based on the instance name.
@@ -65,11 +67,12 @@ endif
 _THEOS_XCODEBUILD_BEGIN = $(ECHO_NOTHING)set -eo pipefail; $(TARGET_XCODEBUILD) \
 	$(_THEOS_XCODEBUILD_PROJECT_FLAG) \
 	-scheme '$(or $($(THEOS_CURRENT_INSTANCE)_XCODE_SCHEME),$(THEOS_CURRENT_INSTANCE))' \
+	-destination '$(or $($(THEOS_CURRENT_INSTANCE)_DESTINATION),generic/platform=iOS)' \
 	-configuration $(_THEOS_XCODE_BUILD_CONFIG)
 _THEOS_XCODEBUILD_END = CODE_SIGNING_ALLOWED=NO \
 	ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES=NO \
 	ENABLE_BITCODE=$(or $($(THEOS_CURRENT_INSTANCE)_ENABLE_BITCODE),NO) \
-	DSTROOT=$(THEOS_OBJ_DIR)/install \
+	$(if $(_THEOS_FINAL_PACKAGE),-archivePath $(_THEOS_XCODE_INSTALL_DIR_BASE),DSTROOT=$(_THEOS_XCODE_INSTALL_DIR)) \
 	$(_THEOS_XCODE_XCPRETTY)$(ECHO_END)
 export EXPANDED_CODE_SIGN_IDENTITY =
 export EXPANDED_CODE_SIGN_IDENTITY_NAME =
@@ -88,9 +91,9 @@ endif
 		$(ALL_XCODEOPTS) \
 		$(_THEOS_XCODE_BUILD_COMMAND) \
 		$(ALL_XCODEFLAGS) \
-		$(_THEOS_XCODEBUILD_END)
+		$(_THEOS_XCODEBUILD_END) || exit 1
 ifeq ($(_THEOS_PACKAGE_FORMAT),deb)
-	$(ECHO_NOTHING)find $(THEOS_OBJ_DIR)/install -name 'libswift*.dylib' -delete$(ECHO_END)
+	$(ECHO_NOTHING)find $(_THEOS_XCODE_INSTALL_DIR) -name 'libswift*.dylib' -delete$(ECHO_END)
 endif
 ifneq ($(_THEOS_CODESIGN_COMMANDLINE),)
 	$(ECHO_SIGNING)function process_exec { \
@@ -110,7 +113,7 @@ ifneq ($(_THEOS_CODESIGN_COMMANDLINE),)
 		done; \
 	}; \
 	export -f process_exec process_dir; \
-	process_dir $(THEOS_OBJ_DIR)/install; \
+	process_dir $(_THEOS_XCODE_INSTALL_DIR); \
 	$(ECHO_END)
 endif
 
@@ -124,7 +127,7 @@ internal-xcodeproj-clean::
 ifneq ($($(THEOS_CURRENT_INSTANCE)_INSTALL),0)
 internal-xcodeproj-stage_::
 	$(ECHO_NOTHING)mkdir -p "$(THEOS_STAGING_DIR)"$(ECHO_END)
-	$(ECHO_NOTHING)rsync -a $(THEOS_OBJ_DIR)/install/ "$(THEOS_STAGING_DIR)" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE)$(ECHO_END)
+	$(ECHO_NOTHING)rsync -a $(_THEOS_XCODE_INSTALL_DIR)/ "$(THEOS_STAGING_DIR)" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE)$(ECHO_END)
 endif
 
 $(eval $(call __mod,instance/xcodeproj.mk))
