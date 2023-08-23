@@ -40,8 +40,6 @@ TARGET_LD = $(TARGET_CXX)
 endif
 endif
 
-ADDITIONAL_CPPFLAGS += $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,CPPFLAGS)
-
 # If we have any Objective-C objects, link Foundation and libobjc.
 ifneq ($(_OBJC_FILE_COUNT)$(_SWIFT_FILE_COUNT),00)
 	_THEOS_INTERNAL_LDFLAGS += -lobjc -framework Foundation -framework CoreFoundation
@@ -178,6 +176,12 @@ ifneq ($(TARGET_LIPO),)
 ALL_PFLAGS += $($(THEOS_CURRENT_ARCH)_CFLAGS)
 _THEOS_INTERNAL_LDFLAGS += $($(THEOS_CURRENT_ARCH)_LDFLAGS)
 endif
+
+_THEOS_ADDITIONAL_CPPFLAGS = $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,CPPFLAGS)
+ifneq ($(_THEOS_ADDITIONAL_CPPFLAGS),)
+ADDITIONAL_CCFLAGS += $(_THEOS_ADDITIONAL_CPPFLAGS)$(warning $(THEOS_CURRENT_INSTANCE)_CPPFLAGS is deprecated. Please migrate to ADDITIONAL_CCFLAGS.)
+endif
+
 ALL_CFLAGS = $(ALL_PFLAGS) $(ALL_ARCHFLAGS)
 ALL_CCFLAGS = $(_THEOS_INTERNAL_CCFLAGS) $(_THEOS_TARGET_CCFLAGS) $(ADDITIONAL_CCFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,CCFLAGS) $(call __schema_var_all,,CCFLAGS)
 ALL_OBJCFLAGS = $(_THEOS_INTERNAL_OBJCFLAGS) $(_THEOS_TARGET_OBJCFLAGS) $(ADDITIONAL_OBJCFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,OBJCFLAGS) $(call __schema_var_all,,OBJCFLAGS)
@@ -401,7 +405,7 @@ endif
 $(THEOS_OBJ_DIR)/%.mi: %.xi
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
 	$(ECHO_PREPROCESSING)$(ECHO_UNBUFFERED)$(TARGET_CC) -x objective-c -E -I"$(call __clean_pwd,$(dir $<))" $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_PFLAGS) $(PREPROCESS_ARCH_FLAGS) $(ALL_OBJCFLAGS) $< > $(THEOS_OBJ_DIR)/$<.pre && $(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $(THEOS_OBJ_DIR)/$<.pre > $(THEOS_OBJ_DIR)/$<.mi $(ECHO_END)
-	$(ECHO_NOTHING)$(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $< > $@$(ECHO_END)
+	$(ECHO_NOTHING)rm $(THEOS_OBJ_DIR)/$<.pre$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.xi.$(_THEOS_OBJ_FILE_TAG).o: %.xi $(THEOS_OBJ_DIR)/%.mi
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
@@ -413,7 +417,7 @@ endif
 $(THEOS_OBJ_DIR)/%.mii: %.xmi
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
 	$(ECHO_PREPROCESSING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x objective-c++ -E -I"$(call __clean_pwd,$(dir $<))" $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_PFLAGS) $(PREPROCESS_ARCH_FLAGS) $(ALL_OBJCFLAGS) $< > $(THEOS_OBJ_DIR)/$<.pre && $(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $(THEOS_OBJ_DIR)/$<.pre > $(THEOS_OBJ_DIR)/$<.mii $(ECHO_END)
-	$(ECHO_NOTHING)$(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $< > $@$(ECHO_END)
+	$(ECHO_NOTHING)rm $(THEOS_OBJ_DIR)/$<.pre$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.xmi.$(_THEOS_OBJ_FILE_TAG).o: %.xmi $(THEOS_OBJ_DIR)/%.mii
 	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
