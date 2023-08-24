@@ -11,7 +11,7 @@ macOS, Linux, and Windows programs.
 <p align="center">
 <a href="https://theos.dev/">Home</a> –
 <a href="https://theos.dev/docs/installation">Installation</a> –
-<a href="https://theos.dev/docs">Documentation</a> –
+<a href="https://theos.dev/docs/">Documentation</a> –
 <a href="https://theos.dev/help">Get Help</a> –
 <a href="https://procursus.social/@theos">@theos@procursus.social</a> –
 <a href="https://twitter.com/theosdev">@theosdev</a> –
