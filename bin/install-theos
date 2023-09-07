@@ -402,7 +402,11 @@ linux() {
 					# sudo ln -sf /usr/lib64/$LATEST_LIBEDIT /usr/lib64/libedit.so.2
 					;;
 			esac
-			curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubuntu20.04.tar.xz | tar -xJvf - -C $THEOS/toolchain/
+			if [[ $(uname -m) == aarch64 ]]; then
+				curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubuntu20.04-aarch64.tar.xz | tar -xJvf - -C $THEOS/toolchain/
+			else
+				curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubuntu20.04.tar.xz | tar -xJvf - -C $THEOS/toolchain/
+			fi
 		else
 			# case $DISTRO in
 			# 	debian)
@@ -414,7 +418,11 @@ linux() {
 			# 	suse)
 			# 		;;
 			# esac
-			curl -sL https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain.tar.xz | tar -xJvf - -C $THEOS/toolchain/
+			if [[ $(uname -m) == aarch64 ]]; then
+				curl -sL https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain-aarch64.tar.xz | tar -xJvf - -C $THEOS/toolchain/
+			else
+				curl -sL https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain-x86_64.tar.xz | tar -xJvf - -C $THEOS/toolchain/
+			fi
 		fi
 
 		# Confirm that toolchain is usable
