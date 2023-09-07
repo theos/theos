@@ -422,10 +422,8 @@ linux() {
 			# 	suse)
 			# 		;;
 			# esac
-			if [[ $(uname -m) == aarch64 ]]; then
-				curl -sL https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain-aarch64.tar.xz | tar -xJvf - -C $THEOS/toolchain/
-			elif [[ $(uname -m) == x86_64 ]]; then
-				curl -sL https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain-x86_64.tar.xz | tar -xJvf - -C $THEOS/toolchain/
+			if [[ $(uname -m) == aarch64 || $(uname -m) == x86_64 ]]; then
+				curl -sL https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain-$(uname -m).tar.xz | tar -xJvf - -C $THEOS/toolchain/
 			else
 				common "Apologies, we do not currently provide precompiled toolchains for $(uname -m) Linux."
 				get_sdks
