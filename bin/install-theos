@@ -404,8 +404,12 @@ linux() {
 			esac
 			if [[ $(uname -m) == aarch64 ]]; then
 				curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubuntu20.04-aarch64.tar.xz | tar -xJvf - -C $THEOS/toolchain/
-			else
+			elif [[ $(uname -m) == x86_64 ]]; then
 				curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubuntu20.04.tar.xz | tar -xJvf - -C $THEOS/toolchain/
+			else
+				common "Apologies, we do not currently provide precompiled toolchains for $(uname -m) Linux."
+				get_sdks
+				return
 			fi
 		else
 			# case $DISTRO in
@@ -420,8 +424,12 @@ linux() {
 			# esac
 			if [[ $(uname -m) == aarch64 ]]; then
 				curl -sL https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain-aarch64.tar.xz | tar -xJvf - -C $THEOS/toolchain/
-			else
+			elif [[ $(uname -m) == x86_64 ]]; then
 				curl -sL https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain-x86_64.tar.xz | tar -xJvf - -C $THEOS/toolchain/
+			else
+				common "Apologies, we do not currently provide precompiled toolchains for $(uname -m) Linux."
+				get_sdks
+				return
 			fi
 		fi
 
