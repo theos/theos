@@ -382,6 +382,7 @@ linux() {
 		if theos_bool $stoolchain; then
 			case $DISTRO in
 				debian)
+					sudo apt install -y libtinfo6
 					;;
 				arch)
 					sudo pacman -S --needed --noconfirm ncurses
@@ -390,13 +391,13 @@ linux() {
 					sudo ln -sf /usr/lib/$LATEST_LIBCURSES /usr/lib/libncurses.so.6
 					;;
 				redhat)
-					# sudo dnf install -y z3-libs zstd
+					# sudo dnf install -y z3-libs ncurses-libs
 					# toolchain looks for a specific libedit
 					# LATEST_LIBEDIT="$(ls -v /usr/lib64/ | grep libedit | tail -n 1)"
 					# sudo ln -sf /usr/lib64/$LATEST_LIBEDIT /usr/lib64/libedit.so.2
 					;;
 				suse)
-					# sudo zypper install -y $(zypper search libz3 | tail -n 1 | cut -d "|" -f2) zstd
+					# sudo zypper install -y $(zypper search libz3 | tail -n 1 | cut -d "|" -f2) libncurses6
 					# toolchain looks for a specific libedit
 					# LATEST_LIBEDIT="$(ls -v /usr/lib64/ | grep libedit | tail -n 1)"
 					# sudo ln -sf /usr/lib64/$LATEST_LIBEDIT /usr/lib64/libedit.so.2
@@ -412,16 +413,20 @@ linux() {
 				return
 			fi
 		else
-			# case $DISTRO in
-			# 	debian)
-			# 		;;
-			# 	arch)
-			# 		;;
-			# 	redhat)
-			# 		;;
-			# 	suse)
-			# 		;;
-			# esac
+			case $DISTRO in
+				debian)
+					sudo apt install -y libtinfo6
+					;;
+				arch)
+					sudo pacman -S --needed --noconfirm ncurses
+					;;
+				redhat)
+					sudo dnf install -y ncurses-libs
+					;;
+				suse)
+					sudo zypper install -y libncurses6
+					;;
+			esac
 			if [[ $(uname -m) == aarch64 || $(uname -m) == x86_64 ]]; then
 				curl -sL https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain-$(uname -m).tar.xz | tar -xJvf - -C $THEOS/toolchain/
 			else
