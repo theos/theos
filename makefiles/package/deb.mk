@@ -31,9 +31,6 @@ ifeq ($(THEOS_PACKAGE_SCHEME)-$(THEOS_PACKAGE_ARCH),rootless-iphoneos-arm)
 else ifeq ($(THEOS_PACKAGE_SCHEME)-$(THEOS_PACKAGE_ARCH),roothide-iphoneos-arm)
 	# Override architecture
 	THEOS_PACKAGE_ARCH := iphoneos-arm64e
-else ifeq ($(THEOS_PACKAGE_SCHEME)-$(THEOS_PACKAGE_ARCH),roothide-iphoneos-arm64)
-	# Override architecture
-	THEOS_PACKAGE_ARCH := iphoneos-arm64e
 endif
 
 THEOS_PACKAGE_BASE_VERSION := $(shell grep -i "^Version:" "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
