@@ -131,7 +131,7 @@ get_theos() {
 		$THEOS/bin/update-theos
 	else
 		update "Theos does not appear to be installed. Cloning now..."
-		git clone --recursive https://github.com/theos/theos.git $THEOS \
+		git clone --recursive https://github.com/roothide/theos.git $THEOS \
 			&& update "Git clone of Theos was successful!" \
 			|| (error "Theos git clone command seems to have encountered an error. Please see the log above."; exit 6)
 	fi
