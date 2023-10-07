@@ -76,7 +76,7 @@ ifneq ($(THEOS_PACKAGE_SCHEME),)
 	# Move the parent directory (i.e., package install prefix), which now contains project files, back to the main stage
 	$(ECHO_NOTHING)mv $(wildcard $(_THEOS_STAGING_TMP)/*) $(THEOS_STAGING_DIR)/$(ECHO_END)
 	# Done with tmp stage
-	$(ECHO_NOTHING)rm -r $(_THEOS_STAGING_TMP) || true$(ECHO_END)
+	$(ECHO_NOTHING)rm -r $(_THEOS_STAGING_TMP)$(ECHO_END)
 endif
 	$(ECHO_NOTHING)COPYFILE_DISABLE=1 $(FAKEROOT) -r $(_THEOS_PLATFORM_DPKG_DEB) -Z$(_THEOS_PLATFORM_DPKG_DEB_COMPRESSION) -z$(THEOS_PLATFORM_DEB_COMPRESSION_LEVEL) -b "$(THEOS_STAGING_DIR)" "$(_THEOS_DEB_PACKAGE_FILENAME)"$(ECHO_END)
 
