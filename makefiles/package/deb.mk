@@ -69,9 +69,13 @@ _THEOS_SCHEME_STAGE = $(_THEOS_STAGING_TMP)$(THEOS_PACKAGE_INSTALL_PREFIX)
 
 internal-package::
 ifneq ($(THEOS_PACKAGE_SCHEME),)
+	# Use additional tmp stage for package schemes
 	$(ECHO_NOTHING)mkdir -p $(_THEOS_SCHEME_STAGE)$(ECHO_END)
+	# Iterate through staging dir and move top-level items to tmp stage if != "DEBIAN"
 	$(foreach i,$(wildcard $(THEOS_STAGING_DIR)/*),$(if $(findstring DEBIAN,$(i)),,$(shell mv $(i) $(_THEOS_SCHEME_STAGE))))
+	# Move the parent directory (i.e., package install prefix), which now contains project files, back to the main stage
 	$(ECHO_NOTHING)mv $(wildcard $(_THEOS_STAGING_TMP)/*) $(THEOS_STAGING_DIR)/$(ECHO_END)
+	# Done with tmp stage
 	$(ECHO_NOTHING)rm -r $(_THEOS_STAGING_TMP) || true$(ECHO_END)
 endif
 	$(ECHO_NOTHING)COPYFILE_DISABLE=1 $(FAKEROOT) -r $(_THEOS_PLATFORM_DPKG_DEB) -Z$(_THEOS_PLATFORM_DPKG_DEB_COMPRESSION) -z$(THEOS_PLATFORM_DEB_COMPRESSION_LEVEL) -b "$(THEOS_STAGING_DIR)" "$(_THEOS_DEB_PACKAGE_FILENAME)"$(ECHO_END)
