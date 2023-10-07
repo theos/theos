@@ -68,7 +68,7 @@ internal-package::
 # Use additional tmp stage for package schemes
 # Iterate through staging dir and move top-level items to tmp stage if != "DEBIAN"
 # Move the parent directory (i.e., package install prefix), which now contains project files, back to the main stage
-ifneq ($(THEOS_PACKAGE_SCHEME),)
+ifneq ($(THEOS_PACKAGE_INSTALL_PREFIX),)
 	$(foreach i,$(wildcard $(THEOS_STAGING_DIR)/*),$(if $(findstring DEBIAN,$(i)),,$(shell mv $(i) $(_THEOS_SCHEME_STAGE))))
 	$(ECHO_NOTHING)mv $(wildcard $(_THEOS_STAGING_TMP)/*) $(THEOS_STAGING_DIR)$(ECHO_END)
 endif
