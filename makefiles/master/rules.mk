@@ -69,25 +69,19 @@ clean:: before-clean internal-clean after-clean
 do:: all package install
 
 before-all::
-# If the sysroot is set but doesn’t exist, bail out.
+# If the chosen sdk doesn’t exist, the sysroot will be blank, bail out.
 ifeq ($(SYSROOT),)
-	$(ERROR_BEGIN) "A SYSROOT could not be found. For instructions on installing an SDK: https://theos.dev/docs/installation" $(ERROR_END)
+	$(ERROR_BEGIN) "Your chosen SDK, “$(_THEOS_TARGET_PLATFORM_SDK_NAME)$(_THEOS_TARGET_SDK_VERSION).sdk”, does not appear to exist." $(ERROR_END)
 else
+# If the SYSROOT is set but doesn’t exist, bail out.
 ifneq ($(call __exists,$(SYSROOT)),$(_THEOS_TRUE))
-	$(ERROR_BEGIN) "Your current SYSROOT, “$(SYSROOT)”, appears to be missing." $(ERROR_END)
+	$(ERROR_BEGIN) "Your chosen SYSROOT, “$(SYSROOT)”, does not appear to exist." $(ERROR_END)
 endif
 endif
 
 # If a vendored path is missing, bail out.
 ifneq ($(call __exists,$(THEOS_VENDOR_INCLUDE_PATH)/.git)$(call __exists,$(THEOS_VENDOR_LIBRARY_PATH)/.git),$(_THEOS_TRUE)$(_THEOS_TRUE))
 	$(ERROR_BEGIN) "The vendor/include and/or vendor/lib directories are missing. Please run \`$(THEOS)/bin/update-theos\`. More information: https://theos.dev/install" $(ERROR_END)
-endif
-
-ifeq ($(call __exists,$(THEOS_LEGACY_PACKAGE_DIR)),$(_THEOS_TRUE))
-ifneq ($(call __exists,$(THEOS_PACKAGE_DIR)),$(_THEOS_TRUE))
-	@$(PRINT_FORMAT) "The \"debs\" directory has been renamed to \"packages\". Moving it." >&2
-	$(ECHO_NOTHING)mv "$(THEOS_LEGACY_PACKAGE_DIR)" "$(THEOS_PACKAGE_DIR)"$(ECHO_END)
-endif
 endif
 
 ifeq ($(_THEOS_IS_TOP_ALL),$(_THEOS_TRUE))
