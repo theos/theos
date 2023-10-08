@@ -104,7 +104,7 @@ ifeq ($(call __exists,$(_THEOS_BUILD_SESSION_FILE)),$(_THEOS_TRUE))
 endif
 
 ifeq ($(MAKELEVEL),0)
-	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)" "$(_THEOS_SWIFT_AUXILIARY_DIR)" "$(_THEOS_TMP_COMPILE_COMMANDS_FILE)"$(ECHO_END)
+	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)" "$(_THEOS_STAGING_TMP)" "$(_THEOS_SWIFT_AUXILIARY_DIR)" "$(_THEOS_TMP_COMPILE_COMMANDS_FILE)"$(ECHO_END)
 endif
 
 after-clean::
@@ -212,7 +212,7 @@ else
 endif
 
 # The SPM config is a simple key-value file used to pass build settings to Package.swift.
-# Each line is either empty or starts with a (unique) key, followed by an equals sign, 
+# Each line is either empty or starts with a (unique) key, followed by an equals sign,
 # followed by the key's value.
 spm::
 	@$(PRINT_FORMAT_MAKING) "Creating SPM config"
