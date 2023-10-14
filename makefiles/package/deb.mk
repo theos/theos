@@ -58,7 +58,7 @@ before-package:: $(THEOS_STAGING_DIR)/DEBIAN/control
 
 _THEOS_DEB_PACKAGE_FILENAME = $(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_NAME)_$(_THEOS_INTERNAL_PACKAGE_VERSION)_$(THEOS_PACKAGE_ARCH).deb
 
-_STAGE_STATE := $(lastword $(subst /, , $(wildcard $(THEOS_STAGING_DIR)/*)))$(words $(wildcard $(THEOS_STAGING_DIR)/*))
+_STAGE_STATE := $(lastword $(subst /, ,$(wildcard $(THEOS_STAGING_DIR)/*)))$(words $(wildcard $(THEOS_STAGING_DIR)/*))
 _DEBIAN_ONLY := $(if $(filter DEBIAN1,$(_STAGE_STATE)),1,0)
 
 internal-package::
@@ -67,7 +67,7 @@ internal-package::
 # Move the parent directory (i.e., package install prefix), which now contains project files, back to the main stage
 ifneq ($(THEOS_PACKAGE_INSTALL_PREFIX),)
 # Don't bother with the tmp stage if there are no top-level items
-ifneq ($(call __theos_bool, $(_DEBIAN_ONLY)),$(_THEOS_TRUE))
+ifneq ($(call __theos_bool,$(_DEBIAN_ONLY)),$(_THEOS_TRUE))
 	$(foreach i,$(wildcard $(THEOS_STAGING_DIR)/*),$(if $(findstring DEBIAN,$(i)),,$(shell mv $(i) $(_THEOS_SCHEME_STAGE))))
 	$(ECHO_NOTHING)mv $(wildcard $(_THEOS_STAGING_TMP)/*) $(THEOS_STAGING_DIR)$(ECHO_END)
 endif
