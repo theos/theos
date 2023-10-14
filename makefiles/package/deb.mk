@@ -24,12 +24,6 @@ endif
 ifeq ($(_THEOS_DEB_CAN_PACKAGE),$(_THEOS_TRUE)) # Control file found
 THEOS_PACKAGE_NAME := $(shell grep -i "^Package:" "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 THEOS_PACKAGE_ARCH := $(shell grep -i "^Architecture:" "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
-
-ifeq ($(THEOS_PACKAGE_SCHEME)-$(THEOS_PACKAGE_ARCH),rootless-iphoneos-arm)
-	# Override architecture
-	THEOS_PACKAGE_ARCH := iphoneos-arm64
-endif
-
 THEOS_PACKAGE_BASE_VERSION := $(shell grep -i "^Version:" "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 
 $(THEOS_STAGING_DIR)/DEBIAN:
@@ -65,11 +59,12 @@ before-package:: $(THEOS_STAGING_DIR)/DEBIAN/control
 _THEOS_DEB_PACKAGE_FILENAME = $(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_NAME)_$(_THEOS_INTERNAL_PACKAGE_VERSION)_$(THEOS_PACKAGE_ARCH).deb
 
 internal-package::
-ifeq ($(THEOS_PACKAGE_SCHEME),rootless)
-	$(ECHO_NOTHING)mkdir -p "$(THEOS_STAGING_DIR)$(THEOS_PACKAGE_INSTALL_PREFIX)"$(ECHO_END)
-	$(ECHO_NOTHING)rsync -a "$(THEOS_STAGING_DIR)/" "$(THEOS_STAGING_DIR)$(THEOS_PACKAGE_INSTALL_PREFIX)" --exclude "DEBIAN" --exclude "$(THEOS_PACKAGE_INSTALL_PREFIX)" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE) --remove-source-files$(ECHO_END)
-# Delete everything except DEBIAN/ and THEOS_PACKAGE_INSTALL_PREFIX
-	$(ECHO_NOTHING)find "$(THEOS_STAGING_DIR)" -mindepth 1 ! -path "*/DEBIAN*" ! -path "*$(THEOS_PACKAGE_INSTALL_PREFIX)*" \( -type d -empty -o -type f \) -delete$(ECHO_END)
+# Use additional tmp stage for package schemes
+# Iterate through staging dir and move top-level items to tmp stage if != "DEBIAN"
+# Move the parent directory (i.e., package install prefix), which now contains project files, back to the main stage
+ifneq ($(THEOS_PACKAGE_INSTALL_PREFIX),)
+	$(foreach i,$(wildcard $(THEOS_STAGING_DIR)/*),$(if $(findstring DEBIAN,$(i)),,$(shell mv $(i) $(_THEOS_SCHEME_STAGE))))
+	$(ECHO_NOTHING)mv $(wildcard $(_THEOS_STAGING_TMP)/*) $(THEOS_STAGING_DIR)$(ECHO_END)
 endif
 	$(ECHO_NOTHING)COPYFILE_DISABLE=1 $(FAKEROOT) -r $(_THEOS_PLATFORM_DPKG_DEB) -Z$(_THEOS_PLATFORM_DPKG_DEB_COMPRESSION) -z$(THEOS_PLATFORM_DEB_COMPRESSION_LEVEL) -b "$(THEOS_STAGING_DIR)" "$(_THEOS_DEB_PACKAGE_FILENAME)"$(ECHO_END)
 

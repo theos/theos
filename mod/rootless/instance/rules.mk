@@ -1,0 +1,3 @@
+ifeq ($(THEOS_PACKAGE_SCHEME),rootless)
+	_THEOS_INTERNAL_LDFLAGS += -rpath $(THEOS_PACKAGE_INSTALL_PREFIX)/Library/Frameworks -rpath $(THEOS_PACKAGE_INSTALL_PREFIX)/usr/lib
+endif

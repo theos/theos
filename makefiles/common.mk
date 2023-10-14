@@ -123,6 +123,7 @@ _THEOS_HAS_STAGING_LAYOUT := $(call __exists,$(THEOS_LAYOUT_DIR))
 endif
 
 _THEOS_LOAD_MODULES := $(sort $(call __schema_var_all,,MODULES) $(THEOS_AUTOLOAD_MODULES))
+_THEOS_LOAD_MODULES += rootless
 __mod = -include $$(foreach mod,$$(_THEOS_LOAD_MODULES),$$(THEOS_MODULE_PATH)/$$(mod)/$(1))
 
 include $(THEOS_MAKE_PATH)/legacy.mk
@@ -251,6 +252,8 @@ endif
 
 THEOS_STAGING_DIR_NAME ?= _
 THEOS_STAGING_DIR ?= $(_THEOS_LOCAL_DATA_DIR)/$(THEOS_STAGING_DIR_NAME)
+_THEOS_STAGING_TMP = $(THEOS_STAGING_DIR)tmp
+_THEOS_SCHEME_STAGE = $(_THEOS_STAGING_TMP)$(THEOS_PACKAGE_INSTALL_PREFIX)
 _SPACE := $(subst x,,x x)
 _COMMA := ,
 

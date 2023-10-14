@@ -14,9 +14,9 @@ endif
 # Only do the master staging rules if we're the toplevel make invocation.
 ifeq ($(_THEOS_TOP_INVOCATION_DONE),$(_THEOS_FALSE))
 before-stage::
-	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)"$(ECHO_END)
+	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)" "$(_THEOS_SCHEME_STAGE)"$(ECHO_END)
 	$(ECHO_NOTHING)$(FAKEROOT) -c$(ECHO_END)
-	$(ECHO_NOTHING)mkdir -p "$(THEOS_STAGING_DIR)"$(ECHO_END)
+	$(ECHO_NOTHING)mkdir -p "$(THEOS_STAGING_DIR)" "$(_THEOS_SCHEME_STAGE)"$(ECHO_END)
 else # _THEOS_TOP_INVOCATION_DONE
 before-stage::
 	@:
