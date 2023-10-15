@@ -123,7 +123,9 @@ _THEOS_HAS_STAGING_LAYOUT := $(call __exists,$(THEOS_LAYOUT_DIR))
 endif
 
 _THEOS_LOAD_MODULES := $(sort $(call __schema_var_all,,MODULES) $(THEOS_AUTOLOAD_MODULES))
-_THEOS_LOAD_MODULES += $(patsubst $(THEOS_MODULE_PATH)/%,%,$(sort $(wildcard $(THEOS_MODULE_PATH)/schemes/*)))
+ifneq ($(THEOS_PACKAGE_SCHEME),)
+_THEOS_LOAD_MODULES += $(patsubst $(THEOS_MODULE_PATH)/%,%,$(THEOS_MODULE_PATH)/schemes/$(THEOS_PACKAGE_SCHEME))
+endif
 __mod = -include $$(foreach mod,$$(_THEOS_LOAD_MODULES),$$(THEOS_MODULE_PATH)/$$(mod)/$(1))
 
 include $(THEOS_MAKE_PATH)/legacy.mk
