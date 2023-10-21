@@ -65,12 +65,16 @@ internal-package::
 ifneq ($(THEOS_PACKAGE_INSTALL_PREFIX),)
 	$(eval _STAGE_CONTENTS := $(wildcard $(THEOS_STAGING_DIR)/*))
 	$(eval _STAGE_STATE := $(lastword $(subst /, ,$(_STAGE_CONTENTS)))$(words $(_STAGE_CONTENTS)))
-	$(eval _DEBIAN_ONLY := $(if $(filter DEBIAN1,$(_STAGE_STATE)),1,0))
+	$(eval _DEBIAN_ONLY := $(if $(filter DEBIAN1,$(_STAGE_STATE)),$(_THEOS_TRUE),$(_THEOS_FALSE)))
 # Only bother with tmp stage if there are top-level items
-ifneq ($(call __theos_bool,$(_DEBIAN_ONLY)),$(_THEOS_TRUE))
-	$(foreach i,$(_STAGE_CONTENTS),$(if $(findstring DEBIAN,$(i)),,$(shell mv $(i) $(_THEOS_SCHEME_STAGE))))
-	$(ECHO_NOTHING)mv $(wildcard $(_THEOS_STAGING_TMP)/*) $(THEOS_STAGING_DIR)$(ECHO_END)
-endif
+	$(if $(_DEBIAN_ONLY),, \
+		$(foreach i,$(_STAGE_CONTENTS), \
+			$(if $(findstring DEBIAN,$(i)),, \
+				$(shell mv $(i) $(_THEOS_SCHEME_STAGE)) \
+			) \
+		) \
+		$(shell mv $(wildcard $(_THEOS_STAGING_TMP)/*) $(THEOS_STAGING_DIR)) \
+	)
 endif
 	$(ECHO_NOTHING)COPYFILE_DISABLE=1 $(FAKEROOT) -r $(_THEOS_PLATFORM_DPKG_DEB) -Z$(_THEOS_PLATFORM_DPKG_DEB_COMPRESSION) -z$(THEOS_PLATFORM_DEB_COMPRESSION_LEVEL) -b "$(THEOS_STAGING_DIR)" "$(_THEOS_DEB_PACKAGE_FILENAME)"$(ECHO_END)
 
