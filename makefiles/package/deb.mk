@@ -52,8 +52,10 @@ endif
 
 _THEOS_DEB_LIBSWIFT_DEPENDS := $(_THEOS_DEB_LIBSWIFT_PACKAGE) (>= $(_THEOS_DEB_LIBSWIFT_PACKAGE_VERSION))
 
+_THEOS_DEB_ORION_DEPENDS := dev.theos.orion (>= 1.0.0)
+
 $(THEOS_STAGING_DIR)/DEBIAN/control: $(THEOS_STAGING_DIR)/DEBIAN
-	$(ECHO_NOTHING)sed -e 's/\$${LIBSWIFT}/$(_THEOS_DEB_LIBSWIFT_DEPENDS)/g; s/\$${LIBSWIFT_VERSION}/$(_THEOS_DEB_LIBSWIFT_PACKAGE_VERSION)/g; /^[Vv]ersion:/d; /^[Aa]rchitecture:/d; /^$$/d; $$a\' "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" > "$@"$(ECHO_END)
+	$(ECHO_NOTHING)sed -e 's/\$${LIBSWIFT}/$(_THEOS_DEB_LIBSWIFT_DEPENDS)/g; s/\$${LIBSWIFT_VERSION}/$(_THEOS_DEB_LIBSWIFT_PACKAGE_VERSION)/g; s/\$${ORION}/$(_THEOS_DEB_ORION_DEPENDS)/g; /^[Vv]ersion:/d; /^[Aa]rchitecture:/d; /^$$/d; $$G; P; D' "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" > "$@"$(ECHO_END)
 	$(ECHO_NOTHING)echo "Architecture: $(THEOS_PACKAGE_ARCH)" >> "$@"$(ECHO_END)
 	$(ECHO_NOTHING)echo "Version: $(_THEOS_INTERNAL_PACKAGE_VERSION)" >> "$@"$(ECHO_END)
 	$(ECHO_NOTHING)echo "Installed-Size: $(shell du $(_THEOS_PLATFORM_DU_EXCLUDE) DEBIAN -ks "$(THEOS_STAGING_DIR)" | cut -f 1)" >> "$@"$(ECHO_END)
@@ -63,12 +65,22 @@ before-package:: $(THEOS_STAGING_DIR)/DEBIAN/control
 _THEOS_DEB_PACKAGE_FILENAME = $(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_NAME)_$(_THEOS_INTERNAL_PACKAGE_VERSION)_$(THEOS_PACKAGE_ARCH).deb
 
 internal-package::
-ifeq ($(THEOS_PACKAGE_SCHEME),rootless)
-	$(ECHO_NOTHING)mkdir -p "$(THEOS_STAGING_DIR)$(THEOS_PACKAGE_INSTALL_PREFIX)"$(ECHO_END)
-	$(ECHO_NOTHING)rsync -a "$(THEOS_STAGING_DIR)/" "$(THEOS_STAGING_DIR)$(THEOS_PACKAGE_INSTALL_PREFIX)" --exclude "DEBIAN" --exclude "$(THEOS_PACKAGE_INSTALL_PREFIX)" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE) $(ECHO_END)
-# Delete everything except DEBIAN/ and /var
-	$(ECHO_NOTHING)find "$(THEOS_STAGING_DIR)" -mindepth 1 -maxdepth 1 ! -name DEBIAN ! -name "var" -exec rm -rf {} \;$(ECHO_END)
-	$(ECHO_NOTHING)rmdir "$(THEOS_STAGING_DIR)$(THEOS_PACKAGE_INSTALL_PREFIX)/var" >/dev/null || true$(ECHO_END)
+# Use additional tmp stage for package schemes
+# Iterate through staging dir and move top-level items to tmp stage if != "DEBIAN"
+# Move the parent directory (i.e., package install prefix), which now contains project files, back to the main stage
+ifneq ($(THEOS_PACKAGE_INSTALL_PREFIX),)
+	$(eval _STAGE_CONTENTS := $(wildcard $(THEOS_STAGING_DIR)/*))
+	$(eval _STAGE_STATE := $(lastword $(subst /, ,$(_STAGE_CONTENTS)))$(words $(_STAGE_CONTENTS)))
+	$(eval _DEBIAN_ONLY := $(if $(filter DEBIAN1,$(_STAGE_STATE)),$(_THEOS_TRUE),$(_THEOS_FALSE)))
+# Only bother with tmp stage if there are top-level items
+	$(if $(_DEBIAN_ONLY),, \
+		$(foreach i,$(_STAGE_CONTENTS), \
+			$(if $(findstring DEBIAN,$(i)),, \
+				$(shell mv $(i) $(_THEOS_SCHEME_STAGE)) \
+			) \
+		) \
+		$(shell mv $(wildcard $(_THEOS_STAGING_TMP)/*) $(THEOS_STAGING_DIR)) \
+	)
 endif
 	$(ECHO_NOTHING)COPYFILE_DISABLE=1 $(FAKEROOT) -r $(_THEOS_PLATFORM_DPKG_DEB) -Z$(_THEOS_PLATFORM_DPKG_DEB_COMPRESSION) -z$(THEOS_PLATFORM_DEB_COMPRESSION_LEVEL) -b "$(THEOS_STAGING_DIR)" "$(_THEOS_DEB_PACKAGE_FILENAME)"$(ECHO_END)
 
