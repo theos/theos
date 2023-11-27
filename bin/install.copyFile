@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-if [[ TARGET_INSTALL_REMOTE -eq 1 ]]; then
+if [[ $TARGET_INSTALL_REMOTE -eq 1 ]]; then
 	scp -P $THEOS_DEVICE_PORT "$1" $THEOS_DEVICE_USER@$THEOS_DEVICE_IP:$2
 else
 	cp "$1" "$2"
