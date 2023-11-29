@@ -18,7 +18,11 @@ _LOCAL_APP_EXTENSION_SAFE := $(_THEOS_TRUE)
 include $(THEOS_MAKE_PATH)/instance/shared/bundle.mk
 # End Bundle Setup
 
+ifeq ($(THEOS_PACKAGE_SCHEME),rootless)
+_THEOS_INTERNAL_LDFLAGS += -dynamiclib -install_name "@rpath/$(_LOCAL_INSTANCE_TARGET)"
+else
 _THEOS_INTERNAL_LDFLAGS += -dynamiclib -install_name "$(LOCAL_INSTALL_PATH)/$(_LOCAL_INSTANCE_TARGET)"
+endif
 
 ifeq ($(_THEOS_MAKE_PARALLEL_BUILDING), no)
 internal-framework-all_:: $(_OBJ_DIR_STAMPS) shared-instance-bundle-all $(THEOS_OBJ_DIR)/$(_LOCAL_INSTANCE_TARGET)
@@ -35,6 +39,10 @@ endif
 $(eval $(call _THEOS_TEMPLATE_DEFAULT_LINKING_RULE,$(_LOCAL_INSTANCE_TARGET)))
 
 internal-framework-stage_:: shared-instance-bundle-stage
+ifeq ($(THEOS_PACKAGE_SCHEME),)
 	$(ECHO_COPYING_FRAMEWORK)rsync -ra "$(_THEOS_SHARED_BUNDLE_BUILD_PATH)" "$(THEOS_LIBRARY_PATH)"$(ECHO_END)
+else
+	$(ECHO_COPYING_FRAMEWORK)rsync -ra "$(_THEOS_SHARED_BUNDLE_BUILD_PATH)" "$(THEOS_LIBRARY_PATH)/$(THEOS_TARGET_NAME)/$(or $(THEOS_PACKAGE_SCHEME),rootful)"$(ECHO_END)
+endif
 
 $(eval $(call __mod,instance/framework.mk))
