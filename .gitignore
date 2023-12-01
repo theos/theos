@@ -9,5 +9,4 @@ include/*
 lib/*
 templates/*
 mod/*
-!mod/schemes/rootless
 !*/.keep
