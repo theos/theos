@@ -20,7 +20,6 @@ after-package::
 THEOS_PACKAGE_NAME :=
 THEOS_PACKAGE_ARCH :=
 THEOS_PACKAGE_BASE_VERSION :=
-# THEOS_PACKAGE_VERSION is set in common.mk (to give its warning.)
 
 export THEOS_PACKAGE_SCHEME
 ifeq ($(THEOS_PACKAGE_SCHEME),rootless)
@@ -92,6 +91,9 @@ internal-install-check::
 
 export TARGET_INSTALL_REMOTE
 _THEOS_INSTALL_TYPE := local
+ifneq ($(THEOS_DEVICE_IP),)
+TARGET_INSTALL_REMOTE = $(_THEOS_TRUE)
+endif # THEOS_DEVICE_IP != ""
 ifeq ($(TARGET_INSTALL_REMOTE),$(_THEOS_TRUE))
 _THEOS_INSTALL_TYPE := remote
 ifeq ($(THEOS_DEVICE_IP),)

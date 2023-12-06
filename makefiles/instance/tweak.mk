@@ -13,14 +13,13 @@ _LOCAL_LOGOS_DEFAULT_GENERATOR = $(or $($(THEOS_CURRENT_INSTANCE)_LOGOS_DEFAULT_
 _THEOS_INTERNAL_LOGOSFLAGS += -c generator=$(_LOCAL_LOGOS_DEFAULT_GENERATOR)
 
 ifeq ($(_LOCAL_LOGOS_DEFAULT_GENERATOR),MobileSubstrate)
-	# TODO: We should be able to unify this vendor library path logic somehow
-	ifeq ($(THEOS_PACKAGE_SCHEME),)
-		_THEOS_INTERNAL_LDFLAGS += -F$(THEOS_VENDOR_LIBRARY_PATH)
-	endif
-	_THEOS_INTERNAL_LDFLAGS += \
-		-F$(THEOS_VENDOR_LIBRARY_PATH)/$(THEOS_TARGET_NAME)/$(or $(THEOS_PACKAGE_SCHEME),rootful) \
-		-framework CydiaSubstrate
+	_THEOS_INTERNAL_LDFLAGS += -framework CydiaSubstrate
+else ifeq ($(_LOCAL_LOGOS_DEFAULT_GENERATOR),libhooker)
+	_THEOS_INTERNAL_LDFLAGS += -lhooker -lblackjack
 endif
+
+_LOCAL_ORION_DEFAULT_BACKEND = $(or $($(THEOS_CURRENT_INSTANCE)_ORION_DEFAULT_BACKEND),$(ORION_DEFAULT_BACKEND),$(_THEOS_TARGET_ORION_DEFAULT_BACKEND),Substrate)
+_THEOS_INTERNAL_ORIONFLAGS += --backend $(_LOCAL_ORION_DEFAULT_BACKEND)
 
 include $(THEOS_MAKE_PATH)/instance/library.mk
 
@@ -44,9 +43,11 @@ endif
 ifneq ($($(THEOS_CURRENT_INSTANCE)_INSTALL),0)
 internal-tweak-stage_:: $(_EXTRA_TARGET) internal-library-stage_
 ifeq ($(call __exists,$(THEOS_CURRENT_INSTANCE).plist),$(_THEOS_TRUE))
-	$(ECHO_NOTHING)cp $(THEOS_CURRENT_INSTANCE).plist "$(THEOS_STAGING_DIR)$(LOCAL_INSTALL_PATH)/"$(ECHO_END)
-else ifeq ($(call __exists,$(THEOS_LAYOUT_DIR_NAME)/$(LOCAL_INSTALL_PATH)/$(THEOS_CURRENT_INSTANCE).plist),$(_THEOS_FALSE))
-	$(ERROR_BEGIN)"You are missing a filter property list. Make sure it’s named $(THEOS_CURRENT_INSTANCE).plist. Refer to http://iphonedevwiki.net/index.php/Cydia_Substrate#MobileLoader."$(ERROR_END)
+	$(ECHO_NOTHING)cp "$(THEOS_CURRENT_INSTANCE).plist" "$(THEOS_STAGING_DIR)$(LOCAL_INSTALL_PATH)/$(THEOS_CURRENT_INSTANCE).plist"$(ECHO_END)
+else ifeq ($(call __exists,Filter.plist),$(_THEOS_TRUE))
+	$(ECHO_NOTHING)cp "Filter.plist" "$(THEOS_STAGING_DIR)$(LOCAL_INSTALL_PATH)/$(THEOS_CURRENT_INSTANCE).plist"$(ECHO_END)
+else
+	$(ERROR_BEGIN)"You are missing a filter property list. Make sure it’s named \"$(THEOS_CURRENT_INSTANCE).plist\" or \"Filter.plist\". Refer to http://iphonedevwiki.net/index.php/Cydia_Substrate#MobileLoader."$(ERROR_END)
 endif
 endif
 
