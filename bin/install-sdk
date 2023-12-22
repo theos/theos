@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+# Error codes + association:
+# 1 - api.github.com request failed
+# 2 - Invalid argument(s)
+# 3 - No $THEOS
+# 4 - Requested SDK DNE
+# 5 - Requested SDK already exists
+# 6 - Failed curl
+
+set -e
+
+urls=$(curl -s https://api.github.com/repos/theos/sdks/releases/latest | grep download_url | sed 's/.*: "\(.*\)"/\1/')
+if [[ -z "$urls" ]]; then
+	echo "ERROR: api.github.com request failed?!" >&2
+	exit 1
+fi
+
+if [[ $# -ne 1 ]]; then
+	echo "Usage: $0 <sdk_name>"
+	echo "Example <sdk_name>s: $(echo "$urls" | sed -e 's/.*\///' -e 's/\.sdk.*//' | tr '\n' ' ')latest latest-tv"
+	exit 2
+fi
+
+if [[ -z "$THEOS" ]]; then
+	echo "ERROR: \$THEOS does not exist." >&2
+	echo "Please install Theos from https://theos.dev/docs/installation before proceeding." >&2
+	exit 3
+elif ! [[ -d "$THEOS/sdks/" ]]; then
+    mkdir -pv "$THEOS/sdks/"
+fi
+
+url=""
+if [[ $1 == latest ]]; then
+    url=$(echo "$urls" | grep 'iPhoneOS' | sort -V | tail -n1)
+elif [[ $1 == latest-tv ]]; then
+    url=$(echo "$urls" | grep 'AppleTVOS' | sort -V | tail -n1)
+else
+    url=$(echo "$urls" | grep "$1")
+fi
+
+if [[ -z $url ]]; then
+    echo "ERROR: no corresponding url found for $1!" >&2
+    exit 4
+else
+    sdk=$(echo "$url" | sed -e 's/.*\///' -e 's/\.sdk.*//').sdk
+    if [[ -d "$THEOS/sdks/$sdk" ]]; then
+        echo "ERROR: $sdk already exists!" >&2
+        exit 5
+    else
+        curl -L "$url" | tar -xJv -C "$THEOS/sdks" \
+        || (echo "ERROR: $sdk download failed." >&2; exit 6)
+    fi
+fi
