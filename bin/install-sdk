@@ -16,9 +16,11 @@ if [[ -z "$urls" ]]; then
 	exit 1
 fi
 
+sdks=( $(echo "$urls" | sed -e 's/.*\///' -e 's/\.sdk.*//' | tr '\n' ' ') )
+sdks+="latest latest-tv"
 if [[ $# -ne 1 ]]; then
 	echo "Usage: $0 <sdk_name>"
-	echo "Example <sdk_name>s: $(echo "$urls" | sed -e 's/.*\///' -e 's/\.sdk.*//' | tr '\n' ' ')latest latest-tv"
+	echo "Available <sdk_name>s: ${sdks[@]}"
 	exit 2
 fi
 
@@ -27,28 +29,25 @@ if [[ -z "$THEOS" ]]; then
 	echo "Please install Theos from https://theos.dev/docs/installation before proceeding." >&2
 	exit 3
 elif ! [[ -d "$THEOS/sdks/" ]]; then
-    mkdir -pv "$THEOS/sdks/"
+	mkdir -pv "$THEOS/sdks/"
 fi
 
-url=""
 if [[ $1 == latest ]]; then
-    url=$(echo "$urls" | grep 'iPhoneOS' | sort -V | tail -n1)
+	url=$(echo "$urls" | grep 'iPhoneOS' | sort -V | tail -n1)
 elif [[ $1 == latest-tv ]]; then
-    url=$(echo "$urls" | grep 'AppleTVOS' | sort -V | tail -n1)
+	url=$(echo "$urls" | grep 'AppleTVOS' | sort -V | tail -n1)
+elif [[ "${sdks[*]}" =~ $1 ]]; then
+	url=$(echo "$urls" | grep "$1")
 else
-    url=$(echo "$urls" | grep "$1")
+	echo "ERROR: we do not currently provide $1.sdk!" >&2
+	exit 4
 fi
 
-if [[ -z $url ]]; then
-    echo "ERROR: no corresponding url found for $1!" >&2
-    exit 4
+sdk=$(echo "$url" | sed -e 's/.*\///' -e 's/\.sdk.*//').sdk
+if [[ -d "$THEOS/sdks/$sdk" ]]; then
+	echo "ERROR: $sdk already exists!" >&2
+	exit 5
 else
-    sdk=$(echo "$url" | sed -e 's/.*\///' -e 's/\.sdk.*//').sdk
-    if [[ -d "$THEOS/sdks/$sdk" ]]; then
-        echo "ERROR: $sdk already exists!" >&2
-        exit 5
-    else
-        curl -L "$url" | tar -xJv -C "$THEOS/sdks" \
-        || (echo "ERROR: $sdk download failed." >&2; exit 6)
-    fi
+	curl -L "$url" | tar -xJv -C "$THEOS/sdks" \
+	|| (echo "ERROR: $sdk download failed." >&2; exit 6)
 fi
