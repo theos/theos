@@ -42,7 +42,7 @@ internal-framework-stage_:: shared-instance-bundle-stage
 ifeq ($(THEOS_PACKAGE_SCHEME),)
 	$(ECHO_COPYING_FRAMEWORK)rsync -ra "$(_THEOS_SHARED_BUNDLE_BUILD_PATH)" "$(THEOS_LIBRARY_PATH)"$(ECHO_END)
 else
-	$(ECHO_COPYING_FRAMEWORK)rsync -ra "$(_THEOS_SHARED_BUNDLE_BUILD_PATH)" "$(THEOS_LIBRARY_PATH)/$(THEOS_TARGET_NAME)/$(or $(THEOS_PACKAGE_SCHEME),rootful)"$(ECHO_END)
+	$(ECHO_COPYING_FRAMEWORK)rsync -ra "$(_THEOS_SHARED_BUNDLE_BUILD_PATH)" "$(THEOS_LIBRARY_PATH)/$(THEOS_TARGET_NAME)/$(THEOS_PACKAGE_SCHEME)"$(ECHO_END)
 endif
 
 $(eval $(call __mod,instance/framework.mk))
