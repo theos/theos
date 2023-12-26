@@ -3,8 +3,8 @@
 # Error codes + association:
 # 1 - api.github.com request failed
 # 2 - Invalid argument(s)
-# 3 - No $THEOS
-# 4 - Requested SDK DNE
+# 3 - Requested SDK DNE
+# 4 - No $THEOS
 # 5 - Requested SDK already exists
 # 6 - Failed curl
 
@@ -24,10 +24,15 @@ if [[ $# -ne 1 ]]; then
 	exit 2
 fi
 
+if ! [[ "${sdks[*]}" =~ $1 ]]; then
+	echo "ERROR: we do not currently provide $1.sdk!" >&2
+	exit 3
+fi
+
 if [[ -z "$THEOS" ]]; then
 	echo "ERROR: \$THEOS does not exist." >&2
 	echo "Please install Theos from https://theos.dev/docs/installation before proceeding." >&2
-	exit 3
+	exit 4
 elif ! [[ -d "$THEOS/sdks/" ]]; then
 	mkdir -pv "$THEOS/sdks/"
 fi
@@ -36,11 +41,8 @@ if [[ $1 == latest ]]; then
 	url=$(echo "$urls" | grep 'iPhoneOS' | sort -V | tail -n1)
 elif [[ $1 == latest-tv ]]; then
 	url=$(echo "$urls" | grep 'AppleTVOS' | sort -V | tail -n1)
-elif [[ "${sdks[*]}" =~ $1 ]]; then
-	url=$(echo "$urls" | grep "$1")
 else
-	echo "ERROR: we do not currently provide $1.sdk!" >&2
-	exit 4
+	url=$(echo "$urls" | grep "$1")
 fi
 
 sdk=$(echo "$url" | sed -e 's/.*\///' -e 's/\.sdk.*//').sdk
