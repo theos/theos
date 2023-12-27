@@ -415,7 +415,11 @@ linux() {
 					# sudo ln -sf /usr/lib64/$LATEST_LIBEDIT /usr/lib64/libedit.so.2
 					;;
 			esac
-			if [[ $(uname -m) == aarch64 ]]; then
+			if [[ $DISTRO == redhat && $(uname -m) == aarch64 ]]; then
+				curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubi9-aarch64.tar.xz | tar -xJvf - -C $THEOS/toolchain/
+			elif [[ $DISTRO == redhat && $(uname -m) == x86_64 ]]; then
+				curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubi9.tar.xz | tar -xJvf - -C $THEOS/toolchain/
+			elif [[ $(uname -m) == aarch64 ]]; then
 				curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubuntu20.04-aarch64.tar.xz | tar -xJvf - -C $THEOS/toolchain/
 			elif [[ $(uname -m) == x86_64 ]]; then
 				curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubuntu20.04.tar.xz | tar -xJvf - -C $THEOS/toolchain/
