@@ -17,7 +17,7 @@ if [[ -z "$urls" ]]; then
 fi
 
 sdks=( $(echo "$urls" | sed -e 's/.*\///' -e 's/\.sdk.*//' | tr '\n' ' ') )
-sdks+="latest latest-tv"
+sdks+=( "latest" "latest-tv" )
 if [[ $# -ne 1 ]]; then
 	echo "Usage: $0 <sdk_name>"
 	echo "Available <sdk_name>s: ${sdks[@]}"
