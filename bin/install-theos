@@ -341,8 +341,7 @@ linux() {
 				|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 			;;
 		redhat)
-			sudo dnf --refresh || true
-			sudo dnf group install -y "C Development Tools and Libraries" \
+			sudo dnf group install --refresh -y "C Development Tools and Libraries" \
 				&& update "Dependencies have been successfully installed!" \
 				|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 			sudo dnf install -y fakeroot lzma libbsd rsync curl perl zip git libxml2 \
@@ -406,12 +405,10 @@ linux() {
 					sudo ln -sf /usr/lib/$LATEST_LIBCURSES /usr/lib/libncurses.so.6
 					;;
 				redhat)
-					# sudo dnf install -y z3-libs ncurses-libs
-					# toolchain looks for a specific libedit
-					# LATEST_LIBEDIT="$(ls -v /usr/lib64/ | grep libedit | tail -n 1)"
-					# sudo ln -sf /usr/lib64/$LATEST_LIBEDIT /usr/lib64/libedit.so.2
+					sudo dnf install -y ncurses-libs
 					;;
 				suse)
+					common "Unfortunately, we do not currently provide a SUSE-compatible Swift toolchain."
 					# sudo zypper install -y $(zypper search libz3 | tail -n 1 | cut -d "|" -f2) libncurses6
 					# toolchain looks for a specific libedit
 					# LATEST_LIBEDIT="$(ls -v /usr/lib64/ | grep libedit | tail -n 1)"
