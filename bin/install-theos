@@ -411,10 +411,6 @@ linux() {
 					common "Unfortunately, we do not currently provide a SUSE-compatible Swift toolchain."
 					get_sdks
 					return
-					# sudo zypper install -y $(zypper search libz3 | tail -n 1 | cut -d "|" -f2) libncurses6
-					# toolchain looks for a specific libedit
-					# LATEST_LIBEDIT="$(ls -v /usr/lib64/ | grep libedit | tail -n 1)"
-					# sudo ln -sf /usr/lib64/$LATEST_LIBEDIT /usr/lib64/libedit.so.2
 					;;
 			esac
 			if [[ $DISTRO == redhat && $(uname -m) == aarch64 ]]; then
@@ -508,14 +504,7 @@ linux() {
 # 			read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [y/n]" stoolchain
 # 		fi
 # 		if theos_bool $stoolchain; then
-# 			sudo pkg install -y zstd
-# 			curl -LO https://github.com/CRKatri/llvm-project/releases/download/swift-5.3.2-RELEASE/swift-5.3.2-RELEASE-ubuntu20.04.tar.zst
-# 			TMP=$(mktemp -d)
-# 			tar -xvf swift-5.3.2-RELEASE-ubuntu20.04.tar.zst -C $TMP
-# 			mkdir -p $THEOS/toolchain/linux/iphone $THEOS/toolchain/swift
-# 			mv $TMP/swift-5.3.2-RELEASE-ubuntu20.04/* $THEOS/toolchain/linux/iphone/
-# 			ln -s $THEOS/toolchain/linux/iphone $THEOS/toolchain/swift
-# 			rm -r swift-5.3.2-RELEASE-ubuntu20.04.tar.zst $TMP
+#			<toolchain + deps here>
 # 		else
 #			curl -LO https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain.tar.xz
 #			tar -xvf iOSToolchain.tar.xz -C $THEOS/toolchain/
