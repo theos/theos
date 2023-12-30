@@ -43,6 +43,7 @@ fi
 
 # Common vars
 PLATFORM=$(uname)
+ARCH=$(uname -m)
 CSHELL="${SHELL##*/}"
 SHELL_ENV="unknown"
 if [[ $CSHELL == sh || $CSHELL == bash || $CSHELL == dash ]]; then
@@ -413,16 +414,16 @@ linux() {
 					return
 					;;
 			esac
-			if [[ $DISTRO == redhat && $(uname -m) == aarch64 ]]; then
+			if [[ $DISTRO == redhat && $ARCH == aarch64 ]]; then
 				curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubi9-aarch64.tar.xz | tar -xJvf - -C $THEOS/toolchain/
-			elif [[ $DISTRO == redhat && $(uname -m) == x86_64 ]]; then
+			elif [[ $DISTRO == redhat && $ARCH == x86_64 ]]; then
 				curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubi9.tar.xz | tar -xJvf - -C $THEOS/toolchain/
-			elif [[ $(uname -m) == aarch64 ]]; then
+			elif [[ $ARCH == aarch64 ]]; then
 				curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubuntu20.04-aarch64.tar.xz | tar -xJvf - -C $THEOS/toolchain/
-			elif [[ $(uname -m) == x86_64 ]]; then
+			elif [[ $ARCH == x86_64 ]]; then
 				curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubuntu20.04.tar.xz | tar -xJvf - -C $THEOS/toolchain/
 			else
-				common "Apologies, we do not currently provide precompiled toolchains for $(uname -m) Linux."
+				common "Apologies, we do not currently provide precompiled toolchains for $ARCH Linux."
 				get_sdks
 				return
 			fi
@@ -441,10 +442,10 @@ linux() {
 					sudo zypper install -y libncurses6
 					;;
 			esac
-			if [[ $(uname -m) == aarch64 || $(uname -m) == x86_64 ]]; then
-				curl -sL https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain-$(uname -m).tar.xz | tar -xJvf - -C $THEOS/toolchain/
+			if [[ $ARCH == aarch64 || $ARCH == x86_64 ]]; then
+				curl -sL https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain-$ARCH.tar.xz | tar -xJvf - -C $THEOS/toolchain/
 			else
-				common "Apologies, we do not currently provide precompiled toolchains for $(uname -m) Linux."
+				common "Apologies, we do not currently provide precompiled toolchains for $ARCH Linux."
 				get_sdks
 				return
 			fi
