@@ -115,6 +115,9 @@ _THEOS_INTERNAL_LDFLAGS += $(foreach framework,$(call __schema_var_all,$(THEOS_C
 _THEOS_INTERNAL_LDFLAGS += $(foreach library,$($(_THEOS_CURRENT_TYPE)_WEAK_LIBRARIES),-weak_library $(library))
 _THEOS_INTERNAL_LDFLAGS += $(foreach library,$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,WEAK_LIBRARIES),-weak_library $(library))
 
+# Add libroot (v2)
+_THEOS_INTERNAL_LDFLAGS += -lroot
+
 _THEOS_INTERNAL_CFLAGS += -D THEOS_PACKAGE_INSTALL_PREFIX="\"$(THEOS_PACKAGE_INSTALL_PREFIX)\""
 
 ifneq ($($(THEOS_CURRENT_INSTANCE)_$(_THEOS_TARGET_NAME_DEFINE)_ARCHS),)
