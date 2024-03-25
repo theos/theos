@@ -15,7 +15,7 @@ endif
 
 ifeq ($(_TARGET_VERSION_GE_12_0),1)
 	_TARGET_LIBCPP_CCFLAGS := -stdlib=libc++
-	_TARGET_LIBCPP_LDFLAGS := -stdlib=libc++ -lc++
+	_TARGET_LIBCPP_LDFLAGS := -stdlib=libc++
 endif
 
 ifeq ($(_TARGET_VERSION_GE_12_0),1)
