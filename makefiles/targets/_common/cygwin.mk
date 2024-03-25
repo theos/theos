@@ -1,4 +1,4 @@
-# Variables that are common to all Linux-based targets.
+# Variables that are common to all Windows-based targets.
 TARGET_EXE_EXT := .exe
 TARGET_LIB_EXT := .dll
 TARGET_AR_EXT := .a
