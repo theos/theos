@@ -74,7 +74,7 @@ ifeq ($(SYSROOT),)
 	$(ERROR_BEGIN) "Your chosen SDK, “$(_THEOS_TARGET_PLATFORM_SDK_NAME)$(_THEOS_TARGET_SDK_VERSION).sdk”, does not appear to exist." $(ERROR_END)
 else
 # If the SYSROOT is set but doesn’t exist, bail out.
-ifneq ($(call __exists,$(SYSROOT)),$(_THEOS_TRUE))
+ifneq ($(call __validate,$(SYSROOT)),$(_THEOS_TRUE))
 	$(ERROR_BEGIN) "Your chosen SYSROOT, “$(SYSROOT)”, does not appear to exist." $(ERROR_END)
 endif
 endif
