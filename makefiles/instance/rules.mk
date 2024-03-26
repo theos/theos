@@ -118,6 +118,13 @@ _THEOS_INTERNAL_LDFLAGS += $(foreach library,$(call __schema_var_all,$(THEOS_CUR
 # Static libraries do not support having multiple arm64e ABIs, we need to manually choose the correct ABI
 IS_NEW_ABI := $(call __vercmp,$(_THEOS_TARGET_CC_VERSION),ge,12.0.0)
 ifeq ($(IS_NEW_ABI),1)
+ifneq ($(THEOS_PLATFORM_NAME),macosx)
+# On non macOS, always use old ABI as only macOS can compile with new ABI
+IS_NEW_ABI = 0
+endif
+endif
+
+ifeq ($(IS_NEW_ABI),1)
 ABI_SUFFIX = 
 else
 ABI_SUFFIX = _oldabi
