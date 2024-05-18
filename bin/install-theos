@@ -230,6 +230,18 @@ darwin_mobile() {
 		exit 3
 	fi
 
+	# Check for coreutils (not installed by default on some jbs)
+	if ! [[ -x $(command -v head) ]]; then
+		error "Please install 'coreutils' in your package manager before proceeding with the installation."
+		exit 3
+	fi
+
+	# Check for xz (not installed by default on some jbs)
+	if ! [[ -x $(command -v xz) ]]; then
+		error "Please install 'xz-utils' in your package manager before proceeding with the installation."
+		exit 3
+	fi
+
 	# Compatbility check
 	APTVER="$(apt-get --version | head -n1 | cut -d' ' -f2)"
 	if dpkg --compare-versions $APTVER ge 1.1; then
@@ -246,7 +258,7 @@ darwin_mobile() {
 	# Dependencies
 	update "Preparing to install dependencies. Please enter your password if prompted:"
 	if [[ $LEGACY -eq 1 ]]; then
-		read -p "Do you have 'https://coolstar.org/publicrepo/', 'https://repo.bingner.com/', and 'http://apt.thebigboss.org/repofiles/cydia/' installed in the sources of your jailbreak's primary package manager? [y/n]" ready
+		read -p "Do you have 'https://repo.bingner.com/' and 'http://apt.thebigboss.org/repofiles/cydia/' installed in the sources of your jailbreak's primary package manager? [y/n]" ready
 		if theos_bool $ready; then
 			sudo apt-get update "${uFLAGS[@]}" || true
 			sudo apt-get install -y "${iFLAGS[@]}" org.theos.dependencies \
