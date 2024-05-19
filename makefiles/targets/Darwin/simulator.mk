@@ -47,5 +47,10 @@ _TARGET_OBJC_ABI_CFLAGS := $(if $(_TARGET_VERSION_GE_3_2),-fobjc-abi-version=2 -
 _TARGET_OBJC_ABI_LDFLAGS := $(if $(_TARGET_VERSION_GE_3_2),-Xlinker -objc_abi_version -Xlinker 2)
 
 _THEOS_TARGET_CFLAGS += $(_TARGET_OBJC_ABI_CFLAGS)
+_TARGET_CC_VERSION_GE_1500 := $(call __vercmp,$(_THEOS_TARGET_CC_VERSION),ge,15.0.0)
+ifeq ($(_TARGET_CC_VERSION_GE_1500),1)
+_THEOS_TARGET_LDFLAGS += $(_TARGET_OBJC_ABI_LDFLAGS)
+else
 _THEOS_TARGET_LDFLAGS += $(_TARGET_OBJC_ABI_LDFLAGS) -Xlinker -allow_simulator_linking_to_macosx_dylibs
+endif
 endif

@@ -21,11 +21,9 @@ THEOS_PACKAGE_NAME :=
 THEOS_PACKAGE_ARCH :=
 THEOS_PACKAGE_BASE_VERSION :=
 
-export THEOS_PACKAGE_SCHEME
-ifeq ($(THEOS_PACKAGE_SCHEME),rootless)
-	export THEOS_PACKAGE_INSTALL_PREFIX ?= /var/jb
-endif
+export THEOS_PACKAGE_SCHEME THEOS_PACKAGE_INSTALL_PREFIX
 
+$(eval $(call __mod,package.mk))
 -include $(THEOS_MAKE_PATH)/package/$(_THEOS_PACKAGE_FORMAT).mk
 $(eval $(call __mod,package/$(_THEOS_PACKAGE_FORMAT).mk))
 

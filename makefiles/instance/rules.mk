@@ -115,10 +115,23 @@ _THEOS_INTERNAL_LDFLAGS += $(foreach framework,$(call __schema_var_all,$(THEOS_C
 _THEOS_INTERNAL_LDFLAGS += $(foreach library,$($(_THEOS_CURRENT_TYPE)_WEAK_LIBRARIES),-weak_library $(library))
 _THEOS_INTERNAL_LDFLAGS += $(foreach library,$(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,WEAK_LIBRARIES),-weak_library $(library))
 
-# Add rpaths for rootless
-ifeq ($(THEOS_PACKAGE_SCHEME),rootless)
-	_THEOS_INTERNAL_LDFLAGS += -rpath $(THEOS_PACKAGE_INSTALL_PREFIX)/Library/Frameworks -rpath $(THEOS_PACKAGE_INSTALL_PREFIX)/usr/lib
+# Static libraries do not support having multiple arm64e ABIs, we need to manually choose the correct ABI
+IS_NEW_ABI := $(call __vercmp,$(_THEOS_TARGET_CC_VERSION),ge,12.0.0)
+ifeq ($(IS_NEW_ABI),1)
+ifneq ($(THEOS_PLATFORM_NAME),macosx)
+# On non macOS, always use old ABI as only macOS can compile with new ABI
+IS_NEW_ABI = 0
 endif
+endif
+
+ifeq ($(IS_NEW_ABI),1)
+ABI_SUFFIX = 
+else
+ABI_SUFFIX = _oldabi
+endif
+
+# Add libroot (v2)
+_THEOS_INTERNAL_LDFLAGS += -lroot$(ABI_SUFFIX)
 
 _THEOS_INTERNAL_CFLAGS += -D THEOS_PACKAGE_INSTALL_PREFIX="\"$(THEOS_PACKAGE_INSTALL_PREFIX)\""
 
@@ -476,7 +489,11 @@ endif
 ifeq ($$(_THEOS_CURRENT_TYPE),subproject)
 	@echo "$$(_THEOS_INTERNAL_LDFLAGS)" > $$(THEOS_OBJ_DIR)/$$(THEOS_CURRENT_INSTANCE).ldflags
 endif
+ifneq ($(words $(TARGET_ARCHS)),1)
 	$(ECHO_MERGING)$(ECHO_UNBUFFERED)$(TARGET_LIPO) $(foreach ARCH,$(TARGET_ARCHS),-arch $(ARCH) $(THEOS_OBJ_DIR)/$(ARCH)/$(1)) -create -output "$$@"$(ECHO_END)
+else
+	$(ECHO_NOTHING)cp -a $(THEOS_OBJ_DIR)/$(TARGET_ARCHS)/$(1) "$$@"$(ECHO_END)
+endif
 
 else
 $$(THEOS_OBJ_DIR)/$(1): $$(OBJ_FILES_TO_LINK)
