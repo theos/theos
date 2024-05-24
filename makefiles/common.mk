@@ -187,7 +187,13 @@ _THEOS_INTERNAL_SEARCHPATHS += \
 	$(TARGET_PRIVATE_FRAMEWORK_PATH) \
 	$(THEOS_VENDOR_LIBRARY_PATH)/$(THEOS_TARGET_NAME)/$(or $(THEOS_PACKAGE_SCHEME),rootful) \
 	$(THEOS_LIBRARY_PATH)/$(THEOS_TARGET_NAME)/$(or $(THEOS_PACKAGE_SCHEME),rootful)
+
+ifeq ($(messages),yes)
+_THEOS_INTERNAL_LDFLAGS = -v $(foreach path,$(_THEOS_INTERNAL_SEARCHPATHS),$(if $(call __exists,$(path)),-L$(path) -F$(path))) $(DEBUGFLAG)
+else
 _THEOS_INTERNAL_LDFLAGS = $(foreach path,$(_THEOS_INTERNAL_SEARCHPATHS),$(if $(call __exists,$(path)),-L$(path) -F$(path))) $(DEBUGFLAG)
+endif
+
 
 DEBUGFLAG ?= -ggdb
 SWIFT_DEBUGFLAG ?= -g
