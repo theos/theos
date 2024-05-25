@@ -188,10 +188,12 @@ _THEOS_INTERNAL_SEARCHPATHS += \
 	$(THEOS_VENDOR_LIBRARY_PATH)/$(THEOS_TARGET_NAME)/$(or $(THEOS_PACKAGE_SCHEME),rootful) \
 	$(THEOS_LIBRARY_PATH)/$(THEOS_TARGET_NAME)/$(or $(THEOS_PACKAGE_SCHEME),rootful)
 
-ifeq ($(messages),$(filter $(messages),true 1 yes))
-_THEOS_INTERNAL_LDFLAGS = -v $(foreach path,$(_THEOS_INTERNAL_SEARCHPATHS),$(if $(call __exists,$(path)),-L$(path) -F$(path))) $(DEBUGFLAG)
-else
 _THEOS_INTERNAL_LDFLAGS = $(foreach path,$(_THEOS_INTERNAL_SEARCHPATHS),$(if $(call __exists,$(path)),-L$(path) -F$(path))) $(DEBUGFLAG)
+
+include $(THEOS_MAKE_PATH)/messages.mk
+
+ifeq ($(_THEOS_VERBOSE),$(_THEOS_TRUE))
+_THEOS_INTERNAL_LDFLAGS += -Wl,-v
 endif
 
 DEBUGFLAG ?= -ggdb
@@ -269,8 +271,6 @@ THEOS_PACKAGE_DIR_NAME ?= packages
 THEOS_PACKAGE_DIR ?= $(THEOS_BUILD_DIR)/$(THEOS_PACKAGE_DIR_NAME)
 
 THEOS_SUBPROJECT_PRODUCT = subproject.a
-
-include $(THEOS_MAKE_PATH)/messages.mk
 
 _THEOS_MAKEFLAGS := --no-keep-going COLOR=$(COLOR)
 
