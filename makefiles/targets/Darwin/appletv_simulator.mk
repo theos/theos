@@ -20,6 +20,9 @@ ifeq ($(APPLETV_SIMULATOR_ROOT),)
 internal-install::
 	$(ERROR_BEGIN)"$(MAKE) install for the simulator requires that you set APPLETV_SIMULATOR_ROOT to the root directory of the simulated OS."$(ERROR_END)
 else
+ifneq ($(call __validate,$(APPLETV_SIMULATOR_ROOT)),$(_THEOS_TRUE))
+$(ERROR_BEGIN)"$(APPLETV_SIMULATOR_ROOT) contains spaces or does not exist."$(ERROR_END)
+endif
 internal-install:: stage
 	$(ECHO_NOTHING)install.mergeDir "$(THEOS_STAGING_DIR)" "$(APPLETV_SIMULATOR_ROOT)"$(ECHO_END)
 endif
