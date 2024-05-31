@@ -390,37 +390,65 @@ linux() {
 		update "A toolchain appears to already be installed."
 	else
 		update "A toolchain does not appear to be installed."
-		case $DISTRO in
-			debian)
-				sudo apt install -y libtinfo6
-				;;
-			arch)
-				sudo pacman -S --needed --noconfirm ncurses
-				# toolchain looks for a specific libncurses
-				LATEST_LIBCURSES="$(ls -v /usr/lib/ | grep libncurses.*so | tail -n1)"
-				sudo ln -sf /usr/lib/$LATEST_LIBCURSES /usr/lib/libncurses.so.6
-				;;
-			redhat)
-				sudo dnf install -y ncurses-libs
-				;;
-			suse)
-				common "Unfortunately, we do not currently provide a SUSE-compatible Swift toolchain."
+		stoolchain="n"
+		if [[ -z $CI ]]; then
+			read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [y/n]" stoolchain
+		fi
+		if theos_bool $stoolchain; then
+			case $DISTRO in
+				debian)
+					sudo apt install -y libtinfo6
+					;;
+				arch)
+					sudo pacman -S --needed --noconfirm ncurses
+					# toolchain looks for a specific libncurses
+					LATEST_LIBCURSES="$(ls -v /usr/lib/ | grep libncurses.*so | tail -n1)"
+					sudo ln -sf /usr/lib/$LATEST_LIBCURSES /usr/lib/libncurses.so.6
+					;;
+				redhat)
+					sudo dnf install -y ncurses-libs
+					;;
+				suse)
+					common "Unfortunately, we do not currently provide a SUSE-compatible Swift toolchain."
+					get_sdks
+					return
+					;;
+			esac
+			if [[ $DISTRO == redhat && $ARCH == aarch64 ]]; then
+				curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubi9-aarch64.tar.xz | tar -xJvf - -C $THEOS/toolchain/
+			elif [[ $DISTRO == redhat && $ARCH == x86_64 ]]; then
+				curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubi9.tar.xz | tar -xJvf - -C $THEOS/toolchain/
+			elif [[ $ARCH == aarch64 ]]; then
+				curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubuntu20.04-aarch64.tar.xz | tar -xJvf - -C $THEOS/toolchain/
+			elif [[ $ARCH == x86_64 ]]; then
+				curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubuntu20.04.tar.xz | tar -xJvf - -C $THEOS/toolchain/
+			else
+				common "Apologies, we do not currently provide precompiled toolchains for $ARCH Linux."
 				get_sdks
 				return
-				;;
-		esac
-		if [[ $DISTRO == redhat && $ARCH == aarch64 ]]; then
-			curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubi9-aarch64.tar.xz | tar -xJvf - -C $THEOS/toolchain/
-		elif [[ $DISTRO == redhat && $ARCH == x86_64 ]]; then
-			curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubi9.tar.xz | tar -xJvf - -C $THEOS/toolchain/
-		elif [[ $ARCH == aarch64 ]]; then
-			curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubuntu20.04-aarch64.tar.xz | tar -xJvf - -C $THEOS/toolchain/
-		elif [[ $ARCH == x86_64 ]]; then
-			curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubuntu20.04.tar.xz | tar -xJvf - -C $THEOS/toolchain/
+			fi
 		else
-			common "Apologies, we do not currently provide precompiled toolchains for $ARCH Linux."
-			get_sdks
-			return
+			case $DISTRO in
+				debian)
+					sudo apt install -y libtinfo6
+					;;
+				arch)
+					sudo pacman -S --needed --noconfirm ncurses
+					;;
+				redhat)
+					sudo dnf install -y ncurses-libs
+					;;
+				suse)
+					sudo zypper install -y libncurses6
+					;;
+			esac
+			if [[ $ARCH == aarch64 || $ARCH == x86_64 ]]; then
+				curl -sL https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain-$ARCH.tar.xz | tar -xJvf - -C $THEOS/toolchain/
+			else
+				common "Apologies, we do not currently provide precompiled toolchains for $ARCH Linux."
+				get_sdks
+				return
+			fi
 		fi
 
 		# Confirm that toolchain is usable
