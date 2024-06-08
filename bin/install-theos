@@ -361,9 +361,9 @@ linux() {
 
 	# Check for WSL
 	update "Checking for WSL..."
-	if [[ $(uname -r | sed -n 's/.*\( *Microsoft *\).*/\L\1/ip') == microsoft ]]; then
-		VERSION=$(uname -r | sed 's/.*\([[:digit:]]\)[[:space:]]*/\1/')
-		if [[ $VERSION -eq 1 ]]; then
+	rel="$(uname -r)"
+	if [[ ${rel,,} =~ microsoft ]]; then
+		if ! [[ $rel =~ WSL2 ]]; then
 			update "WSL1! Need to fix fakeroot..."
 			sudo update-alternatives --set fakeroot /usr/bin/fakeroot-tcp \
 				&& update "fakeroot fixed!" \
