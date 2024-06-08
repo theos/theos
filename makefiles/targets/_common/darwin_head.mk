@@ -73,7 +73,7 @@ endif
 
 TARGET_CC ?= $(call __target_simplify,TARGET_CC,$(call __invocation,$(_THEOS_TARGET_CC)))
 TARGET_CXX ?= $(call __target_simplify,TARGET_CXX,$(call __invocation,$(_THEOS_TARGET_CXX)))
-TARGET_LD ?= $(call __target_simplify,TARGET_LD,$(call __invocation,$(_THEOS_TARGET_CXX)))
+TARGET_LD ?= $(call __target_simplify,TARGET_LD,$(call __invocation,$(_THEOS_TARGET_CC)))
 TARGET_LIPO ?= $(call __target_simplify,TARGET_LIPO,$(call __invocation,lipo))
 TARGET_STRIP ?= $(call __target_simplify,TARGET_STRIP,$(call __invocation,strip))
 TARGET_CODESIGN_ALLOCATE ?= $(call __target_simplify,TARGET_CODESIGN_ALLOCATE,$(call __invocation,codesign_allocate))
