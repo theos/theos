@@ -125,9 +125,9 @@ endif
 
 _THEOS_LOAD_MODULES := $(sort $(call __schema_var_all,,MODULES) $(THEOS_AUTOLOAD_MODULES))
 ifneq ($(THEOS_PACKAGE_SCHEME),)
-_THEOS_LOAD_MODULES += $(or $(wildcard $(THEOS_VENDOR_MODULE_PATH)/$(THEOS_PACKAGE_SCHEME)), \
-							$(wildcard $(THEOS_MODULE_PATH)/$(THEOS_PACKAGE_SCHEME)), \
-							$(error '$(THEOS_PACKAGE_SCHEME)' package scheme does not exist)) _THEOS_LOAD_MODULES += $(THEOS_PACKAGE_SCHEME)
+_THEOS_LOAD_MODULES += $(or $(notdir $(wildcard $(THEOS_VENDOR_MODULE_PATH)/$(THEOS_PACKAGE_SCHEME))), \
+				$(notdir $(wildcard $(THEOS_MODULE_PATH)/$(THEOS_PACKAGE_SCHEME))), \
+				$(error '$(THEOS_PACKAGE_SCHEME)' package scheme does not exist))
 endif
 __mod = -include $$(foreach mod,$$(_THEOS_LOAD_MODULES),$$(or $$(wildcard $$(THEOS_VENDOR_MODULE_PATH)/$$(mod)/$(1)),$$(wildcard $$(THEOS_MODULE_PATH)/$$(mod)/$(1))))
 
