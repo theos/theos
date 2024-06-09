@@ -47,7 +47,7 @@ endif
 
 ifeq ($(_THEOS_PROJECT_MAKEFILE_NAME),)
 _THEOS_STATIC_MAKEFILE_LIST := $(filter-out $(lastword $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
-export _THEOS_PROJECT_MAKEFILE_NAME := $(notdir $(lastword $(_THEOS_STATIC_MAKEFILE_LIST)))
+export _THEOS_PROJECT_MAKEFILE_NAME := $(notdir $(firstword $(_THEOS_STATIC_MAKEFILE_LIST)))
 endif
 
 ifeq ($(_THEOS_INTERNAL_TRUE_PATH),)
