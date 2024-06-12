@@ -242,6 +242,12 @@ darwin_mobile() {
 		exit 3
 	fi
 
+	# Check for apt-get (not installed by default on some jbs)
+	if ! [[ -x $(command -v apt-get) ]]; then
+		error "Please install 'apt' in your package manager before proceeding with the installation."
+		exit 3
+	fi
+
 	# Compatbility check
 	APTVER="$(apt-get --version | head -n1 | cut -d' ' -f2)"
 	if dpkg --compare-versions $APTVER ge 1.1; then
