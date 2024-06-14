@@ -408,7 +408,9 @@ linux() {
 					return
 					;;
 			esac
-			if [[ $ARCH == aarch64 || $ARCH == x86_64 ]]; then
+			if [[ $ARCH == x86_64 ]]; then
+				curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubuntu20.04.tar.xz | tar -xJvf - -C $THEOS/toolchain/
+			elif [[ $ARCH == aarch64 ]]; then
 				curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubuntu20.04-$ARCH.tar.xz | tar -xJvf - -C $THEOS/toolchain/
 			else
 				common "Apologies, we do not currently provide precompiled toolchains for $ARCH Linux."
