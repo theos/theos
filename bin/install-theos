@@ -43,6 +43,7 @@ fi
 
 # Common vars
 PLATFORM=$(uname)
+ARCH=$(uname -m)
 CSHELL="${SHELL##*/}"
 SHELL_ENV="unknown"
 if [[ $CSHELL == sh || $CSHELL == bash || $CSHELL == dash ]]; then
@@ -335,8 +336,7 @@ linux() {
 				|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 			;;
 		redhat)
-			sudo dnf --refresh || true
-			sudo dnf group install -y "C Development Tools and Libraries" \
+			sudo dnf group install -y "C Development Tools and Libraries" --refresh \
 				&& update "Dependencies have been successfully installed!" \
 				|| (error "Dependency install command seems to have encountered an error. Please see the log above."; exit 3)
 			sudo dnf install -y fakeroot lzma libbsd rsync curl perl zip git libxml2 \
@@ -391,70 +391,52 @@ linux() {
 		if theos_bool $stoolchain; then
 			case $DISTRO in
 				debian)
-					sudo apt install -y libz3-dev zstd
+					sudo apt install -y libtinfo6
 					;;
 				arch)
-					sudo pacman -S --needed --noconfirm libedit z3 zstd
-					# libz3-dev equivalent is z3 and we need to create lib version queried
-					LATEST_LIBZ3="$(ls -v /usr/lib/ | grep libz3 | tail -n 1)"
-					sudo ln -sf /usr/lib/$LATEST_LIBZ3 /usr/lib/libz3.so.4
-					# toolchain looks for a specific libedit
-					LATEST_LIBEDIT="$(ls -v /usr/lib/ | grep libedit | tail -n 1)"
-					sudo ln -sf /usr/lib/$LATEST_LIBEDIT /usr/lib/libedit.so.2
+					sudo pacman -S --needed --noconfirm ncurses
+					# toolchain looks for a specific libncurses
+					LATEST_LIBCURSES="$(ls -v /usr/lib/ | grep libncurses.*so | tail -n1)"
+					sudo ln -sf /usr/lib/$LATEST_LIBCURSES /usr/lib/libncurses.so.6
 					;;
 				redhat)
-					sudo dnf install -y z3-libs zstd
-					# libz3-dev equivalent is z3-libs and ...
-					LATEST_LIBZ3="$(ls -v /usr/lib64/ | grep libz3 | tail -n 1)"
-					sudo ln -sf /usr/lib64/$LATEST_LIBZ3 /usr/lib64/libz3.so.4
-					# toolchain looks for a specific libedit
-					LATEST_LIBEDIT="$(ls -v /usr/lib64/ | grep libedit | tail -n 1)"
-					sudo ln -sf /usr/lib64/$LATEST_LIBEDIT /usr/lib64/libedit.so.2
+					sudo dnf install -y ncurses-libs
 					;;
 				suse)
-					sudo zypper install -y $(zypper search libz3 | tail -n 1 | cut -d "|" -f2) zstd
-					# libz3-dev equivalent is libz3-* and ...
-					LATEST_LIBZ3="$(ls -v /usr/lib64/ | grep libz3 | tail -n 1)"
-					sudo ln -sf /usr/lib64/$LATEST_LIBZ3 /usr/lib64/libz3.so.4
-					# toolchain looks for a specific libedit
-					LATEST_LIBEDIT="$(ls -v /usr/lib64/ | grep libedit | tail -n 1)"
-					sudo ln -sf /usr/lib64/$LATEST_LIBEDIT /usr/lib64/libedit.so.2
+					common "Unfortunately, we do not currently provide a SUSE-compatible Swift toolchain."
+					get_sdks
+					return
 					;;
 			esac
-			curl -LO https://github.com/CRKatri/llvm-project/releases/download/swift-5.3.2-RELEASE/swift-5.3.2-RELEASE-ubuntu20.04.tar.zst
-			TMP=$(mktemp -d)
-			tar -xvf swift-5.3.2-RELEASE-ubuntu20.04.tar.zst -C $TMP
-			mkdir -p $THEOS/toolchain/linux/iphone $THEOS/toolchain/swift
-			mv $TMP/swift-5.3.2-RELEASE-ubuntu20.04/* $THEOS/toolchain/linux/iphone/
-			ln -s $THEOS/toolchain/linux/iphone $THEOS/toolchain/swift
-			rm -r swift-5.3.2-RELEASE-ubuntu20.04.tar.zst $TMP
-			curl -L https://github.com/ProcursusTeam/ldid/releases/latest/download/ldid_linux_x86_64 -o $THEOS/toolchain/linux/iphone/bin/ldid
+			if [[ $ARCH == aarch64 || $ARCH == x86_64 ]]; then
+				curl -sL https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.3.0/swift-5.8-ubuntu20.04-$ARCH.tar.xz | tar -xJvf - -C $THEOS/toolchain/
+			else
+				common "Apologies, we do not currently provide precompiled toolchains for $ARCH Linux."
+				get_sdks
+				return
+			fi
 		else
 			case $DISTRO in
 				debian)
-					sudo apt install -y libtinfo5
+					sudo apt install -y libtinfo6
 					;;
 				arch)
-					# get source for libtinfo5 equivalent from AUR and build
-					if ! pacman -Qs ncurses5-compat-libs > /dev/null; then
-						git clone https://aur.archlinux.org/ncurses5-compat-libs.git
-						cd ncurses5-compat-libs
-						gpg --recv-keys "$(cat PKGBUILD | grep validpgp | grep -oP "(?<=').*(?=')")"
-						MAKEFLAGS="-j$(nproc --all)" makepkg -sir --noconfirm \
-							&& cd .. \
-							&& rm -rf ncurses5-compat-libs
-					fi
+					sudo pacman -S --needed --noconfirm ncurses
 					;;
 				redhat)
-					sudo dnf install -y ncurses-compat-libs
+					sudo dnf install -y ncurses-libs
 					;;
 				suse)
-					sudo zypper install -y libncurses5
+					sudo zypper install -y libncurses6
 					;;
 			esac
-			curl -LO https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain.tar.xz
-			tar -xvf iOSToolchain.tar.xz -C $THEOS/toolchain/
-			rm iOSToolchain.tar.xz
+			if [[ $ARCH == aarch64 || $ARCH == x86_64 ]]; then
+				curl -sL https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain-$ARCH.tar.xz | tar -xJvf - -C $THEOS/toolchain/
+			else
+				common "Apologies, we do not currently provide precompiled toolchains for $ARCH Linux."
+				get_sdks
+				return
+			fi
 		fi
 
 		# Confirm that toolchain is usable
@@ -511,14 +493,7 @@ linux() {
 # 			read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [y/n]" stoolchain
 # 		fi
 # 		if theos_bool $stoolchain; then
-# 			sudo pkg install -y zstd
-# 			curl -LO https://github.com/CRKatri/llvm-project/releases/download/swift-5.3.2-RELEASE/swift-5.3.2-RELEASE-ubuntu20.04.tar.zst
-# 			TMP=$(mktemp -d)
-# 			tar -xvf swift-5.3.2-RELEASE-ubuntu20.04.tar.zst -C $TMP
-# 			mkdir -p $THEOS/toolchain/linux/iphone $THEOS/toolchain/swift
-# 			mv $TMP/swift-5.3.2-RELEASE-ubuntu20.04/* $THEOS/toolchain/linux/iphone/
-# 			ln -s $THEOS/toolchain/linux/iphone $THEOS/toolchain/swift
-# 			rm -r swift-5.3.2-RELEASE-ubuntu20.04.tar.zst $TMP
+#			<toolchain + deps here>
 # 		else
 #			curl -LO https://github.com/L1ghtmann/llvm-project/releases/latest/download/iOSToolchain.tar.xz
 #			tar -xvf iOSToolchain.tar.xz -C $THEOS/toolchain/
