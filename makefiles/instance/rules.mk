@@ -131,7 +131,7 @@ endif
 endif
 
 ifeq ($(IS_NEW_ABI),1)
-ABI_SUFFIX = 
+ABI_SUFFIX =
 else
 ABI_SUFFIX = _oldabi
 endif
@@ -500,7 +500,7 @@ endif
 ifneq ($(words $(TARGET_ARCHS)),1)
 	$(ECHO_MERGING)$(ECHO_UNBUFFERED)$(TARGET_LIPO) $(foreach ARCH,$(TARGET_ARCHS),-arch $(ARCH) $(THEOS_OBJ_DIR)/$(ARCH)/$(1)) -create -output "$$@"$(ECHO_END)
 else
-	$(ECHO_NOTHING)cp -a $(THEOS_OBJ_DIR)/$(TARGET_ARCHS)/$(1) "$$@"$(ECHO_END)
+	$(ECHO_NOTHING)cp -a $(THEOS_OBJ_DIR)/$(strip $(TARGET_ARCHS))/$(1) "$$@"$(ECHO_END)
 endif
 
 else
