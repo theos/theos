@@ -1,0 +1,62 @@
+name: Update Offline Docs
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [org_push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout theos/theos
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.7.2'
+
+      - name: Checkout theos/theos.dev
+        uses: actions/checkout@v4
+        with:
+          repository: theos/theos.dev
+          path: tmp
+          submodules: recursive
+          fetch-depth: 1
+
+      - name: Build docs
+        run: |
+          make -C tmp all
+          mkdir -pv docs/assets/
+          cp -av tmp/_site/docs/* docs/
+          cp -av tmp/_site/assets/*.css tmp/_site/assets/*.svg docs/assets/
+          rm -rvf tmp
+
+      - name: Cleanup broken formatting
+        run: |
+          # not deploying, so don't need metadata tags or footer note
+          sed -i '/Begin Jekyll SEO tag/,/End Jekyll SEO tag/d' docs/*.html
+          sed -i '/type="application\/atom+xml/d' docs/*.html
+          sed -i 's/ Deployed on <a href="https:\/\/netlify.com">Netlify<\/a>.//g' docs/*.html
+
+          # "/assets/" is only used for stylesheet in offline docs, so make simple "assets/"
+          sed -i 's/href="\/assets\//href="assets\//g' docs/*.html
+
+          # "/" is for the site root, which we don't copy, so ignore "#"
+          sed -i 's/<a href="\/">/<a href="#">/g' docs/*.html
+
+          # "/docs/" is for the docs root which is "./docs/index.html" since need relative links
+          sed -i 's/<a href="\/docs\/">Home<\/a>/<a href="\/docs\/index.html">Home<\/a>/g' docs/*.html
+
+          # make rest of the links relative "/docs/" to "./"
+          sed -i 's/href="\/docs\//href=".\//g' docs/*.html
+
+      - name: Update docs
+        run: |
+          git config --global user.name "$GITHUB_ACTOR"
+          git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git add docs
+          git commit -m "[docs] Update offline docs to the latest commit" && git push || echo "No changes were made"
