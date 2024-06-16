@@ -2,9 +2,8 @@ name: Update Offline Docs
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - 'master'
+  repository_dispatch:
+    types: [org_push]
 
 jobs:
   build:
