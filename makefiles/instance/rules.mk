@@ -169,6 +169,11 @@ _TARGET_CXX := $(TARGET_CXX)
 ifneq ($(firstword $(_TARGET_CXX)),$(THEOS_BIN_PATH)/gen-commands.pl)
 TARGET_CXX = $(THEOS_BIN_PATH)/gen-commands.pl $(_THEOS_TMP_COMPILE_COMMANDS_FILE) $${PWD} cxx $(filter $(__USER_FILES),$<) -- $(_TARGET_CXX)
 endif
+# add missing objective-c hook for compile-commands.json
+_TARGET_CC := $(TARGET_CC)
+ifneq ($(firstword $(_TARGET_CC)),$(THEOS_BIN_PATH)/gen-commands.pl)
+TARGET_CC = $(THEOS_BIN_PATH)/gen-commands.pl $(_THEOS_TMP_COMPILE_COMMANDS_FILE) $${PWD} cxx $(filter $(__USER_FILES),$<) -- $(_TARGET_CC)
+endif
 endif
 
 ifeq ($(TARGET_LIPO),)
