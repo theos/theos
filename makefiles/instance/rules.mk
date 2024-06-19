@@ -171,7 +171,7 @@ TARGET_CXX = $(THEOS_BIN_PATH)/gen-commands.pl $(_THEOS_TMP_COMPILE_COMMANDS_FIL
 endif
 _TARGET_CC := $(TARGET_CC)
 ifneq ($(firstword $(_TARGET_CC)),$(THEOS_BIN_PATH)/gen-commands.pl)
-TARGET_CC = $(THEOS_BIN_PATH)/gen-commands.pl $(_THEOS_TMP_COMPILE_COMMANDS_FILE) $${PWD} cxx $(filter $(__USER_FILES),$<) -- $(_TARGET_CC)
+TARGET_CC = $(THEOS_BIN_PATH)/gen-commands.pl $(_THEOS_TMP_COMPILE_COMMANDS_FILE) $${PWD} cc $(filter $(__USER_FILES),$<) -- $(_TARGET_CC)
 endif
 endif
 
