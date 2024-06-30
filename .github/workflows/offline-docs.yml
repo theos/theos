@@ -13,7 +13,7 @@ jobs:
       - name: Checkout theos/theos
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.UPDATE_SUBMODULES_TOKEN }}
 
       - uses: ruby/setup-ruby@v1
         with:
