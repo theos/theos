@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Installation instructions for macOS &middot; Theos</title>
+	<meta name="viewport" content="initial-scale=1">
+	<meta name="theme-color" content="#382b42">
+	<link rel="stylesheet" type="text/css" href="assets/style-6344873b614560f5b866fe762f81ad24128fe5b1427fc1f49568ad1fcf6a816b.css">
+	<link rel="icon" href="assets/favicon-447ec328b50bd5d64f09e1f06fe07532f924f274bd5de6567a43690bf494c99a.svg" sizes="any" type="image/svg+xml">
+
+</head>
+
+<body>
+	<header>
+	<div class="container">
+		<h1>
+			<a href="#">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 781 224">
+					<title>Theos</title>
+					<path d="M155.2 18.4H2.6v36.3H54V218h47.4V54.7h49.2l4.6-36.3zM263 60.2c-18 0-31.7 7.2-44 21V-.3l-45.6 4.6V218H219V113.2c8-12.4 16.3-19.6 26.4-19.6 8.6 0 14.4 4.3 14.4 20.4v104h45.5V106.3c0-29-16-46-42.4-46zm210 78.3c0 5-.4 11.8-1 16.4h-94.4c2.8 27 15.8 34.2 34.5 34.2 13 0 24-4.3 37-13.6l19 25.4c-15.2 12-35 21.4-59.6 21.4-51 0-77-33-77-80.7 0-45.6 25-82 71.5-82 43.5.3 70.5 29 70.5 78.5zm-44.7-11v-2c-.3-20.7-6.7-35-24.8-35-15.3 0-24 9.4-26.2 37h51zm137-67.3c46.7 0 75 30 75 81.5 0 49-28.3 81.2-75 81.2-46.3 0-74.8-30-74.8-82 0-49 28.2-81 74.8-81zm0 33.4c-18.4 0-27.6 14.7-27.6 47.8 0 34 9.2 48 27.6 48 18.5 0 27.7-14.6 27.7-47.7 0-34-9.2-48-27.7-48zm156-33.4c-38.7 0-62.6 20.4-62.6 46.6 0 23.6 15 39.2 45.2 47.8 27 7.8 32 11 32 21.4 0 9.2-8.8 14.4-22 14.4-15 0-29-6-41-15L651 200c15 14 37.4 23 64 23 38 0 68-18.6 68-50.3 0-27.4-17-40-47.3-48.7-27.3-8-31.4-11.6-31.4-19.7 0-7 6-11.5 18.5-11.5 13 0 25.7 4.3 37.5 11.8l17-25.6c-14-11.6-34-18.8-56-18.8z" fill="currentColor" fill-rule="evenodd"/>
+				</svg>
+			</a>
+		</h1>
+
+		<p class="header-tagline">A cross-platform build system for creating iOS, macOS, Linux, and Windows programs.</p>
+	</div>
+</header>
+
+
+	<main>
+		<div class="container">
+			<div class="row flex-md-row-reverse">
+				<article class="col-md-9">
+					<h1>Installation instructions for macOS</h1>
+					<p>This guide will help you install Theos on your macOS device.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Platform</th>
+      <th>Minimum OS version</th>
+      <th>Targets supported</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>macOS</strong></td>
+      <td>Mavericks (10.9)</td>
+      <td>macOS, iOS, watchOS, tvOS, and simulators</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>All of the commands shown in the following instructions are meant to be run as a normal user, <em>not</em> root. Similarly, Theos is meant to be run as a normal user, <em>not</em> root.</p>
+
+<ol>
+  <li>
+    <p>Install the following prerequisites:</p>
+
+    <ul>
+      <li><a href="https://brew.sh/">Homebrew</a>
+        <ul>
+          <li>or <a href="https://www.macports.org/install.php">MacPorts</a></li>
+          <li>or <a href="https://docs.procurs.us/Installation/macOS.html">Procursus</a></li>
+        </ul>
+      </li>
+      <li><a href="https://developer.apple.com/download/applications/">Xcode</a><sup>1</sup> is mandatory. The Command Line Tools package isn’t sufficient for Theos to work. Xcode includes toolchains for all Apple platforms.</li>
+    </ul>
+
+    <p><sup>
+ <sup>1</sup> Xcode 5.0 or newer. Xcode 4.4 supported, but only when building for ARMv6 (1st/2nd generation iPhone/iPod touch).
+ </sup></p>
+  </li>
+  <li>
+    <p>Run the installer:</p>
+
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code> bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<h1 id="troubleshooting">Troubleshooting</h1>
+<h2 id="third-party-toolchains">Third-party Toolchains</h2>
+<p>Some third-party toolchains have issues with <a href="https://clang.llvm.org/docs/Modules.html">Modules</a> on macOS. In such cases, you can either try a different third-party toolchain (e.g., a newer or older version) or disable Modules for your project with <code class="language-plaintext highlighter-rouge">XXX_USE_MODULES = 0</code>.</p>
+
+<p><strong>Example</strong>:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>TWEAK_NAME = Test
+Test_USE_MODULES = 0
+</code></pre></div></div>
+
+				</article>
+
+				<aside class="col-md-3">
+					<ul>
+  
+  <li>
+    
+      <a href="./index.html">Home</a>
+    
+    
+  </li>
+  
+  <li>
+    
+      <a href="./Installation.html">Installation</a>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./Installation-iOS.html">
+              iOS
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Installation-macOS.html">
+              macOS
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Installation-Linux.html">
+              Linux & Windows
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Upgrading-from-legacy-Theos.html">
+              Upgrading from legacy Theos
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <span>Usage</span>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./Concepts.html">
+              Concepts
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Configuration.html">
+              Configuration
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Commands.html">
+              Commands
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Packaging.html">
+              Packaging
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <a href="./Features.html">Features</a>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./NIC.html">
+              NIC
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./NIC-Syntax.html">
+              NIC Syntax
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./dm.pl.html">
+              dm.pl
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Swift.html">
+              Swift
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Modules.html">
+              Modules
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <span>Tweak Development</span>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./Logos.html">
+              Logos
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Logos-Syntax.html">
+              Logos Syntax
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./logify.pl.html">
+              Logify
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Logos-File-Extensions.html">
+              File Extensions
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Logos-Hook-Splitting.html">
+              Hook Splitting
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="https://orion.theos.dev/" target="_blank" rel="noopener">
+              Orion
+              
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 11L11 1"/>
+                  <path d="M2.5 1H11V9.5"/>
+                </svg>
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Rootless.html">
+              Rootless
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <span>Technical</span>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./Structure.html">
+              Structure
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Variables.html">
+              Variables
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <a href="./Help.html">Help</a>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./FAQ.html">
+              FAQ
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Parallel-Building.html">
+              Parallel Building
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./arm64e-Deployment.html">
+              arm64e Deployment
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./License.html">
+              License
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <span>See also</span>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="https://theapplewiki.com/" target="_blank" rel="noopener">
+              The Apple Wiki
+              
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 11L11 1"/>
+                  <path d="M2.5 1H11V9.5"/>
+                </svg>
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="https://iphonedev.wiki/" target="_blank" rel="noopener">
+              iPhone Dev Wiki
+              
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 11L11 1"/>
+                  <path d="M2.5 1H11V9.5"/>
+                </svg>
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="https://www.reddit.com/r/jailbreakdevelopers" target="_blank" rel="noopener">
+              /r/jailbreakdevelopers
+              
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 11L11 1"/>
+                  <path d="M2.5 1H11V9.5"/>
+                </svg>
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="https://github.com/theiostream/theos-ref" target="_blank" rel="noopener">
+              theos-ref (legacy docs)
+              
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 11L11 1"/>
+                  <path d="M2.5 1H11V9.5"/>
+                </svg>
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+</ul>
+
+				</aside>
+			</div>
+		</div>
+	</main>
+
+	<footer role="navigation">
+	<ul class="footer-sub-links">
+		<li><a href="./">Docs</a></li>
+		<li><a href="./Help.html">Get Help</a></li>
+		<li><a href="https://github.com/theos" rel="me">GitHub</a></li>
+		<li><a href="https://procursus.social/@theos" rel="me">@theos@procursus.social</a></li>
+		<li><a href="https://twitter.com/theosdev" rel="me">@theosdev</a></li>
+		<li><a href="/discord">Discord</a></li>
+	</ul>
+
+	<div class="footer-legal">
+		Copyright &copy; Theos.
+		<br>
+		<a href="https://github.com/theos/theos.dev">Edit on GitHub</a>
+	</div>
+</footer>
+
+</body>
+</html>

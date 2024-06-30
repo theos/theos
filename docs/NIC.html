@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>New Instance Creator (NIC) &middot; Theos</title>
+	<meta name="viewport" content="initial-scale=1">
+	<meta name="theme-color" content="#382b42">
+	<link rel="stylesheet" type="text/css" href="assets/style-6344873b614560f5b866fe762f81ad24128fe5b1427fc1f49568ad1fcf6a816b.css">
+	<link rel="icon" href="assets/favicon-447ec328b50bd5d64f09e1f06fe07532f924f274bd5de6567a43690bf494c99a.svg" sizes="any" type="image/svg+xml">
+
+</head>
+
+<body>
+	<header>
+	<div class="container">
+		<h1>
+			<a href="#">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 781 224">
+					<title>Theos</title>
+					<path d="M155.2 18.4H2.6v36.3H54V218h47.4V54.7h49.2l4.6-36.3zM263 60.2c-18 0-31.7 7.2-44 21V-.3l-45.6 4.6V218H219V113.2c8-12.4 16.3-19.6 26.4-19.6 8.6 0 14.4 4.3 14.4 20.4v104h45.5V106.3c0-29-16-46-42.4-46zm210 78.3c0 5-.4 11.8-1 16.4h-94.4c2.8 27 15.8 34.2 34.5 34.2 13 0 24-4.3 37-13.6l19 25.4c-15.2 12-35 21.4-59.6 21.4-51 0-77-33-77-80.7 0-45.6 25-82 71.5-82 43.5.3 70.5 29 70.5 78.5zm-44.7-11v-2c-.3-20.7-6.7-35-24.8-35-15.3 0-24 9.4-26.2 37h51zm137-67.3c46.7 0 75 30 75 81.5 0 49-28.3 81.2-75 81.2-46.3 0-74.8-30-74.8-82 0-49 28.2-81 74.8-81zm0 33.4c-18.4 0-27.6 14.7-27.6 47.8 0 34 9.2 48 27.6 48 18.5 0 27.7-14.6 27.7-47.7 0-34-9.2-48-27.7-48zm156-33.4c-38.7 0-62.6 20.4-62.6 46.6 0 23.6 15 39.2 45.2 47.8 27 7.8 32 11 32 21.4 0 9.2-8.8 14.4-22 14.4-15 0-29-6-41-15L651 200c15 14 37.4 23 64 23 38 0 68-18.6 68-50.3 0-27.4-17-40-47.3-48.7-27.3-8-31.4-11.6-31.4-19.7 0-7 6-11.5 18.5-11.5 13 0 25.7 4.3 37.5 11.8l17-25.6c-14-11.6-34-18.8-56-18.8z" fill="currentColor" fill-rule="evenodd"/>
+				</svg>
+			</a>
+		</h1>
+
+		<p class="header-tagline">A cross-platform build system for creating iOS, macOS, Linux, and Windows programs.</p>
+	</div>
+</header>
+
+
+	<main>
+		<div class="container">
+			<div class="row flex-md-row-reverse">
+				<article class="col-md-9">
+					<h1>New Instance Creator (NIC)</h1>
+					<p>NIC is the New Instance Creator (<a href="https://github.com/theos/theos/commit/6c623614612ac07d1963c851e4a54302be6bf40d">you can call him Nicolas!</a>). It provides a way to create projects (“instances”) based on templates. Theos comes with a handful of useful templates and others are available from various developers in the community.</p>
+
+<p>See also <a href="http://iphonedev.wiki/index.php/NIC">iPhone Dev Wiki: NIC</a>.</p>
+
+<h2 id="usage">Usage</h2>
+<p>Most commonly, NIC is used interactively like so:</p>
+
+<div class="language-console highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gp">~$</span><span class="w"> </span><span class="nv">$THEOS</span>/bin/nic.pl
+<span class="go">NIC 2.0 - New Instance Creator
+------------------------------
+  [1.] iphone/activator_event
+  [2.] iphone/activator_listener
+  [3.] iphone/application
+  [4.] iphone/application_swift
+  [5.] iphone/application_swiftui
+  [6.] iphone/control_center_module-11up
+  [7.] iphone/cydget
+  [8.] iphone/flipswitch_switch
+  [9.] iphone/framework
+  [10.] iphone/library
+  [11.] iphone/notification_center_widget
+  [12.] iphone/notification_center_widget-7up
+  [13.] iphone/null
+  [14.] iphone/preference_bundle
+  [15.] iphone/preference_bundle_swift
+  [16.] iphone/safari_extension
+  [17.] iphone/theme
+  [18.] iphone/tool
+  [19.] iphone/tool_swift
+  [20.] iphone/tweak
+  [21.] iphone/tweak_swift
+  [22.] iphone/tweak_with_simple_preferences
+  [23.] iphone/xpc_service
+  [24.] iphone/xpc_service_modern
+Choose a Template (required): 20
+Project Name (required): Example
+Package Name [com.yourcompany.example]: dev.theos.example
+</span><span class="gp">Author/Maintainer Name [Craig Federighi]: Craig Federighi &lt;notfederighi@theos.dev&gt;</span><span class="w">
+</span><span class="go">[iphone/tweak] MobileSubstrate Bundle filter [com.apple.springboard]:
+[iphone/tweak] List of applications to terminate upon installation (space-separated, '-' for none) [SpringBoard]:
+Instantiating iphone/tweak in example/...
+Done.
+
+</span><span class="gp">~$</span><span class="w"> </span><span class="nb">cd </span>example
+<span class="go">
+</span><span class="gp">~/example$</span><span class="w"> </span><span class="nb">ls</span>
+<span class="go">Example.plist  Makefile  Tweak.x  control
+</span></code></pre></div></div>
+
+<p>Where there is a default value displayed in <code class="language-plaintext highlighter-rouge">[square brackets]</code>, you can simply press return without entering a value and the default will be used. It is highly recommended that the author value is formatted like <code class="language-plaintext highlighter-rouge">Your Name &lt;yourself@example.com&gt;</code>, as this will make it possible for users to easily contact you about bugs and other questions.</p>
+
+<p>In almost all cases you can type <code class="language-plaintext highlighter-rouge">make</code> from within your new project directory and it will build successfully (assuming Theos is set up correctly). The resulting binaries most likely won’t do anything – this is the fun part that’s completely up to you!</p>
+
+<p>The following command line arguments are supported. Note that providing arguments <em>does not</em> guarantee NIC will not prompt for extra information.</p>
+
+<ul>
+  <li><strong><code class="language-plaintext highlighter-rouge">-t</code> <code class="language-plaintext highlighter-rouge">--template</code></strong> <em>string</em>. The name of a template to use, as displayed in the template selection list. Use only this or <code class="language-plaintext highlighter-rouge">--nic</code> at a time.</li>
+  <li><strong><code class="language-plaintext highlighter-rouge">--nic</code></strong> <em>string</em>. The path to a <code class="language-plaintext highlighter-rouge">.nic.tar</code> or <code class="language-plaintext highlighter-rouge">.nic</code> template to use. Use only this or <code class="language-plaintext highlighter-rouge">--template</code> at a time.</li>
+  <li><strong><code class="language-plaintext highlighter-rouge">-n</code> <code class="language-plaintext highlighter-rouge">--name</code></strong> <em>string</em>. The name of the project.</li>
+  <li><strong><code class="language-plaintext highlighter-rouge">-p</code> <code class="language-plaintext highlighter-rouge">--packagename</code></strong> <em>string</em>. The package identifier to use.</li>
+  <li><strong><code class="language-plaintext highlighter-rouge">-u</code> <code class="language-plaintext highlighter-rouge">--user</code></strong> <em>string</em>. The author value to use.</li>
+</ul>
+
+<h2 id="included-templates">Included templates</h2>
+<ul>
+  <li><strong>activator_event</strong>: an <a href="http://iphonedev.wiki/index.php/Libactivator#Sending_Events_.28via_LAEvent.29">event</a> for Activator.</li>
+  <li><strong>activator_listener</strong>: a <a href="http://iphonedev.wiki/index.php/Libactivator#Observing_Events_.28via_LAListener.29">listener</a> for Activator.</li>
+  <li><strong>application</strong>: a standard iOS app (for unsandboxed jailbreak use).</li>
+  <li><strong>application_swift</strong>: a standard, Swift-based iOS app (for unsandboxed jailbreak use).</li>
+  <li><strong>application_swiftui</strong>: a standard, SwiftUI-based iOS app (for unsandboxed jailbreak use).</li>
+  <li><strong>control_center_module-11up</strong>: a custom control center module for iOS 11+ deployed via <a href="https://github.com/opa334/CCSupport/wiki">CCSupport</a>.</li>
+  <li><strong>cydget</strong>: a <a href="https://cydia.saurik.com/info/cydget/">Cydget</a> lock screen plugin.</li>
+  <li><strong>flipswitch_switch</strong>: a switch for <a href="https://github.com/A3Tweaks/Flipswitch">Flipswitch</a>.</li>
+  <li><strong>framework</strong>: a framework to be used by other developers.</li>
+  <li><strong>library</strong>: a linkable library (e.g. /usr/lib/libblah.dylib).</li>
+  <li><strong>notification_center_widget</strong>: an iOS 5 – 6 Notification Center Today widget.</li>
+  <li><strong>notification_center_widget-7up</strong>: an iOS 7 – 9 Notification Center Today widget.</li>
+  <li><strong>null</strong>: a blank project with no code. Facilitates creation of a custom stage for non-code-based packages.</li>
+  <li><strong>preference_bundle</strong>: a <a href="http://iphonedev.wiki/index.php/PreferenceLoader">PreferenceLoader</a> preference bundle subproject.</li>
+  <li><strong>preference_bundle_swift</strong>: a Swift-based <a href="http://iphonedev.wiki/index.php/PreferenceLoader">PreferenceLoader</a> preference bundle subproject.</li>
+  <li><strong>theme</strong>: a means of easily packaging your theme into a .deb using Theos’ packaging functionality.</li>
+  <li><strong>tool</strong>: a command line tool (e.g. /usr/bin/blah).</li>
+  <li><strong>tool_swift</strong>: a Swift-based command line tool (e.g. /usr/bin/blah).</li>
+  <li><strong>tweak</strong>: a Cydia Substrate-based Objective-C tweak.</li>
+  <li><strong>tweak_swift</strong>: an Orion-based Swift tweak.</li>
+  <li><strong>tweak_with_simple_preferences</strong>: a Cydia Substrate-based tweak with a basic preference bundle.</li>
+  <li><strong>xpc_service</strong>: a C-based <a href="https://developer.apple.com/library/content/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingXPCServices.html">XPC</a> service.</li>
+  <li><strong>xpc_service_modern</strong>: an Objective-C-based <a href="https://developer.apple.com/library/content/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingXPCServices.html">XPC</a> service.</li>
+</ul>
+
+<p>This is just the list of templates Theos comes with. Far more is possible with Theos than you can find in the list above, and these templates serve only as starting points to develop a working product without having to deal with various bits of boilerplate.</p>
+
+<h2 id="nicrc">.nicrc</h2>
+<p>NIC reads configuration data from <code class="language-plaintext highlighter-rouge">~/.nicrc</code>. This file uses a simple key-value format, <code class="language-plaintext highlighter-rouge">key = "value"</code>. Values must be enclosed in quotes, even if it is a number.</p>
+
+<h3 id="instance-metadata">Instance Metadata</h3>
+<ul>
+  <li><strong><code class="language-plaintext highlighter-rouge">package_prefix</code></strong> <em>string</em>. The prefix to use by default for reverse DNS package identifiers. The default is <code class="language-plaintext highlighter-rouge">com.yourcompany</code>. For example, setting <code class="language-plaintext highlighter-rouge">package_prefix = "ws.hbang"</code> and creating a new project called “Example Instance” will make the default package identifier <code class="language-plaintext highlighter-rouge">ws.hbang.exampleinstance</code>.</li>
+  <li><strong><code class="language-plaintext highlighter-rouge">skip_package_name</code></strong> <em>bool</em>. Whether to prompt for a package identifier, or just always use the one generated by NIC. Most likely you also want to set <code class="language-plaintext highlighter-rouge">package_prefix</code> if you use this. The default is <code class="language-plaintext highlighter-rouge">0</code>.</li>
+  <li><strong><code class="language-plaintext highlighter-rouge">username</code></strong> <em>string</em>. The value to use as the author/maintainer of new instances. Setting this will cause NIC to skip asking for the author name. It is recommended to also include an email address enclosed in angle brackets. The default is the name of the currently logged in user. Example: <code class="language-plaintext highlighter-rouge">username = "HASHBANG Productions &lt;support@hbang.ws&gt;"</code>.</li>
+</ul>
+
+<h3 id="theos-reference">Theos Reference</h3>
+<ul>
+  <li><strong><code class="language-plaintext highlighter-rouge">link_theos</code></strong> <em>bool</em>. Whether to use a <code class="language-plaintext highlighter-rouge">theos</code> symlink that points to the location of Theos, or to rely on the <code class="language-plaintext highlighter-rouge">$THEOS</code> environment variable. The default is <code class="language-plaintext highlighter-rouge">0</code>. This is changed from the original Theos, which uses a default of <code class="language-plaintext highlighter-rouge">1</code>. If this is undesirable, you may set this back to <code class="language-plaintext highlighter-rouge">1</code>.</li>
+  <li><strong><code class="language-plaintext highlighter-rouge">ignore_parent_theos</code></strong> <em>bool</em>. When <code class="language-plaintext highlighter-rouge">link_theos</code> is set to <code class="language-plaintext highlighter-rouge">1</code>, and an instance is being created within a parent instance, use the destination of the parent <code class="language-plaintext highlighter-rouge">theos</code> symlink when creating the child one. If <code class="language-plaintext highlighter-rouge">ignore_parent_theos</code> is set to <code class="language-plaintext highlighter-rouge">0</code>, the value of <code class="language-plaintext highlighter-rouge">$THEOS</code> will be used instead. The default is <code class="language-plaintext highlighter-rouge">0</code>.</li>
+</ul>
+
+<h2 id="building-templates">Building templates</h2>
+<p>Templates are in the <code class="language-plaintext highlighter-rouge">.nic.tar</code> format – a standard tar archive with a layout recognisable by NIC.</p>
+
+<p>Theos comes with additional scripts alongside NIC: <code class="language-plaintext highlighter-rouge">nicify.pl</code> and <code class="language-plaintext highlighter-rouge">denicify.pl</code>. These respectively create and extract <code class="language-plaintext highlighter-rouge">.nic.tar</code> files.</p>
+
+<div class="language-console highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gp">~$</span><span class="w"> </span><span class="nv">$THEOS</span>/bin/denicify.pl <span class="nv">$THEOS</span>/templates/ios/theos/tweak.nic.tar tweak
+<span class="go">
+</span><span class="gp">~$</span><span class="w"> </span><span class="nb">ls </span>tweak/
+<span class="go">@@PROJECTNAME@@.plist  Makefile  Tweak.xm  control  pre.NIC  theos
+
+</span><span class="gp">#</span><span class="w"> </span>modify the template…
+<span class="go">
+</span><span class="gp">~$</span><span class="w"> </span><span class="nv">$THEOS</span>/bin/nicify.pl tweak/
+<span class="go">[warning] Using legacy pre.NIC as ./NIC/control.
+[info] 6 entries.
+[info] 1 prompt.
+[info] 0 constraints.
+[info] Archived template "iphone/tweak" to iphone_tweak.nic.tar.
+
+</span><span class="gp">~$</span><span class="w"> </span><span class="nb">ls</span> <span class="k">*</span>.nic.tar
+<span class="go">iphone_tweak.nic.tar
+</span></code></pre></div></div>
+
+<p>The predecessor to <code class="language-plaintext highlighter-rouge">.nic.tar</code> was <code class="language-plaintext highlighter-rouge">.nic</code>, a plain text file. It was upgraded to the current tar-based format to allow greater fidelity, such as the preservation of file permissions, and inclusion of binary files.</p>
+
+				</article>
+
+				<aside class="col-md-3">
+					<ul>
+  
+  <li>
+    
+      <a href="./index.html">Home</a>
+    
+    
+  </li>
+  
+  <li>
+    
+      <a href="./Installation.html">Installation</a>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./Installation-iOS.html">
+              iOS
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Installation-macOS.html">
+              macOS
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Installation-Linux.html">
+              Linux & Windows
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Upgrading-from-legacy-Theos.html">
+              Upgrading from legacy Theos
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <span>Usage</span>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./Concepts.html">
+              Concepts
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Configuration.html">
+              Configuration
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Commands.html">
+              Commands
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Packaging.html">
+              Packaging
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <a href="./Features.html">Features</a>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./NIC.html">
+              NIC
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./NIC-Syntax.html">
+              NIC Syntax
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./dm.pl.html">
+              dm.pl
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Swift.html">
+              Swift
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Modules.html">
+              Modules
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <span>Tweak Development</span>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./Logos.html">
+              Logos
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Logos-Syntax.html">
+              Logos Syntax
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./logify.pl.html">
+              Logify
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Logos-File-Extensions.html">
+              File Extensions
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Logos-Hook-Splitting.html">
+              Hook Splitting
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="https://orion.theos.dev/" target="_blank" rel="noopener">
+              Orion
+              
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 11L11 1"/>
+                  <path d="M2.5 1H11V9.5"/>
+                </svg>
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Rootless.html">
+              Rootless
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <span>Technical</span>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./Structure.html">
+              Structure
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Variables.html">
+              Variables
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <a href="./Help.html">Help</a>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./FAQ.html">
+              FAQ
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Parallel-Building.html">
+              Parallel Building
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./arm64e-Deployment.html">
+              arm64e Deployment
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./License.html">
+              License
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <span>See also</span>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="https://theapplewiki.com/" target="_blank" rel="noopener">
+              The Apple Wiki
+              
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 11L11 1"/>
+                  <path d="M2.5 1H11V9.5"/>
+                </svg>
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="https://iphonedev.wiki/" target="_blank" rel="noopener">
+              iPhone Dev Wiki
+              
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 11L11 1"/>
+                  <path d="M2.5 1H11V9.5"/>
+                </svg>
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="https://www.reddit.com/r/jailbreakdevelopers" target="_blank" rel="noopener">
+              /r/jailbreakdevelopers
+              
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 11L11 1"/>
+                  <path d="M2.5 1H11V9.5"/>
+                </svg>
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="https://github.com/theiostream/theos-ref" target="_blank" rel="noopener">
+              theos-ref (legacy docs)
+              
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 11L11 1"/>
+                  <path d="M2.5 1H11V9.5"/>
+                </svg>
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+</ul>
+
+				</aside>
+			</div>
+		</div>
+	</main>
+
+	<footer role="navigation">
+	<ul class="footer-sub-links">
+		<li><a href="./">Docs</a></li>
+		<li><a href="./Help.html">Get Help</a></li>
+		<li><a href="https://github.com/theos" rel="me">GitHub</a></li>
+		<li><a href="https://procursus.social/@theos" rel="me">@theos@procursus.social</a></li>
+		<li><a href="https://twitter.com/theosdev" rel="me">@theosdev</a></li>
+		<li><a href="/discord">Discord</a></li>
+	</ul>
+
+	<div class="footer-legal">
+		Copyright &copy; Theos.
+		<br>
+		<a href="https://github.com/theos/theos.dev">Edit on GitHub</a>
+	</div>
+</footer>
+
+</body>
+</html>

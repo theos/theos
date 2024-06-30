@@ -1,0 +1,1648 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Variables &middot; Theos</title>
+	<meta name="viewport" content="initial-scale=1">
+	<meta name="theme-color" content="#382b42">
+	<link rel="stylesheet" type="text/css" href="assets/style-6344873b614560f5b866fe762f81ad24128fe5b1427fc1f49568ad1fcf6a816b.css">
+	<link rel="icon" href="assets/favicon-447ec328b50bd5d64f09e1f06fe07532f924f274bd5de6567a43690bf494c99a.svg" sizes="any" type="image/svg+xml">
+
+</head>
+
+<body>
+	<header>
+	<div class="container">
+		<h1>
+			<a href="#">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 781 224">
+					<title>Theos</title>
+					<path d="M155.2 18.4H2.6v36.3H54V218h47.4V54.7h49.2l4.6-36.3zM263 60.2c-18 0-31.7 7.2-44 21V-.3l-45.6 4.6V218H219V113.2c8-12.4 16.3-19.6 26.4-19.6 8.6 0 14.4 4.3 14.4 20.4v104h45.5V106.3c0-29-16-46-42.4-46zm210 78.3c0 5-.4 11.8-1 16.4h-94.4c2.8 27 15.8 34.2 34.5 34.2 13 0 24-4.3 37-13.6l19 25.4c-15.2 12-35 21.4-59.6 21.4-51 0-77-33-77-80.7 0-45.6 25-82 71.5-82 43.5.3 70.5 29 70.5 78.5zm-44.7-11v-2c-.3-20.7-6.7-35-24.8-35-15.3 0-24 9.4-26.2 37h51zm137-67.3c46.7 0 75 30 75 81.5 0 49-28.3 81.2-75 81.2-46.3 0-74.8-30-74.8-82 0-49 28.2-81 74.8-81zm0 33.4c-18.4 0-27.6 14.7-27.6 47.8 0 34 9.2 48 27.6 48 18.5 0 27.7-14.6 27.7-47.7 0-34-9.2-48-27.7-48zm156-33.4c-38.7 0-62.6 20.4-62.6 46.6 0 23.6 15 39.2 45.2 47.8 27 7.8 32 11 32 21.4 0 9.2-8.8 14.4-22 14.4-15 0-29-6-41-15L651 200c15 14 37.4 23 64 23 38 0 68-18.6 68-50.3 0-27.4-17-40-47.3-48.7-27.3-8-31.4-11.6-31.4-19.7 0-7 6-11.5 18.5-11.5 13 0 25.7 4.3 37.5 11.8l17-25.6c-14-11.6-34-18.8-56-18.8z" fill="currentColor" fill-rule="evenodd"/>
+				</svg>
+			</a>
+		</h1>
+
+		<p class="header-tagline">A cross-platform build system for creating iOS, macOS, Linux, and Windows programs.</p>
+	</div>
+</header>
+
+
+	<main>
+		<div class="container">
+			<div class="row flex-md-row-reverse">
+				<article class="col-md-9">
+					<h1>Variables</h1>
+					<p>Theos utilizes a lengthy list of variables to pass information through its Makefile system and to the relevant tools.</p>
+
+<p>The naming convention is as follows:</p>
+<ul>
+  <li>Internal/Private
+    <ul>
+      <li>Prefixed by an underscore (“_”)</li>
+      <li>Reassigned in legacy.mk</li>
+    </ul>
+  </li>
+  <li>External/Overridable
+    <ul>
+      <li>See below.</li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<p>The various public (i.e., configurable) variable types are as follows:</p>
+<ul>
+  <li><strong>Project Variables</strong>
+    <ul>
+      <li>Prefixed by current project instance.
+        <ul>
+          <li>Tied to a particular project instance.
+            <ul>
+              <li>Example: <code class="language-plaintext highlighter-rouge">XXX_FILES</code></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><strong>Local Variables</strong>
+    <ul>
+      <li>Named solely according to their purpose.
+        <ul>
+          <li>Not tied to any particular project instance and can be set either in the toplevel Makefile or in the environment.
+            <ul>
+              <li>Example: <code class="language-plaintext highlighter-rouge">ADDITIONAL_CFLAGS</code></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><strong>System Variables</strong>
+    <ul>
+      <li>Prefixed by <code class="language-plaintext highlighter-rouge">THEOS</code>.
+        <ul>
+          <li>These variables are listed for use in toplevel Makefiles, but can be modified if desired.
+            <ul>
+              <li>Example: <code class="language-plaintext highlighter-rouge">THEOS_BUILD_DIR</code></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><strong>System Constants</strong>
+    <ul>
+      <li>Prefixed by <code class="language-plaintext highlighter-rouge">THEOS</code>.
+        <ul>
+          <li>These constants are listed for use in toplevel Makefiles.
+            <ul>
+              <li>Example: <code class="language-plaintext highlighter-rouge">THEOS_BIN_PATH</code></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<h2 id="project-variables">Project Variables</h2>
+
+<p><em>Note: “XXX” = $(THEOS_CURRENT_INSTANCE)</em></p>
+
+<ul>
+  <li>project-type_NAME (str)
+    <ul>
+      <li>Your project’s name</li>
+    </ul>
+  </li>
+  <li>XXX_INSTALL_PATH (str)
+    <ul>
+      <li>File path where you’d like to install the final product (e.g., app, tool, library, framework, etc)</li>
+    </ul>
+  </li>
+  <li>XXX_INSTALL (bool)
+    <ul>
+      <li>Skip installing an instance to $(THEOS_STAGING_DIR) (default: <code class="language-plaintext highlighter-rouge">1</code>)
+        <ul>
+          <li>Useful if generating temporary content used later in compilation or as part of the staged result</li>
+        </ul>
+      </li>
+      <li>Applies to tools, tweaks, xcodeprojs, bundles, and libraries</li>
+    </ul>
+  </li>
+  <li>XXX_CFLAGS (str)
+    <ul>
+      <li>Flags to pass to compiler</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>XXX_CCFLAGS (str)
+    <ul>
+      <li>Flags to pass to compiler</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>XXX_OBJCFLAGS (str)
+    <ul>
+      <li>Flags to pass to compiler</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>XXX_OBJCCFLAGS (str)
+    <ul>
+      <li>Flags to pass to compiler</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>XXX_SWIFTFLAGS (str)
+    <ul>
+      <li>Flags to pass to compiler</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>XXX_ORIONFLAGS (str)
+    <ul>
+      <li>Flags to pass to Orion</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>XXX_LOGOSFLAGS (str)
+    <ul>
+      <li>Flags to pass to Logos</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>XXX_LDFLAGS (str)
+    <ul>
+      <li>Flags to pass to linker</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>XXX_XCODEFLAGS (str)
+    <ul>
+      <li>Flags to pass to Xcode</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>XXX_BUNDLE_RESOURCES (str)
+    <ul>
+      <li>File paths for the current bundle’s resources</li>
+      <li>Space-separated list or any other standard GNU Make convention</li>
+    </ul>
+  </li>
+  <li>XXX_RESOURCE_FILES (str)
+    <ul>
+      <li>Alias for XXX_BUNDLE_RESOURCES</li>
+    </ul>
+  </li>
+  <li>XXX_BUNDLE_RESOURCE_DIRS (str)
+    <ul>
+      <li>File paths for the current bundle’s resource directory (default: <code class="language-plaintext highlighter-rouge">Resources</code>)
+        <ul>
+          <li>Adding a <code class="language-plaintext highlighter-rouge">Resources</code> folder to your project will copy over the containing files to the bundle on the target device during install</li>
+        </ul>
+      </li>
+      <li>Space-separated list or any other standard GNU Make convention</li>
+    </ul>
+  </li>
+  <li>XXX_RESOURCE_DIRS (str)
+    <ul>
+      <li>Alias for XXX_BUNDLE_RESOURCE_DIRS</li>
+    </ul>
+  </li>
+  <li>XXX_PUBLIC_HEADERS (str)
+    <ul>
+      <li>File paths for the current bundle’s public headers</li>
+      <li>Space-separated list or any other standard GNU Make convention</li>
+    </ul>
+  </li>
+  <li>XXX_BUNDLE_RESOURCE_FILES (str)
+    <ul>
+      <li>File paths for the current bundle’s resource files
+        <ul>
+          <li>This can be used to copy a directory itself into the bundle, while XXX_BUNDLE_RESOURCE_DIRS copies the directory’s <em>contents</em> into the bundle</li>
+        </ul>
+      </li>
+      <li>Space-separated list or any other standard GNU Make convention</li>
+    </ul>
+  </li>
+  <li>XXX_BUNDLE_INSTALL_PATH (str)
+    <ul>
+      <li>File path where you’d like to install the final bundle product</li>
+    </ul>
+  </li>
+  <li>XXX_BUNDLE_NAME (str)
+    <ul>
+      <li>Name of your bundle</li>
+    </ul>
+  </li>
+  <li>XXX_BUNDLE_EXTENSION (str)
+    <ul>
+      <li>The file extension for your bundle</li>
+    </ul>
+  </li>
+  <li>XXX_FRAMEWORKS (str)
+    <ul>
+      <li>Frameworks to link against</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>XXX_PRIVATE_FRAMEWORKS (str)
+    <ul>
+      <li>Private frameworks to link against</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>XXX_EXTRA_FRAMEWORKS (str)
+    <ul>
+      <li>Frameworks in $(THEOS_LIBRARY_PATH) that you’d like to link against</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>XXX_LIBRARIES (str)
+    <ul>
+      <li>Libraries to link against</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>XXX_LIBRARY_EXTENSION (str)
+    <ul>
+      <li>The file extension for your library/tweak</li>
+      <li>”-“ for no extension</li>
+    </ul>
+  </li>
+  <li>XXX_ARCHIVE_EXTENSION (str)
+    <ul>
+      <li>The file extension for your library</li>
+      <li>”-“ for no extension</li>
+    </ul>
+  </li>
+  <li>XXX_LINKAGE_TYPE (str)
+    <ul>
+      <li>Type of linking to use (default: <code class="language-plaintext highlighter-rouge">$(THEOS_LINKAGE_TYPE)</code>)
+        <ul>
+          <li>Options are dynamic or static</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>XXX_WEAK_FRAMEWORKS (str)
+    <ul>
+      <li>Frameworks to <a href="https://developer.apple.com/library/ios/documentation/MacOSX/Conceptual/BPFrameworks/Concepts/WeakLinking.html#//apple_ref/doc/uid/20002378-107026">weak link</a> against</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>XXX_WEAK_LIBRARIES (str)
+    <ul>
+      <li>Libraries to <a href="https://developer.apple.com/library/ios/documentation/MacOSX/Conceptual/BPFrameworks/Concepts/WeakLinking.html#//apple_ref/doc/uid/20002378-107026">weak link</a> against</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>XXX_LOGOS_DEFAULT_GENERATOR (str)
+    <ul>
+      <li>The logos generator you’d like to use (default: <code class="language-plaintext highlighter-rouge">MobileSubstrate</code>)</li>
+      <li>See https://theos.dev/docs/logos-syntax</li>
+    </ul>
+  </li>
+  <li>XXX_ORION_DEFAULT_BACKEND (str)
+    <ul>
+      <li>The Orion backend you’d like to use (default: <code class="language-plaintext highlighter-rouge">Substrate</code>)</li>
+      <li>See https://orion.theos.dev/Enums/Backends.html</li>
+    </ul>
+  </li>
+  <li>XXX_FILES (str)
+    <ul>
+      <li>Files to compile</li>
+      <li>Space-separated list or any other standard GNU Make convention</li>
+    </ul>
+  </li>
+  <li>XXX_SWIFT_FILES (str)
+    <ul>
+      <li>Swift files you’d like to compile</li>
+      <li>Space-separated list or any other standard GNU Make convention</li>
+    </ul>
+  </li>
+  <li>XXX_XSWIFT_FILES (str)
+    <ul>
+      <li>Orion-based Swift files you’d like to compile</li>
+      <li>Space-separated list or any other standard GNU Make convention</li>
+    </ul>
+  </li>
+  <li>XXX_OBJCC_FILES (str)
+    <ul>
+      <li>Objective-C++ files you’d like to compile</li>
+      <li>Space-separated list or any other standard GNU Make convention</li>
+    </ul>
+  </li>
+  <li>XXX_OBJC_FILES (str)
+    <ul>
+      <li>Objective-C files you’d like to compile</li>
+      <li>Space-separated list or any other standard GNU Make convention</li>
+    </ul>
+  </li>
+  <li>XXX_C_FILES (str)
+    <ul>
+      <li>C files you’d like to compile</li>
+      <li>Space-separated list or any other standard GNU Make convention</li>
+    </ul>
+  </li>
+  <li>XXX_CC_FILES (str)
+    <ul>
+      <li>C++ files you’d like to compile</li>
+      <li>Space-separated list or any other standard GNU Make convention</li>
+    </ul>
+  </li>
+  <li>XXX_LOGOS_FILES (str)
+    <ul>
+      <li>Logos files you’d like to compile</li>
+      <li>See https://theos.dev/docs/logos-file-extensions</li>
+      <li>Space-separated list or any other standard GNU Make convention</li>
+    </ul>
+  </li>
+  <li>XXX_ARCHS (str)
+    <ul>
+      <li>Space-separated list of architectures to build for</li>
+    </ul>
+  </li>
+  <li>XXX_IPHONE_ARCHS (str)
+    <ul>
+      <li>An alias for XXX_ARCHS</li>
+    </ul>
+  </li>
+  <li>XXX_DYNAMIC_LIBRARY (bool)
+    <ul>
+      <li>Specifies whether or not the current bundle instance is to be built as a .dylib (default: <code class="language-plaintext highlighter-rouge">1</code>)</li>
+    </ul>
+  </li>
+  <li>XXX_ENABLE_BITCODE (bool) <strong>[OSX]</strong>
+    <ul>
+      <li>Toggle bitcode (default: <code class="language-plaintext highlighter-rouge">0</code>)</li>
+    </ul>
+  </li>
+  <li>XXX_XCODE_WORKSPACE (str) <strong>[OSX]</strong>
+    <ul>
+      <li>Workspace to build xcode project with</li>
+    </ul>
+  </li>
+  <li>XXX_XCODE_PROJECT (str) <strong>[OSX]</strong>
+    <ul>
+      <li>Project to build with xcode</li>
+    </ul>
+  </li>
+  <li>XXX_XCODE_SCHEME (str) <strong>[OSX]</strong>
+    <ul>
+      <li>Scheme to build xcode project with</li>
+    </ul>
+  </li>
+  <li>XXX_APP_EXTENSION_SAFE_API (bool)
+    <ul>
+      <li>Treat bundle as application-extension when compiling (default: <code class="language-plaintext highlighter-rouge">false</code>)</li>
+    </ul>
+  </li>
+  <li>XXX_APP_EXTENSION_SAFE (bool)
+    <ul>
+      <li>Treat bundle as application-extension when linking (default: <code class="language-plaintext highlighter-rouge">false</code>)</li>
+    </ul>
+  </li>
+  <li>XXX_SWIFT_BRIDGING_HEADER (str)
+    <ul>
+      <li>Path to <a href="https://developer.apple.com/documentation/swift/imported_c_and_objective-c_apis/importing_objective-c_into_swift">Objective-C bridging header</a> to be imported into all Swift files during compilation (default: <code class="language-plaintext highlighter-rouge">XXX-Bridging-Header.h</code>)</li>
+      <li>For more information, see <a href="#objective-c-to-swift">Objective-C to Swift Interoperability</a></li>
+    </ul>
+  </li>
+  <li>XXX_SWIFT_VERSION (num)
+    <ul>
+      <li>Swift version to use (default: <code class="language-plaintext highlighter-rouge">5</code>)</li>
+    </ul>
+  </li>
+  <li>XXX_USE_MODULES (bool)
+    <ul>
+      <li>Enable use of modules (default: <code class="language-plaintext highlighter-rouge">1</code>)
+        <ul>
+          <li>Will add MODULESFLAGS to preprocessing flags</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="local-variables">Local Variables</h2>
+
+<ul>
+  <li>File.extension_CFLAGS (str)
+    <ul>
+      <li>Flags to pass to the compiler when compiling a specific file</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>arch_CFLAGS (str)
+    <ul>
+      <li>Flags to pass to the compiler when compiling for a specific architecture</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>arch_LDFLAGS (str)
+    <ul>
+      <li>Flags to pass to the linker when compiling for a specific architecture</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>File.extension_SWIFTFLAGS (str)
+    <ul>
+      <li>Flags to pass to the Swift compiler when compiling a specific file</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>COLOR (bool)
+    <ul>
+      <li>Toggles pretty logs (default: <code class="language-plaintext highlighter-rouge">1</code>)</li>
+    </ul>
+  </li>
+  <li>ARCHS (str)
+    <ul>
+      <li>Space-separated list of architectures to build for</li>
+    </ul>
+  </li>
+  <li>IPHONE_ARCHS (str)
+    <ul>
+      <li>An alias for ARCHS</li>
+    </ul>
+  </li>
+  <li>DEBUG (bool)
+    <ul>
+      <li>Toggle including debug symbols (default: <code class="language-plaintext highlighter-rouge">1</code>)</li>
+      <li>Will add <code class="language-plaintext highlighter-rouge">+debug</code> to the package name</li>
+    </ul>
+  </li>
+  <li>FINALPACKAGE (bool)
+    <ul>
+      <li>Strips debug symbols (i.e., DEBUG=0 STRIP=1)</li>
+      <li>Removes incremental version from package name</li>
+      <li>Optimizes xml/plist files by converting to bplist</li>
+    </ul>
+  </li>
+  <li>FOR_RELEASE (bool)
+    <ul>
+      <li>An alias for FINALPACKAGE</li>
+    </ul>
+  </li>
+  <li>STRIP (bool)
+    <ul>
+      <li>Toggle stripping debug symbols (default: <code class="language-plaintext highlighter-rouge">0</code>)</li>
+    </ul>
+  </li>
+  <li>PACKAGE_FORMAT (str)
+    <ul>
+      <li>Type of package to build</li>
+      <li><code class="language-plaintext highlighter-rouge">deb</code>, <code class="language-plaintext highlighter-rouge">ipa</code>, <code class="language-plaintext highlighter-rouge">pkg</code>, <code class="language-plaintext highlighter-rouge">rpm</code>, or <code class="language-plaintext highlighter-rouge">none</code></li>
+    </ul>
+  </li>
+  <li>TARGET (str)
+    <ul>
+      <li>Required build configuration items</li>
+      <li>Format <code class="language-plaintext highlighter-rouge">platform:compiler:sdk_version:deployment_version</code>
+        <ul>
+          <li><code class="language-plaintext highlighter-rouge">clang</code> is the only supported compiler for Darwin targets</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>SDKVERSION (num)
+    <ul>
+      <li>Used to specify the version of the .sdk to use for the current target platform’s sysroot
+        <ul>
+          <li>e.g., ‘SDKVERSION = 14.0’ targeting ‘iphone’ =&gt; THEOS_SDKS_PATH/iPhoneOS14.0.sdk</li>
+        </ul>
+      </li>
+      <li>Can be configured on an architecture-specific basis
+        <ul>
+          <li>e.g., SDKVERSION_arm64, SDKVERSION_arm64e, etc.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>INCLUDE_SDKVERSION (str)
+    <ul>
+      <li>Used to specify the version of the .sdk to use for the current target platform’s isysroot
+        <ul>
+          <li>e.g., ‘INCLUDE_SDKVERSION = 14.0’ targeting ‘iphone’ =&gt; THEOS_SDKS_PATH/iPhoneOS14.0.sdk</li>
+        </ul>
+      </li>
+      <li>Can be configured on an architecture-specific basis
+        <ul>
+          <li>e.g., INCLUDE_SDKVERSION_arm64, INCLUDE_SDKVERSIONarm64e, etc.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>TARGET_OS_DEPLOYMENT_VERSION (num)
+    <ul>
+      <li>Used to specify the deployment version for your target platform
+        <ul>
+          <li>e.g., ‘TARGET_OS_DEPLOYMENT_VERSION = 14.0’ targeting ‘iphone’ =&gt; -target arm64-apple-ios14.0</li>
+        </ul>
+      </li>
+      <li>Can be configured on an architecture-specific basis
+        <ul>
+          <li>e.g., TARGET_OS_DEPLOYMENT_VERSION_arm64, TARGET_OS_DEPLOYMENT_VERSION_arm64e, etc.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>PREFIX (str)
+    <ul>
+      <li>Path to your toolchain bin</li>
+      <li>Often used on OSX to switch between xctoolchains</li>
+    </ul>
+  </li>
+  <li>PACKAGE_VERSION (num)
+    <ul>
+      <li>Your package version</li>
+    </ul>
+  </li>
+  <li>PACKAGE_BUILDNAME (str)
+    <ul>
+      <li>Additional string added to the package name (e.g., “debug” for DEBUG=1)</li>
+    </ul>
+  </li>
+  <li>TARGET_INSTALL_REMOTE (bool)
+    <ul>
+      <li>Toggles whether the install target is remote or local</li>
+    </ul>
+  </li>
+  <li>PREINSTALL_TARGET_PROCESSES (str)
+    <ul>
+      <li>Target processes to <code class="language-plaintext highlighter-rouge">killall</code> <em>before</em> package install</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>INSTALL_TARGET_PROCESSES (str)
+    <ul>
+      <li>Target processes to <code class="language-plaintext highlighter-rouge">killall</code> <em>after</em> package install</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>TWEAK_TARGET_PROCESS (str)
+    <ul>
+      <li>Target process to <code class="language-plaintext highlighter-rouge">killall</code> <em>after</em> your tweak installs
+        <ul>
+          <li>Appended to INSTALL_TARGET_PROCESSES</li>
+        </ul>
+      </li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>DEBUGFLAG (str)
+    <ul>
+      <li>Debug flag passed to the linker (default: <code class="language-plaintext highlighter-rouge">-ggdb</code>)</li>
+    </ul>
+  </li>
+  <li>SWIFT_DEBUGFLAG (str)
+    <ul>
+      <li>Debug flag passed to the linker (default: <code class="language-plaintext highlighter-rouge">-g</code>)</li>
+    </ul>
+  </li>
+  <li>DEBUG.CFLAGS (str)
+    <ul>
+      <li>Debug flags passed to the compiler (default: <code class="language-plaintext highlighter-rouge">-DDEBUG -O0</code>)</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>DEBUG.SWIFTFLAGS (str)
+    <ul>
+      <li>Debug flags passed to <code class="language-plaintext highlighter-rouge">swift</code> (default: <code class="language-plaintext highlighter-rouge">-DDEBUG -Onone</code>)</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>DEBUG.LDFLAGS (str)
+    <ul>
+      <li>Debug flags passed to the linker (default: <code class="language-plaintext highlighter-rouge">-O0</code>)</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>OPTFLAG (str)
+    <ul>
+      <li>Optimization level passed to compiler/linker (default: <code class="language-plaintext highlighter-rouge">-Os</code>)</li>
+    </ul>
+  </li>
+  <li>SWIFT_OPTFLAG (str)
+    <ul>
+      <li>Optimization level passed to <code class="language-plaintext highlighter-rouge">swift</code> (default: <code class="language-plaintext highlighter-rouge">-O -whole-module-optimization</code>)</li>
+    </ul>
+  </li>
+  <li>KEEP_LOGOS_INTERMEDIATES (bool)
+    <ul>
+      <li>Toggle keeping Logos-processed files in $(THEOS_OBJ_DIR) (default: <code class="language-plaintext highlighter-rouge">0</code>)</li>
+    </ul>
+  </li>
+  <li>GO_EASY_ON_ME (bool)
+    <ul>
+      <li>Toggle quieting all errors (default: <code class="language-plaintext highlighter-rouge">0</code>)</li>
+      <li>Bad practice and deprecated for release builds
+        <ul>
+          <li>Migrate to Clang directives (e.g., -Wno-<blah> or #pragma clang diagnostic)</blah></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>LEGACYFLAGS (str)
+    <ul>
+      <li>Flags passed to compiler and linker if building for legacy platforms</li>
+      <li>Space-separated list
+        <ul>
+          <li>Building for armv6, armv7, and/or armv7s (default: <code class="language-plaintext highlighter-rouge">-Xlinker -segalign -Xlinker 4000</code>)</li>
+          <li>Building for iOS &lt; 9 (default: <code class="language-plaintext highlighter-rouge">-Xlinker -no_data_const</code>)</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>NEUTRAL_ARCH (str)
+    <ul>
+      <li>Fallback archs if ARCHS is empty and not set by the platform’s respective target makefile</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>SYSROOT (str)
+    <ul>
+      <li>SYSROOT directory passed to linker</li>
+    </ul>
+  </li>
+  <li>ISYSROOT (str)
+    <ul>
+      <li>Include SYSROOT passed to compiler</li>
+    </ul>
+  </li>
+  <li>TARGET_PRIVATE_FRAMEWORK_PATH (str)
+    <ul>
+      <li>Private framework directory within specified SYSROOT</li>
+    </ul>
+  </li>
+  <li>TARGET_PRIVATE_FRAMEWORK_INCLUDE_PATH (str)
+    <ul>
+      <li>Private framework directory within specified ISYSROOT</li>
+    </ul>
+  </li>
+  <li>MODULESFLAGS (str)
+    <ul>
+      <li>Flags used to enable and make use of <a href="https://clang.llvm.org/docs/Modules.html#using-modules">clang modules</a></li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>VERSIONFLAGS (str)
+    <ul>
+      <li>Platform-dependent target/version-min flags passed to compiler and linker</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>SWIFTBINPATH (str)
+    <ul>
+      <li>Parent directory for <code class="language-plaintext highlighter-rouge">swift</code> binary (default: <code class="language-plaintext highlighter-rouge">$THEOS/toolchain/swift/bin/</code>)</li>
+    </ul>
+  </li>
+  <li>TARGET_SWIFT_SUPPORT_BIN (str)
+    <ul>
+      <li>Target swift-support binary (default: <code class="language-plaintext highlighter-rouge">$(THEOS_VENDOR_SWIFT_SUPPORT_PATH)/.theos_build/release</code>)</li>
+    </ul>
+  </li>
+  <li>TARGET_SWIFTC (str)
+    <ul>
+      <li>Target <code class="language-plaintext highlighter-rouge">swiftc</code> binary (default: <code class="language-plaintext highlighter-rouge">swiftc</code>)</li>
+    </ul>
+  </li>
+  <li>TARGET_DSYMUTIL (str)
+    <ul>
+      <li>Target <code class="language-plaintext highlighter-rouge">dsymutil</code> binary (default: <code class="language-plaintext highlighter-rouge">dsymutil</code>/<code class="language-plaintext highlighter-rouge">llvm-dsymutil</code>)</li>
+    </ul>
+  </li>
+  <li>TARGET_STRIP_FLAGS (str)
+    <ul>
+      <li>Strip flags to use (default: <code class="language-plaintext highlighter-rouge">-x</code>)</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>TARGET_CC (str)
+    <ul>
+      <li>Target CC binary (default: <code class="language-plaintext highlighter-rouge">clang</code>/<code class="language-plaintext highlighter-rouge">gcc</code>)</li>
+    </ul>
+  </li>
+  <li>TARGET_CXX (str)
+    <ul>
+      <li>Target CXX binary (default: <code class="language-plaintext highlighter-rouge">clang++</code>/<code class="language-plaintext highlighter-rouge">g++</code>)</li>
+    </ul>
+  </li>
+  <li>TARGET_LD (str)
+    <ul>
+      <li>Target LD binary (default: <code class="language-plaintext highlighter-rouge">TARGET_CXX</code>)</li>
+    </ul>
+  </li>
+  <li>TARGET_LIPO (str)
+    <ul>
+      <li>Target <code class="language-plaintext highlighter-rouge">lipo</code> binary (default: <code class="language-plaintext highlighter-rouge">lipo</code>)</li>
+    </ul>
+  </li>
+  <li>TARGET_STRIP (str)
+    <ul>
+      <li>Target <code class="language-plaintext highlighter-rouge">strip</code> binary (default: <code class="language-plaintext highlighter-rouge">strip</code>)</li>
+    </ul>
+  </li>
+  <li>TARGET_CODESIGN (str)
+    <ul>
+      <li>Target codesign binary (default: <code class="language-plaintext highlighter-rouge">codesign</code>/<code class="language-plaintext highlighter-rouge">ldid</code>)</li>
+    </ul>
+  </li>
+  <li>TARGET_CODESIGN_FLAGS (str)
+    <ul>
+      <li>Target codesign flags (default: <code class="language-plaintext highlighter-rouge">--sign 'Apple Development'</code>/<code class="language-plaintext highlighter-rouge">-S</code>)</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>TARGET_CODESIGN_ALLOCATE (str)
+    <ul>
+      <li>Target <code class="language-plaintext highlighter-rouge">codesign_allocate</code> binary (default: <code class="language-plaintext highlighter-rouge">codesign_allocate</code>)</li>
+    </ul>
+  </li>
+  <li>TARGET_LIBTOOL (str)
+    <ul>
+      <li>Target <code class="language-plaintext highlighter-rouge">libtool</code> binary (default: <code class="language-plaintext highlighter-rouge">libtool</code>)</li>
+    </ul>
+  </li>
+  <li>TARGET_ORION_BIN (str)
+    <ul>
+      <li>Target Orion binary (default: <code class="language-plaintext highlighter-rouge">$(THEOS_VENDOR_ORION_PATH)/.theos_build/release</code>)</li>
+    </ul>
+  </li>
+  <li>TARGET_XCODEBUILD (str) <strong>[OSX]</strong>
+    <ul>
+      <li>Target <code class="language-plaintext highlighter-rouge">xcodebuild</code> binary (default: <code class="language-plaintext highlighter-rouge">xcodebuild</code>)</li>
+    </ul>
+  </li>
+  <li>TARGET_XCPRETTY (str) <strong>[OSX]</strong>
+    <ul>
+      <li>Target <code class="language-plaintext highlighter-rouge">xcpretty</code> binary (default: <code class="language-plaintext highlighter-rouge">xcpretty</code>)</li>
+    </ul>
+  </li>
+  <li>TARGET_EXE_EXT (str)
+    <ul>
+      <li>Target executable extenstion</li>
+    </ul>
+  </li>
+  <li>TARGET_LIB_EXT (str)
+    <ul>
+      <li>Target dynamic/shared library extension</li>
+    </ul>
+  </li>
+  <li>TARGET_AR_EXT (str)
+    <ul>
+      <li>Target static archive extension (default: <code class="language-plaintext highlighter-rouge">.a</code>)</li>
+    </ul>
+  </li>
+  <li>TARGET_LDFLAGS_DYNAMICLIB (str)
+    <ul>
+      <li>Target linker flags for dynamic libraries</li>
+    </ul>
+  </li>
+  <li>TARGET_CFLAGS_DYNAMICLIB (str)
+    <ul>
+      <li>Target compiler flags for dynamic libraries</li>
+    </ul>
+  </li>
+  <li>CROSS_COMPILE (str)
+    <ul>
+      <li>Enables cross-compilation for TARGET_CC, TARGET_CXX, TARGET_LD, and TARGET_STRIP on compatible host/target platform pairs</li>
+      <li>Is the triple prefix for the target platform (will be prepended to the aforementioned binaries)</li>
+    </ul>
+  </li>
+  <li>SDKBINPATH (str)
+    <ul>
+      <li>Toolchain bin path for target platform</li>
+    </ul>
+  </li>
+  <li>WATCHOS_SIMULATOR_ROOT (str)
+    <ul>
+      <li>The root directory of the simulated OS</li>
+    </ul>
+  </li>
+  <li>IPHONE_SIMULATOR_ROOT (str)
+    <ul>
+      <li>The root directory of the simulated OS</li>
+    </ul>
+  </li>
+  <li>APPLETV_SIMULATOR_ROOT (str)
+    <ul>
+      <li>The root directory of the simulated OS</li>
+    </ul>
+  </li>
+  <li>SUBPROJECTS (str)
+    <ul>
+      <li>Directory names of subprojects to build alongside the root project</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>LOCAL_INSTALL_PATH (str)
+    <ul>
+      <li>File path where you’d like to install the final product (e.g., app, tool, library, framework, etc) (default: <code class="language-plaintext highlighter-rouge">XXX_INSTALL_PATH</code>)</li>
+    </ul>
+  </li>
+  <li>LOGOS_DEFAULT_GENERATOR (str)
+    <ul>
+      <li>The logos generator you’d like to use (default: <code class="language-plaintext highlighter-rouge">MobileSubstrate</code>)</li>
+      <li>See https://theos.dev/docs/logos-syntax</li>
+    </ul>
+  </li>
+  <li>ORION_DEFAULT_BACKEND (str)
+    <ul>
+      <li>The Orion backend you’d like to use (default: <code class="language-plaintext highlighter-rouge">Substrate</code>)</li>
+      <li>See https://orion.theos.dev/Enums/Backends.html</li>
+    </ul>
+  </li>
+  <li>ADDITIONAL_CFLAGS (str)
+    <ul>
+      <li>Additional flags passed to CC for C code</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>ADDITIONAL_CCFLAGS (str)
+    <ul>
+      <li>Additional flags passed to CXX for C++ code</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>ADDITIONAL_OBJCFLAGS (str)
+    <ul>
+      <li>Additional flags passed to CC for ObjC code</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>ADDITIONAL_OBJCCFLAGS (str)
+    <ul>
+      <li>Additional flags passed to CXX for ObjC++ code</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>ADDITIONAL_SWIFTFLAGS (str)
+    <ul>
+      <li>Additional flags passed to <code class="language-plaintext highlighter-rouge">swift</code> for Swift code</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>ADDITIONAL_LOGOSFLAGS (str)
+    <ul>
+      <li>Additional flags passed to <code class="language-plaintext highlighter-rouge">logos</code> for Logos code</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>ADDITIONAL_LDFLAGS (str)
+    <ul>
+      <li>Additional flags passed to linker for linking</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>ADDITIONAL_ORIONFLAGS (str)
+    <ul>
+      <li>Additional flags passed during an Orion build</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>ADDITIONAL_XCODEFLAGS (str) <strong>[OSX]</strong>
+    <ul>
+      <li>Additional flags passed to <code class="language-plaintext highlighter-rouge">xcodebuild</code></li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>ADDITIONAL_XCODEOPTS (str) <strong>[OSX]</strong>
+    <ul>
+      <li>Additional options passed to <code class="language-plaintext highlighter-rouge">xcodebuild</code></li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>USE_DEPS (bool)
+    <ul>
+      <li>Toggle dependency tracking (i.e., makedeps) (default: <code class="language-plaintext highlighter-rouge">0</code>)</li>
+      <li>Compiler writes headers to $(THEOS_OBJ_DIR)/*.Td</li>
+    </ul>
+  </li>
+  <li>MDFLAGS (str)
+    <ul>
+      <li>Flags passed for makedeps</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>MODULES (str)
+    <ul>
+      <li>Theos modules to enable</li>
+      <li>Space-separated list
+        <ul>
+          <li>Must be present in $(THEOS_MODULE_PATH)</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>SCHEMA (str)
+    <ul>
+      <li>An alias for THEOS_SCHEMA</li>
+    </ul>
+  </li>
+  <li>LOCAL_BUNDLE_NAME (str)
+    <ul>
+      <li>Name for the current project instance’s bundle</li>
+    </ul>
+  </li>
+  <li>LOCAL_BUNDLE_EXTENSION (str)
+    <ul>
+      <li>File extension for the current project instance’s bundle</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="system-variables">System Variables</h2>
+
+<ul>
+  <li>THEOS_PACKAGE_SCHEME (str)
+    <ul>
+      <li>The package scheme to build for (default: <code class="language-plaintext highlighter-rouge">blank -- will build for rootful</code>)</li>
+      <li>Other options include: “rootless”</li>
+      <li>Will auto-import the respective scheme’s module
+        <ul>
+          <li>User-added modules should be placed in <code class="language-plaintext highlighter-rouge">$(THEOS_MODULE_PATH)</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>THEOS_PACKAGE_INSTALL_PREFIX (str)
+    <ul>
+      <li>File path prefix to add to the install path (i.e., <code class="language-plaintext highlighter-rouge">/var/mobile/thing.txt</code> -&gt; <code class="language-plaintext highlighter-rouge">$(THEOS_PACKAGE_INSTALL_PREFIX)/var/mobile/thing.txt</code>)</li>
+      <li>Dependent on THEOS_PACKAGE_SCHEME unless explicitly set (default: <code class="language-plaintext highlighter-rouge">blank for rootful and "/var/jb/" for rootless</code>)</li>
+      <li>Note that this is passed to the compiler and can thus be used in your code</li>
+    </ul>
+  </li>
+  <li>THEOS_STAGING_DIR (str)
+    <ul>
+      <li>File path for directory to house stage bits and pieces (default: <code class="language-plaintext highlighter-rouge">.theos/_/</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_STAGING_DIR_NAME (str)
+    <ul>
+      <li>Name for the staging directory (default: <code class="language-plaintext highlighter-rouge">_</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_LAYOUT_DIR (str)
+    <ul>
+      <li>File path for directory to house items to move onto the target’s filesystem during install (default: <code class="language-plaintext highlighter-rouge">$(THEOS_PROJECT_DIR)/layout/</code>)</li>
+      <li>The containing directory structure is used as an install guide
+        <ul>
+          <li>Exception to this is $(THEOS_LAYOUT_DIR)/DEBIAN/ which is used to install Debian packaging related files
+            <ul>
+              <li>Such files include a <a href="https://www.debian.org/doc/debian-policy/ch-controlfields.html">control</a> file, which will get added to the <code class="language-plaintext highlighter-rouge">status</code> file (i.e., /var/lib/dpkg/status) on-device, and <a href="https://wiki.debian.org/MaintainerScripts">maintainer scripts</a>, which, after being run, will be placed in /var/lib/dpkg/info/.</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>THEOS_LAYOUT_DIR_NAME (str)
+    <ul>
+      <li>Name for the layout directory (default: <code class="language-plaintext highlighter-rouge">layout</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_BUILD_DIR (str)
+    <ul>
+      <li>File path for directory to house bits and pieces relevant to building (default: <code class="language-plaintext highlighter-rouge">./</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_OBJ_DIR (str)
+    <ul>
+      <li>File path for directory to house object files (default: <code class="language-plaintext highlighter-rouge">.theos/obj/</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_OBJ_DIR_NAME (str)
+    <ul>
+      <li>Name for the object directory (default: <code class="language-plaintext highlighter-rouge">obj/$(THEOS_CURRENT_ARCH)</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_PACKAGE_DIR (str)
+    <ul>
+      <li>File path for directory to house built packages (default: <code class="language-plaintext highlighter-rouge">$(THEOS_BUILD_DIR)/packages/</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_PACKAGE_DIR_NAME (str)
+    <ul>
+      <li>Name for the packages directory (default: <code class="language-plaintext highlighter-rouge">packages</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_PACKAGE_NAME (str)
+    <ul>
+      <li>Name of the current project as defined by <code class="language-plaintext highlighter-rouge">Package:</code> in the <code class="language-plaintext highlighter-rouge">control</code> file</li>
+    </ul>
+  </li>
+  <li>THEOS_PACKAGE_ARCH (str)
+    <ul>
+      <li>Architecture of the current project as defined by <code class="language-plaintext highlighter-rouge">Architecture:</code> in the <code class="language-plaintext highlighter-rouge">control</code> file</li>
+    </ul>
+  </li>
+  <li>THEOS_PACKAGE_BASE_VERSION (num)
+    <ul>
+      <li>Version of the current project as defined by <code class="language-plaintext highlighter-rouge">Version:</code> in the <code class="language-plaintext highlighter-rouge">control</code> file</li>
+    </ul>
+  </li>
+  <li>THEOS_DEVICE_USER (str)
+    <ul>
+      <li>User to use when installing to target device (default: <code class="language-plaintext highlighter-rouge">root</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_DEVICE_IP (num)
+    <ul>
+      <li>IP to use when installing to target device</li>
+    </ul>
+  </li>
+  <li>THEOS_DEVICE_PORT (num)
+    <ul>
+      <li>Port to use when installing to target device
+        <ul>
+          <li>Left up to ssh to determine default or user to provide</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>THEOS_SUDO_COMMAND (str)
+    <ul>
+      <li>Target <code class="language-plaintext highlighter-rouge">sudo</code> binary (default: <code class="language-plaintext highlighter-rouge">sudo</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_CURRENT_ARCH (str)
+    <ul>
+      <li>Current architecture being targeted in build process</li>
+    </ul>
+  </li>
+  <li>THEOS_TARGET_NAME (str)
+    <ul>
+      <li>Lowercase name of the target platform</li>
+    </ul>
+  </li>
+  <li>THEOS_SCHEMA (str)
+    <ul>
+      <li>Schema (“Schemata”) to build for
+        <ul>
+          <li>Space-separated list</li>
+        </ul>
+      </li>
+      <li>Can be custom or one of the provided “Release,” “Debug,” or “” schema (default: <code class="language-plaintext highlighter-rouge">Debug</code>)
+        <ul>
+          <li>This will adjust what schema-variables, and associated functionalities, are enabled/disabled in Theos’ internal configuration</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>THEOS_PLATFORM_NAME (str)
+    <ul>
+      <li>Lowercase name of the current host platform (default: <code class="language-plaintext highlighter-rouge">$(shell uname)</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_RSYNC_EXCLUDES (str)
+    <ul>
+      <li>Files/file extensions to exclude in the <code class="language-plaintext highlighter-rouge">rsync</code> copy commands used throughout the project (default: <code class="language-plaintext highlighter-rouge">_MTN .git .svn .DS_Store ._*</code>)</li>
+      <li>Space-separated list</li>
+    </ul>
+  </li>
+  <li>THEOS_LINKAGE_TYPE (str)
+    <ul>
+      <li>Type of linking to use (default: <code class="language-plaintext highlighter-rouge">dynamic</code>)
+        <ul>
+          <li>Alternative is static</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>THEOS_PLATFORM_SDK_ROOT (str)
+    <ul>
+      <li>SDK path for a specific platform (default: <code class="language-plaintext highlighter-rouge">$(shell xcode-select -print-path)</code>)</li>
+      <li>Can be configured on an architecture-specific basis
+        <ul>
+          <li>e.g., THEOS_PLATFORM_SDK_ROOT_arm64, THEOS_PLATFORM_SDK_ROOT_arm64e, etc.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>THEOS_PLATFORM_DEB_COMPRESSION_LEVEL (num)
+    <ul>
+      <li>Compression level to use with <code class="language-plaintext highlighter-rouge">dm.pl</code> (Theos’ <code class="language-plaintext highlighter-rouge">dpkg-deb</code> drop-in)</li>
+      <li>Allowed levels are 0 to 9
+        <ul>
+          <li>Default is 9 for bzip2, 6 for others, and 0 is equivalent to cat</li>
+          <li>See https://github.com/theos/dm.pl#options</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>THEOS_PLATFORM_DEB_COMPRESSION_TYPE (str)
+    <ul>
+      <li>Compression format to use with <code class="language-plaintext highlighter-rouge">dm.pl</code> (Theos’ <code class="language-plaintext highlighter-rouge">dpkg-deb</code> drop-in)</li>
+      <li>Allowed formats are gzip, bzip2, lzma, xz and cat (no compression)
+        <ul>
+          <li>Default is lzma in order to maintain compatibility with Telesphoreo’s older <code class="language-plaintext highlighter-rouge">dpkg</code> which lacks xz support (which has since become the new standard)</li>
+          <li>See https://github.com/theos/dm.pl#options</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>THEOS_USE_PARALLEL_BUILDING (bool)
+    <ul>
+      <li>Toggles parallel building (default: <code class="language-plaintext highlighter-rouge">1 (when possible</code>))
+        <ul>
+          <li>Will <em>greatly</em> speed up build time</li>
+          <li>Requires <code class="language-plaintext highlighter-rouge">Make</code> &gt;= 4.0</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>THEOS_IGNORE_PARALLEL_BUILDING_NOTICE (str)
+    <ul>
+      <li>Toggles the notice to update Make so parallel builds can be used (default: <code class="language-plaintext highlighter-rouge">blank</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_IS_TROUBLESHOOTING (bool)
+    <ul>
+      <li>Equivalent to passing <code class="language-plaintext highlighter-rouge">troubleshoot</code> to your make invocation (default: <code class="language-plaintext highlighter-rouge">0</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_BUILD_ORION (bool)
+    <ul>
+      <li>Toggles building Orion submodule (default: <code class="language-plaintext highlighter-rouge">1</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_GEN_COMPILE_COMMANDS (bool)
+    <ul>
+      <li>Toggles running gen-commands.pl to generate compile commands for a given arch</li>
+      <li>The “magic” behind <code class="language-plaintext highlighter-rouge">make commands</code> (default: <code class="language-plaintext highlighter-rouge">1</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_NO_SWIFT_CACHE (bool)
+    <ul>
+      <li>Toggles ignoring the Swift cache (default: <code class="language-plaintext highlighter-rouge">0</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_INCLUDE_PROJECT_DIR (bool)
+    <ul>
+      <li>Toggles passing THEOS_PROJECT_DIR as a Swift include directory (default: <code class="language-plaintext highlighter-rouge">1</code>)
+        <ul>
+          <li>(i.e., -iquote)</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="system-constants">System Constants</h2>
+
+<ul>
+  <li>THEOS (str)
+    <ul>
+      <li>Root location for Theos and all of its files
+        <ul>
+          <li>This should be set in your shell profile
+            <ul>
+              <li>Either $HOME/theos/ or ~/theos/ or /opt/theos/</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>THEOS_BIN_PATH (str)
+    <ul>
+      <li>Location for tools provided by Theos (default: <code class="language-plaintext highlighter-rouge">$THEOS/bin/</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_LIBRARY_PATH (str)
+    <ul>
+      <li>Location for the user to provide libraries for use with Theos (default: <code class="language-plaintext highlighter-rouge">$THEOS/lib/</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_TARGET_LIBRARY_PATH (str)
+    <ul>
+      <li>Location for the user to provide libraries and frameworks for use with a specific target and Theos (default: <code class="language-plaintext highlighter-rouge">$(THEOS_LIBRARY_PATH)/$(THEOS_TARGET_NAME)/</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_VENDOR_LIBRARY_PATH (str)
+    <ul>
+      <li>Location for the libraries and frameworks provided by Theos (default: <code class="language-plaintext highlighter-rouge">$THEOS/vendor/lib/</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_INCLUDE_PATH (str)
+    <ul>
+      <li>Location for headers provided by Theos (default: <code class="language-plaintext highlighter-rouge">$THEOS/include/</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_TARGET_INCLUDE_PATH (str)
+    <ul>
+      <li>Location for the user to provide headers for use with a specific target and Theos (default: <code class="language-plaintext highlighter-rouge">$(THEOS_INCLUDE_PATH)/$(THEOS_TARGET_NAME)/</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_VENDOR_INCLUDE_PATH (str)
+    <ul>
+      <li>Location for the headers provided by Theos (default: <code class="language-plaintext highlighter-rouge">$THEOS/vendor/include/</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_FALLBACK_INCLUDE_PATH (str)
+    <ul>
+      <li>Location that can be used to provide drop-in replacements for missing SDK headers (default: <code class="language-plaintext highlighter-rouge">$(THEOS_INCLUDE_PATH)/_fallback/</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_MODULE_PATH (str)
+    <ul>
+      <li>Location for users to place modules in (default: <code class="language-plaintext highlighter-rouge">$THEOS/mod/</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_VENDOR_ORION_PATH (str)
+    <ul>
+      <li>Location for Theos’s Orion submodule (default: <code class="language-plaintext highlighter-rouge">$THEOS/vendor/orion</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_VENDOR_SWIFT_SUPPORT_PATH (str)
+    <ul>
+      <li>Location for Theos’s supporting Swift tools (default: <code class="language-plaintext highlighter-rouge">$THEOS/vendor/swift-support</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_SDKS_PATH (str)
+    <ul>
+      <li>Location for SDKs provided by Theos (default: <code class="language-plaintext highlighter-rouge">$THEOS/sdks/</code>)
+        <ul>
+          <li>These SDKs should be patched (i.e., include private frameworks)</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>THEOS_MAKE_PATH (str)
+    <ul>
+      <li>Location for Makefiles that make up Theos (default: <code class="language-plaintext highlighter-rouge">$THEOS/makefiles/</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_PROJECT_DIR (str)
+    <ul>
+      <li>Location of the current project (default: <code class="language-plaintext highlighter-rouge">$(shell pwd)</code>)</li>
+    </ul>
+  </li>
+  <li>THEOS_CURRENT_INSTANCE (str)
+    <ul>
+      <li>The name of the current project instance
+        <ul>
+          <li>Note that this is passed to the compiler and can thus be used in your code</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+				</article>
+
+				<aside class="col-md-3">
+					<ul>
+  
+  <li>
+    
+      <a href="./index.html">Home</a>
+    
+    
+  </li>
+  
+  <li>
+    
+      <a href="./Installation.html">Installation</a>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./Installation-iOS.html">
+              iOS
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Installation-macOS.html">
+              macOS
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Installation-Linux.html">
+              Linux & Windows
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Upgrading-from-legacy-Theos.html">
+              Upgrading from legacy Theos
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <span>Usage</span>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./Concepts.html">
+              Concepts
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Configuration.html">
+              Configuration
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Commands.html">
+              Commands
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Packaging.html">
+              Packaging
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <a href="./Features.html">Features</a>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./NIC.html">
+              NIC
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./NIC-Syntax.html">
+              NIC Syntax
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./dm.pl.html">
+              dm.pl
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Swift.html">
+              Swift
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Modules.html">
+              Modules
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <span>Tweak Development</span>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./Logos.html">
+              Logos
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Logos-Syntax.html">
+              Logos Syntax
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./logify.pl.html">
+              Logify
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Logos-File-Extensions.html">
+              File Extensions
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Logos-Hook-Splitting.html">
+              Hook Splitting
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="https://orion.theos.dev/" target="_blank" rel="noopener">
+              Orion
+              
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 11L11 1"/>
+                  <path d="M2.5 1H11V9.5"/>
+                </svg>
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Rootless.html">
+              Rootless
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <span>Technical</span>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./Structure.html">
+              Structure
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Variables.html">
+              Variables
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <a href="./Help.html">Help</a>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./FAQ.html">
+              FAQ
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Parallel-Building.html">
+              Parallel Building
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./arm64e-Deployment.html">
+              arm64e Deployment
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./License.html">
+              License
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <span>See also</span>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="https://theapplewiki.com/" target="_blank" rel="noopener">
+              The Apple Wiki
+              
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 11L11 1"/>
+                  <path d="M2.5 1H11V9.5"/>
+                </svg>
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="https://iphonedev.wiki/" target="_blank" rel="noopener">
+              iPhone Dev Wiki
+              
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 11L11 1"/>
+                  <path d="M2.5 1H11V9.5"/>
+                </svg>
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="https://www.reddit.com/r/jailbreakdevelopers" target="_blank" rel="noopener">
+              /r/jailbreakdevelopers
+              
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 11L11 1"/>
+                  <path d="M2.5 1H11V9.5"/>
+                </svg>
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="https://github.com/theiostream/theos-ref" target="_blank" rel="noopener">
+              theos-ref (legacy docs)
+              
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 11L11 1"/>
+                  <path d="M2.5 1H11V9.5"/>
+                </svg>
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+</ul>
+
+				</aside>
+			</div>
+		</div>
+	</main>
+
+	<footer role="navigation">
+	<ul class="footer-sub-links">
+		<li><a href="./">Docs</a></li>
+		<li><a href="./Help.html">Get Help</a></li>
+		<li><a href="https://github.com/theos" rel="me">GitHub</a></li>
+		<li><a href="https://procursus.social/@theos" rel="me">@theos@procursus.social</a></li>
+		<li><a href="https://twitter.com/theosdev" rel="me">@theosdev</a></li>
+		<li><a href="/discord">Discord</a></li>
+	</ul>
+
+	<div class="footer-legal">
+		Copyright &copy; Theos.
+		<br>
+		<a href="https://github.com/theos/theos.dev">Edit on GitHub</a>
+	</div>
+</footer>
+
+</body>
+</html>

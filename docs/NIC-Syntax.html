@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>NIC: Syntax &middot; Theos</title>
+	<meta name="viewport" content="initial-scale=1">
+	<meta name="theme-color" content="#382b42">
+	<link rel="stylesheet" type="text/css" href="assets/style-6344873b614560f5b866fe762f81ad24128fe5b1427fc1f49568ad1fcf6a816b.css">
+	<link rel="icon" href="assets/favicon-447ec328b50bd5d64f09e1f06fe07532f924f274bd5de6567a43690bf494c99a.svg" sizes="any" type="image/svg+xml">
+
+</head>
+
+<body>
+	<header>
+	<div class="container">
+		<h1>
+			<a href="#">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 781 224">
+					<title>Theos</title>
+					<path d="M155.2 18.4H2.6v36.3H54V218h47.4V54.7h49.2l4.6-36.3zM263 60.2c-18 0-31.7 7.2-44 21V-.3l-45.6 4.6V218H219V113.2c8-12.4 16.3-19.6 26.4-19.6 8.6 0 14.4 4.3 14.4 20.4v104h45.5V106.3c0-29-16-46-42.4-46zm210 78.3c0 5-.4 11.8-1 16.4h-94.4c2.8 27 15.8 34.2 34.5 34.2 13 0 24-4.3 37-13.6l19 25.4c-15.2 12-35 21.4-59.6 21.4-51 0-77-33-77-80.7 0-45.6 25-82 71.5-82 43.5.3 70.5 29 70.5 78.5zm-44.7-11v-2c-.3-20.7-6.7-35-24.8-35-15.3 0-24 9.4-26.2 37h51zm137-67.3c46.7 0 75 30 75 81.5 0 49-28.3 81.2-75 81.2-46.3 0-74.8-30-74.8-82 0-49 28.2-81 74.8-81zm0 33.4c-18.4 0-27.6 14.7-27.6 47.8 0 34 9.2 48 27.6 48 18.5 0 27.7-14.6 27.7-47.7 0-34-9.2-48-27.7-48zm156-33.4c-38.7 0-62.6 20.4-62.6 46.6 0 23.6 15 39.2 45.2 47.8 27 7.8 32 11 32 21.4 0 9.2-8.8 14.4-22 14.4-15 0-29-6-41-15L651 200c15 14 37.4 23 64 23 38 0 68-18.6 68-50.3 0-27.4-17-40-47.3-48.7-27.3-8-31.4-11.6-31.4-19.7 0-7 6-11.5 18.5-11.5 13 0 25.7 4.3 37.5 11.8l17-25.6c-14-11.6-34-18.8-56-18.8z" fill="currentColor" fill-rule="evenodd"/>
+				</svg>
+			</a>
+		</h1>
+
+		<p class="header-tagline">A cross-platform build system for creating iOS, macOS, Linux, and Windows programs.</p>
+	</div>
+</header>
+
+
+	<main>
+		<div class="container">
+			<div class="row flex-md-row-reverse">
+				<article class="col-md-9">
+					<h1>NIC: Syntax</h1>
+					<p>The New Instance Creator (NIC) is a component of the Theos development suite that allows projects (“instances”) to be created quickly based on templates.</p>
+
+<p>A NIC template is a collection of files representing a basic project, before any user customizations have been added.</p>
+
+<h2 id="terms-and-semantics">Terms and Semantics</h2>
+
+<p>Constraint</p>
+<ul>
+  <li>A condition under a which a file, directory or symlink will be created.</li>
+  <li>A file is said to be <em>constrained</em> when given a condition.</li>
+</ul>
+
+<p><span class="required">required</span></p>
+<ul>
+  <li>The item indicated by this tag must be present.</li>
+</ul>
+
+<p><span class="optional">optional</span></p>
+<ul>
+  <li>The item indicated by this tag is optional.</li>
+</ul>
+
+<p><code class="language-plaintext highlighter-rouge">text</code></p>
+<ul>
+  <li>The text indicated by <code class="language-plaintext highlighter-rouge">text</code> is <span class="required">required</span> to be part of the directive and is not to be substituted with any other values.</li>
+</ul>
+
+<p><code class="language-plaintext highlighter-rouge">...</code></p>
+<ul>
+  <li>The tokens preceding the <code class="language-plaintext highlighter-rouge">...</code> may be optionally repeated with the specified delimiter.</li>
+</ul>
+
+<h2 id="package-control-data-niccontrol">Package Control Data (<code class="language-plaintext highlighter-rouge">NIC/control</code>)</h2>
+
+<p>Each NIC template <span class="required">requires</span> a control file. The control file contains basic static information about the template.</p>
+
+<h3 id="directives">Directives</h3>
+
+<p><code class="highlighter-rouge"><strong>name</strong> "<span class="required">name</span>"</code></p>
+
+<ul>
+  <li><span class="required">required</span></li>
+  <li>Specifies the name of this NIC template.</li>
+</ul>
+
+<p><code class="highlighter-rouge"><strong>prompt</strong> <span class="required">variable</span> "<span class="required">prompt text</span>" <span class="optional">"default value"</span></code></p>
+
+<ul>
+  <li><span class="optional">optional</span></li>
+  <li>Prompts the user for additional information, which will be stored in <em>variable</em>.</li>
+  <li>Optionally supports the inclusion of a default value, which the user can accept by entering nothing.</li>
+  <li>The user is given a chance to override the prompt variable with their <code class="highlighter-rouge">~/.nicrc</code>.</li>
+</ul>
+
+<p><code class="highlighter-rouge"><strong>constrain</strong> "<span class="required">path</span>" to <span class="required">constraint</span></code></p>
+
+<ul>
+  <li><span class="optional">optional</span></li>
+  <li>Constrains the given file, directory or symbolic link <em>path</em> to be created only when the <em>constraint</em> condition is met.</li>
+</ul>
+
+<p><code class="highlighter-rouge"><strong>ignore</strong> <span class="required">built-in variable</span></code></p>
+
+<ul>
+  <li><span class="optional">optional</span></li>
+  <li>Do not prompt for the given <em>built-in variable</em>. The following built-in variables are supported:
+    <ul>
+      <li><code class="highlighter-rouge">USER</code></li>
+      <li><code class="highlighter-rouge">PACKAGENAME</code></li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="built-in-constraints">Built-in Constraints</h3>
+
+<p><code class="language-plaintext highlighter-rouge">package</code></p>
+<ul>
+  <li>Set by default when the new project is expected to be made into a package. Its converse, <code class="language-plaintext highlighter-rouge">!package</code>, can be used to create files only when the project is not being packaged.</li>
+  <li>The NIC templates that ship with Theos use the <code class="language-plaintext highlighter-rouge">package</code> constraint to avoid creating unnecessary <code class="language-plaintext highlighter-rouge">control</code> files.</li>
+</ul>
+
+<p><code class="language-plaintext highlighter-rouge">link_theos</code></p>
+<ul>
+  <li>Used in some templates to include an optional link to theos. Set/overridden by <code class="language-plaintext highlighter-rouge">link_theos</code> in the user’s <code class="language-plaintext highlighter-rouge">~/.nicrc</code>.</li>
+  <li>The NIC templates that ship with Theos use this constraint to avoid creating unnecessary <code class="language-plaintext highlighter-rouge">theos/</code> symlinks.</li>
+</ul>
+
+<h3 id="example-niccontrol">Example <code class="highlighter-rouge">NIC/control</code></h3>
+
+<div class="highlight">
+  <pre class="highlight">
+<span class="k">name</span> <span class="s">"Awesome Template"</span>
+<span class="k">constrain</span> <span class="s">"control"</span> <span class="k">to</span> <span class="nv">package</span>
+<span class="k">prompt</span> <span class="nv">PIES</span> <span class="s">"Number of Pies to create"</span> <span class="s">"10"</span>
+</pre>
+</div>
+
+<h2 id="package-control-script-niccontrolpl">Package Control Script (<code class="highlighter-rouge">NIC/control.pl</code>)</h2>
+
+<p>The package control script is an <span class="optional">optional</span> addition to the NIC format.</p>
+
+<p>Control scripts are written in Perl and have access to the current template.</p>
+
+<h3 id="api">API</h3>
+
+<p>There are various objects available to you via the NIC scripting interface.</p>
+
+<h4 id="public-methods">Public Methods</h4>
+
+<ul>
+  <li><code class="highlighter-rouge">print <span class="required">$data</span></code>
+    <ul>
+      <li><em>method</em></li>
+      <li>Display information to the user.</li>
+    </ul>
+  </li>
+  <li><code class="highlighter-rouge">warn <span class="required">$warning</span></code>
+    <ul>
+      <li><em>method</em></li>
+      <li>Display a warning.</li>
+    </ul>
+  </li>
+  <li><code class="highlighter-rouge">error <span class="required">$error</span></code>
+    <ul>
+      <li><em>method</em></li>
+      <li>Display an error and abort building the template.</li>
+    </ul>
+  </li>
+  <li><code class="highlighter-rouge">exit <span class="required">$status_code</span></code>
+    <ul>
+      <li><em>method</em></li>
+      <li>Exit the control script. Any status code other than <code class="highlighter-rouge">1</code> will abort building the template.</li>
+    </ul>
+  </li>
+  <li><code class="highlighter-rouge">prompt(<span class="required">$prompt_text</span> <span class="optional">, {default =&gt; $default_value}</span>)</code>
+    <ul>
+      <li><em>method</em></li>
+      <li>Prompt the user for additional information. The default value is optional. Returns the user’s response.</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="nic">NIC</h4>
+
+<p>The <code class="language-plaintext highlighter-rouge">NIC</code> object represents the current template.</p>
+
+<h5 id="metadata-manipulation">Metadata Manipulation</h5>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">NIC-&gt;name</code>
+    <ul>
+      <li><strong>read/write</strong></li>
+      <li>The name of the current template.</li>
+    </ul>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">NIC-&gt;variables</code>
+    <ul>
+      <li><strong>read-only</strong></li>
+      <li>A list of the variables currently set on this template.</li>
+    </ul>
+  </li>
+  <li><code class="highlighter-rouge">NIC-&gt;variable(<span class="required">$name</span>)</code>
+    <ul>
+      <li><strong>read/write</strong></li>
+      <li>The value of the named variable. Can be used as a left-hand value, such as in <code class="language-plaintext highlighter-rouge">NIC-&gt;variable("NAME") = "Value";</code></li>
+    </ul>
+  </li>
+  <li><code class="highlighter-rouge">NIC-&gt;prompt(<span class="required">$variable</span>, <span class="required">$prompt_text</span> <span class="optional">, {default =&gt; $default_value}</span>)</code>
+    <ul>
+      <li><em>method</em></li>
+      <li>Prompt the user for additional information, attaching the user’s response to the provided NIC variable.</li>
+      <li>The default value is optional.</li>
+      <li>If <em>$variable</em> is not specified, <code class="language-plaintext highlighter-rouge">NIC-&gt;prompt(...)</code> will return the user’s response, and will not store it in the template.</li>
+      <li>The key difference between <code class="language-plaintext highlighter-rouge">prompt(...)</code> and <code class="language-plaintext highlighter-rouge">NIC-&gt;prompt(...)</code> is that the user is given a chance to override the prompt variable with their <code class="language-plaintext highlighter-rouge">~/.nicrc</code>.</li>
+    </ul>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">NIC-&gt;setConstraint(<span class="required">$constraint</span>)</code></p>
+  </li>
+  <li><code class="highlighter-rouge">NIC-&gt;clearConstraint(<span class="required">$constraint</span>)</code>
+    <ul>
+      <li><em>methods</em></li>
+      <li>Set or clear the constraint given by <em>$constraint</em>.</li>
+    </ul>
+  </li>
+</ul>
+
+<h5 id="files-directories-and-symbolic-links">Files, Directories, and Symbolic Links</h5>
+
+<ul>
+  <li><code class="highlighter-rouge">NIC-&gt;lookup(<span class="required">$name</span>)</code>
+    <ul>
+      <li><em>method</em></li>
+      <li>Find an existing File, Directory or Symbolic Link in the template archive.</li>
+      <li>Returns the retrieved NICType or <code class="language-plaintext highlighter-rouge">undef</code> on failure.</li>
+    </ul>
+  </li>
+  <li><code class="highlighter-rouge">NIC-&gt;mkfile(<span class="required">$name</span> <span class="optional">, $mode</span>)</code>
+    <ul>
+      <li><em>method</em></li>
+      <li>Create a new File with the given name and, optionally, mode.</li>
+      <li>Returns the newly-created File object.</li>
+    </ul>
+  </li>
+  <li><code class="highlighter-rouge">NIC-&gt;mkdir(<span class="required">$name</span> <span class="optional">, $mode</span>)</code>
+    <ul>
+      <li><em>method</em></li>
+      <li>Create a new Directory with the given name and, optionally, mode.</li>
+      <li>Returns the newly-created Directory object.</li>
+    </ul>
+  </li>
+  <li><code class="highlighter-rouge">NIC-&gt;symlink(<span class="required">$target</span>, <span class="required">$destination</span>)</code>
+    <ul>
+      <li><em>method</em></li>
+      <li>Create a new Symbolic Link with the given name pointing to the given target.</li>
+      <li><code class="language-plaintext highlighter-rouge">$target</code> is expected to be an object acquired via <code class="language-plaintext highlighter-rouge">NIC-&gt;lookup</code>, <code class="language-plaintext highlighter-rouge">NIC-&gt;mkdir</code>, <code class="language-plaintext highlighter-rouge">NIC-&gt;mkfile</code>, or <code class="language-plaintext highlighter-rouge">NIC-&gt;symlink</code>.</li>
+      <li><code class="language-plaintext highlighter-rouge">$target</code> can also be a string.</li>
+      <li>Returns the newly-created Symlink object.</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="nictype">NICType</h4>
+
+<p>NICType objects are the embodiment of template content. Each file, directory or symbolic link is represented by an instance of a NICType subclass.</p>
+
+<p>NICType objects share a few common propeties.</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">$nictype-&gt;name</code>
+    <ul>
+      <li><strong>read/write</strong></li>
+      <li>The name of the given NICType object (filename, directory, symbolic link name).</li>
+    </ul>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">$nictype-&gt;mode</code>
+    <ul>
+      <li><strong>read/write</strong></li>
+      <li>The mode of the given NICType object. Defaults to <code class="language-plaintext highlighter-rouge">0644</code> for files and <code class="language-plaintext highlighter-rouge">0755</code> for directories.</li>
+    </ul>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">$nictype-&gt;constraints</code>
+    <ul>
+      <li><strong>read-only</strong></li>
+      <li>A list of the constraints currently attached to the given object.</li>
+    </ul>
+  </li>
+  <li><code class="highlighter-rouge">$nictype-&gt;constrain(<span class="required">$constraint</span>)</code>
+    <ul>
+      <li><em>method</em></li>
+      <li>Apply the given constraint to this object. Similar to <code class="language-plaintext highlighter-rouge">NIC/control</code>’s <code class="highlighter-rouge"><strong>constrain</strong> ...</code>.</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="file---nictype"><code class="language-plaintext highlighter-rouge">File &lt;- NICType</code></h4>
+
+<ul>
+  <li>Represents a file in the template.</li>
+  <li><code class="language-plaintext highlighter-rouge">$file-&gt;data</code>
+    <ul>
+      <li><strong>read/write</strong></li>
+      <li>The file’s data.</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="directory---nictype"><code class="language-plaintext highlighter-rouge">Directory &lt;- NICType</code></h4>
+
+<ul>
+  <li>Represents a directory in the template.</li>
+  <li><em>Contains no additional methods.</em></li>
+</ul>
+
+<h4 id="symlink---nictype"><code class="language-plaintext highlighter-rouge">Symlink &lt;- NICType</code></h4>
+
+<ul>
+  <li>Represents a symbolic link in the template.</li>
+  <li><code class="language-plaintext highlighter-rouge">$symlink-&gt;target</code>
+    <ul>
+      <li><strong>read/write</strong></li>
+      <li>The target of the symbolic link, as either a reference to a <code class="language-plaintext highlighter-rouge">NICType</code> object or a string.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="example-niccontrolpl">Example <code class="language-plaintext highlighter-rouge">NIC/control.pl</code></h3>
+
+<div class="language-perl highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Retrieve the package name as specified by the user.</span>
+<span class="k">my</span> <span class="nv">$packageName</span> <span class="o">=</span> <span class="nv">NIC</span><span class="o">-&gt;</span><span class="nv">variable</span><span class="p">("</span><span class="s2">PACKAGENAME</span><span class="p">");</span>
+<span class="k">my</span> <span class="nv">$packageDirectory</span> <span class="o">=</span> <span class="nv">$packageName</span><span class="p">;</span>
+
+<span class="c1"># Transform the package name into a package directory, replacing . with / (s!old!new!g acts as a search and replace).</span>
+<span class="nv">$packageDirectory</span> <span class="o">=~</span> <span class="sr">s!\.!/!g</span><span class="p">;</span>
+
+<span class="c1"># Create a new directory entry with the name we just transformed.</span>
+<span class="k">my</span> <span class="nv">$directory</span> <span class="o">=</span> <span class="nv">NIC</span><span class="o">-&gt;</span><span class="nb">mkdir</span><span class="p">(</span><span class="nv">$packageDirectory</span><span class="p">);</span>
+
+<span class="c1"># Look up the file "main.m" and set its name to include the new path.</span>
+<span class="nv">NIC</span><span class="o">-&gt;</span><span class="nv">lookup</span><span class="p">("</span><span class="s2">main.m</span><span class="p">")</span><span class="o">-&gt;</span><span class="nv">name</span> <span class="o">=</span> <span class="nv">$directory</span><span class="o">-&gt;</span><span class="nv">name</span> <span class="o">.</span> <span class="p">"</span><span class="s2">/main.m</span><span class="p">";</span>
+</code></pre></div></div>
+<!-- Modified from http://theos.howett.net/nic/ (CC0) -->
+
+				</article>
+
+				<aside class="col-md-3">
+					<ul>
+  
+  <li>
+    
+      <a href="./index.html">Home</a>
+    
+    
+  </li>
+  
+  <li>
+    
+      <a href="./Installation.html">Installation</a>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./Installation-iOS.html">
+              iOS
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Installation-macOS.html">
+              macOS
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Installation-Linux.html">
+              Linux & Windows
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Upgrading-from-legacy-Theos.html">
+              Upgrading from legacy Theos
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <span>Usage</span>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./Concepts.html">
+              Concepts
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Configuration.html">
+              Configuration
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Commands.html">
+              Commands
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Packaging.html">
+              Packaging
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <a href="./Features.html">Features</a>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./NIC.html">
+              NIC
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./NIC-Syntax.html">
+              NIC Syntax
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./dm.pl.html">
+              dm.pl
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Swift.html">
+              Swift
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Modules.html">
+              Modules
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <span>Tweak Development</span>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./Logos.html">
+              Logos
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Logos-Syntax.html">
+              Logos Syntax
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./logify.pl.html">
+              Logify
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Logos-File-Extensions.html">
+              File Extensions
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Logos-Hook-Splitting.html">
+              Hook Splitting
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="https://orion.theos.dev/" target="_blank" rel="noopener">
+              Orion
+              
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 11L11 1"/>
+                  <path d="M2.5 1H11V9.5"/>
+                </svg>
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Rootless.html">
+              Rootless
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <span>Technical</span>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./Structure.html">
+              Structure
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Variables.html">
+              Variables
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <a href="./Help.html">Help</a>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="./FAQ.html">
+              FAQ
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./Parallel-Building.html">
+              Parallel Building
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./arm64e-Deployment.html">
+              arm64e Deployment
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="./License.html">
+              License
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+  <li>
+    
+      <span>See also</span>
+    
+    
+      <ul>
+        
+          <li>
+            <a href="https://theapplewiki.com/" target="_blank" rel="noopener">
+              The Apple Wiki
+              
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 11L11 1"/>
+                  <path d="M2.5 1H11V9.5"/>
+                </svg>
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="https://iphonedev.wiki/" target="_blank" rel="noopener">
+              iPhone Dev Wiki
+              
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 11L11 1"/>
+                  <path d="M2.5 1H11V9.5"/>
+                </svg>
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="https://www.reddit.com/r/jailbreakdevelopers" target="_blank" rel="noopener">
+              /r/jailbreakdevelopers
+              
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 11L11 1"/>
+                  <path d="M2.5 1H11V9.5"/>
+                </svg>
+              
+            </a>
+          </li>
+        
+          <li>
+            <a href="https://github.com/theiostream/theos-ref" target="_blank" rel="noopener">
+              theos-ref (legacy docs)
+              
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 11L11 1"/>
+                  <path d="M2.5 1H11V9.5"/>
+                </svg>
+              
+            </a>
+          </li>
+        
+      </ul>
+    
+  </li>
+  
+</ul>
+
+				</aside>
+			</div>
+		</div>
+	</main>
+
+	<footer role="navigation">
+	<ul class="footer-sub-links">
+		<li><a href="./">Docs</a></li>
+		<li><a href="./Help.html">Get Help</a></li>
+		<li><a href="https://github.com/theos" rel="me">GitHub</a></li>
+		<li><a href="https://procursus.social/@theos" rel="me">@theos@procursus.social</a></li>
+		<li><a href="https://twitter.com/theosdev" rel="me">@theosdev</a></li>
+		<li><a href="/discord">Discord</a></li>
+	</ul>
+
+	<div class="footer-legal">
+		Copyright &copy; Theos.
+		<br>
+		<a href="https://github.com/theos/theos.dev">Edit on GitHub</a>
+	</div>
+</footer>
+
+</body>
+</html>
