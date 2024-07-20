@@ -15,7 +15,7 @@
 #endif
 
 #if __has_include(<AvailabilityVersions.h>)
-	#import <AvailabilityVersions.h>
+	#include <AvailabilityVersions.h>
 #endif
 
 #if !defined(__IPHONE_14_0) && !defined(THEOS_LEAN_AND_MEAN)
