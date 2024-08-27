@@ -265,7 +265,7 @@ schema1.CFLAGS = -DSCHEMA1ENABLED
 <p>Assuming you have a complex directory structure and don’t feel like messing with pattern matching, you can also shell out to <code class="language-plaintext highlighter-rouge">find</code>.</p>
 
 <p>An example usage of this would be</p>
-<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">XXX_FILES</span> <span class="o">=</span> <span class="nf">$(</span><span class="nb">shell</span> find <span class="nt">-type</span> f <span class="nt">-name</span> <span class="s2">"*.m"</span><span class="nf">)</span>
+<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">XXX_FILES</span> <span class="o">=</span> <span class="nf">$(</span><span class="nb">shell</span> find <span class="nb">.</span> <span class="nt">-type</span> f <span class="nt">-name</span> <span class="s2">"*.m"</span><span class="nf">)</span>
 </code></pre></div></div>
 
 <h3 id="setting-variables-to-varying-degrees-of-project-depth">Setting variables to varying degrees of project depth</h3>
