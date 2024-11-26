@@ -10,7 +10,12 @@
 
 set -e
 
-urls=$(curl -s https://api.github.com/repos/theos/sdks/releases/latest | grep download_url | sed 's/.*: "\(.*\)"/\1/')
+SDK_FETCH_URL="https://api.github.com/repos/theos/sdks/releases/latest"
+if ! [[ -z "$GITHUB_TOKEN" ]]; then
+	urls=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" $SDK_FETCH_URL | grep download_url | sed 's/.*: "\(.*\)"/\1/')
+else
+	urls=$(curl -s $SDK_FETCH_URL | grep download_url | sed 's/.*: "\(.*\)"/\1/')
+fi
 if [[ -z "$urls" ]]; then
 	echo "ERROR: api.github.com request failed?!" >&2
 	exit 1
