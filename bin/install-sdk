@@ -17,8 +17,14 @@ else
 	urls=$(curl -s $SDK_FETCH_URL | grep download_url | sed 's/.*: "\(.*\)"/\1/')
 fi
 if [[ -z "$urls" ]]; then
-	echo "ERROR: api.github.com request failed?!" >&2
-	exit 1
+	echo "GitHub API request failed. Please enter a GitHub API token to retry:" >&2
+        read token
+        export GITHUB_TOKEN=$token
+        urls=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" $SDK_FETCH_URL | grep download_url | sed 's/.*: "\(.*\)"/\1/')
+        if [[ -z "$urls" ]]; then
+          echo "ERROR: GitHub API request failed again."
+          exit 1
+        fi
 fi
 
 sdks=( $(echo "$urls" | sed -e 's/.*\///' -e 's/\.sdk.*//' | tr '\n' ' ') )
