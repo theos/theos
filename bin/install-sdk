@@ -17,9 +17,10 @@ else
 	urls=$(curl -s $SDK_FETCH_URL | grep download_url | sed 's/.*: "\(.*\)"/\1/')
 fi
 if [[ -z "$urls" ]]; then
-	echo "GitHub API request failed. Please enter a GitHub API token to retry:"
-        read token
-        urls=$(curl -s -H "Authorization: Bearer $token" $SDK_FETCH_URL | grep download_url | sed 's/.*: "\(.*\)"/\1/')
+	echo "GitHub API request failed. Please set the GITHUB_TOKEN environment variable and try again."
+        echo "Dropping you to a shell, type exit when done."
+        bash
+        urls=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" $SDK_FETCH_URL | grep download_url | sed 's/.*: "\(.*\)"/\1/')
         if [[ -z "$urls" ]]; then
           echo "ERROR: GitHub API request failed again." >&2
           exit 1
