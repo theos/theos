@@ -77,7 +77,11 @@ export THEOS_PROJECT_DIR
 
 export PATH := $(THEOS_BIN_PATH):$(PATH)
 
-ifeq ($(call __exists,$(HOME)/.theosrc),$(_THEOS_TRUE))
+ifeq ($(call __exists,$(XDG_CONFIG_HOME)/theos/rc.mk),$(_THEOS_TRUE))
+-include $(XDG_CONFIG_HOME)/theos/rc.mk
+else ifeq ($(call __exists,$(HOME)/.config/theos/rc.mk),$(_THEOS_TRUE))
+-include $(HOME)/.config/theos/rc.mk
+else ifeq ($(call __exists,$(HOME)/.theosrc),$(_THEOS_TRUE))
 -include $(HOME)/.theosrc
 endif
 
