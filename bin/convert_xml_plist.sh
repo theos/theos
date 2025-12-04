@@ -21,7 +21,7 @@ fi
 
 # Check for plist converters
 # A Linux package(s) appear to offer a non-Darwin plutil - we want to avoid it 
-if [[ "$(uname -s)" == "Darwin" ]] && command -v plutil &> /dev/null; then
+if [[ "$(uname)" == "Darwin" ]] && command -v plutil &> /dev/null; then
     cmd=plutil
 elif command -v plistutil &> /dev/null; then
     cmd=plistutil
