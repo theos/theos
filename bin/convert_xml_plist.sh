@@ -20,12 +20,13 @@ if [[ -z $directory ]]; then
 fi
 
 # Check for plist converters
-if command -v plutil &> /dev/null; then
-	cmd=plutil
-elif command -v ply &> /dev/null; then
-	cmd=ply
+# A Linux package(s) appear to offer a non-Darwin plutil - we want to avoid it 
+if [[ "$(uname -s)" == "Darwin" ]] && command -v plutil &> /dev/null; then
+    cmd=plutil
 elif command -v plistutil &> /dev/null; then
-	cmd=plistutil
+    cmd=plistutil
+elif command -v ply &> /dev/null; then
+    cmd=ply
 else
 	printf "\e[0;36m==> \e[1;36mNotice:\e[m %s\n" \
 		"Neither plutil, ply, or libplist-utils are installed, so XML plist files were not optimized."
