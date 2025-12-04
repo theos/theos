@@ -322,15 +322,24 @@ darwin_mobile() {
 
 linux() {
 	# Determine distro
+	source /etc/os-release 
 	DISTRO="unknown"
-	if [[ -x $(command -v apt) ]]; then
-		DISTRO="debian"
-	elif [[ -x $(command -v pacman) ]]; then
-		DISTRO="arch"
-	elif [[ -x $(command -v dnf) ]]; then
-		DISTRO="redhat"
-	elif [[ -x $(command -v zypper) ]]; then
-		DISTRO="suse"
+	# First pass for namesake distros 
+	case "$ID" in
+	    debian) DISTRO="debian" ;;
+	    arch) DISTRO="arch" ;;
+	    rhel|fedora) DISTRO="redhat" ;;
+	    suse) DISTRO="suse" ;;
+	esac
+
+	# Second pass for derivatives
+	if [[ "$DISTRO" == "unknown" ]]; then
+	    case "$ID_LIKE" in
+	        *debian*) DISTRO="debian" ;;
+	        *arch*) DISTRO="arch" ;;
+	        *rhel*|*fedora*) DISTRO="redhat" ;;
+	        *suse*) DISTRO="suse" ;;
+	    esac
 	fi
 
 	# Check for sudo (not installed by default on some distros)
