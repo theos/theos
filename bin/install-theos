@@ -324,6 +324,7 @@ linux() {
 	# Determine distro
 	source /etc/os-release 
 	DISTRO="unknown"
+	
 	# First pass for namesake distros 
 	case "$ID" in
 	    debian) DISTRO="debian" ;;
@@ -338,6 +339,21 @@ linux() {
 	        *debian*) DISTRO="debian" ;;
 	        *arch*) DISTRO="arch" ;;
 	        *rhel*|*fedora*) DISTRO="redhat" ;;
+	        *suse*) DISTRO="suse" ;;
+	    esac
+	fi
+
+	# Third pass for legacy
+	if [[ "$DISTRO" == "unknown" ]]; then
+		# parse for /etc/*-release file(s)
+		rel=(/etc/*-release)
+		rel=(${rel[@]#/etc/})
+		rel=(${rel[@]%-release})
+
+		case "${rel[@]}" in
+	        *debian*) DISTRO="debian" ;;
+	        *arch*) DISTRO="arch" ;;
+	        *redhat*|*fedora*) DISTRO="redhat" ;;
 	        *suse*) DISTRO="suse" ;;
 	    esac
 	fi
