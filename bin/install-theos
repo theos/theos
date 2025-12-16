@@ -10,7 +10,7 @@
 # 7 - Toolchain install failed
 # 8 - SDK install failed
 # 9 - Checkra1n '/opt' setup failed
-# 10 - WSL1 fakeroot->fakeroot-tcp failed
+# 10 - fakeroot adjustment failed
 # 11 - Enabling Linux binary compat on FreeBSD failed
 
 set -e
@@ -378,15 +378,21 @@ linux() {
 			;;
 	esac
 
+	# favor fakeroot backend with greatest support (circumvents harsher tcp restrictions on some distros (e.g., Fedora 41))
+	update "Adjusting fakeroot to favor sysv > tcp..."
+	sudo update-alternatives --set fakeroot /usr/bin/fakeroot-sysv \
+		&& update "fakeroot adjusted!" \
+		|| (error "fakeroot adjustment seems to have encountered an error. Please see the log above."; exit 10)
+
 	# Check for WSL
 	update "Checking for WSL..."
 	rel="$(uname -r)"
 	if [[ ${rel,,} =~ microsoft ]]; then
 		if ! [[ $rel =~ WSL2 ]]; then
-			update "WSL1! Need to fix fakeroot..."
+			update "WSL1! Need to adjust fakeroot as no sysv..."
 			sudo update-alternatives --set fakeroot /usr/bin/fakeroot-tcp \
-				&& update "fakeroot fixed!" \
-				|| (error "fakeroot fix seems to have encountered an error. Please see the log above."; exit 10)
+				&& update "fakeroot adjusted!" \
+				|| (error "fakeroot adjustment seems to have encountered an error. Please see the log above."; exit 10)
 		else
 			update "WSL2! Nothing to do here."
 		fi
