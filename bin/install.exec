@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 if [[ $TARGET_INSTALL_REMOTE == 1 ]]; then
 	args=(ssh)
 
@@ -12,6 +13,14 @@ if [[ $TARGET_INSTALL_REMOTE == 1 ]]; then
 
 	args+=($THEOS_DEVICE_IP)
 	args+=("$@")
+
+	# non-interactive sudo
+	# assumption: mobile pass is alpine
+	for i in "${!args[@]}"; do
+		if [[ "${args[$i]}" =~ "sudo" ]]; then
+			args[$i]="${args[$i]/sudo/"echo alpine | sudo -S"}"
+		fi
+	done
 
 	exec ${args[@]}
 else
