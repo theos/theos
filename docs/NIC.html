@@ -130,8 +130,15 @@ These templates are not installed by default. You can install these legacy templ
   <li><strong>xpc_service</strong>: a C-based <a href="https://developer.apple.com/library/content/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingXPCServices.html">XPC</a> service.</li>
 </ul>
 
-<h2 id="nicrc">.nicrc</h2>
-<p>NIC reads configuration data from <code class="language-plaintext highlighter-rouge">~/.nicrc</code>. This file uses a simple key-value format, <code class="language-plaintext highlighter-rouge">key = "value"</code>. Values must be enclosed in quotes, even if it is a number.</p>
+<h2 id="nicrc">nicrc</h2>
+<p>NIC configuration data can be stored in a config file to pre-fill values for templates. A simple key-value format is used: <code class="language-plaintext highlighter-rouge">key = "value"</code>. Values must be enclosed in quotes, even if they are numbers.</p>
+
+<p>The first matching file is sourced:</p>
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">$(XDG_CONFIG_HOME)/theos/nicrc</code></li>
+  <li><code class="language-plaintext highlighter-rouge">$(HOME)/.config/theos/nicrc</code></li>
+  <li><code class="language-plaintext highlighter-rouge">$(HOME)/.nicrc</code></li>
+</ol>
 
 <h3 id="instance-metadata">Instance Metadata</h3>
 <ul>

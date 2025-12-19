@@ -39,11 +39,16 @@
   <li>At runtime by passing variables to <code class="language-plaintext highlighter-rouge">make</code></li>
 </ul>
 
-<h2 id="theosrc"><code class="language-plaintext highlighter-rouge">.theosrc</code></h2>
+<h2 id="config-file">Config File</h2>
 
-<p>Variables that are specific to your own setup (e.g., Xcode/an SDK, device IP, etc) should not be placed in your project makefile as it may hinder others from building your project. Instead, these variables should be placed in <code class="language-plaintext highlighter-rouge">.theosrc</code>, a makefile that is read and executed during an early stage of Theos’ <code class="language-plaintext highlighter-rouge">common.mk</code>.</p>
+<p>Variables that are specific to your own setup (e.g., Xcode/an SDK, device IP, etc) should not be placed in your project makefile as it may hinder others from building your project. Instead, these variables should be placed in a user created makefile that is read and executed during an early stage of Theos’ <code class="language-plaintext highlighter-rouge">common.mk</code>.</p>
 
-<p><code class="language-plaintext highlighter-rouge">.theosrc</code> must be created by the user at <code class="language-plaintext highlighter-rouge">$HOME/.theosrc</code> or <code class="language-plaintext highlighter-rouge">~/.theosrc</code>.</p>
+<p>The first matching file is <code class="language-plaintext highlighter-rouge">-include</code>d:</p>
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">$(XDG_CONFIG_HOME)/theos/rc.mk</code></li>
+  <li><code class="language-plaintext highlighter-rouge">$(HOME)/.config/theos/rc.mk</code></li>
+  <li><code class="language-plaintext highlighter-rouge">$(HOME)/.theosrc</code></li>
+</ol>
 
 <h2 id="utilizing-theos-makefile-rules">Utilizing Theos’ makefile rules</h2>
 

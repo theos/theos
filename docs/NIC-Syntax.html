@@ -83,7 +83,7 @@
   <li><span class="optional">optional</span></li>
   <li>Prompts the user for additional information, which will be stored in <em>variable</em>.</li>
   <li>Optionally supports the inclusion of a default value, which the user can accept by entering nothing.</li>
-  <li>The user is given a chance to override the prompt variable with their <code class="highlighter-rouge">~/.nicrc</code>.</li>
+  <li>The user is given a chance to override the prompt variable with their <code class="highlighter-rouge">nicrc</code>.</li>
 </ul>
 
 <p><code class="highlighter-rouge"><strong>constrain</strong> "<span class="required">path</span>" to <span class="required">constraint</span></code></p>
@@ -115,7 +115,7 @@
 
 <p><code class="language-plaintext highlighter-rouge">link_theos</code></p>
 <ul>
-  <li>Used in some templates to include an optional link to theos. Set/overridden by <code class="language-plaintext highlighter-rouge">link_theos</code> in the user’s <code class="language-plaintext highlighter-rouge">~/.nicrc</code>.</li>
+  <li>Used in some templates to include an optional link to theos. Set/overridden by <code class="language-plaintext highlighter-rouge">link_theos</code> in the user’s <code class="language-plaintext highlighter-rouge">nicrc</code>.</li>
   <li>The NIC templates that ship with Theos use this constraint to avoid creating unnecessary <code class="language-plaintext highlighter-rouge">theos/</code> symlinks.</li>
 </ul>
 
@@ -205,7 +205,7 @@
       <li>Prompt the user for additional information, attaching the user’s response to the provided NIC variable.</li>
       <li>The default value is optional.</li>
       <li>If <em>$variable</em> is not specified, <code class="language-plaintext highlighter-rouge">NIC-&gt;prompt(...)</code> will return the user’s response, and will not store it in the template.</li>
-      <li>The key difference between <code class="language-plaintext highlighter-rouge">prompt(...)</code> and <code class="language-plaintext highlighter-rouge">NIC-&gt;prompt(...)</code> is that the user is given a chance to override the prompt variable with their <code class="language-plaintext highlighter-rouge">~/.nicrc</code>.</li>
+      <li>The key difference between <code class="language-plaintext highlighter-rouge">prompt(...)</code> and <code class="language-plaintext highlighter-rouge">NIC-&gt;prompt(...)</code> is that the user is given a chance to override the prompt variable with their <code class="language-plaintext highlighter-rouge">nicrc</code>.</li>
     </ul>
   </li>
   <li>
