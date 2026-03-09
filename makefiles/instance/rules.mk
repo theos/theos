@@ -503,8 +503,10 @@ ifeq ($$(_THEOS_CURRENT_TYPE),subproject)
 endif
 ifneq ($(words $(TARGET_ARCHS)),1)
 	$(ECHO_MERGING)$(ECHO_UNBUFFERED)$(TARGET_LIPO) $(foreach ARCH,$(TARGET_ARCHS),-arch $(ARCH) $(THEOS_OBJ_DIR)/$(ARCH)/$(1)) -create -output "$$@"$(ECHO_END)
+	$(ECHO_SIGNING)$(_THEOS_CODESIGN_COMMANDLINE) "$$@"$(ECHO_END)
 else
 	$(ECHO_NOTHING)cp -a $(THEOS_OBJ_DIR)/$(strip $(TARGET_ARCHS))/$(1) "$$@"$(ECHO_END)
+	$(ECHO_SIGNING)$(_THEOS_CODESIGN_COMMANDLINE) "$$@"$(ECHO_END)
 endif
 
 else
@@ -567,6 +569,7 @@ ifeq ($$(_THEOS_CURRENT_TYPE),subproject)
 	@echo "$$(_THEOS_INTERNAL_LDFLAGS)" > $$(THEOS_OBJ_DIR)/$$(THEOS_CURRENT_INSTANCE).ldflags
 endif
 	$(ECHO_MERGING)$(ECHO_UNBUFFERED)$(TARGET_LIPO) $(foreach ARCH,$(TARGET_ARCHS),-arch $(ARCH) $(THEOS_OBJ_DIR)/$(ARCH)/$(1)) -create -output "$$@"$(ECHO_END)
+	$(ECHO_SIGNING)$(_THEOS_CODESIGN_COMMANDLINE) "$$@"$(ECHO_END)
 
 else
 $$(THEOS_OBJ_DIR)/$(1): $$(OBJ_FILES_TO_LINK)
