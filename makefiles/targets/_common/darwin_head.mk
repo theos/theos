@@ -40,7 +40,7 @@ else
 endif
 endif
 
-	TARGET_CODESIGN_FLAGS ?= -Cadhoc,linker-signed -S
+	TARGET_CODESIGN_FLAGS ?= -S
 endif
 
 # __invocation returns the command-line invocation for the tool specified as its argument.
