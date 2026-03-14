@@ -8,6 +8,8 @@ _THEOS_TARGET_PLATFORM_FLAG_NAME := iphoneos
 _THEOS_TARGET_PLATFORM_SWIFT_NAME := apple-ios
 
 TARGET_INSTALL_REMOTE := $(_THEOS_FALSE)
+TARGET_CODESIGN ?=
+TARGET_CODESIGN_FLAGS ?=
 
 include $(THEOS_MAKE_PATH)/targets/_common/darwin_head.mk
 include $(THEOS_MAKE_PATH)/targets/_common/iphone.mk

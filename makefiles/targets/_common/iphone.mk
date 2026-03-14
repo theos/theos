@@ -1,4 +1,5 @@
 # We have to figure out the target version here, as we need it in the calculation of the deployment version.
+_TARGET_VERSION_GE_17_0 = $(call __simplify,_TARGET_VERSION_GE_17_0,$(call __vercmp,$(_THEOS_TARGET_SDK_VERSION),ge,17.0))
 _TARGET_VERSION_GE_13_0 = $(call __simplify,_TARGET_VERSION_GE_13_0,$(call __vercmp,$(_THEOS_TARGET_SDK_VERSION),ge,13.0))
 _TARGET_VERSION_GE_12_1 = $(call __simplify,_TARGET_VERSION_GE_12_1,$(call __vercmp,$(_THEOS_TARGET_SDK_VERSION),ge,12.1))
 _TARGET_VERSION_GE_12_0 = $(call __simplify,_TARGET_VERSION_GE_12_0,$(call __vercmp,$(_THEOS_TARGET_SDK_VERSION),ge,12.0))
@@ -104,4 +105,18 @@ ifeq ($(_TARGET_VERSION_GE_10_0),1)
 ifeq ($(_DEPLOY_VERSION_GE_9_0),)
 	LEGACYFLAGS := $(LEGACYFLAGS) -Xlinker -no_data_const
 endif
+endif
+
+# iOS 17 requires adhoc/linker-signed code signatures 
+ifeq ($(_TARGET_VERSION_GE_17_0),1)
+
+ifeq ($(call __executable,ldid),$(_THEOS_TRUE))
+	TARGET_CODESIGN = ldid
+else ifeq ($(call __executable,$(SDKBINPATH)/ldid),$(_THEOS_TRUE))
+	TARGET_CODESIGN = $(SDKBINPATH)/ldid
+else
+	TARGET_CODESIGN = ldid
+endif
+
+	TARGET_CODESIGN_FLAGS := -Cadhoc,linker-signed -S
 endif
