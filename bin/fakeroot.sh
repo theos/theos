@@ -26,7 +26,7 @@ if [[ $delpersistence -eq 1 ]]; then
 	exit 0
 fi
 
-if [[ "$USER" == "root" ]]; then
+if [[ "$USER" == "root" || "$EUID" -eq 0 ]]; then
 	fakeroot=""
 elif type fauxsu &> /dev/null; then
 	fakeroot="fauxsu -p $persistence -- "
