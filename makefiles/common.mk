@@ -11,8 +11,9 @@ $(error Do not use 'sudo make')
 endif
 
 # We use bash for all subshells. Force SHELL to bash if it’s currently set to sh.
+# Using command -v as we want a $PATH-based filepath, in the event it's grabbed by ssh for ProxyCommand
 ifeq ($(SHELL),/bin/sh)
-export SHELL = bash
+export SHELL = "$(command -v bash)"
 endif
 
 ifeq ($(THEOS_PROJECT_DIR),)
