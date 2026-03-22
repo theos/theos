@@ -28,9 +28,14 @@ if (-e $filename) {
 }
 
 foreach (@files) {
+    my $file = $_;
+
+    # Remove leading "./" if present
+    $file =~ s{^\./}{};
+
     push(@commands, {
         directory => "$dir",
-        file => "$_",
+        file => $file,
         command => join(" ", @ARGV)
     });
 }
