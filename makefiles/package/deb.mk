@@ -26,10 +26,26 @@ THEOS_PACKAGE_NAME := $(shell grep -i "^Package:" "$(_THEOS_DEB_PACKAGE_CONTROL_
 THEOS_PACKAGE_ARCH := $(shell grep -i "^Architecture:" "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 THEOS_PACKAGE_BASE_VERSION := $(shell grep -i "^Version:" "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 
+_THEOS_PLATFORM_CHECKBASHISMS ?= checkbashisms.pl
+_THEOS_DEB_HAS_CHECKBASHISMS := $(call __executable,$(_THEOS_PLATFORM_CHECKBASHISMS))
+
+_DEBIAN_CONTENTS := $(wildcard $(THEOS_LAYOUT_DIR)/DEBIAN/*)
+HAS_HASHBANG = $(shell head -n1 $(i) | grep -q '^#!' && echo yes)
+
 $(THEOS_STAGING_DIR)/DEBIAN:
 	$(ECHO_NOTHING)mkdir -p "$(THEOS_STAGING_DIR)/DEBIAN"$(ECHO_END)
-ifeq ($(_THEOS_HAS_STAGING_LAYOUT),1) # If we have a layout directory, copy layout/DEBIAN to the staging directory.
-	$(ECHO_NOTHING)[ -d "$(THEOS_LAYOUT_DIR)/DEBIAN" ] && rsync -a "$(THEOS_LAYOUT_DIR)/DEBIAN/" "$(THEOS_STAGING_DIR)/DEBIAN" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE) || true$(ECHO_END)
+ifeq ($(_THEOS_HAS_STAGING_LAYOUT),1)
+ifneq ($(wildcard $(THEOS_LAYOUT_DIR)/DEBIAN),) # Copy layout/DEBIAN to the staging directory
+ifeq ($(_THEOS_DEB_HAS_CHECKBASHISMS),1) # Check for: a) file is a script (has hashbang); b) bashisms
+	$(foreach i,$(_DEBIAN_CONTENTS), \
+		$(if $(HAS_HASHBANG), \
+			$(ECHO_NOTHING)$(_THEOS_PLATFORM_CHECKBASHISMS) $(i)$(ECHO_END), \
+			$(ERROR_BEGIN)"$(shell basename $(i)) is missing a hashbang!"$(ERROR_END) \
+		) \
+	)
+endif # _THEOS_DEB_HAS_CHECKBASHISMS
+	$(ECHO_NOTHING)rsync -a "$(THEOS_LAYOUT_DIR)/DEBIAN/" "$(THEOS_STAGING_DIR)/DEBIAN" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE) || true$(ECHO_END)
+endif # $(THEOS_LAYOUT_DIR)/DEBIAN found
 endif # _THEOS_HAS_STAGING_LAYOUT
 
 _TARGET_SWIFT_VERSION_GE_5_0 = $(call __simplify,_TARGET_SWIFT_VERSION_GE_5_0,$(call __vercmp,$(_THEOS_TARGET_SWIFT_VERSION),ge,5.0))
