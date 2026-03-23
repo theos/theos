@@ -30,17 +30,17 @@ _THEOS_PLATFORM_CHECKBASHISMS ?= checkbashisms.pl
 _THEOS_DEB_HAS_CHECKBASHISMS := $(call __executable,$(_THEOS_PLATFORM_CHECKBASHISMS))
 
 _DEBIAN_CONTENTS := $(wildcard $(THEOS_LAYOUT_DIR)/DEBIAN/*)
-HAS_SHEBANG = $(shell head -n1 $(i) | grep -q '^#!' && echo yes)
+HAS_HASHBANG = $(shell head -n1 $(i) | grep -q '^#!' && echo yes)
 
 $(THEOS_STAGING_DIR)/DEBIAN:
 	$(ECHO_NOTHING)mkdir -p "$(THEOS_STAGING_DIR)/DEBIAN"$(ECHO_END)
 ifeq ($(_THEOS_HAS_STAGING_LAYOUT),1)
 ifneq ($(wildcard $(THEOS_LAYOUT_DIR)/DEBIAN),) # Copy layout/DEBIAN to the staging directory
-ifeq ($(_THEOS_DEB_HAS_CHECKBASHISMS),1) # check for: a) file is a script (has shebang); b) bashisms
+ifeq ($(_THEOS_DEB_HAS_CHECKBASHISMS),1) # Check for: a) file is a script (has hashbang); b) bashisms
 	$(foreach i,$(_DEBIAN_CONTENTS), \
-		$(if $(HAS_SHEBANG), \
+		$(if $(HAS_HASHBANG), \
 			$(ECHO_NOTHING)$(_THEOS_PLATFORM_CHECKBASHISMS) $(i)$(ECHO_END), \
-			$(ERROR_BEGIN)"$(shell basename $(i)) is missing a shebang!"$(ERROR_END) \
+			$(ERROR_BEGIN)"$(shell basename $(i)) is missing a hashbang!"$(ERROR_END) \
 		) \
 	)
 endif # _THEOS_DEB_HAS_CHECKBASHISMS
