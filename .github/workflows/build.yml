@@ -16,8 +16,7 @@ jobs:
           echo "THEOS=$THEOS" >> $GITHUB_ENV
       - name: Build tweak
         run: |
-          make clean
-          make package THEOS_PACKAGE_SCHEME=rootless
+          make package
       - name: Upload .deb
         uses: actions/upload-artifact@v4
         with:
