@@ -77,8 +77,6 @@ _MAINTAINER_IS_TEXT = $(shell LC_ALL=C grep -q '[^[:print:][:space:]]' $(i) || e
 _MAINTAINER_HEADER_MAGIC = $(shell od -An -N4 -t x1 $(i) | tr -d ' \n')
 
 internal-package::
-
-ifneq ($(THEOS_PACKAGE_INSTALL_PREFIX),)
 # Check for any binary maintainer 'scripts' and confirm magic
 # Checking this late as most often installed via subproject
 	$(eval _DEBIAN_CONTENTS := $(wildcard $(THEOS_STAGING_DIR)/DEBIAN/*))
@@ -92,6 +90,7 @@ ifneq ($(THEOS_PACKAGE_INSTALL_PREFIX),)
 # Use additional tmp stage for package schemes
 # Iterate through staging dir and move top-level items to tmp stage if != "DEBIAN"
 # Move the parent directory (i.e., package install prefix), which now contains project files, back to the main stage
+ifneq ($(THEOS_PACKAGE_INSTALL_PREFIX),)
 	$(eval _STAGE_CONTENTS := $(wildcard $(THEOS_STAGING_DIR)/*))
 	$(eval _STAGE_STATE := $(lastword $(subst /, ,$(_STAGE_CONTENTS)))$(words $(_STAGE_CONTENTS)))
 	$(eval _DEBIAN_ONLY := $(if $(filter DEBIAN1,$(_STAGE_STATE)),$(_THEOS_TRUE),$(_THEOS_FALSE)))
