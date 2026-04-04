@@ -94,6 +94,7 @@ ifneq ($(THEOS_PACKAGE_INSTALL_PREFIX),)
 	$(eval _STAGE_CONTENTS := $(wildcard $(THEOS_STAGING_DIR)/*))
 	$(eval _STAGE_STATE := $(lastword $(subst /, ,$(_STAGE_CONTENTS)))$(words $(_STAGE_CONTENTS)))
 	$(eval _DEBIAN_ONLY := $(if $(filter DEBIAN1,$(_STAGE_STATE)),$(_THEOS_TRUE),$(_THEOS_FALSE)))
+# Only bother with tmp stage if there are top-level items
 	$(if $(_DEBIAN_ONLY),, \
 		$(foreach i,$(_STAGE_CONTENTS), \
 			$(if $(findstring DEBIAN,$(i)),, \
