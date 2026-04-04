@@ -29,18 +29,17 @@ THEOS_PACKAGE_BASE_VERSION := $(shell grep -i "^Version:" "$(_THEOS_DEB_PACKAGE_
 _THEOS_PLATFORM_CHECKBASHISMS ?= checkbashisms.pl
 _THEOS_DEB_HAS_CHECKBASHISMS := $(call __executable,$(_THEOS_PLATFORM_CHECKBASHISMS))
 
-_DEBIAN_CONTENTS := $(wildcard $(THEOS_LAYOUT_DIR)/DEBIAN/*)
-HAS_HASHBANG = $(shell head -n1 $(i) | grep -q '^#!' && echo yes)
-
 $(THEOS_STAGING_DIR)/DEBIAN:
 	$(ECHO_NOTHING)mkdir -p "$(THEOS_STAGING_DIR)/DEBIAN"$(ECHO_END)
 ifeq ($(_THEOS_HAS_STAGING_LAYOUT),1)
 ifneq ($(wildcard $(THEOS_LAYOUT_DIR)/DEBIAN),) # Copy layout/DEBIAN to the staging directory
 ifeq ($(_THEOS_DEB_HAS_CHECKBASHISMS),1) # Check for: a) file is a script (has hashbang); b) bashisms
+	$(eval _DEBIAN_CONTENTS := $(wildcard $(THEOS_LAYOUT_DIR)/DEBIAN/*))
 	$(foreach i,$(_DEBIAN_CONTENTS), \
-		$(if $(HAS_HASHBANG), \
+		$(eval _MAINTAINER_HAS_HASHBANG := $(shell head -n1 $(i) | grep -q '^#!' && echo yes)) \
+		$(if $(_MAINTAINER_HAS_HASHBANG), \
 			$(ECHO_NOTHING)$(_THEOS_PLATFORM_CHECKBASHISMS) $(i)$(ECHO_END), \
-			$(ERROR_BEGIN)"$(shell basename $(i)) is missing a hashbang!"$(ERROR_END) \
+			$(error $(shell basename $(i)) is missing a hashbang!") \
 		) \
 	)
 endif # _THEOS_DEB_HAS_CHECKBASHISMS
@@ -74,15 +73,28 @@ before-package:: $(THEOS_STAGING_DIR)/DEBIAN/control
 
 _THEOS_DEB_PACKAGE_FILENAME = $(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_NAME)_$(_THEOS_INTERNAL_PACKAGE_VERSION)_$(THEOS_PACKAGE_ARCH).deb
 
+_MAINTAINER_IS_TEXT = $(shell LC_ALL=C grep -q '[^[:print:][:space:]]' $(i) || echo yes)
+_MAINTAINER_HEADER_MAGIC = $(shell od -An -N4 -t x1 $(i) | tr -d ' \n')
+
 internal-package::
+
+ifneq ($(THEOS_PACKAGE_INSTALL_PREFIX),)
+# Check for any binary maintainer 'scripts' and confirm magic
+# Checking this late as most often installed via subproject
+	$(eval _DEBIAN_CONTENTS := $(wildcard $(THEOS_STAGING_DIR)/DEBIAN/*))
+	$(foreach i,$(_DEBIAN_CONTENTS), \
+		$(if $(_MAINTAINER_IS_TEXT),, \
+			$(if $(findstring $(_MAINTAINER_HEADER_MAGIC),$(_THEOS_TARGET_MAGIC)),, \
+				$(ERROR_BEGIN)"$(shell basename $(i)) is not built for $(THEOS_TARGET_NAME)!"$(ERROR_END) \
+			) \
+		) \
+	)
 # Use additional tmp stage for package schemes
 # Iterate through staging dir and move top-level items to tmp stage if != "DEBIAN"
 # Move the parent directory (i.e., package install prefix), which now contains project files, back to the main stage
-ifneq ($(THEOS_PACKAGE_INSTALL_PREFIX),)
 	$(eval _STAGE_CONTENTS := $(wildcard $(THEOS_STAGING_DIR)/*))
 	$(eval _STAGE_STATE := $(lastword $(subst /, ,$(_STAGE_CONTENTS)))$(words $(_STAGE_CONTENTS)))
 	$(eval _DEBIAN_ONLY := $(if $(filter DEBIAN1,$(_STAGE_STATE)),$(_THEOS_TRUE),$(_THEOS_FALSE)))
-# Only bother with tmp stage if there are top-level items
 	$(if $(_DEBIAN_ONLY),, \
 		$(foreach i,$(_STAGE_CONTENTS), \
 			$(if $(findstring DEBIAN,$(i)),, \
