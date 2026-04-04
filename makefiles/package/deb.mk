@@ -83,7 +83,7 @@ internal-package::
 	$(foreach i,$(_DEBIAN_CONTENTS), \
 		$(if $(_MAINTAINER_IS_TEXT),, \
 			$(if $(findstring $(_MAINTAINER_HEADER_MAGIC),$(_THEOS_TARGET_MAGIC)),, \
-				$(ERROR_BEGIN)"$(shell basename $(i)) is not built for $(THEOS_TARGET_NAME)!"$(ERROR_END) \
+				$(error $(shell basename $(i)) is not built for $(THEOS_TARGET_NAME)!") \
 			) \
 		) \
 	)
