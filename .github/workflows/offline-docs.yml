@@ -16,8 +16,6 @@ jobs:
           token: ${{ secrets.UPDATE_SUBMODULES_TOKEN }}
 
       - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '2.7.2'
 
       - name: Checkout theos/theos.dev
         uses: actions/checkout@v4
