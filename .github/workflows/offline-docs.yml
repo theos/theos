@@ -29,6 +29,7 @@ jobs:
 
       - name: Build docs
         run: |
+          rm -rvf docs/
           make -C tmp all
           cp -av tmp/_site/docs/ .
           cp -av tmp/_site/assets docs/
