@@ -5,8 +5,8 @@
 	<title>Configuration &middot; Theos</title>
 	<meta name="viewport" content="initial-scale=1">
 	<meta name="theme-color" content="#382b42">
-	<link rel="stylesheet" type="text/css" href="assets/style-c8af8a04be2058be41d4157721a624bcd1543cc5641394fb0e9450c62a04e09d.css">
-	<link rel="icon" href="assets/favicon-447ec328b50bd5d64f09e1f06fe07532f924f274bd5de6567a43690bf494c99a.svg" sizes="any" type="image/svg+xml">
+	<link rel="stylesheet" href="assets/css/style.css">
+	<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
 
 </head>
 
@@ -260,17 +260,17 @@ schema1.CFLAGS = -DSCHEMA1ENABLED
 
 <p>For your project instance (where XXX is your project_name), the XXX_FILES variable is required for non-null project types. If your project has a large number of files and/or a complex directory structure, typing out each file by hand would be arduous. To work around this, makefiles have wildcards. The syntax is as follows:</p>
 
-<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">$(wildcard</span> <span class="err">pattern-to-match)</span>
+<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nf">$(</span><span class="nb">wildcard</span> pattern-to-match<span class="p">)</span>
 </code></pre></div></div>
 
 <p>An example usage of this would be</p>
-<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">XXX_FILES</span> <span class="o">=</span> <span class="nf">$(</span><span class="nb">wildcard</span> <span class="k">*</span>.m<span class="nf">)</span> <span class="nf">$(</span><span class="nb">wildcard</span> files/<span class="k">*</span>.x<span class="nf">)</span>
+<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">XXX_FILES</span> <span class="o">=</span> <span class="p">$(</span>wildcard <span class="k">*</span>.m<span class="p">)</span> <span class="p">$(</span>wildcard files/<span class="k">*</span>.x<span class="p">)</span>
 </code></pre></div></div>
 
 <p>Assuming you have a complex directory structure and don’t feel like messing with pattern matching, you can also shell out to <code class="language-plaintext highlighter-rouge">find</code>.</p>
 
 <p>An example usage of this would be</p>
-<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">XXX_FILES</span> <span class="o">=</span> <span class="nf">$(</span><span class="nb">shell</span> find <span class="nb">.</span> <span class="nt">-type</span> f <span class="nt">-name</span> <span class="s2">"*.m"</span><span class="nf">)</span>
+<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">XXX_FILES</span> <span class="o">=</span> <span class="p">$(</span>shell find <span class="nb">.</span> <span class="nt">-type</span> f <span class="nt">-name</span> <span class="s2">"*.m"</span><span class="p">)</span>
 </code></pre></div></div>
 
 <h3 id="setting-variables-to-varying-degrees-of-project-depth">Setting variables to varying degrees of project depth</h3>
@@ -297,11 +297,11 @@ schema1.CFLAGS = -DSCHEMA1ENABLED
 
 <div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">ifeq</span> <span class="nv">($(variable), $(variable-to-check-against))</span>
     <span class="nv">something</span><span class="o">=</span>0
-<span class="err">else</span> <span class="k">ifneq</span> <span class="nv">($(variable2), $(variable-to-check-against))</span>
+<span class="k">else</span> <span class="k">ifneq</span> <span class="nv">($(variable2), $(variable-to-check-against))</span>
     <span class="nv">something</span><span class="o">=</span>1
-<span class="err">else</span> <span class="k">ifdef</span> <span class="nv">($(variable3))</span>
+<span class="k">else</span> <span class="k">ifdef</span> <span class="nv">($(variable3))</span>
     <span class="nv">something</span><span class="o">=</span>2
-<span class="err">else</span> <span class="k">ifndef</span> <span class="nv">($(variable4))</span>
+<span class="k">else</span> <span class="k">ifndef</span> <span class="nv">($(variable4))</span>
     <span class="nv">something</span><span class="o">=</span>3
 <span class="k">else</span>
     <span class="nv">something</span><span class="o">=</span>4
