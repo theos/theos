@@ -295,7 +295,7 @@ darwin_mobile() {
 				exit 3
 			fi
 		fi
-		
+
 		# Check desire for Swift support
 		update "Checking desire for Swift support..."
 		read -p "Would you like to be able to work with Swift? If so, an additional package will need to be installed. [y/n]" confirm
@@ -322,15 +322,39 @@ darwin_mobile() {
 
 linux() {
 	# Determine distro
+	source /etc/os-release
 	DISTRO="unknown"
-	if [[ -x $(command -v apt) ]]; then
-		DISTRO="debian"
-	elif [[ -x $(command -v pacman) ]]; then
-		DISTRO="arch"
-	elif [[ -x $(command -v dnf) ]]; then
-		DISTRO="redhat"
-	elif [[ -x $(command -v zypper) ]]; then
-		DISTRO="suse"
+
+	# First pass for namesake distros
+	case "$ID" in
+	    debian) DISTRO="debian" ;;
+	    arch) DISTRO="arch" ;;
+	    rhel|fedora) DISTRO="redhat" ;;
+	    *suse*) DISTRO="suse" ;;
+	esac
+
+	# Second pass for derivatives
+	if [[ "$DISTRO" == "unknown" ]]; then
+	    case "$ID_LIKE" in
+	        *debian*) DISTRO="debian" ;;
+	        *arch*) DISTRO="arch" ;;
+	        *rhel*|*fedora*) DISTRO="redhat" ;;
+	        *suse*) DISTRO="suse" ;;
+	    esac
+	fi
+
+	# Third pass for legacy
+	if [[ "$DISTRO" == "unknown" ]]; then
+		# parse for /etc/*-release file(s)
+		rel_files=(/etc/*release /etc/*version)
+		rel=$(cat "${rel_files[@]}" 2>/dev/null | tr '[:upper:]' '[:lower:]')
+
+		case "$rel" in
+	        *debian*) DISTRO="debian" ;;
+	        *arch*) DISTRO="arch" ;;
+	        *redhat*|*fedora*) DISTRO="redhat" ;;
+	        *suse*) DISTRO="suse" ;;
+	    esac
 	fi
 
 	# Check for sudo (not installed by default on some distros)
