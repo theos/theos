@@ -322,7 +322,11 @@ darwin_mobile() {
 
 linux() {
 	# Determine distro
-	source /etc/os-release
+	if [ -e /etc/os-release ]; then
+		source /etc/os-release
+	elif [ -e /usr/lib/os-release ]; then
+		source /usr/lib/os-release
+	fi
 	DISTRO="unknown"
 
 	# First pass for namesake distros
