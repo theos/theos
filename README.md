@@ -22,10 +22,10 @@ macOS, Linux, and Windows programs.
 <table>
 <tr>
 <td align="center"><a href="https://github.com/kirb"><img src="https://github.com/kirb.png" width="100" alt=""><br>kirb</a></td>
-<td align="center"><a href="https://github.com/uroboro"><img src="https://github.com/uroboro.png" width="100" alt=""><br>uroboro</a></td>
 <td align="center"><a href="https://github.com/kabiroberai"><img src="https://github.com/kabiroberai.png" width="100" alt=""><br>kabiroberai</a></td>
-<td align="center"><a href="https://github.com/DHowett"><img src="https://github.com/DHowett.png" width="100" alt=""><br>DHowett</a></td>
+<td align="center"><a href="https://github.com/uroboro"><img src="https://github.com/uroboro.png" width="100" alt=""><br>uroboro</a></td>
 <td align="center"><a href="https://github.com/rpetrich"><img src="https://github.com/rpetrich.png" width="100" alt=""><br>rpetrich</a></td>
+<td align="center"><a href="https://github.com/DHowett"><img src="https://github.com/DHowett.png" width="100" alt=""><br>DHowett</a></td>
 </tr>
 </table>
 
