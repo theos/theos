@@ -6,6 +6,8 @@ TARGET_AR_EXT := .a
 TARGET_LDFLAGS_DYNAMICLIB = -dynamiclib -install_name "$(LOCAL_INSTALL_PATH)/$(1)"
 TARGET_CFLAGS_DYNAMICLIB =
 
+_THEOS_TARGET_MAGIC ?= feedface feedfacf cefaedfe cffaedfe cafebabe
+
 _THEOS_TARGET_SUPPORTS_BUNDLES := 1
 
 _THEOS_TARGET_CC := clang
