@@ -349,16 +349,14 @@ linux() {
 
 	# Third pass for legacy
 	if [[ "$DISTRO" == "unknown" ]]; then
-		# parse for /etc/*-release file(s)
 		rel_files=(/etc/*release /etc/*version)
-		rel=$(cat "${rel_files[@]}" 2>/dev/null | tr '[:upper:]' '[:lower:]')
-
-		case "$rel" in
-	        *debian*) DISTRO="debian" ;;
-	        *arch*) DISTRO="arch" ;;
-	        *redhat*|*fedora*) DISTRO="redhat" ;;
-	        *suse*) DISTRO="suse" ;;
-	    esac
+		for rel in "${rel_files[@]}"; do
+			case "${rel,,}" in
+				*debian*) DISTRO="debian" ;;
+				*arch*)   DISTRO="arch" ;;
+				*redhat*|*fedora*) DISTRO="redhat" ;;
+			esac
+		done
 	fi
 
 	# Check for sudo (not installed by default on some distros)
