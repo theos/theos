@@ -5,8 +5,8 @@
 	<title>Modules &middot; Theos</title>
 	<meta name="viewport" content="initial-scale=1">
 	<meta name="theme-color" content="#382b42">
-	<link rel="stylesheet" type="text/css" href="assets/style-c8af8a04be2058be41d4157721a624bcd1543cc5641394fb0e9450c62a04e09d.css">
-	<link rel="icon" href="assets/favicon-447ec328b50bd5d64f09e1f06fe07532f924f274bd5de6567a43690bf494c99a.svg" sizes="any" type="image/svg+xml">
+	<link rel="stylesheet" href="assets/css/style.css">
+	<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
 
 </head>
 
@@ -46,7 +46,7 @@
 └── package.mk
 </code></pre></div></div>
 <p>where each <code class="language-plaintext highlighter-rouge">.mk</code> file contains custom code such as</p>
-<div class="language-makefile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">_THEOS_INTERNAL_LDFLAGS</span> <span class="o">+=</span> <span class="nt">-rpath</span> my/path/here/ <span class="nt">-rpath</span> <span class="nv">$(THEOS_PACKAGE_INSTALL_PREFIX)</span>/Library/Frameworks <span class="nt">-rpath</span> <span class="nv">$(THEOS_PACKAGE_INSTALL_PREFIX)</span>/usr/lib
+<div class="language-makefile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">_THEOS_INTERNAL_LDFLAGS</span> <span class="o">+=</span> <span class="nt">-rpath</span> my/path/here/ <span class="nt">-rpath</span> <span class="p">$(</span>THEOS_PACKAGE_INSTALL_PREFIX<span class="p">)</span>/Library/Frameworks <span class="nt">-rpath</span> <span class="p">$(</span>THEOS_PACKAGE_INSTALL_PREFIX<span class="p">)</span>/usr/lib
 </code></pre></div></div>
 
 <h2 id="structure">Structure</h2>
