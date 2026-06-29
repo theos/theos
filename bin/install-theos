@@ -297,8 +297,8 @@ darwin_mobile() {
 			fi
 		fi
 
-		# Only prompt if THEOS_SWIFT_TOOLCHAIN is not set and not in CI
-		if [[ -z $THEOS_SWIFT_TOOLCHAIN && -z $CI ]]; then
+		# Only prompt if THEOS_SWIFT_TOOLCHAIN is not set
+		if [[ -z $THEOS_SWIFT_TOOLCHAIN ]]; then
 			update "Checking desire for Swift support..."
 			read -p "Would you like to be able to work with Swift? If so, an additional package will need to be installed. [y/n]" stoolchain
 		fi
