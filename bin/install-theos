@@ -69,7 +69,8 @@ elif [[ $CSHELL == zsh ]]; then
 # elif [[ $CSHELL == csh ]]; then
 # 	SHELL_ENV="$HOME/.cshrc"
 fi
-
+# Use environment variable THEOS_SWIFT_TOOLCHAIN if set, otherwise default to "n"
+stoolchain="${THEOS_SWIFT_TOOLCHAIN:-n}"
 
 # The work
 theos_bool() {
@@ -296,8 +297,6 @@ darwin_mobile() {
 			fi
 		fi
 
-		# Use environment variable THEOS_SWIFT_TOOLCHAIN if set, otherwise default to "n"
-		stoolchain="${THEOS_SWIFT_TOOLCHAIN:-n}"
 		# Only prompt if THEOS_SWIFT_TOOLCHAIN is not set and not in CI
 		if [[ -z $THEOS_SWIFT_TOOLCHAIN && -z $CI ]]; then
 			update "Checking desire for Swift support..."
@@ -407,8 +406,6 @@ linux() {
 		update "A toolchain appears to already be installed."
 	else
 		update "A toolchain does not appear to be installed."
-		# Use environment variable THEOS_SWIFT_TOOLCHAIN if set, otherwise default to "n"
-		stoolchain="${THEOS_SWIFT_TOOLCHAIN:-n}"
 		# Only prompt if THEOS_SWIFT_TOOLCHAIN is not set and not in CI
 		if [[ -z $THEOS_SWIFT_TOOLCHAIN && -z $CI ]]; then
 			read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [y/n]" stoolchain
@@ -515,8 +512,6 @@ linux() {
 # 		update "A toolchain appears to already be installed."
 # 	else
 # 		update "A toolchain does not appear to be installed."
-#		# Use environment variable THEOS_SWIFT_TOOLCHAIN if set, otherwise default to "n"
-# 		stoolchain="${THEOS_SWIFT_TOOLCHAIN:-n}"
 #		# Only prompt if THEOS_SWIFT_TOOLCHAIN is not set and not in CI
 #		if [[ -z $THEOS_SWIFT_TOOLCHAIN && -z $CI ]]; then
 # 			read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [y/n]" stoolchain
