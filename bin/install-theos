@@ -69,8 +69,6 @@ elif [[ $CSHELL == zsh ]]; then
 # elif [[ $CSHELL == csh ]]; then
 # 	SHELL_ENV="$HOME/.cshrc"
 fi
-# Use environment variable THEOS_SWIFT_TOOLCHAIN if set, otherwise default to "n"
-stoolchain="${THEOS_SWIFT_TOOLCHAIN:-n}"
 
 # The work
 theos_bool() {
@@ -81,6 +79,20 @@ theos_bool() {
 		return 1
 	fi
 }
+
+# User vars
+# If a flag is present, use it
+# If no flag is present...
+# 	interactive = prompt, else = use default
+interactive="${INTERACTIVE:y}"
+if [[ -n $CI ]]; then
+	interactive="n"
+fi
+stoolchain="$THEOS_SWIFT_TOOLCHAIN"
+if ! theos_bool $interactive; then
+	stoolchain="${THEOS_SWIFT_TOOLCHAIN:n}"
+	ready="y"
+fi
 
 set_theos() {
 	# Check for $THEOS env var
@@ -261,7 +273,9 @@ darwin_mobile() {
 	# Dependencies
 	update "Preparing to install dependencies. Please enter your password if prompted:"
 	if [[ $LEGACY -eq 1 ]]; then
-		read -p "Do you have 'https://repo.bingner.com/' and 'http://apt.thebigboss.org/repofiles/cydia/' installed in the sources of your jailbreak's primary package manager? [y/n]" ready
+		if theos_bool $interactive; then
+			read -p "Do you have 'https://repo.bingner.com/' and 'http://apt.thebigboss.org/repofiles/cydia/' installed in the sources of your jailbreak's primary package manager? [y/n]" ready
+		fi
 		if theos_bool $ready; then
 			sudo apt-get update "${uFLAGS[@]}" || true
 			sudo apt-get install -y "${iFLAGS[@]}" org.theos.dependencies \
@@ -274,7 +288,9 @@ darwin_mobile() {
 	else
 		# Up-to-date dependencies pkg is exclusive to Procursus, so need to cater install accordingly
 		if [[ -f /.procursus_strapped || -f /var/jb/.procursus_strapped ]]; then
-			read -p "Do you have 'https://apt.procurs.us' installed in the sources of your jailbreak's primary package manager? [y/n]" ready
+			if theos_bool $interactive; then
+				read -p "Do you have 'https://apt.procurs.us' installed in the sources of your jailbreak's primary package manager? [y/n]" ready
+			fi
 			if theos_bool $ready; then
 				sudo apt update "${uFLAGS[@]}" || true
 				sudo apt install -y "${iFLAGS[@]}" theos-dependencies \
@@ -285,7 +301,9 @@ darwin_mobile() {
 				exit 3
 			fi
 		else
-			read -p "Do you have 'https://apt.bingner.com' installed in the sources of your jailbreak's primary package manager? [y/n]" ready
+			if theos_bool $interactive; then
+				read -p "Do you have 'https://apt.bingner.com' installed in the sources of your jailbreak's primary package manager? [y/n]" ready
+			fi
 			if theos_bool $ready; then
 				sudo apt update "${uFLAGS[@]}" || true
 				sudo apt install -y "${iFLAGS[@]}" ca-certificates clang coreutils curl dpkg git grep ldid make odcctools perl com.bingner.plutil rsync xz \
@@ -297,8 +315,8 @@ darwin_mobile() {
 			fi
 		fi
 
-		# Only prompt if THEOS_SWIFT_TOOLCHAIN is not set
-		if [[ -z $THEOS_SWIFT_TOOLCHAIN ]]; then
+		# Only prompt if interactive and THEOS_SWIFT_TOOLCHAIN is not set
+		if theos_bool $interactive && [[ -z $THEOS_SWIFT_TOOLCHAIN ]]; then
 			update "Checking desire for Swift support..."
 			read -p "Would you like to be able to work with Swift? If so, an additional package will need to be installed. [y/n]" stoolchain
 		fi
@@ -406,8 +424,8 @@ linux() {
 		update "A toolchain appears to already be installed."
 	else
 		update "A toolchain does not appear to be installed."
-		# Only prompt if THEOS_SWIFT_TOOLCHAIN is not set and not in CI
-		if [[ -z $THEOS_SWIFT_TOOLCHAIN && -z $CI ]]; then
+		# Only prompt if interactive and THEOS_SWIFT_TOOLCHAIN is not set
+		if theos_bool $interactive && [[ -z $THEOS_SWIFT_TOOLCHAIN ]]; then
 			read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [y/n]" stoolchain
 		fi
 		if theos_bool $stoolchain; then
@@ -512,10 +530,10 @@ linux() {
 # 		update "A toolchain appears to already be installed."
 # 	else
 # 		update "A toolchain does not appear to be installed."
-#		# Only prompt if THEOS_SWIFT_TOOLCHAIN is not set and not in CI
-#		if [[ -z $THEOS_SWIFT_TOOLCHAIN && -z $CI ]]; then
-# 			read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [y/n]" stoolchain
-# 		fi
+#		# Only prompt if interactive and THEOS_SWIFT_TOOLCHAIN is not set
+#		if theos_bool $interactive && [[ -z $THEOS_SWIFT_TOOLCHAIN ]]; then
+#			read -p "Would you like your toolchain to support Swift (larger toolchain size) or not (smaller toolchain size)? [y/n]" stoolchain
+#		fi
 # 		if theos_bool $stoolchain; then
 #			<toolchain + deps here>
 # 		else
