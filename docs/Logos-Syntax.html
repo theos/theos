@@ -102,6 +102,12 @@ An exception is <a href="#hookf">%hookf</a> which can exist in a <a href="#group
 	<span class="cm">/* body */</span>
 <span class="p">}</span>
 </code></pre></div></div>
+<div class="language-objc highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">%</span><span class="n">hookf</span><span class="p">(</span><span class="k">return</span> <span class="n">type</span><span class="p">,</span> <span class="n">functionName</span><span class="p">,</span>
+       <span class="n">arguments</span> <span class="n">list</span><span class="p">,</span>
+       <span class="p">...)</span> <span class="p">{</span>
+	<span class="cm">/* body */</span>
+<span class="p">}</span>
+</code></pre></div></div>
 
 <p>Generate a function hook for the function named <code class="language-plaintext highlighter-rouge">functionName</code>.
 Set <code class="language-plaintext highlighter-rouge">functionName</code> in <code class="language-plaintext highlighter-rouge">%init</code> to an expression if the symbol should be dynamically looked up.</p>
