@@ -82,6 +82,13 @@ TARGET_XCODEBUILD ?= $(call __target_simplify,TARGET_XCODEBUILD,$(call __invocat
 TARGET_XCPRETTY ?= $(call __target_simplify,TARGET_XCPRETTY,$(call __invocation,xcpretty))
 TARGET_SWIFTC ?= $(call __target_simplify,TARGET_SWIFTC,$(call __invocation_swift,$(_THEOS_TARGET_SWIFTC)))
 
+ifeq ($(_THEOS_PLATFORM_HAS_XCODE),$(_THEOS_TRUE))
+ifeq ($(TARGET_CC),)
+before-all::
+	$(ERROR_BEGIN)"Could not find a compiler via xcrun. You may need to agree to the Xcode license. Run 'sudo xcodebuild -license accept' then try again."$(ERROR_END)
+endif
+endif
+
 TARGET_SWIFT_SUPPORT_BIN ?= $(THEOS_VENDOR_SWIFT_SUPPORT_PATH)/.theos_build/release
 TARGET_ORION_BIN ?= $(THEOS_VENDOR_ORION_PATH)/.theos_build/release
 
