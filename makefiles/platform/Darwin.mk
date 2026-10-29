@@ -39,7 +39,6 @@ ifeq ($(call __executable,open),$(_THEOS_TRUE))
 	_THEOS_PLATFORM_SHOW_IN_FILE_MANAGER := open -R
 endif
 
-THEOS_SUDO_COMMAND ?= sudo
 _THEOS_PLATFORM_GET_LOGICAL_CORES := sysctl -n hw.ncpu
 _THEOS_PLATFORM_SWIFT ?= swift
 endif
