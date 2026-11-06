@@ -8,7 +8,11 @@ package:: internal-package-check stage before-package internal-package after-pac
 before-package:: $(THEOS_PACKAGE_DIR)
 internal-package::
 ifeq ($(_THEOS_FINAL_PACKAGE),$(_THEOS_TRUE))
+ifeq ($(OS),Windows_NT)
+	$(ECHO_NOTHING)$(_THEOS_OPTIMIZE_PLISTS_CMD) --directory "$(THEOS_STAGING_DIR)"$(ECHO_END)
+else
 	$(ECHO_NOTHING)$(THEOS_BIN_PATH)/convert_xml_plist.sh -D $(THEOS_STAGING_DIR)$(ECHO_END)
+endif
 endif
 internal-package-check::
 	@:
@@ -57,7 +61,11 @@ ifeq ($(_THEOS_FINAL_PACKAGE),$(_THEOS_TRUE))
 VERSION.EXTRAVERSION = $(if $(PACKAGE_BUILDNAME),+$(PACKAGE_BUILDNAME))
 _THEOS_PACKAGE_DEFAULT_VERSION_FORMAT = $(THEOS_PACKAGE_BASE_VERSION)$(VERSION.EXTRAVERSION)
 else
+ifeq ($(OS),Windows_NT)
+VERSION.INC_BUILD_NUMBER = $(shell $(_THEOS_WINDOWS_HELPER) package-version "$(THEOS_PROJECT_DIR)" "$(_THEOS_LOCAL_DATA_DIR)" "$(THEOS_PACKAGE_NAME)" "$(__BASEVER_FOR_BUILDNUM)")
+else
 VERSION.INC_BUILD_NUMBER = $(shell THEOS_PROJECT_DIR="$(THEOS_PROJECT_DIR)" _THEOS_LOCAL_DATA_DIR="$(_THEOS_LOCAL_DATA_DIR)" "$(THEOS_BIN_PATH)/package_version.sh" -N "$(THEOS_PACKAGE_NAME)" -V "$(__BASEVER_FOR_BUILDNUM)")
+endif
 _THEOS_PACKAGE_DEFAULT_VERSION_FORMAT = $(THEOS_PACKAGE_BASE_VERSION)-$(VERSION.INC_BUILD_NUMBER)$(VERSION.EXTRAVERSION)
 endif
 
@@ -77,6 +85,14 @@ _THEOS_INTERNAL_PACKAGE_VERSION = $(call __simplify,_THEOS_INTERNAL_PACKAGE_VERS
 install:: before-install internal-install after-install
 
 internal-install-check::
+ifeq ($(OS),Windows_NT)
+ifeq ($(strip $(_THEOS_PACKAGE_LAST_FILENAME)),)
+	@echo "$(MAKE) install and show require that you build a package before you try to install it." >&2
+	@exit 1
+else
+	@$(_THEOS_WINDOWS_HELPER) exists "$(_THEOS_PACKAGE_LAST_FILENAME)" --kind file
+endif
+else
 # Throw an error if we aren’t aware of any built package yet.
 	@if [[ -z "$(_THEOS_PACKAGE_LAST_FILENAME)" ]]; then \
 		$(PRINT_FORMAT_ERROR) "$(MAKE) install and show require that you build a package before you try to install it." >&2; exit 1; \
@@ -86,6 +102,7 @@ internal-install-check::
 	@if [[ ! -f "$(_THEOS_PACKAGE_LAST_FILENAME)" ]]; then \
 		$(PRINT_FORMAT_ERROR) "Could not find “$(_THEOS_PACKAGE_LAST_FILENAME)” to install. Aborting." >&2; exit 1; \
 	fi
+endif
 
 export TARGET_INSTALL_REMOTE
 _THEOS_INSTALL_TYPE := local

@@ -68,7 +68,12 @@ THEOS_PACKAGE_VERSION = $(call __simplify,THEOS_PACKAGE_VERSION,$(THEOS_PACKAGE_
 ifeq ($(call __exists,$(THEOS_BUILD_DIR)/debs),$(_THEOS_TRUE))
 ifneq ($(call __exists,$(THEOS_BUILD_DIR)/packages),$(_THEOS_TRUE))
 $(warning The "debs" directory has been renamed to "packages." Moving it.)
+ifeq ($(OS),Windows_NT)
+$(shell $(_THEOS_WINDOWS_HELPER) cp "$(THEOS_BUILD_DIR)/debs" "$(THEOS_BUILD_DIR)/packages")
+$(shell $(_THEOS_WINDOWS_HELPER) rm -rf "$(THEOS_BUILD_DIR)/debs")
+else
 $(shell mv "$(THEOS_BUILD_DIR)/debs" "$(THEOS_BUILD_DIR)/packages")
+endif
 endif
 endif
 

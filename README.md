@@ -18,6 +18,10 @@ macOS, Linux, and Windows programs.
 <a href="https://theos.dev/discord">Discord</a>
 </p>
 
+## Windows status
+
+Native Windows support covers the complete iOS tweak pipeline — Logos preprocessing, ARM64 Mach-O compilation and linking with `ld64.lld`, `dsymutil`/`llvm-strip`, real `ldid` signing, fakeroot metadata emulation, and `.deb` creation for both rootful and rootless schemes — without WSL and without `bash.exe`. See [WINDOWS.md](WINDOWS.md) for installation and environment verification, [WINDOWS_BUILD.md](WINDOWS_BUILD.md) for building, packaging and verifying a package, and [WINDOWS_TROUBLESHOOTING.md](WINDOWS_TROUBLESHOOTING.md) for known failure modes. The PowerShell bootstrap provides neither Apple SDKs nor a Mach-O linker: both must be installed separately, and the SDK must be obtained from Apple under the Xcode and Apple SDKs Agreement.
+
 ## Contributors
 <table>
 <tr>

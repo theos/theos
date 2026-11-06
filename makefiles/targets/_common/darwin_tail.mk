@@ -8,10 +8,10 @@ ARCHS ?= $(NEUTRAL_ARCH)
 # ISYSROOT: check for theos/sdks/BlahA.B.sdk, or Xcode.app/…/SDKs/BlahA.B.sdk, or use the same value
 # as SYSROOT if not defined
 ifeq ($(SYSROOT),)
-SYSROOT := $(or $(wildcard $(THEOS_SDKS_PATH)/$(_THEOS_TARGET_PLATFORM_SDK_NAME)$(_THEOS_TARGET_SDK_VERSION).sdk),$(wildcard $(THEOS_PLATFORM_SDK_ROOT)/Platforms/$(_THEOS_TARGET_PLATFORM_SDK_NAME).platform/Developer/SDKs/$(_THEOS_TARGET_PLATFORM_SDK_NAME)$(_THEOS_TARGET_SDK_VERSION).sdk))
+SYSROOT := $(or $(wildcard $(THEOS_SDKS_PATH)/$(_THEOS_TARGET_PLATFORM_SDK_NAME)$(_THEOS_TARGET_SDK_VERSION).sdk),$(wildcard $(THEOS_PLATFORM_SDK_ROOT)/Platforms/$(_THEOS_TARGET_PLATFORM_SDK_NAME).platform/Developer/SDKs/$(_THEOS_TARGET_PLATFORM_SDK_NAME)$(_THEOS_TARGET_SDK_VERSION).sdk),$(if $(_THEOS_USER_SDKROOT),$(_THEOS_USER_SDKROOT)))
 endif
 ifeq ($(ISYSROOT),)
-ISYSROOT := $(or $(wildcard $(THEOS_SDKS_PATH)/$(_THEOS_TARGET_PLATFORM_SDK_NAME)$(_THEOS_TARGET_INCLUDE_SDK_VERSION).sdk),$(wildcard $(THEOS_PLATFORM_SDK_ROOT)/Platforms/$(_THEOS_TARGET_PLATFORM_SDK_NAME).platform/Developer/SDKs/$(_THEOS_TARGET_PLATFORM_SDK_NAME)$(_THEOS_TARGET_INCLUDE_SDK_VERSION).sdk),$(SYSROOT))
+ISYSROOT := $(or $(wildcard $(THEOS_SDKS_PATH)/$(_THEOS_TARGET_PLATFORM_SDK_NAME)$(_THEOS_TARGET_INCLUDE_SDK_VERSION).sdk),$(wildcard $(THEOS_PLATFORM_SDK_ROOT)/Platforms/$(_THEOS_TARGET_PLATFORM_SDK_NAME).platform/Developer/SDKs/$(_THEOS_TARGET_PLATFORM_SDK_NAME)$(_THEOS_TARGET_INCLUDE_SDK_VERSION).sdk),$(if $(_THEOS_USER_SDKROOT),$(_THEOS_USER_SDKROOT)),$(SYSROOT))
 endif
 
 TARGET_PRIVATE_FRAMEWORK_PATH ?= $(SYSROOT)/System/Library/PrivateFrameworks
@@ -37,9 +37,40 @@ else
 	VERSIONFLAGS := -m$(_THEOS_TARGET_PLATFORM_FLAG_NAME)-version-min=$(_THEOS_TARGET_OS_DEPLOYMENT_VERSION)
 endif
 
+ifeq ($(OS),Windows_NT)
+ifeq ($(THEOS_WINDOWS_ALLOW_NO_SDK),1)
+_THEOS_TARGET_CFLAGS := $(if $(ISYSROOT),-isysroot "$(ISYSROOT)") $(VERSIONFLAGS) $(_THEOS_TARGET_CC_CFLAGS)
+_THEOS_TARGET_LDFLAGS := $(if $(SYSROOT),-isysroot "$(SYSROOT)") $(VERSIONFLAGS) $(LEGACYFLAGS) -multiply_defined suppress $(_TARGET_LIBSWIFT_LDFLAGS)
+else
 _THEOS_TARGET_CFLAGS := -isysroot "$(ISYSROOT)" $(VERSIONFLAGS) $(_THEOS_TARGET_CC_CFLAGS)
-_THEOS_TARGET_CCFLAGS := $(_TARGET_LIBCPP_CCFLAGS)
 _THEOS_TARGET_LDFLAGS := -isysroot "$(SYSROOT)" $(VERSIONFLAGS) $(LEGACYFLAGS) -multiply_defined suppress $(_TARGET_LIBSWIFT_LDFLAGS)
+endif
+else
+_THEOS_TARGET_CFLAGS := -isysroot "$(ISYSROOT)" $(VERSIONFLAGS) $(_THEOS_TARGET_CC_CFLAGS)
+_THEOS_TARGET_LDFLAGS := -isysroot "$(SYSROOT)" $(VERSIONFLAGS) $(LEGACYFLAGS) -multiply_defined suppress $(_TARGET_LIBSWIFT_LDFLAGS)
+endif
+_THEOS_TARGET_CCFLAGS := $(_TARGET_LIBCPP_CCFLAGS)
+ifeq ($(OS),Windows_NT)
+ifneq ($(SYSROOT),)
+ifneq ($(call __exists,$(SYSROOT)/usr/lib),)
+_THEOS_TARGET_LDFLAGS += -L"$(SYSROOT)/usr/lib"
+endif
+ifneq ($(call __exists,$(SYSROOT)/System/Library/Frameworks),)
+_THEOS_TARGET_LDFLAGS += -F"$(SYSROOT)/System/Library/Frameworks"
+endif
+ifneq ($(call __exists,$(SYSROOT)/System/Library/PrivateFrameworks),)
+_THEOS_TARGET_LDFLAGS += -F"$(SYSROOT)/System/Library/PrivateFrameworks"
+endif
+endif
+ifneq ($(ISYSROOT),)
+ifneq ($(call __exists,$(ISYSROOT)/usr/include),)
+_THEOS_TARGET_CFLAGS += -isystem "$(ISYSROOT)/usr/include"
+endif
+ifneq ($(call __exists,$(ISYSROOT)/System/Library/Frameworks),)
+_THEOS_TARGET_CFLAGS += -F"$(ISYSROOT)/System/Library/Frameworks"
+endif
+endif
+endif
 ifneq ($(filter %++,$(TARGET_LD)),)
 _THEOS_TARGET_LDFLAGS += $(_TARGET_LIBCPP_LDFLAGS)
 endif
@@ -52,8 +83,17 @@ endif
 _THEOS_TARGET_SWIFTFLAGS := -sdk "$(SYSROOT)" $(_THEOS_TARGET_CC_SWIFTFLAGS)
 # we *dont* want to readlink here because if the user has a dual toolchain setup then iphone/bin/swiftc
 # might symlink the host one, but we want to use the iphone res dir and not the host one
+ifeq ($(OS),Windows_NT)
+ifneq ($(call __exists,$(SWIFTBINPATH)),$(_THEOS_TRUE))
+_THEOS_TARGET_SWIFT_RESOURCE_DIR :=
+else
+_THEOS_TARGET_SWIFT_RESOURCE_DIR := $(SWIFTBINPATH)/../lib/swift
+endif
+_THEOS_TARGET_SWIFT_LDPATHS = $(call __simplify,_THEOS_TARGET_SWIFT_LDPATHS,$(_THEOS_TARGET_SWIFT_RESOURCE_DIR)/$(_THEOS_TARGET_PLATFORM_NAME))
+else
 _THEOS_TARGET_SWIFT_RESOURCE_DIR := $(dir $(shell type -p $(TARGET_SWIFTC)))../lib/swift
 _THEOS_TARGET_SWIFT_LDPATHS = $(call __simplify,_THEOS_TARGET_SWIFT_LDPATHS,$(_THEOS_TARGET_SWIFT_RESOURCE_DIR)/$(_THEOS_TARGET_PLATFORM_NAME) /usr/lib/swift)
+endif
 
 ifeq ($(call __exists,$(_THEOS_TARGET_SWIFT_RESOURCE_DIR)),$(_THEOS_TRUE))
 _THEOS_TARGET_SWIFTFLAGS += -resource-dir $(_THEOS_TARGET_SWIFT_RESOURCE_DIR)

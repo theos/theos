@@ -13,6 +13,15 @@ internal-package-check::
 endif
 
 ifeq ($(_THEOS_RPM_CAN_PACKAGE),$(_THEOS_TRUE)) # Spec file found
+ifeq ($(OS),Windows_NT)
+THEOS_PACKAGE_NAME := $(shell $(_THEOS_CONTROL_FIELD) "$(_THEOS_RPM_PACKAGE_SPEC_PATH)" Name)
+THEOS_PACKAGE_ARCH := $(shell $(_THEOS_CONTROL_FIELD) "$(_THEOS_RPM_PACKAGE_SPEC_PATH)" BuildArch)
+ifeq ($(_THEOS_FINAL_PACKAGE),$(_THEOS_TRUE))
+THEOS_PACKAGE_BASE_VERSION := $(shell $(_THEOS_CONTROL_FIELD) "$(_THEOS_RPM_PACKAGE_SPEC_PATH)" Version)-$(shell $(_THEOS_CONTROL_FIELD) "$(_THEOS_RPM_PACKAGE_SPEC_PATH)" Release)
+else
+THEOS_PACKAGE_BASE_VERSION := $(shell $(_THEOS_CONTROL_FIELD) "$(_THEOS_RPM_PACKAGE_SPEC_PATH)" Version)
+endif
+else
 THEOS_PACKAGE_NAME := $(shell grep -i "^Name:" "$(_THEOS_RPM_PACKAGE_SPEC_PATH)" | cut -d':' -f2- | xargs)
 THEOS_PACKAGE_ARCH := $(shell grep -i "^BuildArch:" "$(_THEOS_RPM_PACKAGE_SPEC_PATH)" | cut -d':' -f2- | xargs)
 ifeq ($(_THEOS_FINAL_PACKAGE),$(_THEOS_TRUE))
@@ -20,8 +29,16 @@ THEOS_PACKAGE_BASE_VERSION := $(shell grep -i "^Version:" "$(_THEOS_RPM_PACKAGE_
 else
 THEOS_PACKAGE_BASE_VERSION := $(shell grep -i "^Version:" "$(_THEOS_RPM_PACKAGE_SPEC_PATH)" | cut -d':' -f2- | xargs)
 endif
+endif
 
 before-package::
+ifeq ($(OS),Windows_NT)
+ifeq ($(_THEOS_FINAL_PACKAGE),$(_THEOS_TRUE))
+	$(ECHO_NOTHING)$(_THEOS_RPM_SPEC_CMD) "$(THEOS_PROJECT_DIR)/package.spec" "$(THEOS_OBJ_DIR)/package.spec" --append-files$(ECHO_END)
+else
+	$(ECHO_NOTHING)$(_THEOS_RPM_SPEC_CMD) "$(THEOS_PROJECT_DIR)/package.spec" "$(THEOS_OBJ_DIR)/package.spec" --release "$(word 2,$(subst -, ,$(_THEOS_INTERNAL_PACKAGE_VERSION)))" --append-files$(ECHO_END)
+endif
+else
 ifeq ($(_THEOS_FINAL_PACKAGE),$(_THEOS_TRUE))
 	$(ECHO_NOTHING)sed -e '/^[Ss]ource0:/d' "$(_THEOS_RPM_PACKAGE_SPEC_PATH)" > "$(THEOS_OBJ_DIR)/package.spec"$(ECHO_END)
 else
@@ -29,6 +46,7 @@ else
 endif
 	$(ECHO_NOTHING)echo '%files' >> "$(THEOS_OBJ_DIR)/package.spec"$(ECHO_END)
 	$(ECHO_NOTHING)echo '/*' >> "$(THEOS_OBJ_DIR)/package.spec"$(ECHO_END)
+endif
 
 _THEOS_RPM_PACKAGE_FILENAME = $(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_NAME)-$(_THEOS_INTERNAL_PACKAGE_VERSION).$(THEOS_PACKAGE_ARCH).rpm
 internal-package::

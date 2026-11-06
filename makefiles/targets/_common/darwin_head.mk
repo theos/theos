@@ -44,7 +44,11 @@ endif
 endif
 
 # __invocation returns the command-line invocation for the tool specified as its argument.
-ifneq ($(PREFIX),)
+ifeq ($(OS),Windows_NT)
+# Keep PATH tool names unexpanded: absolute Windows paths with spaces are not
+# safe as unquoted Make command prefixes. GNU Make/bash resolves these names.
+__invocation = $(1)
+else ifneq ($(PREFIX),)
 	# Linux, Cygwin
 	__invocation = $(PREFIX)$(1)
 else ifeq ($(_THEOS_PLATFORM_HAS_XCODE),$(_THEOS_TRUE))
@@ -105,6 +109,13 @@ _THEOS_TARGET_SDK_VERSION := $(or $(_SDKVERSION),latest)
 _THEOS_TARGET_INCLUDE_SDK_VERSION := $(or $(INCLUDE_SDKVERSION),$(INCLUDE_SDKVERSION_$(THEOS_CURRENT_ARCH)),same)
 
 _UNSORTED_SDKS := $(patsubst $(THEOS_SDKS_PATH)/$(_THEOS_TARGET_PLATFORM_SDK_NAME)%.sdk,%,$(wildcard $(THEOS_SDKS_PATH)/$(_THEOS_TARGET_PLATFORM_SDK_NAME)*.sdk))
+ifeq ($(OS),Windows_NT)
+ifneq ($(strip $(THEOS_SDKROOT)$(IOS_SDK_ROOT)$(SYSROOT)),)
+_THEOS_USER_SDKROOT := $(or $(THEOS_SDKROOT),$(IOS_SDK_ROOT),$(SYSROOT))
+_THEOS_USER_SDK_VERSION := $(shell $(_THEOS_WINDOWS_PYTHON) "$(THEOS_BIN_PATH)/theos-windows.py" sdk-info "$(_THEOS_USER_SDKROOT)" --platform $(_THEOS_TARGET_PLATFORM_SDK_NAME) --version-only)
+_UNSORTED_SDKS += $(_THEOS_USER_SDK_VERSION)
+endif
+endif
 
 ifneq ($(THEOS_PLATFORM_SDK_ROOT),)
 	_XCODE_SDK_DIR := $(THEOS_PLATFORM_SDK_ROOT)/Platforms/$(_THEOS_TARGET_PLATFORM_SDK_NAME).platform/Developer/SDKs
@@ -112,6 +123,7 @@ ifneq ($(THEOS_PLATFORM_SDK_ROOT),)
 endif
 
 ifeq ($(words $(_UNSORTED_SDKS)),0)
+ifneq ($(THEOS_WINDOWS_ALLOW_NO_SDK),1)
 before-all::
 ifeq ($(_XCODE_SDK_DIR),)
 	$(ERROR_BEGIN)"You do not have any SDKs in $(THEOS_SDKS_PATH)."$(ERROR_END)
@@ -119,8 +131,17 @@ else
 	$(ERROR_BEGIN)"You do not have any SDKs in $(_XCODE_SDK_DIR) or $(THEOS_SDKS_PATH)."$(ERROR_END)
 endif
 endif
+endif
 
+ifeq ($(OS),Windows_NT)
+ifeq ($(_UNSORTED_SDKS),)
+_SORTED_SDKS :=
+else
+_SORTED_SDKS = $(call __simplify,_SORTED_SDKS,$(shell $(_THEOS_WINDOWS_HELPER) sort-versions $(_UNSORTED_SDKS)))
+endif
+else
 _SORTED_SDKS = $(call __simplify,_SORTED_SDKS,$(shell echo $(_UNSORTED_SDKS) | tr ' ' $$'\n' | sort -t. -k 1,1n -k 2,2n))
+endif
 _LATEST_SDK = $(call __simplify,_LATEST_SDK,$(lastword $(_SORTED_SDKS)))
 
 ifeq ($(_THEOS_TARGET_SDK_VERSION),latest)

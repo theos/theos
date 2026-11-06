@@ -176,12 +176,22 @@ endif
 endif
 
 ifeq ($(TARGET_LIPO),)
+ifeq ($(OS),Windows_NT)
+ALL_ARCHFLAGS = -target $(firstword $(TARGET_ARCHS))-apple-ios$(_THEOS_TARGET_OS_DEPLOYMENT_VERSION)
+PREPROCESS_ARCH_FLAGS =
+else
 ALL_ARCHFLAGS = $(foreach ARCH,$(TARGET_ARCHS),-arch $(ARCH))
 PREPROCESS_ARCH_FLAGS = $(foreach ARCH,$(NEUTRAL_ARCH),-arch $(ARCH))
+endif
 THEOS_CURRENT_ARCH = $(TARGET_ARCHS)
+else
+ifeq ($(OS),Windows_NT)
+ALL_ARCHFLAGS = -target $(THEOS_CURRENT_ARCH)-apple-ios$(_THEOS_TARGET_OS_DEPLOYMENT_VERSION)
+PREPROCESS_ARCH_FLAGS = $(ALL_ARCHFLAGS)
 else
 ALL_ARCHFLAGS = -arch $(THEOS_CURRENT_ARCH)
 PREPROCESS_ARCH_FLAGS = $(ALL_ARCHFLAGS)
+endif
 endif
 
 ALL_PFLAGS = $(_THEOS_INTERNAL_COLORFLAGS) $(_THEOS_INTERNAL_CFLAGS) $(_THEOS_TARGET_CFLAGS) $(ADDITIONAL_CFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,CFLAGS) $(call __schema_var_all,,CFLAGS) $($(<)_CFLAGS) -DTHEOS_INSTANCE_NAME="\"$(THEOS_CURRENT_INSTANCE)\""
@@ -212,15 +222,28 @@ ALL_LOGOSFLAGS = $(_THEOS_INTERNAL_LOGOSFLAGS) $(ADDITIONAL_LOGOSFLAGS) $(call _
 ALL_LDFLAGS = $(_THEOS_INTERNAL_COLORFLAGS) $(_THEOS_INTERNAL_LDFLAGS) $(ADDITIONAL_LDFLAGS) $(_THEOS_TARGET_LDFLAGS) $(ALL_ARCHFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,LDFLAGS) $(call __schema_var_all,,LDFLAGS)
 
 ifneq ($(TARGET_CODESIGN),)
+ifeq ($(OS),Windows_NT)
+_THEOS_CODESIGN_FLAGS = $(or $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,CODESIGN_FLAGS),$(TARGET_CODESIGN_FLAGS))
+# Signers such as ldid derive their temporary file from the raw path string, so a
+# target that mixes "\" and "/" becomes unopenable. The helper normalizes the path
+# to the native separator before invoking the signer.
+_THEOS_CODESIGN_COMMANDLINE = $(ECHO_UNBUFFERED) $(_THEOS_WINDOWS_HELPER) codesign --signer "$(TARGET_CODESIGN)" --flags="$(_THEOS_CODESIGN_FLAGS)"
+else
 _THEOS_CODESIGN_COMMANDLINE = CODESIGN_ALLOCATE=$(TARGET_CODESIGN_ALLOCATE) $(ECHO_UNBUFFERED) $(TARGET_CODESIGN) $(or $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,CODESIGN_FLAGS),$(TARGET_CODESIGN_FLAGS))
+endif
 else
 _THEOS_CODESIGN_COMMANDLINE =
 endif
 
 ALL_STRIP_FLAGS = $(or $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,STRIP_FLAGS),$(TARGET_STRIP_FLAGS))
 
+ifeq ($(OS),Windows_NT)
+_THEOS_OBJ_FILE_TAG = $(call __simplify,_THEOS_OBJ_FILE_TAG,$(shell $(_THEOS_PLATFORM_MD5SUM) md5 --value "$(_THEOS_INTERNAL_IFLAGS_C) $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_CCFLAGS) $(ALL_OBJCCFLAGS) $(ALL_LOGOSFLAGS) $(ALL_SWIFTFLAGS) $(ALL_ORIONFLAGS)" --length 8))
+_THEOS_OUT_FILE_TAG = $(call __simplify,_THEOS_OUT_FILE_TAG,$(shell $(_THEOS_PLATFORM_MD5SUM) md5 --value "$(ALL_STRIP_FLAGS) $(_THEOS_CODESIGN_COMMANDLINE)" --length 8))
+else
 _THEOS_OBJ_FILE_TAG = $(call __simplify,_THEOS_OBJ_FILE_TAG,$(shell echo "$(_THEOS_INTERNAL_IFLAGS_C) $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_CCFLAGS) $(ALL_OBJCCFLAGS) $(ALL_LOGOSFLAGS) $(ALL_SWIFTFLAGS) $(ALL_ORIONFLAGS)" | $(_THEOS_PLATFORM_MD5SUM) | cut -c1-8))
 _THEOS_OUT_FILE_TAG = $(call __simplify,_THEOS_OUT_FILE_TAG,$(shell echo "$(ALL_STRIP_FLAGS) $(_THEOS_CODESIGN_COMMANDLINE)" | $(_THEOS_PLATFORM_MD5SUM) | cut -c1-8))
+endif
 
 ifeq ($(call __theos_bool,$(or $(USE_DEPS),$(_THEOS_TRUE))),$(_THEOS_TRUE))
 ALL_DEPFLAGS = -MT $@ -MMD -MP -MF "$(THEOS_OBJ_DIR)/$<.$(_THEOS_OBJ_FILE_TAG).Td"
@@ -240,8 +263,8 @@ MAKEFLAGS += -Onone
 # since Make's own jobserver doesn't have the required granularity due to a lack of
 # information about which Swift file is being compiled
 internal-$(THEOS_CURRENT_INSTANCE)-swift-support::
-	$(ECHO_NOTHING)rm -f $(_THEOS_SWIFT_MUTEX)$(ECHO_END)
-	$(ECHO_NOTHING)touch $(_THEOS_SWIFT_MUTEX)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_RM_CMD) -f $(_THEOS_SWIFT_MUTEX)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_TOUCH_CMD) $(_THEOS_SWIFT_MUTEX)$(ECHO_END)
 endif
 endif
 
@@ -255,6 +278,15 @@ endif
 endif
 
 before-$(THEOS_CURRENT_INSTANCE)-all::
+ifeq ($(OS),Windows_NT)
+	@$(_THEOS_CHECK_FILES) $(__USER_FILES)
+else
+	@for i in $(__USER_FILES); do \
+		if [[ ! -f "$$i" ]]; then \
+			$(PRINT_FORMAT_ERROR) "File $$i does not exist." $(ERROR_END) \
+		fi; \
+	done
+endif
 ifneq ($(_XSWIFT_FILE_COUNT),0)
 ifneq ($(_THEOS_DARWIN_HAS_STABLE_SWIFT),$(_THEOS_TRUE))
 ifeq ($(_THEOS_DARWIN_STABLE_SWIFT_VERSION),)
@@ -264,12 +296,6 @@ else
 endif
 endif
 endif
-	@for i in $(__USER_FILES); do \
-		if [[ ! -f "$$i" ]]; then \
-			$(PRINT_FORMAT_ERROR) "File $$i does not exist." $(ERROR_END) \
-		fi; \
-	done
-
 ifeq ($(GO_EASY_ON_ME).$(DEBUG),1.0)
 	@$(PRINT_FORMAT_WARNING) "GO_EASY_ON_ME quiets all errors, which is bad practice. Please migrate to Clang directives (e.g., -Wno-<blah> or #pragma clang diagnostic)." >&2
 endif
@@ -301,70 +327,70 @@ $(patsubst %,$(THEOS_OBJ_DIR)/%.$(_THEOS_OBJ_FILE_TAG).o,$(OBJC_FILES)): $(_SWIF
 endif
 
 $(THEOS_OBJ_DIR)/%.m.$(_THEOS_OBJ_FILE_TAG).o: %.m
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CC) -x objective-c -c $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $< -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.mi.$(_THEOS_OBJ_FILE_TAG).o: %.mi
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CC) -x objective-c-cpp-output -c $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $< -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.mm.$(_THEOS_OBJ_FILE_TAG).o: %.mm
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x objective-c++ -c $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_CCFLAGS) $(ALL_OBJCCFLAGS) $< -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.mii.$(_THEOS_OBJ_FILE_TAG).o: %.mii
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x objective-c++-cpp-output -c $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $< -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.c.$(_THEOS_OBJ_FILE_TAG).o: %.c
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CC) -x c -c $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $< -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.i.$(_THEOS_OBJ_FILE_TAG).o: %.i
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CC) -x c-cpp-output -c $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $< -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.s.$(_THEOS_OBJ_FILE_TAG).o: %.s
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CC) -x assembler-with-cpp -c $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $< -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.S.$(_THEOS_OBJ_FILE_TAG).o: %.S
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CC) -x assembler-with-cpp -c $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $< -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.cc.$(_THEOS_OBJ_FILE_TAG).o: %.cc
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x c++ -c $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $(ALL_CCFLAGS) $< -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.cp.$(_THEOS_OBJ_FILE_TAG).o: %.cp
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x c++ -c $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $(ALL_CCFLAGS) $< -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.cxx.$(_THEOS_OBJ_FILE_TAG).o: %.cxx
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x c++ -c $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $(ALL_CCFLAGS) $< -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.cpp.$(_THEOS_OBJ_FILE_TAG).o: %.cpp
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x c++ -c $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $(ALL_CCFLAGS) $< -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.c++.$(_THEOS_OBJ_FILE_TAG).o: %.c++
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x c++ -c $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $(ALL_CCFLAGS) $< -o $@$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.ii.$(_THEOS_OBJ_FILE_TAG).o: %.ii
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x c++-cpp-output -c $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $< -o $@$(ECHO_END)
 
 $(_ORION_GLUE): $(XSWIFT_FILES)
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
 	$(ECHO_PREPROCESSING_XSWIFT)$(ECHO_UNBUFFERED)$(TARGET_ORION_BIN)/OrionCLI $(ALL_ORIONFLAGS) $(XSWIFT_FILES) -o $@$(ECHO_END)
 
 # EASY PERFORMANCE WINS (TBD by somebody?):
 # - Increasing num-threads during WMO builds might also help (see SWIFT_OPTFLAG in common.mk)
 
 $(THEOS_OBJ_DIR)/output-file-map.$(_THEOS_OBJ_FILE_TAG).json: $(SWIFT_FILES)
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
 	$(ECHO_NOTHING)$(TARGET_SWIFT_SUPPORT_BIN)/generate-output-file-map $(THEOS_OBJ_DIR) $(_THEOS_OBJ_FILE_TAG) $(SWIFT_FILES) > $@$(ECHO_END)
 
 ifeq ($(THEOS_BUILD_SWIFT),$(_THEOS_TRUE))
@@ -378,16 +404,16 @@ endif
 
 # https://www.gnu.org/software/automake/manual/html_node/Multiple-Outputs.html
 $(_SWIFT_STAMP): $(SWIFT_FILES) $(THEOS_OBJ_DIR)/output-file-map.$(_THEOS_OBJ_FILE_TAG).json
-	$(ECHO_NOTHING)rm -f $@.tmp$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_RM_CMD) -f $@.tmp$(ECHO_END)
 	$(ECHO_NOTHING)touch $@.tmp$(ECHO_END)
-	$(ECHO_NOTHING)mkdir -p $(foreach file,$(SWIFT_FILES),$(THEOS_OBJ_DIR)/$(dir $(file))) $(_THEOS_SWIFTMODULE_HEADER_DIR)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(foreach file,$(SWIFT_FILES),$(THEOS_OBJ_DIR)/$(dir $(file)))" "$(_THEOS_SWIFTMODULE_HEADER_DIR)"$(ECHO_END)
 	$(ECHO_NOTHING)$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going \
 		internal-swift-$(THEOS_CURRENT_INSTANCE)-$(THEOS_CURRENT_ARCH) \
 		THEOS_BUILD_SWIFT="$(_THEOS_TRUE)" \
 		THEOS_CURRENT_INSTANCE="$(THEOS_CURRENT_INSTANCE)" \
 		THEOS_BUILD_DIR="$(THEOS_BUILD_DIR)" \
 		THEOS_CURRENT_ARCH="$(THEOS_CURRENT_ARCH)"$(ECHO_END)
-	$(ECHO_NOTHING)mv -f $@.tmp $@$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MV_CMD) "$@.tmp" "$@"$(ECHO_END)
 
 $(_SWIFTMODULE_HEADER): $(_SWIFT_STAMP)
 	@:
@@ -396,53 +422,61 @@ $(THEOS_OBJ_DIR)/%.swift.$(_THEOS_OBJ_FILE_TAG).o: $(_SWIFT_STAMP)
 	@:
 
 $(THEOS_OBJ_DIR)/%.x.m: %.x
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
+ifeq ($(THEOS_PLATFORM_NAME),windows)
+	$(_THEOS_LOGOS_CMD) --script "$(THEOS_BIN_PATH)/logos.pl" --output "$@" --flags "$(ALL_LOGOSFLAGS)" "$<"
+else
 	$(ECHO_PREPROCESSING)$(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $< > $@$(ECHO_END)
+endif
 
 $(THEOS_OBJ_DIR)/%.x.$(_THEOS_OBJ_FILE_TAG).o: %.x $(THEOS_OBJ_DIR)/%.x.m
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
-	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CC) -x objective-c -c -I"$(call __clean_pwd,$(dir $<))" $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(THEOS_OBJ_DIR)/$<.m -o $@$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
+	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CC) -x objective-c -c -I"$(call __clean_pwd,$(dir $<))." $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(THEOS_OBJ_DIR)/$<.m -o $@$(ECHO_END)
 ifeq ($(KEEP_LOGOS_INTERMEDIATES), $(_THEOS_TRUE))
 .PRECIOUS: $(THEOS_OBJ_DIR)/%.x.m
 else
-	$(ECHO_NOTHING)rm $(THEOS_OBJ_DIR)/$<.m$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_RM_CMD) $(THEOS_OBJ_DIR)/$<.m$(ECHO_END)
 endif
 
 $(THEOS_OBJ_DIR)/%.xm.mm: %.xm
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
+ifeq ($(THEOS_PLATFORM_NAME),windows)
+	$(_THEOS_LOGOS_CMD) --script "$(THEOS_BIN_PATH)/logos.pl" --output "$@" --flags "$(ALL_LOGOSFLAGS)" "$<"
+else
 	$(ECHO_PREPROCESSING)$(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $< > $@$(ECHO_END)
+endif
 
 $(THEOS_OBJ_DIR)/%.xm.$(_THEOS_OBJ_FILE_TAG).o: %.xm $(THEOS_OBJ_DIR)/%.xm.mm
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
-	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x objective-c++ -c -I"$(call __clean_pwd,$(dir $<))" $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_CCFLAGS) $(ALL_OBJCCFLAGS) $(THEOS_OBJ_DIR)/$<.mm -o $@$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
+	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x objective-c++ -c -I"$(call __clean_pwd,$(dir $<))." $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_CCFLAGS) $(ALL_OBJCCFLAGS) $(THEOS_OBJ_DIR)/$<.mm -o $@$(ECHO_END)
 ifeq ($(KEEP_LOGOS_INTERMEDIATES), $(_THEOS_TRUE))
 .PRECIOUS: $(THEOS_OBJ_DIR)/%.xm.mm
 else
-	$(ECHO_NOTHING)rm $(THEOS_OBJ_DIR)/$<.mm$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_RM_CMD) $(THEOS_OBJ_DIR)/$<.mm$(ECHO_END)
 endif
 
 $(THEOS_OBJ_DIR)/%.mi: %.xi
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
-	$(ECHO_PREPROCESSING)$(ECHO_UNBUFFERED)$(TARGET_CC) -x objective-c -E -I"$(call __clean_pwd,$(dir $<))" $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_PFLAGS) $(PREPROCESS_ARCH_FLAGS) $(ALL_OBJCFLAGS) $< > $(THEOS_OBJ_DIR)/$<.pre && $(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $(THEOS_OBJ_DIR)/$<.pre > $(THEOS_OBJ_DIR)/$<.mi $(ECHO_END)
-	$(ECHO_NOTHING)rm $(THEOS_OBJ_DIR)/$<.pre$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
+	$(ECHO_PREPROCESSING)$(ECHO_UNBUFFERED)$(TARGET_CC) -x objective-c -E -I"$(call __clean_pwd,$(dir $<))." $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_PFLAGS) $(PREPROCESS_ARCH_FLAGS) $(ALL_OBJCFLAGS) $< > $(THEOS_OBJ_DIR)/$<.pre && $(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $(THEOS_OBJ_DIR)/$<.pre > $(THEOS_OBJ_DIR)/$<.mi $(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_RM_CMD) $(THEOS_OBJ_DIR)/$<.pre$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.xi.$(_THEOS_OBJ_FILE_TAG).o: %.xi $(THEOS_OBJ_DIR)/%.mi
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CC) -x objective-c -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(THEOS_OBJ_DIR)/$<.mi -o $@$(ECHO_END)
 ifneq ($(KEEP_LOGOS_INTERMEDIATES), $(_THEOS_TRUE))
-	$(ECHO_NOTHING)rm $(THEOS_OBJ_DIR)/$<.mi$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_RM_CMD) $(THEOS_OBJ_DIR)/$<.mi$(ECHO_END)
 endif
 
 $(THEOS_OBJ_DIR)/%.mii: %.xmi
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
-	$(ECHO_PREPROCESSING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x objective-c++ -E -I"$(call __clean_pwd,$(dir $<))" $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_PFLAGS) $(PREPROCESS_ARCH_FLAGS) $(ALL_OBJCFLAGS) $< > $(THEOS_OBJ_DIR)/$<.pre && $(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $(THEOS_OBJ_DIR)/$<.pre > $(THEOS_OBJ_DIR)/$<.mii $(ECHO_END)
-	$(ECHO_NOTHING)rm $(THEOS_OBJ_DIR)/$<.pre$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
+	$(ECHO_PREPROCESSING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x objective-c++ -E -I"$(call __clean_pwd,$(dir $<))." $(_THEOS_INTERNAL_IFLAGS_C) $(ALL_DEPFLAGS) $(ALL_PFLAGS) $(PREPROCESS_ARCH_FLAGS) $(ALL_OBJCFLAGS) $< > $(THEOS_OBJ_DIR)/$<.pre && $(THEOS_BIN_PATH)/logos.pl $(ALL_LOGOSFLAGS) $(THEOS_OBJ_DIR)/$<.pre > $(THEOS_OBJ_DIR)/$<.mii $(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_RM_CMD) $(THEOS_OBJ_DIR)/$<.pre$(ECHO_END)
 
 $(THEOS_OBJ_DIR)/%.xmi.$(_THEOS_OBJ_FILE_TAG).o: %.xmi $(THEOS_OBJ_DIR)/%.mii
-	$(ECHO_NOTHING)mkdir -p $(dir $@)$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $@)"$(ECHO_END)
 	$(ECHO_COMPILING)$(ECHO_UNBUFFERED)$(TARGET_CXX) -x objective-c++ -c $(ALL_CFLAGS) $(ALL_OBJCFLAGS) $(ALL_CCFLAGS) $(ALL_OBJCCFLAGS) $(THEOS_OBJ_DIR)/$<.mii -o $@$(ECHO_END)
 ifneq ($(KEEP_LOGOS_INTERMEDIATES), $(_THEOS_TRUE))
-	$(ECHO_NOTHING)rm $(THEOS_OBJ_DIR)/$<.mii$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_RM_CMD) $(THEOS_OBJ_DIR)/$<.mii$(ECHO_END)
 endif
 
 .PHONY: FORCE
@@ -453,7 +487,7 @@ ifeq ($(TARGET_LIPO),)
 ifneq ($$(_THEOS_CODESIGN_COMMANDLINE),)
 .INTERMEDIATE: $$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned
 $$(THEOS_OBJ_DIR)/$(1): $$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned
-	$$(ECHO_SIGNING)$$(_THEOS_CODESIGN_COMMANDLINE) "$$<" && mv "$$<" "$$@"$$(ECHO_END)
+	$$(ECHO_SIGNING)$$(_THEOS_CODESIGN_COMMANDLINE) "$$<" && $$(_THEOS_MV_CMD) "$$<" "$$@"$$(ECHO_END)
 $$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned: $$(OBJ_FILES_TO_LINK)
 else
 $$(THEOS_OBJ_DIR)/$(1): $$(OBJ_FILES_TO_LINK)
@@ -481,7 +515,7 @@ ARCH_FILES_TO_LINK := $(addsuffix /$(1),$(addprefix $(THEOS_OBJ_DIR)/,$(TARGET_A
 # files listed in the makedeps (*.Td) but this target just depends on __USER_FILES,
 # Make won't reproduce the target
 $$(THEOS_OBJ_DIR)/%/$(1): FORCE
-	@mkdir -p $(THEOS_OBJ_DIR)/$$*
+	@$(_THEOS_MKDIR_CMD) "$(THEOS_OBJ_DIR)/$$*"
 	$(ECHO_MAKE)$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going \
 		internal-$(_THEOS_CURRENT_TYPE)-$(_THEOS_CURRENT_OPERATION) \
 		_THEOS_CURRENT_TYPE="$(_THEOS_CURRENT_TYPE)" \
@@ -493,7 +527,7 @@ $$(THEOS_OBJ_DIR)/%/$(1): FORCE
 ifneq ($$(_THEOS_CODESIGN_COMMANDLINE),)
 .INTERMEDIATE: $$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned
 $(THEOS_OBJ_DIR)/$(1): $$(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned
-	$$(ECHO_SIGNING)$$(_THEOS_CODESIGN_COMMANDLINE) "$$<" && mv "$$<" "$$@"$$(ECHO_END)
+	$$(ECHO_SIGNING)$$(_THEOS_CODESIGN_COMMANDLINE) "$$<" && $$(_THEOS_MV_CMD) "$$<" "$$@"$$(ECHO_END)
 $(THEOS_OBJ_DIR)/$(1).$(_THEOS_OUT_FILE_TAG).unsigned: $$(ARCH_FILES_TO_LINK)
 else
 $(THEOS_OBJ_DIR)/$(1): $$(ARCH_FILES_TO_LINK)
@@ -504,7 +538,7 @@ endif
 ifneq ($(words $(TARGET_ARCHS)),1)
 	$(ECHO_MERGING)$(ECHO_UNBUFFERED)$(TARGET_LIPO) $(foreach ARCH,$(TARGET_ARCHS),-arch $(ARCH) $(THEOS_OBJ_DIR)/$(ARCH)/$(1)) -create -output "$$@"$(ECHO_END)
 else
-	$(ECHO_NOTHING)cp -a $(THEOS_OBJ_DIR)/$(strip $(TARGET_ARCHS))/$(1) "$$@"$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_CP_CMD) "$(THEOS_OBJ_DIR)/$(strip $(TARGET_ARCHS))/$(1)" "$$@"$(ECHO_END)
 endif
 
 else
@@ -514,7 +548,7 @@ ifeq ($$(OBJ_FILES_TO_LINK),)
 	$$(WARNING_EMPTY_LINKING)
 endif
 endif
-	$$(ECHO_NOTHING)mkdir -p $(shell dirname "$(THEOS_OBJ_DIR)/$(1)")$$(ECHO_END)
+	$$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $(THEOS_OBJ_DIR)/$(1))"$$(ECHO_END)
 ifeq ($$(_THEOS_CURRENT_TYPE),subproject)
 	$$(ECHO_LINKING)$$(ECHO_UNBUFFERED)$$(TARGET_LIBTOOL) -static -o "$$@" $$^$$(ECHO_END)
 	@echo "$$(_THEOS_INTERNAL_LDFLAGS)" > $$(THEOS_OBJ_DIR)/$$(THEOS_CURRENT_INSTANCE).ldflags
@@ -552,7 +586,7 @@ ifeq ($(_THEOS_LIBRARY_TYPE),static)
 
 ARCH_FILES_TO_LINK := $(addsuffix /$(1),$(addprefix $(THEOS_OBJ_DIR)/,$(TARGET_ARCHS)))
 $$(THEOS_OBJ_DIR)/%/$(1): FORCE
-	@mkdir -p $(THEOS_OBJ_DIR)/$$*
+	@$(_THEOS_MKDIR_CMD) "$(THEOS_OBJ_DIR)/$$*"
 	$(ECHO_MAKE)$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) --no-print-directory --no-keep-going \
 		internal-$(_THEOS_CURRENT_TYPE)-$(_THEOS_CURRENT_OPERATION) \
 		_THEOS_CURRENT_TYPE="$(_THEOS_CURRENT_TYPE)" \
@@ -575,7 +609,7 @@ ifeq ($$(OBJ_FILES_TO_LINK),)
 	$$(WARNING_EMPTY_LINKING)
 endif
 endif
-	$$(ECHO_NOTHING)mkdir -p $(shell dirname "$(THEOS_OBJ_DIR)/$(1)")$$(ECHO_END)
+	$$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(dir $(THEOS_OBJ_DIR)/$(1))"$$(ECHO_END)
 ifeq ($$(_THEOS_CURRENT_TYPE),subproject)
 	$$(ECHO_STATIC_LINKING)$$(ECHO_UNBUFFERED)$$(TARGET_LIBTOOL) -static -o "$$@" $$^$$(ECHO_END)
 	@echo "$$(_THEOS_INTERNAL_LDFLAGS)" > $$(THEOS_OBJ_DIR)/$$(THEOS_CURRENT_INSTANCE).ldflags

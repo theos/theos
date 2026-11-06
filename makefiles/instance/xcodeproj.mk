@@ -77,7 +77,11 @@ _THEOS_XCODEBUILD_END = CODE_SIGNING_ALLOWED=NO \
 export EXPANDED_CODE_SIGN_IDENTITY =
 export EXPANDED_CODE_SIGN_IDENTITY_NAME =
 
+ifeq ($(OS),Windows_NT)
+__theos_find_and_execute = $(_THEOS_WINDOWS_HELPER) sign-tree "$(1)" "$(TARGET_CODESIGN)" $(TARGET_CODESIGN_FLAGS)
+else
 __theos_find_and_execute = find $(1) -print0 | xargs -I{} -0 bash -c '$(2) "$$@"' _ {};
+endif
 
 _THEOS_SIGNABLE_BUNDLE_EXTENSIONS = bundle app framework appex
 _THEOS_SIGNABLE_FILE_EXTENSIONS = dylib
@@ -92,6 +96,14 @@ endif
 		$(_THEOS_XCODE_BUILD_COMMAND) \
 		$(ALL_XCODEFLAGS) \
 		$(_THEOS_XCODEBUILD_END) || exit 1
+ifeq ($(OS),Windows_NT)
+ifeq ($(_THEOS_PACKAGE_FORMAT),deb)
+	$(ECHO_NOTHING)$(_THEOS_WINDOWS_HELPER) remove-glob "$(_THEOS_XCODE_INSTALL_DIR)" "libswift*.dylib"$(ECHO_END)
+endif
+ifneq ($(_THEOS_CODESIGN_COMMANDLINE),)
+	$(ECHO_SIGNING)$(_THEOS_WINDOWS_HELPER) sign-tree "$(_THEOS_XCODE_INSTALL_DIR)" "$(TARGET_CODESIGN)" $(TARGET_CODESIGN_FLAGS)$(ECHO_END)
+endif
+else
 ifeq ($(_THEOS_PACKAGE_FORMAT),deb)
 	$(ECHO_NOTHING)find $(_THEOS_XCODE_INSTALL_DIR) -name 'libswift*.dylib' -delete$(ECHO_END)
 endif
@@ -116,6 +128,7 @@ ifneq ($(_THEOS_CODESIGN_COMMANDLINE),)
 	process_dir $(_THEOS_XCODE_INSTALL_DIR); \
 	$(ECHO_END)
 endif
+endif
 
 internal-xcodeproj-clean::
 	$(_THEOS_XCODEBUILD_BEGIN) \
@@ -126,8 +139,13 @@ internal-xcodeproj-clean::
 
 ifneq ($($(THEOS_CURRENT_INSTANCE)_INSTALL),0)
 internal-xcodeproj-stage_::
+ifeq ($(OS),Windows_NT)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(THEOS_STAGING_DIR)"$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_CP) --merge "$(_THEOS_XCODE_INSTALL_DIR)" "$(THEOS_STAGING_DIR)"$(ECHO_END)
+else
 	$(ECHO_NOTHING)mkdir -p "$(THEOS_STAGING_DIR)"$(ECHO_END)
 	$(ECHO_NOTHING)rsync -a $(_THEOS_XCODE_INSTALL_DIR)/ "$(THEOS_STAGING_DIR)" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE)$(ECHO_END)
+endif
 endif
 
 $(eval $(call __mod,instance/xcodeproj.mk))

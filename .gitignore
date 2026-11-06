@@ -1,6 +1,12 @@
 .bootstrap
 .DS_Store
 ._*
+__pycache__/
+*.py[cod]
+
+# Theos build output and generated packages
+.theos/
+packages/
 
 sdks/*
 toolchain/*

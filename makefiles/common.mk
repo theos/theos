@@ -10,22 +10,36 @@ ifeq ($(notdir $(firstword $(SUDO_COMMAND))),make)
 $(error Do not use 'sudo make')
 endif
 
-# We use bash for all subshells. Force SHELL to bash if it’s currently set to sh.
-ifeq ($(SHELL),/bin/sh)
-# Using command -v as we want a PATH-based filepath (newest), in the event it's grabbed by ssh for ProxyCommand
-FOUND_BASH := $(shell command -v bash 2>/dev/null)
-
-# Fallback if not found (won't work with ProxyCommand as not an abs path per execve())
-ifeq ($(wildcard $(FOUND_BASH)),)
-	FOUND_BASH := bash
+# Native Windows helper-backed operations do not require Bash. Legacy recipes
+# still use Bash syntax; keep Bash when available and allow an explicit strict
+# check for projects that still depend on those recipes.
+ifeq ($(OS),Windows_NT)
+FOUND_BASH := $(shell where bash.exe 2>NUL)
+ifeq ($(FOUND_BASH),)
+ifeq ($(THEOS_WINDOWS_REQUIRE_BASH),1)
+$(error This recipe graph requires bash.exe; unset THEOS_WINDOWS_REQUIRE_BASH for native helper-backed operations)
+else
+$(warning bash.exe not found; native helper-backed Windows operations are available, but legacy Bash recipes may fail)
 endif
-
-# Set SHELL safely w/o recursion
+else
+export SHELL := bash.exe
+endif
+else
+ifeq ($(SHELL),/bin/sh)
+FOUND_BASH := $(shell command -v bash 2>/dev/null)
+ifeq ($(wildcard $(FOUND_BASH)),)
+FOUND_BASH := bash
+endif
 export SHELL := $(FOUND_BASH)
+endif
 endif
 
 ifeq ($(THEOS_PROJECT_DIR),)
+ifeq ($(OS),Windows_NT)
+THEOS_PROJECT_DIR := $(shell powershell.exe -NoProfile -Command "[IO.Directory]::GetCurrentDirectory()")
+else
 THEOS_PROJECT_DIR := $(shell pwd)
+endif
 endif
 _THEOS_RELATIVE_DATA_DIR ?= .theos
 _THEOS_LOCAL_DATA_DIR ?= $(THEOS_PROJECT_DIR)/$(_THEOS_RELATIVE_DATA_DIR)
@@ -36,22 +50,32 @@ _THEOS_TMP_COMPILE_COMMANDS_FILE := $(_THEOS_LOCAL_DATA_DIR)/compile_commands.js
 
 ### Functions
 # Function for getting a clean absolute path from cd.
+ifeq ($(OS),Windows_NT)
+__clean_pwd = $(shell powershell.exe -NoProfile -Command "[IO.Path]::GetFullPath('$(1)')")
+else
 __clean_pwd = $(shell (unset CDPATH; cd "$(1)"; pwd))
+endif
 # Truthiness
 _THEOS_TRUE := 1
 _THEOS_FALSE :=
 __theos_bool = $(if $(filter Y y YES yes TRUE true 1,$(1)),$(_THEOS_TRUE),$(_THEOS_FALSE))
 # Existence
 __exists = $(if $(wildcard $(1)),$(_THEOS_TRUE),$(_THEOS_FALSE))
+ifeq ($(OS),Windows_NT)
+__executable = $(if $(shell where $(1) >NUL 2>&1 && echo 1),$(_THEOS_TRUE),$(_THEOS_FALSE))
+else
 __executable = $(if $(shell PATH="$(THEOS_BIN_PATH):$$PATH" type "$(1)" > /dev/null 2>&1 && echo 1),$(_THEOS_TRUE),$(_THEOS_FALSE))
+endif
 # Static redefinition
 __simplify = $(2)$(eval $(1):=$(2))
 ###
 
 __THEOS_COMMON_MK_VERSION := 1k
 
+ifneq ($(OS),Windows_NT)
 ifneq ($(words $(THEOS_PROJECT_DIR)),1)
 $(error Your project is located at “$(THEOS_PROJECT_DIR)”, which contains spaces. Spaces are not supported in the project path)
+endif
 endif
 
 ifeq ($(_THEOS_PROJECT_MAKEFILE_NAME),)
@@ -62,9 +86,11 @@ endif
 ifeq ($(_THEOS_INTERNAL_TRUE_PATH),)
 _THEOS_RELATIVE_MAKE_PATH := $(dir $(lastword $(MAKEFILE_LIST)))
 _THEOS_INTERNAL_TRUE_PATH := $(call __clean_pwd,$(_THEOS_RELATIVE_MAKE_PATH)/..)
+ifneq ($(OS),Windows_NT)
 ifneq ($(words $(_THEOS_INTERNAL_TRUE_PATH)),1) # It’s a hack, but it works.
 $(shell unlink /tmp/theos &> /dev/null; ln -Ffs "$(_THEOS_INTERNAL_TRUE_PATH)" /tmp/theos)
 _THEOS_INTERNAL_TRUE_PATH := /tmp/theos
+endif
 endif
 override THEOS := $(_THEOS_INTERNAL_TRUE_PATH)
 export _THEOS_INTERNAL_TRUE_PATH
@@ -81,10 +107,18 @@ THEOS_VENDOR_ORION_PATH := $(THEOS)/vendor/orion
 THEOS_MODULE_PATH := $(THEOS)/mod
 THEOS_VENDOR_MODULE_PATH := $(THEOS)/vendor/mod
 THEOS_SDKS_PATH := $(THEOS)/sdks
+ifeq ($(OS),Windows_NT)
+_THEOS_WINDOWS_PYTHON ?= python
+_THEOS_WINDOWS_HELPER ?= $(_THEOS_WINDOWS_PYTHON) "$(THEOS_BIN_PATH)/theos-windows.py"
+endif
 export THEOS THEOS_BIN_PATH THEOS_MAKE_PATH THEOS_LIBRARY_PATH THEOS_VENDOR_LIBRARY_PATH THEOS_INCLUDE_PATH THEOS_VENDOR_INCLUDE_PATH THEOS_FALLBACK_INCLUDE_PATH
 export THEOS_PROJECT_DIR
 
+ifeq ($(OS),Windows_NT)
+export PATH := $(THEOS_BIN_PATH);$(PATH)
+else
 export PATH := $(THEOS_BIN_PATH):$(PATH)
+endif
 
 ifeq ($(call __exists,$(XDG_CONFIG_HOME)/theos/rc.mk),$(_THEOS_TRUE))
 -include $(XDG_CONFIG_HOME)/theos/rc.mk
@@ -101,7 +135,11 @@ _THEOS_FINAL_PACKAGE := $(_THEOS_TRUE)
 endif
 
 ifeq ($(THEOS_SCHEMA),)
+ifeq ($(OS),Windows_NT)
+_THEOS_SCHEMA := $(shell powershell.exe -NoProfile -Command "'$(strip $(schema) $(SCHEMA))'.ToUpperInvariant()")
+else
 _THEOS_SCHEMA := $(shell echo "$(strip $(schema) $(SCHEMA))" | tr 'a-z' 'A-Z')
+endif
 _THEOS_ON_SCHEMA := DEFAULT $(filter-out -%,$(_THEOS_SCHEMA))
 ifeq ($(or $(debug),$(DEBUG))$(_THEOS_FINAL_PACKAGE),$(_THEOS_FALSE))
 	DEBUG := 1
@@ -111,7 +149,11 @@ ifeq ($(call __theos_bool,$(or $(debug),$(DEBUG))),$(_THEOS_TRUE))
 endif
 _THEOS_OFF_SCHEMA := $(patsubst -%,%,$(filter -%,$(_THEOS_SCHEMA)))
 override THEOS_SCHEMA := $(strip $(filter-out $(_THEOS_OFF_SCHEMA),$(_THEOS_ON_SCHEMA)))
+ifeq ($(OS),Windows_NT)
+override _THEOS_CLEANED_SCHEMA_SET := $(shell powershell.exe -NoProfile -Command "'$(filter-out DEFAULT,$(THEOS_SCHEMA))'.ToLowerInvariant().Replace(' ','_')")
+else
 override _THEOS_CLEANED_SCHEMA_SET := $(shell echo "$(filter-out DEFAULT,$(THEOS_SCHEMA))" | tr -Cd ' A-Z' | tr ' A-Z' '_a-z')
+endif
 export THEOS_SCHEMA _THEOS_CLEANED_SCHEMA_SET
 endif
 
@@ -147,11 +189,15 @@ __mod = -include $$(foreach mod,$$(_THEOS_LOAD_MODULES),$$(or $$(wildcard $$(THE
 include $(THEOS_MAKE_PATH)/legacy.mk
 
 ifneq ($(_THEOS_PLATFORM_CALCULATED),$(_THEOS_TRUE))
+ifeq ($(OS),Windows_NT)
+export _THEOS_PLATFORM = Windows
+export _THEOS_OS = Windows
+else
 uname_s := $(shell uname -s)
 uname_o := $(shell uname -o 2>/dev/null)
-
 export _THEOS_PLATFORM = $(uname_s)
 export _THEOS_OS = $(if $(uname_o),$(uname_o),$(uname_s))
+endif
 export _THEOS_PLATFORM_CALCULATED := 1
 endif
 
@@ -180,7 +226,11 @@ ifneq ($(_THEOS_TARGET_LOADED),$(_THEOS_TRUE))
 $(error The "$(_THEOS_TARGET)" target is not supported on the "$(THEOS_PLATFORM_NAME)" platform)
 endif
 
+ifeq ($(OS),Windows_NT)
+_THEOS_TARGET_NAME_DEFINE := $(shell powershell.exe -NoProfile -Command "'$(THEOS_TARGET_NAME)'.ToUpperInvariant()")
+else
 _THEOS_TARGET_NAME_DEFINE := $(shell echo "$(THEOS_TARGET_NAME)" | tr 'a-z' 'A-Z')
+endif
 
 export TARGET_CC TARGET_CXX TARGET_LD TARGET_STRIP TARGET_CODESIGN_ALLOCATE TARGET_CODESIGN TARGET_CODESIGN_FLAGS
 
@@ -189,7 +239,11 @@ THEOS_TARGET_LIBRARY_PATH := $(THEOS_LIBRARY_PATH)/$(THEOS_TARGET_NAME)
 
 # Package Format requires Target default and falls back to `none'.
 _THEOS_PACKAGE_FORMAT := $(or $(call __schema_var_last,,$(_THEOS_TARGET_NAME_DEFINE)_PACKAGE_FORMAT),$(call __schema_var_last,,PACKAGE_FORMAT),$(_THEOS_TARGET_DEFAULT_PACKAGE_FORMAT),none)
+ifeq ($(OS),Windows_NT)
+_THEOS_PACKAGE_LAST_FILENAME = $(call __simplify,_THEOS_PACKAGE_LAST_FILENAME,$(shell $(_THEOS_READ) "$(_THEOS_LOCAL_DATA_DIR)/last_package" 2>NUL))
+else
 _THEOS_PACKAGE_LAST_FILENAME = $(call __simplify,_THEOS_PACKAGE_LAST_FILENAME,$(shell cat "$(_THEOS_LOCAL_DATA_DIR)/last_package" 2>/dev/null))
+endif
 
 _THEOS_INTERNAL_SEARCHPATHS := $(TARGET_PRIVATE_FRAMEWORK_PATH)
 ifeq ($(THEOS_PACKAGE_SCHEME),)
@@ -232,7 +286,7 @@ THEOS_INCLUDE_PROJECT_DIR ?= yes
 _THEOS_INTERNAL_CFLAGS = -DTARGET_$(_THEOS_TARGET_NAME_DEFINE)=1 $(OPTFLAG) -Wall $(DEBUGFLAG) -Wno-unused-command-line-argument -Qunused-arguments $(foreach path,$(_THEOS_INTERNAL_SEARCHPATHS),-F$(path))
 _THEOS_INTERNAL_SWIFTFLAGS = -DTHEOS_SWIFT -DTARGET_$(_THEOS_TARGET_NAME_DEFINE) $(SWIFT_OPTFLAG) -module-name $(THEOS_CURRENT_INSTANCE) $(SWIFT_DEBUGFLAG) $(foreach path,$(_THEOS_INTERNAL_SEARCHPATHS),-F$(path))
 _THEOS_INTERNAL_IFLAGS_BASE = -I$(THEOS_TARGET_INCLUDE_PATH) -I$(THEOS_INCLUDE_PATH) -I$(THEOS_VENDOR_INCLUDE_PATH) -I$(THEOS_FALLBACK_INCLUDE_PATH)
-_THEOS_INTERNAL_IFLAGS_C = $(_THEOS_INTERNAL_IFLAGS_BASE) -include $(THEOS)/Prefix.pch $(if $(call __theos_bool,$(THEOS_INCLUDE_PROJECT_DIR)),-iquote $(THEOS_PROJECT_DIR))
+_THEOS_INTERNAL_IFLAGS_C = $(_THEOS_INTERNAL_IFLAGS_BASE) $(if $(and $(filter Windows_NT,$(OS)),$(filter 1,$(THEOS_WINDOWS_ALLOW_NO_SDK))),-DTHEOS_LEAN_AND_MEAN) -include $(THEOS)/Prefix.pch $(if $(call __theos_bool,$(THEOS_INCLUDE_PROJECT_DIR)),-iquote $(THEOS_PROJECT_DIR))
 _THEOS_INTERNAL_IFLAGS_SWIFT = $(_THEOS_INTERNAL_IFLAGS_BASE)
 
 ifneq ($(GO_EASY_ON_ME),$(_THEOS_TRUE))
@@ -293,7 +347,11 @@ unexport THEOS_CURRENT_INSTANCE _THEOS_CURRENT_TYPE
 THEOS_RSYNC_EXCLUDES ?= _MTN .git .svn .DS_Store ._*
 _THEOS_RSYNC_EXCLUDE_COMMANDLINE := $(foreach exclude,$(THEOS_RSYNC_EXCLUDES),--exclude "$(exclude)")
 
+# Platforms may supply their own fakeroot backend (see makefiles/platform/Windows.mk);
+# only fall back to the Bash shim when the platform did not define one.
+ifeq ($(FAKEROOT),)
 FAKEROOT := $(THEOS_BIN_PATH)/fakeroot.sh -p "$(_THEOS_LOCAL_DATA_DIR)/fakeroot"
+endif
 export FAKEROOT
 
 _THEOS_MAKE_PARALLEL_BUILDING ?= yes

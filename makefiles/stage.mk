@@ -14,16 +14,26 @@ endif
 # Only do the master staging rules if we're the toplevel make invocation.
 ifeq ($(_THEOS_TOP_INVOCATION_DONE),$(_THEOS_FALSE))
 before-stage::
+ifeq ($(OS),Windows_NT)
+	$(ECHO_NOTHING)$(_THEOS_RM) -rf "$(THEOS_STAGING_DIR)" "$(_THEOS_SCHEME_STAGE)"$(ECHO_END)
+	$(ECHO_NOTHING)$(FAKEROOT) -c$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR) "$(THEOS_STAGING_DIR)" "$(_THEOS_SCHEME_STAGE)"$(ECHO_END)
+else
 	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)" "$(_THEOS_SCHEME_STAGE)"$(ECHO_END)
 	$(ECHO_NOTHING)$(FAKEROOT) -c$(ECHO_END)
 	$(ECHO_NOTHING)mkdir -p "$(THEOS_STAGING_DIR)" "$(_THEOS_SCHEME_STAGE)"$(ECHO_END)
+endif
 else # _THEOS_TOP_INVOCATION_DONE
 before-stage::
 	@:
 endif # _THEOS_TOP_INVOCATION_DONE
 
 internal-stage::
+ifeq ($(OS),Windows_NT)
+	$(ECHO_NOTHING)$(_THEOS_CP) --merge --ignore-missing --exclude DEBIAN "$(THEOS_LAYOUT_DIR_NAME)" "$(THEOS_STAGING_DIR)"$(ECHO_END)
+else
 	$(ECHO_NOTHING)[ -d $(THEOS_LAYOUT_DIR_NAME) ] && rsync -a "$(THEOS_LAYOUT_DIR_NAME)/" "$(THEOS_STAGING_DIR)" --exclude "DEBIAN" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE) || true$(ECHO_END)
+endif
 
 after-stage::
 	@:

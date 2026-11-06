@@ -1,0 +1,8 @@
+Package: com.example.windowslogos
+Name: Windows Logos Probe
+Version: 1.0
+Architecture: iphoneos-arm64
+Description: Native Windows Theos Logos compile probe
+Maintainer: Theos
+Author: Theos
+Section: Tweaks

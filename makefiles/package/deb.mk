@@ -14,7 +14,11 @@ _THEOS_DEB_CAN_PACKAGE := $(call __exists,$(_THEOS_DEB_PACKAGE_CONTROL_PATH))
 _THEOS_PACKAGE_INC_VERSION_PREFIX := -
 _THEOS_PACKAGE_EXTRA_VERSION_PREFIX := +
 
+ifeq ($(OS),Windows_NT)
+_THEOS_DEB_HAS_DPKG_DEB := $(_THEOS_TRUE)
+else
 _THEOS_DEB_HAS_DPKG_DEB := $(call __executable,$(_THEOS_PLATFORM_DPKG_DEB))
+endif
 
 ifneq ($(_THEOS_DEB_HAS_DPKG_DEB),$(_THEOS_TRUE))
 internal-package-check::
@@ -22,14 +26,24 @@ internal-package-check::
 endif
 
 ifeq ($(_THEOS_DEB_CAN_PACKAGE),$(_THEOS_TRUE)) # Control file found
+ifeq ($(OS),Windows_NT)
+THEOS_PACKAGE_NAME := $(shell $(_THEOS_CONTROL_FIELD) "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" Package)
+THEOS_PACKAGE_ARCH := $(shell $(_THEOS_CONTROL_FIELD) "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" Architecture)
+THEOS_PACKAGE_BASE_VERSION := $(shell $(_THEOS_CONTROL_FIELD) "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" Version)
+else
 THEOS_PACKAGE_NAME := $(shell grep -i "^Package:" "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 THEOS_PACKAGE_ARCH := $(shell grep -i "^Architecture:" "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 THEOS_PACKAGE_BASE_VERSION := $(shell grep -i "^Version:" "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
+endif
 
 $(THEOS_STAGING_DIR)/DEBIAN:
-	$(ECHO_NOTHING)mkdir -p "$(THEOS_STAGING_DIR)/DEBIAN"$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR_CMD) "$(THEOS_STAGING_DIR)/DEBIAN"$(ECHO_END)
 ifeq ($(_THEOS_HAS_STAGING_LAYOUT),1) # If we have a layout directory, copy layout/DEBIAN to the staging directory.
+ifeq ($(OS),Windows_NT)
+	$(ECHO_NOTHING)$(_THEOS_CP) "$(THEOS_LAYOUT_DIR)/DEBIAN" "$(THEOS_STAGING_DIR)"$(ECHO_END)
+else
 	$(ECHO_NOTHING)[ -d "$(THEOS_LAYOUT_DIR)/DEBIAN" ] && rsync -a "$(THEOS_LAYOUT_DIR)/DEBIAN/" "$(THEOS_STAGING_DIR)/DEBIAN" $(_THEOS_RSYNC_EXCLUDE_COMMANDLINE) || true$(ECHO_END)
+endif
 endif # _THEOS_HAS_STAGING_LAYOUT
 
 _TARGET_SWIFT_VERSION_GE_5_0 = $(call __simplify,_TARGET_SWIFT_VERSION_GE_5_0,$(call __vercmp,$(_THEOS_TARGET_SWIFT_VERSION),ge,5.0))
@@ -49,10 +63,14 @@ _THEOS_DEB_LIBSWIFT_DEPENDS := $(_THEOS_DEB_LIBSWIFT_PACKAGE) (>= $(_THEOS_DEB_L
 _THEOS_DEB_ORION_DEPENDS := dev.theos.orion (>= 1.0.0)
 
 $(THEOS_STAGING_DIR)/DEBIAN/control: $(THEOS_STAGING_DIR)/DEBIAN
+ifeq ($(OS),Windows_NT)
+	$(ECHO_NOTHING)$(_THEOS_WINDOWS_HELPER) control-file "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" "$@" --architecture "$(THEOS_PACKAGE_ARCH)" --version "$(_THEOS_INTERNAL_PACKAGE_VERSION)" --stage "$(THEOS_STAGING_DIR)" --libswift "$(_THEOS_DEB_LIBSWIFT_DEPENDS)" --libswift-version "$(_THEOS_DEB_LIBSWIFT_PACKAGE_VERSION)" --orion "$(_THEOS_DEB_ORION_DEPENDS)"$(ECHO_END)
+else
 	$(ECHO_NOTHING)sed -e 's/\$${LIBSWIFT}/$(_THEOS_DEB_LIBSWIFT_DEPENDS)/g; s/\$${LIBSWIFT_VERSION}/$(_THEOS_DEB_LIBSWIFT_PACKAGE_VERSION)/g; s/\$${ORION}/$(_THEOS_DEB_ORION_DEPENDS)/g; /^[Vv]ersion:/d; /^[Aa]rchitecture:/d; /^$$/d; $$G; P; D' "$(_THEOS_DEB_PACKAGE_CONTROL_PATH)" > "$@"$(ECHO_END)
 	$(ECHO_NOTHING)echo "Architecture: $(THEOS_PACKAGE_ARCH)" >> "$@"$(ECHO_END)
 	$(ECHO_NOTHING)echo "Version: $(_THEOS_INTERNAL_PACKAGE_VERSION)" >> "$@"$(ECHO_END)
 	$(ECHO_NOTHING)echo "Installed-Size: $(shell du $(_THEOS_PLATFORM_DU_EXCLUDE) DEBIAN -ks "$(THEOS_STAGING_DIR)" | cut -f 1)" >> "$@"$(ECHO_END)
+endif
 
 before-package:: $(THEOS_STAGING_DIR)/DEBIAN/control
 
@@ -63,6 +81,9 @@ internal-package::
 # Iterate through staging dir and move top-level items to tmp stage if != "DEBIAN"
 # Move the parent directory (i.e., package install prefix), which now contains project files, back to the main stage
 ifneq ($(THEOS_PACKAGE_INSTALL_PREFIX),)
+ifeq ($(OS),Windows_NT)
+	$(ECHO_NOTHING)$(_THEOS_SCHEME_STAGE_CMD) "$(THEOS_STAGING_DIR)" "$(_THEOS_SCHEME_STAGE)" "$(_THEOS_STAGING_TMP)"$(ECHO_END)
+else
 	$(eval _STAGE_CONTENTS := $(wildcard $(THEOS_STAGING_DIR)/*))
 	$(eval _STAGE_STATE := $(lastword $(subst /, ,$(_STAGE_CONTENTS)))$(words $(_STAGE_CONTENTS)))
 	$(eval _DEBIAN_ONLY := $(if $(filter DEBIAN1,$(_STAGE_STATE)),$(_THEOS_TRUE),$(_THEOS_FALSE)))
@@ -76,7 +97,13 @@ ifneq ($(THEOS_PACKAGE_INSTALL_PREFIX),)
 		$(shell mv $(wildcard $(_THEOS_STAGING_TMP)/*) $(THEOS_STAGING_DIR)) \
 	)
 endif
+endif
+ifeq ($(OS),Windows_NT)
+	$(ECHO_NOTHING)$(FAKEROOT) --record-stage "$(THEOS_STAGING_DIR)"$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_DEB_CMD) "$(THEOS_STAGING_DIR)" "$(_THEOS_DEB_PACKAGE_FILENAME)" --compression "$(THEOS_PLATFORM_DEB_COMPRESSION_LEVEL)" --manifest "$(_THEOS_FAKEROOT_MANIFEST)"$(ECHO_END)
+else
 	$(ECHO_NOTHING)COPYFILE_DISABLE=1 $(FAKEROOT) -r $(_THEOS_PLATFORM_DPKG_DEB) -Z$(_THEOS_PLATFORM_DPKG_DEB_COMPRESSION) -z$(THEOS_PLATFORM_DEB_COMPRESSION_LEVEL) -b "$(THEOS_STAGING_DIR)" "$(_THEOS_DEB_PACKAGE_FILENAME)"$(ECHO_END)
+endif
 
 # This variable is used in package.mk
 after-package:: __THEOS_LAST_PACKAGE_FILENAME = $(_THEOS_DEB_PACKAGE_FILENAME)

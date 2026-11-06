@@ -37,9 +37,17 @@ endif
 ifneq ($($(THEOS_CURRENT_INSTANCE)_INSTALL),0)
 internal-tweak-stage_:: $(_EXTRA_TARGET) internal-library-stage_
 ifeq ($(call __exists,$(THEOS_CURRENT_INSTANCE).plist),$(_THEOS_TRUE))
+ifeq ($(OS),Windows_NT)
+	$(ECHO_NOTHING)$(_THEOS_CP_CMD) "$(THEOS_CURRENT_INSTANCE).plist" "$(THEOS_STAGING_DIR)$(LOCAL_INSTALL_PATH)/$(THEOS_CURRENT_INSTANCE).plist"$(ECHO_END)
+else
 	$(ECHO_NOTHING)cp "$(THEOS_CURRENT_INSTANCE).plist" "$(THEOS_STAGING_DIR)$(LOCAL_INSTALL_PATH)/$(THEOS_CURRENT_INSTANCE).plist"$(ECHO_END)
+endif
 else ifeq ($(call __exists,Filter.plist),$(_THEOS_TRUE))
+ifeq ($(OS),Windows_NT)
+	$(ECHO_NOTHING)$(_THEOS_CP_CMD) "Filter.plist" "$(THEOS_STAGING_DIR)$(LOCAL_INSTALL_PATH)/$(THEOS_CURRENT_INSTANCE).plist"$(ECHO_END)
+else
 	$(ECHO_NOTHING)cp "Filter.plist" "$(THEOS_STAGING_DIR)$(LOCAL_INSTALL_PATH)/$(THEOS_CURRENT_INSTANCE).plist"$(ECHO_END)
+endif
 else
 	$(ERROR_BEGIN)"You are missing a filter property list. Make sure it’s named \"$(THEOS_CURRENT_INSTANCE).plist\" or \"Filter.plist\". Refer to http://iphonedevwiki.net/index.php/Cydia_Substrate#MobileLoader."$(ERROR_END)
 endif

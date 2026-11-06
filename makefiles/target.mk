@@ -18,6 +18,11 @@ endef
 #     as it gets without proper array support in Make.
 #  3. Finally, back on the Make side of things, we substitute the delimiter with a newline, so that
 #     our string can be successfully evaluated by Make (see ___newline discussion above).
+ifeq ($(OS),Windows_NT)
+define ___get_target_args
+$(subst ;,$(___newline),$(shell $(_THEOS_WINDOWS_HELPER) target-args "$(1)"))
+endef
+else
 define ___get_target_args
 $(subst ;,$(___newline), \
 	$(shell \
@@ -30,6 +35,7 @@ $(subst ;,$(___newline), \
 	) \
 )
 endef
+endif
 
 # Evaluate and export the TARGET arguments. This expects to be passed multiple variables, which are
 # sorted in decreasing precedence:

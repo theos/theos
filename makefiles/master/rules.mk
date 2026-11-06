@@ -70,12 +70,14 @@ do:: all package install
 
 before-all::
 # If the chosen sdk doesn’t exist, the sysroot will be blank, bail out.
+ifneq ($(THEOS_WINDOWS_ALLOW_NO_SDK),1)
 ifeq ($(SYSROOT),)
 	$(ERROR_BEGIN) "Your chosen SDK, “$(_THEOS_TARGET_PLATFORM_SDK_NAME)$(_THEOS_TARGET_SDK_VERSION).sdk”, does not appear to exist." $(ERROR_END)
 else
 # If the SYSROOT is set but doesn’t exist, bail out.
 ifneq ($(call __exists,$(SYSROOT)),$(_THEOS_TRUE))
 	$(ERROR_BEGIN) "Your chosen SYSROOT, “$(SYSROOT)”, does not appear to exist." $(ERROR_END)
+endif
 endif
 endif
 
@@ -85,8 +87,13 @@ ifneq ($(call __exists,$(THEOS_VENDOR_INCLUDE_PATH)/.git)$(call __exists,$(THEOS
 endif
 
 ifeq ($(_THEOS_IS_TOP_ALL),$(_THEOS_TRUE))
+ifeq ($(OS),Windows_NT)
+	$(ECHO_NOTHING)$(_THEOS_RM) -rf "$(_THEOS_SWIFT_AUXILIARY_DIR)"$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_MKDIR) "$(_THEOS_SWIFT_AUXILIARY_DIR)" "$(_THEOS_SWIFT_MARKERS_DIR)"$(ECHO_END)
+else
 	$(ECHO_NOTHING)rm -rf $(_THEOS_SWIFT_AUXILIARY_DIR)$(ECHO_END)
 	$(ECHO_NOTHING)mkdir -p $(_THEOS_SWIFT_AUXILIARY_DIR) $(_THEOS_SWIFT_MARKERS_DIR)$(ECHO_END)
+endif
 endif
 
 internal-all::
@@ -96,15 +103,15 @@ after-all::
 before-clean::
 
 internal-clean::
-	$(ECHO_CLEANING)rm -rf "$(subst $(_THEOS_OBJ_DIR_EXTENSION),,$(THEOS_OBJ_DIR))"$(ECHO_END)
+	$(ECHO_CLEANING)$(_THEOS_RM_CMD) -rf "$(subst $(_THEOS_OBJ_DIR_EXTENSION),,$(THEOS_OBJ_DIR))"$(ECHO_END)
 
 ifeq ($(call __exists,$(_THEOS_BUILD_SESSION_FILE)),$(_THEOS_TRUE))
-	$(ECHO_NOTHING)rm "$(_THEOS_BUILD_SESSION_FILE)"$(ECHO_END)
-	$(ECHO_NOTHING)touch "$(_THEOS_BUILD_SESSION_FILE)"$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_RM_CMD) -f "$(_THEOS_BUILD_SESSION_FILE)"$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_TOUCH_CMD) "$(_THEOS_BUILD_SESSION_FILE)"$(ECHO_END)
 endif
 
 ifeq ($(MAKELEVEL),0)
-	$(ECHO_NOTHING)rm -rf "$(THEOS_STAGING_DIR)" "$(_THEOS_STAGING_TMP)" "$(_THEOS_SWIFT_AUXILIARY_DIR)" "$(_THEOS_TMP_COMPILE_COMMANDS_FILE)"$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_RM_CMD) -rf "$(THEOS_STAGING_DIR)" "$(_THEOS_STAGING_TMP)" "$(_THEOS_SWIFT_AUXILIARY_DIR)" "$(_THEOS_TMP_COMPILE_COMMANDS_FILE)"$(ECHO_END)
 endif
 
 after-clean::
@@ -124,16 +131,24 @@ clean-packages:: before-clean-packages internal-clean-packages after-clean-packa
 before-clean-packages::
 
 internal-clean-packages::
-	$(ECHO_NOTHING)rm -rf $(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_NAME)_*-*_$(THEOS_PACKAGE_ARCH).deb$(ECHO_END)
-	$(ECHO_NOTHING)rm -rf $(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_NAME)-*-*.$(THEOS_PACKAGE_ARCH).rpm$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_RM_CMD) -rf "$(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_NAME)_*-*_$(THEOS_PACKAGE_ARCH).deb"$(ECHO_END)
+	$(ECHO_NOTHING)$(_THEOS_RM_CMD) -rf "$(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_NAME)-*-*.$(THEOS_PACKAGE_ARCH).rpm"$(ECHO_END)
 
 after-clean-packages::
 
 $(_THEOS_BUILD_SESSION_FILE):
+ifeq ($(OS),Windows_NT)
+	@$(_THEOS_MKDIR) "$(_THEOS_LOCAL_DATA_DIR)"
+else
 	@mkdir -p $(_THEOS_LOCAL_DATA_DIR)
+endif
 
 ifeq ($(call __exists,$(_THEOS_BUILD_SESSION_FILE)),$(_THEOS_FALSE))
+ifeq ($(OS),Windows_NT)
+	@$(_THEOS_TOUCH) $(_THEOS_BUILD_SESSION_FILE)
+else
 	@touch $(_THEOS_BUILD_SESSION_FILE)
+endif
 endif
 
 .PRECIOUS: %.variables %.subprojects
@@ -143,38 +158,32 @@ endif
 %.variables: _TYPE = $(subst -,_,$(subst .,,$(suffix $*)))
 %.variables: __SUBPROJECTS = $(strip $(call __schema_var_all,$(_INSTANCE)_,SUBPROJECTS))
 %.variables:
+ifeq ($(OS),Windows_NT)
+	+@$(_THEOS_SUBPROJECTS) --make "$(MAKE)" --makefile "$(_THEOS_PROJECT_MAKEFILE_NAME)" --operation "$(_OPERATION)" --instance-type "$(_TYPE)" --instance "$(_INSTANCE)" --build-dir "$(_THEOS_ABSOLUTE_BUILD_DIR)" --cwd "$(THEOS_PROJECT_DIR)" --makeflags "$(_THEOS_MAKEFLAGS)" --subprojects $(__SUBPROJECTS)
+	+$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) internal-$(_TYPE)-$(_OPERATION) _THEOS_CURRENT_TYPE="$(_TYPE)" THEOS_CURRENT_INSTANCE="$(_INSTANCE)" _THEOS_CURRENT_OPERATION="$(_OPERATION)" THEOS_BUILD_DIR="$(_THEOS_ABSOLUTE_BUILD_DIR)"
+else
 	+@ \
 abs_build_dir=$(_THEOS_ABSOLUTE_BUILD_DIR); \
 if [[ "$(__SUBPROJECTS)" != "" ]]; then \
   $(PRINT_FORMAT_MAKING) "Making $(_OPERATION) in subprojects of $(_TYPE) $(_INSTANCE)"; \
   for d in $(__SUBPROJECTS); do \
     d="$${d%:*}"; \
-    if [[ "$${abs_build_dir}" = "." ]]; then \
-      lbuilddir="."; \
-    else \
-      lbuilddir="$${abs_build_dir}/$$d"; \
-    fi; \
-    if $(MAKE) -C $$d -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) $(_OPERATION) \
-        THEOS_BUILD_DIR="$$lbuilddir" \
-       ; then\
-       :; \
-    else exit $$?; \
-    fi; \
+    if [[ "$${abs_build_dir}" = "." ]]; then lbuilddir="."; else lbuilddir="$${abs_build_dir}/$$d"; fi; \
+    $(MAKE) -C $$d -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) $(_OPERATION) THEOS_BUILD_DIR="$$lbuilddir" || exit $$?; \
   done; \
- fi; \
+fi; \
 $(PRINT_FORMAT_MAKING) "Making $(_OPERATION) for $(_TYPE) $(_INSTANCE)"; \
-$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) \
-	internal-$(_TYPE)-$(_OPERATION) \
-	_THEOS_CURRENT_TYPE="$(_TYPE)" \
-	THEOS_CURRENT_INSTANCE="$(_INSTANCE)" \
-	_THEOS_CURRENT_OPERATION="$(_OPERATION)" \
-	THEOS_BUILD_DIR="$(_THEOS_ABSOLUTE_BUILD_DIR)"
+$(MAKE) -f $(_THEOS_PROJECT_MAKEFILE_NAME) $(_THEOS_MAKEFLAGS) internal-$(_TYPE)-$(_OPERATION) _THEOS_CURRENT_TYPE="$(_TYPE)" THEOS_CURRENT_INSTANCE="$(_INSTANCE)" _THEOS_CURRENT_OPERATION="$(_OPERATION)" THEOS_BUILD_DIR="$(_THEOS_ABSOLUTE_BUILD_DIR)"
+endif
 
 %.subprojects: _INSTANCE = $(basename $(basename $*))
 %.subprojects: _OPERATION = $(subst .,,$(suffix $(basename $*)))
 %.subprojects: _TYPE = $(subst -,_,$(subst .,,$(suffix $*)))
 %.subprojects: __SUBPROJECTS = $(strip $(call __schema_var_all,$(_INSTANCE)_,SUBPROJECTS))
 %.subprojects:
+ifeq ($(OS),Windows_NT)
+	+@$(_THEOS_SUBPROJECTS) --make "$(MAKE)" --makefile "$(_THEOS_PROJECT_MAKEFILE_NAME)" --operation "$(_OPERATION)" --instance-type "$(_TYPE)" --instance "$(_INSTANCE)" --build-dir "$(_THEOS_ABSOLUTE_BUILD_DIR)" --cwd "$(THEOS_PROJECT_DIR)" --makeflags "$(_THEOS_MAKEFLAGS)" --subprojects $(__SUBPROJECTS)
+else
 	+@ \
 abs_build_dir=$(_THEOS_ABSOLUTE_BUILD_DIR); \
 if [[ "$(__SUBPROJECTS)" != "" ]]; then \
@@ -194,6 +203,7 @@ if [[ "$(__SUBPROJECTS)" != "" ]]; then \
     fi; \
   done; \
  fi
+endif
 
 update-theos::
 	@$(PRINT_FORMAT_MAKING) "Updating Theos"
@@ -216,7 +226,11 @@ endif
 # followed by the key's value.
 spm::
 	@$(PRINT_FORMAT_MAKING) "Creating SPM config"
+ifeq ($(OS),Windows_NT)
+	@$(_THEOS_MKDIR) "$(_THEOS_LOCAL_DATA_DIR)"
+else
 	@mkdir -p $(_THEOS_LOCAL_DATA_DIR)
+endif
 	$(ECHO_NOTHING)rm -f $(_THEOS_SPM_CONFIG_FILE)$(ECHO_END)
 	$(ECHO_NOTHING)echo "theos=$(THEOS)" >> $(_THEOS_SPM_CONFIG_FILE)$(ECHO_END)
 	$(ECHO_NOTHING)echo "sdk=$(SYSROOT)" >> $(_THEOS_SPM_CONFIG_FILE)$(ECHO_END)
@@ -228,7 +242,11 @@ before-commands::
 
 commands:: before-commands clean all
 	@$(PRINT_FORMAT_MAKING) "Writing $(notdir $(_THEOS_COMPILE_COMMANDS_FILE))"
+ifeq ($(OS),Windows_NT)
+	$(ECHO_NOTHING)$(_THEOS_MV) "$(_THEOS_TMP_COMPILE_COMMANDS_FILE)" "$(_THEOS_COMPILE_COMMANDS_FILE)"$(ECHO_END)
+else
 	$(ECHO_NOTHING)mv -f $(_THEOS_TMP_COMPILE_COMMANDS_FILE) $(_THEOS_COMPILE_COMMANDS_FILE)$(ECHO_END)
+endif
 
 $(eval $(call __mod,master/rules.mk))
 

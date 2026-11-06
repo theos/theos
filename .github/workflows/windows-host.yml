@@ -1,0 +1,47 @@
+name: Windows host compatibility
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  helper-and-make:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install 7-Zip and GNU Make
+        shell: pwsh
+        run: |
+          winget install --id 7zip.7zip --exact --scope user --accept-source-agreements --accept-package-agreements --silent
+          winget install --id ezwinports.make --exact --scope user --accept-source-agreements --accept-package-agreements --silent
+      - name: Install verified portable LLVM and Strawberry Perl
+        shell: pwsh
+        run: .\bin\install-windows-toolchain.ps1 -PackageManager full-official -AddToUserPath
+      - name: Test Windows helper and real Logos preprocessing
+        shell: pwsh
+        run: |
+          $output = python -m unittest discover -s tests/windows -v 2>&1
+          $output | ForEach-Object { $_ }
+          if (($output | ForEach-Object { $_.ToString() }) -match '(?m)^OK \(.*\bskipped=\d+') { throw 'Windows suite must not skip tests.' }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Validate PowerShell management scripts
+        shell: pwsh
+        run: |
+          $errors = @()
+          foreach ($script in 'bin/install-theos.ps1', 'bin/test-windows.ps1', 'bin/manage-theos.ps1', 'bin/install-windows-toolchain.ps1', 'bin/test-windows-toolchain.ps1', 'bin/test-windows-e2e.ps1') {
+            [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $script), [ref]$null, [ref]$errors) | Out-Null
+          }
+          if ($errors.Count) { $errors | ForEach-Object Message; exit 1 }
+      - name: Run native ARM64 Mach-O object, linker, and signing probes
+        shell: pwsh
+        run: .\bin\test-windows-toolchain.ps1 -Clang (Join-Path $env:THEOS_LLVM_BIN 'clang.exe') -Linker $env:THEOS_LD64_LLD -Ldid $env:THEOS_LDID
+      - name: Dry-run original Theos Windows tool recipe graph
+        shell: pwsh
+        run: |
+          $env:THEOS = (Get-Location).Path
+          make -C tests/windows/project -n all THEOS=$env:THEOS THEOS_WINDOWS_ALLOW_NO_SDK=1 THEOS_LLVM_BIN=$env:THEOS_LLVM_BIN

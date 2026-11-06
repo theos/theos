@@ -13,8 +13,13 @@ internal-package-check::
 endif
 
 ifeq ($(_THEOS_PKG_CAN_PACKAGE),$(_THEOS_TRUE)) # Control file found
+ifeq ($(OS),Windows_NT)
+THEOS_PACKAGE_NAME := $(shell $(_THEOS_CONTROL_FIELD) "$(_THEOS_PKG_PACKAGE_CONTROL_PATH)" Package)
+THEOS_PACKAGE_BASE_VERSION := $(shell $(_THEOS_CONTROL_FIELD) "$(_THEOS_PKG_PACKAGE_CONTROL_PATH)" Version)
+else
 THEOS_PACKAGE_NAME := $(shell grep -i "^Package:" "$(_THEOS_PKG_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
 THEOS_PACKAGE_BASE_VERSION := $(shell grep -i "^Version:" "$(_THEOS_PKG_PACKAGE_CONTROL_PATH)" | cut -d' ' -f2-)
+endif
 
 _THEOS_PKG_PACKAGE_FILENAME = $(THEOS_PACKAGE_DIR)/$(THEOS_PACKAGE_NAME)_$(_THEOS_INTERNAL_PACKAGE_VERSION).pkg
 internal-package::

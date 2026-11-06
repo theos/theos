@@ -1,10 +1,23 @@
 NULLSTRING :=
 
+ifeq ($(OS),Windows_NT)
+# Native Windows recipes run under cmd.exe; do not emit POSIX shell grouping or pipefail.
+ECHO_PIPEFAIL :=
+else
 ECHO_PIPEFAIL := set -o pipefail;
+endif
 
 _THEOS_VERBOSE := $(call __theos_bool,$(or $(messages),$(MESSAGES)))
 
-ifeq ($(_THEOS_VERBOSE),$(_THEOS_TRUE))
+ifeq ($(OS),Windows_NT)
+ECHO_BEGIN =
+ECHO_NOTHING = @
+ECHO_END =
+ECHO_MAKE = +
+ECHO_UNBUFFERED =
+STDERR_NULL_REDIRECT = 2>NUL
+STDOUT_NULL_REDIRECT = >NUL
+else ifeq ($(_THEOS_VERBOSE),$(_THEOS_TRUE))
 	ECHO_BEGIN = (
 	ECHO_NOTHING = $(ECHO_PIPEFAIL) (
 	ECHO_MAKE = +
@@ -90,12 +103,38 @@ endif
 	ECHO_UNLOADING = $(ECHO_BEGIN)$(PRINT_FORMAT_CYAN) "Unloading $(INSTALL_TARGET_PROCESSES)"$(ECHO_END); $(ECHO_PIPEFAIL) (
 	ECHO_CLEANING = $(ECHO_BEGIN)$(PRINT_FORMAT_CYAN) "Cleaning"$(ECHO_END); $(ECHO_PIPEFAIL) (
 
-	ERROR_BEGIN = @$(PRINT_FORMAT_ERROR) $(NULLSTRING)
-	ERROR_END = $(NULLSTRING) >&2; exit 1;
+ifeq ($(OS),Windows_NT)
+ECHO_PREPROCESSING =
+ECHO_PREPROCESSING_XSWIFT =
+ECHO_COMPILING =
+ECHO_LINKING =
+ECHO_STATIC_LINKING =
+ECHO_LINKING_WITH_STRIP =
+ECHO_STRIPPING =
+ECHO_MERGING =
+ECHO_SIGNING =
+ECHO_DEBUG_SYMBOLS =
+ECHO_COPYING_RESOURCE_FILES =
+ECHO_COPYING_RESOURCE_DIRS =
+ECHO_COPYING_PUBLIC_HEADERS =
+ECHO_COPYING_FRAMEWORK =
+ECHO_COPYING_LIBRARY =
+ECHO_PRE_UNLOADING =
+ECHO_INSTALLING =
+ECHO_UNLOADING =
+ECHO_CLEANING =
+endif
 
+ifeq ($(OS),Windows_NT)
+ERROR_BEGIN = @echo ERROR:
+ERROR_END = & exit /b 1
+WARNING_EMPTY_LINKING = @echo WARNING: No files to link. Please check your Makefile! Make sure you set $(THEOS_CURRENT_INSTANCE)_FILES (or similar variables).
+NOTICE_EMPTY_LINKING = @echo WARNING: No files to link - creating a bundle containing only resources.
+else
+ERROR_BEGIN = @$(PRINT_FORMAT_ERROR) $(NULLSTRING)
+ERROR_END = $(NULLSTRING) >&2; exit 1;
 WARNING_EMPTY_LINKING = @$(PRINT_FORMAT_WARNING) "No files to link. Please check your Makefile! Make sure you set $(THEOS_CURRENT_INSTANCE)_FILES (or similar variables)."
-
-# (bundle)
 NOTICE_EMPTY_LINKING = @$(PRINT_FORMAT_WARNING) "No files to link - creating a bundle containing only resources."
+endif
 
 $(eval $(call __mod,messages.mk))
