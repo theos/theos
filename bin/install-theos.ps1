@@ -49,7 +49,7 @@ if (-not $SkipPathUpdate) {
 
 Write-Host "Theos source installed at $resolvedPath"
 Write-Host 'THEOS is set for this process and the current Windows user.'
-Write-Host 'NOTE: native Windows build support is experimental; Apple SDK, Mach-O linker, and packaging tools are not installed by this script.'
+Write-Host 'NOTE: the native Windows tweak/.deb path is verified; this script does not install an Apple SDK, Mach-O linker, or packaging toolchain.'
 & (Join-Path $PSScriptRoot 'test-windows.ps1') -TheosPath $resolvedPath
 if ($LASTEXITCODE -ne 0) {
     Write-Warning 'Theos was installed, but the dependency check is incomplete. See WINDOWS.md before attempting a build.'
