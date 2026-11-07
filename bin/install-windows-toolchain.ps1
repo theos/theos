@@ -184,7 +184,8 @@ Write-Host '=== Theos Windows toolchain installation report ==='
 Write-Host "OSArchitecture: $([Runtime.InteropServices.RuntimeInformation]::OSArchitecture)"
 Write-Host "ProcessArchitecture: $([Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)"
 foreach ($tool in @('clang', 'clang++', 'make', 'perl', 'ld64.lld', 'ldid')) {
-    $found = Get-Command $tool -ErrorAction SilentlyContinue | Select-Object -First 1
+    $candidate = if ($tool -eq 'ldid' -and $env:THEOS_LDID) { $env:THEOS_LDID } else { $tool }
+    $found = Get-Command $candidate -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($found) { Write-Host ("{0}: {1}" -f $tool, $found.Source) } else { Write-Host ("{0}: NOT INSTALLED" -f $tool) }
 }
 $sdk = if ($env:THEOS_SDKROOT) { $env:THEOS_SDKROOT } elseif ($env:IOS_SDK_ROOT) { $env:IOS_SDK_ROOT } else { $null }
