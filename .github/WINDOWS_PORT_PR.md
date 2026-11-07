@@ -23,14 +23,16 @@ On Windows, the platform makefile selects helper-backed operations for paths, fi
 
 `ld64.lld` treats legacy TBD v1 stubs beginning with an untagged `---` as an unknown file type. Twenty-nine stub files were migrated to TBD v3 using an explicit tag and otherwise preserving their `archs`/`platform` body. `Cycript.framework/Cycript.tbd` uses v4 `targets:` because its device and simulator architecture set cannot be represented compatibly by the v3 form. The two `libsubstrate.tbd` paths are symlink aliases and inherit the CydiaSubstrate fix.
 
-## Test results to attach before merge
+## Test results
 
 - Windows helper/unit suite: 39 tests passed locally.
 - Windows SDK E2E: rootful and rootless packages built and independently checked locally against a user-supplied SDK. Local clean-clone run: rootful SHA-256 `1ab458085c2b68f92f7f182ce46d66facb3aa17d07355dd15b542d8e30017ea8` (2240 bytes); rootless SHA-256 `5c64d64f4a127730bd1fa6ed459ceb7d82644fe8badafb1a7d86e00223e67d38` (2360 bytes). These are local artifacts, not CI artifacts.
-- Public Windows workflow URL: pending.
-- Public macOS workflow URL: pending.
-- Public Linux workflow URL: pending.
-- Windows protected-runner SDK E2E URL: pending opt-in execution.
+- Windows hosted CI: [passed](https://github.com/Nokeew/theos/actions/runs/42369141292/job/128393439389), including 39 tests and SDK-independent ARM64 linker/signing probes.
+- macOS hosted CI: [passed](https://github.com/Nokeew/theos/actions/runs/42369141280/job/128393439685), including native macOS tool build/run.
+- Linux hosted CI: [passed](https://github.com/Nokeew/theos/actions/runs/42369141280/job/128393439527), including SDK gate and fakeroot/Debian smoke.
+- These CI results correspond to commit `ae5db203a9479f2b597dca850de7f375347930bb`.
+- Protected-runner SDK E2E jobs: skipped; not executed.
+- Public recursive clone of `Nokeew/theos:windows-port-rc`: passed at `e24f0527c8a74a6106b770c4f98266fa36c5ae26`, checking out exact `vendor/lib` commit `300f9e005d2b358ad7da1cb5d96f2cfb7c98ec9a` with a clean checkout.
 
 The hosted POSIX workflow requires no external iPhoneOS SDK: Linux checks the missing-SDK gate and native fakeroot/Debian smoke, while macOS builds/runs a native tool using the runner's installed Xcode macOS SDK. These jobs must not be described as proof of iOS linking/signing on macOS/Linux. Protected opt-in jobs are configured for four target graphs and real rootful/rootless tweak packages; none has yet run. Attach successful real-runner results for any platform compatibility claim.
 
@@ -42,8 +44,8 @@ No Apple SDK is committed or redistributed. Public CI must not download, cache, 
 
 - The Windows end-to-end scope is currently a tweak package; other target types and device installation are not verified.
 - Rootful/rootless iOS package builds on macOS and Linux remain unverified until real SDK-capable runs are performed.
-- Public Actions results for the RC branch remain pending.
-- The `vendor/lib` commit must be published and fetchable before a public main-repository branch can use its gitlink.
+- Hosted Actions passed, but SDK-dependent CI coverage remains unexecuted.
+- The [library commit](https://github.com/Nokeew/lib/commit/300f9e005d2b358ad7da1cb5d96f2cfb7c98ec9a) is published in the fork. The RC submodule URL temporarily points to `Nokeew/lib`; restore `theos/lib` only after the required commit is available upstream.
 
 ## Publication order
 
