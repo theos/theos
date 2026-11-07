@@ -1,0 +1,167 @@
+name: POSIX host compatibility
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      run_sdk_e2e:
+        description: 'Run protected SDK checks on an operator-controlled runner'
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  posix-regression:
+    name: ${{ matrix.os }} regression
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install Linux build prerequisites
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install --yes make perl fakeroot dpkg-dev
+      - name: Check native commands
+        shell: bash
+        run: |
+          set -euxo pipefail
+          command -v make
+          command -v perl
+          command -v bash
+          python3 --version
+      - name: Validate POSIX SDK gate on Linux
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euxo pipefail
+          tmp="$(mktemp -d)"
+          trap 'rm -rf "$tmp"' EXIT
+          printf '%b\n' \
+            'TARGET := iphone:clang:latest:13.0' \
+            'include $(THEOS)/makefiles/common.mk' \
+            'TOOL_NAME := probe' \
+            'probe_FILES := probe.c' \
+            'include $(THEOS_MAKE_PATH)/tool.mk' > "$tmp/Makefile"
+          printf 'int main(void) { return 0; }\n' > "$tmp/probe.c"
+          if make -C "$tmp" --no-print-directory all THEOS="$PWD" >"$tmp/make.log" 2>&1; then
+            echo 'Expected SDK-free POSIX graph to reject a missing SDK.' >&2
+            exit 1
+          fi
+          grep -q 'You do not have any SDKs in' "$tmp/make.log"
+      - name: Build and run native macOS tool
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          trap 'rm -rf "$tmp"' EXIT
+          printf '%s\n' 'TARGET := macosx:clang:latest:13.0' 'include $(THEOS)/makefiles/common.mk' 'TOOL_NAME := probe' 'probe_FILES := probe.c' 'include $(THEOS_MAKE_PATH)/tool.mk' > "$tmp/Makefile"
+          printf 'int main(void) { return 0; }\n' > "$tmp/probe.c"
+          make -C "$tmp" all THEOS="$PWD" ARCHS="$(uname -m)" TARGET_CODESIGN=
+          binary="$(find "$tmp/.theos/obj" -type f -name probe -perm -111 -print -quit)"
+          test -n "$binary"
+          "$binary"
+      - name: Exercise Linux fakeroot and Debian packaging
+        if: runner.os == 'Linux'
+        shell: bash
+        run: bash tests/posix/package-smoke.sh
+      - name: Check POSIX package prerequisites and archive tools
+        shell: bash
+        run: |
+          set -euxo pipefail
+          command -v tar
+          command -v gzip
+          if [[ "$RUNNER_OS" == Linux ]]; then command -v dpkg-deb; fi
+
+  sdk-dependent-posix:
+    name: ${{ matrix.os }} SDK package E2E (opt-in)
+    if: ${{ inputs.run_sdk_e2e == true && github.ref == 'refs/heads/windows-port-rc' }}
+    environment: protected-sdk-e2e
+    permissions:
+      contents: read
+    runs-on: [self-hosted, "${{ matrix.runner_os }}", theos-sdk]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macOS
+            runner_os: macOS
+          - os: Linux
+            runner_os: Linux
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Require protected SDK and native toolchain
+        shell: bash
+        env:
+          THEOS_SDKROOT: ${{ secrets.THEOS_SDKROOT }}
+        run: |
+          set -euxo pipefail
+          test -n "$THEOS_SDKROOT"
+          test -f "$THEOS_SDKROOT/SDKSettings.plist"
+          test -d "$THEOS_SDKROOT/usr/include"
+          test -d "$THEOS_SDKROOT/usr/lib"
+          test -d "$THEOS_SDKROOT/System/Library/Frameworks"
+          command -v fakeroot
+          command -v clang
+          command -v clang++
+          command -v perl
+          command -v ldid
+          if [[ "$RUNNER_OS" == Linux ]]; then
+            : "${SDKBINPATH:?Provision a complete Theos iOS cross-toolchain on the protected runner}"
+            for tool in clang clang++ ld strip lipo; do test -x "$SDKBINPATH/$tool"; done
+          fi
+      - name: Build and verify rootful and rootless tweak packages
+        shell: bash
+        env:
+          THEOS: ${{ github.workspace }}
+          THEOS_SDKROOT: ${{ secrets.THEOS_SDKROOT }}
+          IOS_SDK_ROOT: ${{ secrets.THEOS_SDKROOT }}
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          trap 'rm -rf "$tmp"' EXIT
+          sdkname="$(basename "$THEOS_SDKROOT")"
+          case "$sdkname" in iPhoneOS*.sdk) ;; *) echo 'SDK path must end in iPhoneOS<version>.sdk' >&2; exit 1 ;; esac
+          sdkversion="${sdkname#iPhoneOS}"
+          sdkversion="${sdkversion%.sdk}"
+          [[ "$sdkversion" =~ ^[0-9]+(\.[0-9]+)*$ ]]
+          mkdir "$tmp/sdks"
+          ln -s "$THEOS_SDKROOT" "$tmp/sdks/$sdkname"
+          cp -R tests/windows/logos-tweak "$tmp/tweak"
+          fixture="$tmp/tweak"
+          signer="$(command -v ldid)"
+          export THEOS_SDKS_PATH="$tmp/sdks"
+          common=("THEOS_SDKS_PATH=$THEOS_SDKS_PATH" "SYSROOT=$THEOS_SDKROOT" "ISYSROOT=$THEOS_SDKROOT" "TARGET_CODESIGN=$signer" "TARGET_CODESIGN_FLAGS=-S" "THEOS_PLATFORM_DEB_COMPRESSION_TYPE=gzip")
+          if [[ "$RUNNER_OS" == Linux ]]; then common+=("SDKBINPATH=$SDKBINPATH"); fi
+          bash tests/posix/target-parse-smoke.sh
+          make -C "$fixture" package FINALPACKAGE=1 "${common[@]}"
+          rootful="$(find "$fixture/packages" -maxdepth 1 -name '*.deb' -print -quit)"
+          test -n "$rootful"
+          python3 tests/posix/verify-package.py "$rootful" --ldid "$signer" --scheme rootful
+          make -C "$fixture" clean "${common[@]}"
+          rm -rf "$fixture/packages"
+          make -C "$fixture" package FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless "${common[@]}"
+          rootless="$(find "$fixture/packages" -maxdepth 1 -name '*.deb' -print -quit)"
+          test -n "$rootless"
+          python3 tests/posix/verify-package.py "$rootless" --ldid "$signer" --scheme rootless
+      - name: Assert no SDK or package artifacts remain in checkout
+        shell: bash
+        run: |
+          set -euxo pipefail
+          if git status --porcelain --untracked-files=all | grep -E '(^|[[:space:]])sdks/|\.deb$'; then
+            echo 'SDK/package artifact appeared in the checkout.' >&2
+            exit 1
+          fi
+
+# This opt-in job requires compliant self-hosted runners. Never copy the Apple SDK into
+# the checkout, cache it, or upload it as an artifact.

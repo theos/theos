@@ -3,6 +3,13 @@ name: Windows host compatibility
 on:
   push:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      run_sdk_e2e:
+        description: 'Run protected Windows SDK rootful/rootless E2E on a self-hosted runner'
+        required: true
+        default: false
+        type: boolean
 
 jobs:
   helper-and-make:
@@ -17,8 +24,12 @@ jobs:
       - name: Install 7-Zip and GNU Make
         shell: pwsh
         run: |
-          winget install --id 7zip.7zip --exact --scope user --accept-source-agreements --accept-package-agreements --silent
-          winget install --id ezwinports.make --exact --scope user --accept-source-agreements --accept-package-agreements --silent
+          choco install 7zip make --yes --no-progress
+          if ($LASTEXITCODE -ne 0) { throw 'Chocolatey prerequisite installation failed.' }
+          $sevenZip = Join-Path $env:ProgramFiles '7-Zip'
+          $env:PATH = "$sevenZip;$env:PATH"
+          Add-Content -LiteralPath $env:GITHUB_PATH -Value $sevenZip
+          Get-Command 7z.exe, make.exe -ErrorAction Stop
       - name: Install verified portable LLVM and Strawberry Perl
         shell: pwsh
         run: .\bin\install-windows-toolchain.ps1 -PackageManager full-official -AddToUserPath
@@ -45,3 +56,29 @@ jobs:
         run: |
           $env:THEOS = (Get-Location).Path
           make -C tests/windows/project -n all THEOS=$env:THEOS THEOS_WINDOWS_ALLOW_NO_SDK=1 THEOS_LLVM_BIN=$env:THEOS_LLVM_BIN
+
+  sdk-dependent-e2e:
+    name: Windows SDK E2E (opt-in)
+    if: ${{ inputs.run_sdk_e2e == true && github.ref == 'refs/heads/windows-port-rc' }}
+    environment: protected-sdk-e2e
+    permissions:
+      contents: read
+    runs-on: [self-hosted, Windows, theos-sdk]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Require protected SDK and toolchain
+        shell: pwsh
+        run: |
+          if (-not $env:THEOS_SDKROOT) { throw 'THEOS_SDKROOT must be configured on the protected runner.' }
+          if (-not (Test-Path (Join-Path $env:THEOS_SDKROOT 'SDKSettings.plist'))) { throw 'Protected SDK is incomplete.' }
+          if (-not $env:THEOS_LDID) { throw 'THEOS_LDID must be configured on the protected runner.' }
+      - name: Run rootful and rootless SDK E2E
+        shell: pwsh
+        run: .\bin\test-windows-e2e.ps1 -TheosPath $env:GITHUB_WORKSPACE
+      - name: Assert no SDK or package artifacts are tracked
+        shell: pwsh
+        run: |
+          $tracked = git status --porcelain --untracked-files=all
+          if ($tracked -match '(^|\s)sdks/|\.deb$') { throw 'SDK/package artifact appeared in the checkout.' }
