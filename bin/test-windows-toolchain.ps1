@@ -52,9 +52,9 @@ if ($SdkRoot) {
     if ($LASTEXITCODE -ne 0) { throw 'Linked output did not validate as an ARM Mach-O dylib.' }
     Write-Host "PASS: linked real Mach-O dylib: $probeDylib"
 
-    $ldid = if ($Ldid) { Get-Command $Ldid -ErrorAction SilentlyContinue } else { Get-Command ldid.exe,ldid -ErrorAction SilentlyContinue | Select-Object -First 1 }
-    if ($ldid) {
-        $ldidPath = if ($ldid.Source) { $ldid.Source } else { $ldid }
+    $ldidCommand = if ($Ldid) { Get-Command $Ldid -ErrorAction SilentlyContinue } else { Get-Command ldid.exe,ldid -ErrorAction SilentlyContinue | Select-Object -First 1 }
+    if ($ldidCommand) {
+        $ldidPath = if ($ldidCommand.Source) { $ldidCommand.Source } else { $ldidCommand.FullName }
         & $ldidPath -S $probeDylib
         if ($LASTEXITCODE -ne 0) { throw 'ldid failed to sign the real Mach-O probe dylib.' }
         & $ldidPath -e $probeDylib *> $null
@@ -68,9 +68,9 @@ if ($SdkRoot) {
 }
 
 if (-not $SdkRoot) {
-    $ldid = if ($Ldid) { Get-Command $Ldid -ErrorAction SilentlyContinue } else { Get-Command ldid.exe,ldid -ErrorAction SilentlyContinue | Select-Object -First 1 }
-    if ($ldid) {
-        $ldidPath = if ($ldid.Source) { $ldid.Source } else { $ldid }
+    $ldidCommand = if ($Ldid) { Get-Command $Ldid -ErrorAction SilentlyContinue } else { Get-Command ldid.exe,ldid -ErrorAction SilentlyContinue | Select-Object -First 1 }
+    if ($ldidCommand) {
+        $ldidPath = if ($ldidCommand.Source) { $ldidCommand.Source } else { $ldidCommand.FullName }
         $signProbe = Join-Path $OutputDirectory 'probe-no-sdk.dylib'
         if (-not (Test-Path $signProbe)) { throw "Expected linker probe missing for ldid test: $signProbe" }
         & $ldidPath -S $signProbe

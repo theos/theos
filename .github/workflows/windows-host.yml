@@ -50,7 +50,10 @@ jobs:
           if ($errors.Count) { $errors | ForEach-Object Message; exit 1 }
       - name: Run native ARM64 Mach-O object, linker, and signing probes
         shell: pwsh
-        run: .\bin\test-windows-toolchain.ps1 -Clang (Join-Path $env:THEOS_LLVM_BIN 'clang.exe') -Linker $env:THEOS_LD64_LLD -Ldid $env:THEOS_LDID
+        run: |
+          $env:PATH = (($env:PATH -split ';') | Where-Object { $_ -ne (Split-Path -Parent $env:THEOS_LDID) }) -join ';'
+          .\bin\test-windows-toolchain.ps1 -Clang (Join-Path $env:THEOS_LLVM_BIN 'clang.exe') -Linker $env:THEOS_LD64_LLD -Ldid $env:THEOS_LDID
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Dry-run original Theos Windows tool recipe graph
         shell: pwsh
         run: |
