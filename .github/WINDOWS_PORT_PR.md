@@ -19,9 +19,19 @@ On Windows, the platform makefile selects helper-backed operations for paths, fi
 - Windows installation, build, troubleshooting and progress documentation; README Windows status.
 - `vendor/lib` gitlink to the TBD migration commit.
 
-## TBD migration
+## TBD compatibility proposal (revision after maintainer feedback)
 
-`ld64.lld` treats legacy TBD v1 stubs beginning with an untagged `---` as an unknown file type. Twenty-nine stub files were migrated to TBD v3 using an explicit tag and otherwise preserving their `archs`/`platform` body. `Cycript.framework/Cycript.tbd` uses v4 `targets:` because its device and simulator architecture set cannot be represented compatibly by the v3 form. The two `libsubstrate.tbd` paths are symlink aliases and inherit the CydiaSubstrate fix.
+Kirb explained that canonical TBD v1 files intentionally support older toolchains. The original in-place migration was rejected as-is. The revised library proposal at `5d8bf04b94f0c2f8fa675fa01729230c46229d47` restores every canonical file to upstream baseline `6f2af307568e6b8c52181d26314b0cd69ffaf188`; its net diff adds only `tbd/`. This layout is not yet approved by maintainers; both PRs remain drafts.
+
+The optional `tbd/modern` linker-only overlay contains 39 stubs requiring both v3 and v4 capability. Twenty-nine v1 stubs gain explicit v3 tags in the overlay, while Cycript uses explicit v4 device/simulator targets. Existing v3/v4 stubs are included, and the two libsubstrate aliases are regular copies to work with Windows clones that disable symlinks. Canonical headers, modules and binary archives stay in their original paths.
+
+The Windows iPhone consumer probes the per-instance `TARGET_LD` (including clang++ selection) for v1/v3/v4 support using SDK-independent ARM64 links. This implementation is intentionally limited to the configured clang/LLD path, rejects custom linker-selection flags, and does not claim support for arbitrary Windows legacy linkers. The probe runs only during instance compile, excluding static subprojects; compile dry-runs still run probes. A v1-capable configured driver retains canonical paths, while a modern-only driver must pass both v3/v4 probes and overlay completeness checks. The link-only overlay is inserted immediately before the canonical vendor slot, after private framework paths; compilation and POSIX search paths remain unchanged. A legacy Windows checkout with nonfunctional text aliases fails with a symlink configuration diagnostic.
+
+Local revised-prototype evidence: 51 tests passed without skips; real rootful/rootless signed package verification passed with the external user SDK; Objective-C++ rootful/rootless package builds passed; both `-lsubstrate` and `-framework CydiaSubstrate` linked with correct scheme-specific install names. A separate local library clone with `core.symlinks=false` selected modern for both schemes and remained clean. All 39 overlay stubs retain the compared install names and symbol sets; this is not a full ABI or all-architecture compatibility proof. Old Apple/cctools linkers, all Cycript architecture/platform combinations, revised public recursive clone and revised hosted CI are not yet verified.
+
+## Historical test results (before compatibility revision)
+
+The results below establish the earlier Windows implementation only; they do not validate the revised overlay or selector.
 
 ## Test results
 
@@ -45,11 +55,11 @@ No Apple SDK is committed or redistributed. Public CI must not download, cache, 
 - The Windows end-to-end scope is currently a tweak package; other target types and device installation are not verified.
 - Rootful/rootless iOS package builds on macOS and Linux remain unverified until real SDK-capable runs are performed.
 - Hosted Actions passed, but SDK-dependent CI coverage remains unexecuted.
-- The [library commit](https://github.com/Nokeew/lib/commit/300f9e005d2b358ad7da1cb5d96f2cfb7c98ec9a) is published in the fork. The RC submodule URL temporarily points to `Nokeew/lib`; restore `theos/lib` only after the required commit is available upstream.
+- The original library commit is public in the fork but was rejected as-is; the replacement overlay commit is published in the fork for draft review. The RC submodule URL temporarily points to `Nokeew/lib`; restore `theos/lib` only after an agreed replacement commit is available upstream.
 
 ## Publication order
 
-1. Publish `vendor/lib` commit `300f9e005d2b358ad7da1cb5d96f2cfb7c98ec9a` to an approved remote/branch.
+1. Publish revised `vendor/lib` commit `5d8bf04b94f0c2f8fa675fa01729230c46229d47` to the fork RC branch (done); do not restore the upstream URL before an agreed commit is available there.
 2. Confirm a fresh public recursive clone checks out that exact commit.
 3. Publish the main RC branch and collect Windows/macOS/Linux workflow URLs.
 4. Submit the main PR only after the required platform results are attached and the repository owner approves publication.

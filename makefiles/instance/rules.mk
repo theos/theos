@@ -219,6 +219,36 @@ ALL_SWIFTFLAGS = $(_THEOS_INTERNAL_SWIFTCOLORFLAGS) $(foreach flag,$(ALL_CFLAGS)
 ALL_ORIONFLAGS = $(_THEOS_INTERNAL_ORIONFLAGS) $(ADDITIONAL_ORIONFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,ORIONFLAGS) $(call __schema_var_all,,ORIONFLAGS)
 ALL_LOGOSFLAGS = $(_THEOS_INTERNAL_LOGOSFLAGS) $(ADDITIONAL_LOGOSFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,LOGOSFLAGS) $(call __schema_var_all,,LOGOSFLAGS)
 
+ifeq ($(OS),Windows_NT)
+ifeq ($(THEOS_TARGET_NAME),iphone)
+ifeq ($(_THEOS_CURRENT_OPERATION),compile)
+ifneq ($(_THEOS_CURRENT_TYPE),subproject)
+# Probe the actual per-instance driver (including the ObjC++ override above).
+# Only the built-in LLD selection has a tested capability probe; custom linker
+# selection is rejected rather than classified using a different linker.
+ifeq ($(filter -fuse-ld=lld,$(_THEOS_TARGET_LDFLAGS)),)
+$(error Windows TBD selection currently requires the configured clang/LLD driver)
+endif
+_THEOS_WINDOWS_USER_LINK_FLAGS := $(_THEOS_INTERNAL_LDFLAGS) $(ADDITIONAL_LDFLAGS) $(ALL_ARCHFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,LDFLAGS) $(call __schema_var_all,,LDFLAGS) $(filter-out -fuse-ld=lld,$(_THEOS_TARGET_LDFLAGS))
+ifneq ($(filter -fuse-ld% --ld-path% -B% @% -Xclang%,$(_THEOS_WINDOWS_USER_LINK_FLAGS)),)
+$(error Custom linker selection flags are unsupported by the Windows TBD selector)
+endif
+_THEOS_WINDOWS_TBD_PROFILE := $(shell $(_THEOS_WINDOWS_PYTHON) "$(THEOS_BIN_PATH)/select-windows-tbd.py" --clang "$(TARGET_LD)" --library "$(THEOS_VENDOR_LIBRARY_PATH)" --scheme "$(THEOS_PACKAGE_SCHEME)")
+ifeq ($(filter legacy modern,$(_THEOS_WINDOWS_TBD_PROFILE)),)
+$(error The selected Windows link driver failed the TBD capability probe)
+endif
+ifeq ($(_THEOS_WINDOWS_TBD_PROFILE),modern)
+ifeq ($(THEOS_PACKAGE_SCHEME),)
+override _THEOS_WINDOWS_TBD_PATH := $(THEOS_VENDOR_LIBRARY_PATH)/tbd/modern
+else
+override _THEOS_WINDOWS_TBD_PATH := $(THEOS_VENDOR_LIBRARY_PATH)/tbd/modern/$(THEOS_TARGET_NAME)/$(THEOS_PACKAGE_SCHEME)
+endif
+endif
+endif
+endif
+endif
+endif
+
 ALL_LDFLAGS = $(_THEOS_INTERNAL_COLORFLAGS) $(_THEOS_INTERNAL_LDFLAGS) $(ADDITIONAL_LDFLAGS) $(_THEOS_TARGET_LDFLAGS) $(ALL_ARCHFLAGS) $(call __schema_var_all,$(THEOS_CURRENT_INSTANCE)_,LDFLAGS) $(call __schema_var_all,,LDFLAGS)
 
 ifneq ($(TARGET_CODESIGN),)

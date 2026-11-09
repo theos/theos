@@ -245,6 +245,9 @@ else
 _THEOS_PACKAGE_LAST_FILENAME = $(call __simplify,_THEOS_PACKAGE_LAST_FILENAME,$(shell cat "$(_THEOS_LOCAL_DATA_DIR)/last_package" 2>/dev/null))
 endif
 
+# Do not inherit a prior instance's linker overlay selection.
+override _THEOS_WINDOWS_TBD_PATH :=
+unexport _THEOS_WINDOWS_TBD_PATH
 _THEOS_INTERNAL_SEARCHPATHS := $(TARGET_PRIVATE_FRAMEWORK_PATH)
 ifeq ($(THEOS_PACKAGE_SCHEME),)
 _THEOS_INTERNAL_SEARCHPATHS += \
@@ -256,7 +259,7 @@ _THEOS_INTERNAL_SEARCHPATHS += \
 	$(THEOS_VENDOR_LIBRARY_PATH)/$(THEOS_TARGET_NAME)/$(THEOS_PACKAGE_SCHEME) \
 	$(THEOS_LIBRARY_PATH)/$(THEOS_TARGET_NAME)/$(THEOS_PACKAGE_SCHEME)
 endif
-_THEOS_INTERNAL_LDFLAGS = $(foreach path,$(_THEOS_INTERNAL_SEARCHPATHS),$(if $(call __exists,$(path)),-L$(path) -F$(path))) $(DEBUGFLAG)
+_THEOS_INTERNAL_LDFLAGS = $(foreach path,$(_THEOS_INTERNAL_SEARCHPATHS),$(if $(and $(_THEOS_WINDOWS_TBD_PATH),$(filter $(THEOS_VENDOR_LIBRARY_PATH)%,$(path))),-L"$(_THEOS_WINDOWS_TBD_PATH)" -F"$(_THEOS_WINDOWS_TBD_PATH)") $(if $(call __exists,$(path)),-L$(path) -F$(path))) $(DEBUGFLAG)
 
 DEBUGFLAG ?= -ggdb
 SWIFT_DEBUGFLAG ?= -g

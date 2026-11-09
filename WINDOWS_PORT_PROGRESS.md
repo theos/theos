@@ -1,6 +1,10 @@
 # Native Windows Theos Port Progress
 
-## Current public PR verification (2026-11-07)
+## Review feedback and local prototype (2026-11-09)
+
+Kirb rejected the published library migration as-is because the v1 TBD format is intentional for older supported toolchains. Both PRs are drafts and still reference the rejected migration; the code has not yet been updated. The objection was acknowledged in https://github.com/theos/lib/pull/26#issuecomment-6741247770 and a layout preference was requested. Do not treat the public library PR as merge-ready. Library commit `5d8bf04b94f0c2f8fa675fa01729230c46229d47`, published to the fork draft branch, restores the canonical tree and proposes a separate v3/v4 linker-only overlay; the main checkout changes remain uncommitted; maintainer agreement, legacy-linker tests, complete driver/flag handling, and clean-clone/hosted CI verification remain outstanding. The Windows ARM64 rootful/rootless E2E succeeded with this prototype, and Objective-C++ rootful/rootless package builds also succeeded. The expanded Windows suite passed 51 tests without skips with the installed toolchain, including real Make integration checks. A separate local clone of the new library commit with `core.symlinks=false` selected modern for both schemes, retained a clean worktree, and the regular overlay aliases match their framework stubs. Negative checks rejected a missing TARGET_LD, custom --ld-path, injected internal -fuse-ld and architecture -B flags, while top-level clean tolerated the missing driver. The current selector intentionally requires the configured clang/LLD path; it does not support arbitrary legacy Windows linkers. Probe selection is now limited to instance compile operations excluding static subprojects; instance stage with a missing link driver passed a real Make dry-run. Compile dry-runs still execute capability probes. General effective-command handling remains deliberately restricted to the configured clang/LLD driver. These checks do not establish compatibility of every toolchain or Cycript target.
+
+## Previous public PR verification (2026-11-07)
 
 Earlier rounds below are historical milestones, not current publication/CI status.
 

@@ -593,10 +593,10 @@ class WindowsHelperTests(unittest.TestCase):
             self.assertEqual((entry.uname, entry.gname), ("root", "wheel"))
             self.assertEqual(entry.mode & 0o777, 0o644)
 
-    def test_tbd_stubs_carry_an_explicit_tapi_tag(self):
-        # ld64.lld refuses TBD v1 with "unhandled file type"; a bare '---' document
-        # made every default-generator tweak fail to link (rootless included).
-        stubs = sorted((ROOT / "vendor" / "lib").rglob("*.tbd"))
+    def test_modern_tbd_overlay_keeps_legacy_stubs(self):
+        library = ROOT / "vendor" / "lib"
+        self.assertEqual((library / "CydiaSubstrate.framework" / "CydiaSubstrate.tbd").read_text().splitlines()[0], "---")
+        stubs = sorted((library / "tbd" / "modern").rglob("*.tbd"))
         self.assertGreater(len(stubs), 0)
         untagged = [
             str(stub.relative_to(ROOT))
