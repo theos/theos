@@ -1,0 +1,278 @@
+$ErrorActionPreference = "Stop"
+$root = "aim"
+New-Item -ItemType Directory -Force -Path "$root\src","$root\.github\workflows" | Out-Null
+function W($p, $c) { [IO.File]::WriteAllText((Join-Path $root $p), $c, (New-Object Text.UTF8Encoding($false))) }
+
+W "Makefile" @'
+TARGET := iphone:clang:latest:13.0
+ARCHS = arm64 arm64e
+LIBRARY_NAME = HeadAim
+HeadAim_FILES = src/Aim.mm
+HeadAim_CFLAGS = -fobjc-arc
+HeadAim_FRAMEWORKS = UIKit QuartzCore
+include $(THEOS)/makefiles/common.mk
+include $(THEOS_MAKE_PATH)/library.mk
+'@
+
+W "control" @'
+Package: com.xeno.headaim
+Name: HeadAim
+Version: 0.1
+Architecture: iphoneos-arm
+Description: head aim
+Maintainer: xeno
+'@
+
+W ".github\workflows\build.yml" @'
+name: build
+on: workflow_dispatch
+jobs:
+  dylib:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          brew install ldid xz
+          git clone --recursive https://github.com/theos/theos.git "$HOME/theos"
+          echo "THEOS=$HOME/theos" >> "$GITHUB_ENV"
+      - run: make FINALPACKAGE=1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aim
+          path: .theos/obj/**/*.dylib
+'@
+
+W "src\Aim.mm" @'
+#import <UIKit/UIKit.h>
+#import <dlfcn.h>
+#import <math.h>
+
+// ---- ajustes ----
+#define FOV_DEG      30.f   // cono de enganche, en grados
+#define MAX_DIST     150.f  // metros maximos
+#define VISIBLE_ONLY 1      // solo objetivos con linea de vision
+#define HEAD_LIFT    0.02f  // compensacion de caida del proyectil
+#define CROUCH_DROP  0.4f   // correccion si el objetivo esta agachado
+
+typedef struct { float x, y, z; } Vec3;
+typedef struct { float x, y, z, w; } Quat;
+typedef void Klass; typedef void FInfo; typedef void MInfo;
+
+static void* (*p_class)(void*, const char*, const char*);
+static FInfo* (*p_field)(Klass*, const char*);
+static int (*p_off)(FInfo*);
+static MInfo* (*p_method)(Klass*, const char*, int);
+static void* (*p_dom)();
+static void* (*p_asms)(void*, size_t*);
+static void* (*p_img)(void*);
+static const char* (*p_imgname)(void*);
+static void (*p_attach)(void*);
+
+static void* (*g_match)();
+static void* (*g_local)(void*);
+static void* (*g_byindex)(void*, uint8_t);
+static bool (*g_firing)(void*);
+static bool (*g_visible)(void*);
+static bool (*g_islocal)(void*);
+static bool (*g_isteam)(void*, void*);
+static bool (*g_dieing)(void*);
+static bool (*g_crouch)(void*);
+static int  (*g_hp)(void*);
+static void (*g_setaim)(void*, Quat);
+static void* (*g_gethead)(void*);
+static void* (*g_gettf)(void*);
+static Vec3 (*g_getpos)(void*);
+static void* (*g_camera)();
+static int g_offHead = -1, g_offHip = -1;
+
+static UILabel* gLabel;
+static bool g_ready = false;
+
+static void say(NSString* s) {
+  NSLog(@"[headaim] %@", s);
+  dispatch_async(dispatch_get_main_queue(), ^{ if (gLabel) gLabel.text = s; });
+}
+
+// ---- vectores ----
+static inline Vec3 vsub(Vec3 a, Vec3 b) { return (Vec3){a.x-b.x, a.y-b.y, a.z-b.z}; }
+static inline float vlen(Vec3 a) { return sqrtf(a.x*a.x + a.y*a.y + a.z*a.z); }
+static inline Vec3 vnorm(Vec3 a) { float l = vlen(a); return l > 1e-5f ? (Vec3){a.x/l,a.y/l,a.z/l} : (Vec3){0,0,1}; }
+static inline float vdot(Vec3 a, Vec3 b) { return a.x*b.x + a.y*b.y + a.z*b.z; }
+static inline Vec3 vcross(Vec3 a, Vec3 b) { return (Vec3){a.y*b.z-a.z*b.y, a.z*b.x-a.x*b.z, a.x*b.y-a.y*b.x}; }
+
+static Quat lookAt(Vec3 from, Vec3 to) {
+  Vec3 f = vnorm(vsub(to, from));
+  Vec3 r = vnorm(vcross((Vec3){0,1,0}, f));
+  Vec3 u = vcross(f, r);
+  float tr = r.x + u.y + f.z; Quat q;
+  if (tr > 0) { float s = sqrtf(tr+1.f)*2.f; q.w=.25f*s; q.x=(u.z-f.y)/s; q.y=(f.x-r.z)/s; q.z=(r.y-u.x)/s; }
+  else if (r.x > u.y && r.x > f.z) { float s = sqrtf(1.f+r.x-u.y-f.z)*2.f; q.w=(u.z-f.y)/s; q.x=.25f*s; q.y=(u.x+r.y)/s; q.z=(f.x+r.z)/s; }
+  else if (u.y > f.z) { float s = sqrtf(1.f+u.y-r.x-f.z)*2.f; q.w=(f.x-r.z)/s; q.x=(u.x+r.y)/s; q.y=.25f*s; q.z=(u.z+f.y)/s; }
+  else { float s = sqrtf(1.f+f.z-r.x-u.y)*2.f; q.w=(r.y-u.x)/s; q.x=(f.x+r.z)/s; q.y=(u.z+f.y)/s; q.z=.25f*s; }
+  return q;
+}
+
+// ---- il2cpp ----
+static void* img(void) {
+  static void* c = nullptr;
+  if (c) return c;
+  void* d = p_dom ? p_dom() : nullptr;
+  if (!d) return nullptr;
+  size_t n = 0; void** a = (void**)p_asms(d, &n);
+  for (size_t i = 0; i < n && a; i++) {
+    void* im = p_img(a[i]); if (!im) continue;
+    const char* nm = p_imgname(im);
+    if (nm && (strstr(nm, "Assembly-CSharp") || strstr(nm, "GameAssembly"))) { c = im; break; }
+  }
+  return c;
+}
+
+static Klass* kls(const char* n) { void* i = img(); return (i && p_class) ? p_class(i, "", n) : nullptr; }
+
+static void* fn(const char* k, const char* m, int argc) {
+  Klass* c = kls(k); if (!c) { say([NSString stringWithFormat:@"falta clase %s", k]); return nullptr; }
+  MInfo* mi = p_method(c, m, argc);
+  if (!mi) { say([NSString stringWithFormat:@"falta %s.%s", k, m]); return nullptr; }
+  return *(void**)mi;
+}
+
+static int foff(const char* k, const char* const* cd, int n) {
+  Klass* c = kls(k); if (!c) return -1;
+  for (int i = 0; i < n; i++) { FInfo* f = p_field(c, cd[i]); if (f) return p_off(f); }
+  return -1;
+}
+
+static bool resolve(void) {
+  p_class   = (void*)dlsym(RTLD_DEFAULT, "il2cpp_class_from_name");
+  p_field   = (void*)dlsym(RTLD_DEFAULT, "il2cpp_class_get_field_from_name");
+  p_off     = (void*)dlsym(RTLD_DEFAULT, "il2cpp_field_get_offset");
+  p_method  = (void*)dlsym(RTLD_DEFAULT, "il2cpp_class_get_method_from_name");
+  p_dom     = (void*)dlsym(RTLD_DEFAULT, "il2cpp_domain_get");
+  p_asms    = (void*)dlsym(RTLD_DEFAULT, "il2cpp_domain_get_assemblies");
+  p_img     = (void*)dlsym(RTLD_DEFAULT, "il2cpp_assembly_get_image");
+  p_imgname = (void*)dlsym(RTLD_DEFAULT, "il2cpp_image_get_name");
+  p_attach  = (void*)dlsym(RTLD_DEFAULT, "il2cpp_thread_attach");
+
+  if (!p_class || !p_method || !p_asms) { say(@"il2cpp no exportado (IPA cifrado?)"); return false; }
+  void* d = p_dom ? p_dom() : nullptr;
+  if (!d) { say(@"dominio il2cpp no listo"); return false; }
+  if (p_attach) p_attach(d);
+
+  g_match    = fn("GameFacade", "CurrentMatch", 0);
+  g_local    = fn("Match", "GetLocalPlayer", 0);
+  g_byindex  = fn("Match", "getPlayerByIndex", 1);
+  g_firing   = fn("Player", "IsFiring", 0);
+  g_visible  = fn("Player", "IsVisible", 0);
+  g_islocal  = fn("Player", "IsLocalPlayer", 0);
+  g_isteam   = fn("Player", "IsLocalTeammate", 1);
+  g_dieing   = fn("Player", "get_IsDieing", 0);
+  g_crouch   = fn("Player", "IsCrouching", 0);
+  g_hp       = fn("Player", "get_CurHP", 0);
+  g_setaim   = fn("Player", "SetAimRotation", 1);
+  g_gethead  = fn("Player", "GetHead", 0);
+  g_gettf    = fn("Component", "get_transform", 0);
+  g_getpos   = fn("Transform", "get_position", 0);
+  g_camera   = fn("Camera", "get_main", 0);
+
+  static const char* hf[] = { "m_Head", "Head", "m_HeadTransform" };
+  static const char* pf[] = { "m_Hip", "Hip", "m_HipTransform" };
+  g_offHead = foff("Player", hf, 3);
+  g_offHip  = foff("Player", pf, 3);
+
+  bool ok = g_setaim && g_getpos && g_camera && g_byindex && g_match && g_local;
+  say(ok ? (g_offHead >= 0 ? @"OK cabeza por campo" : @"OK con fallback cadera") : @"resolve FAILED");
+  return ok;
+}
+
+static bool headOf(void* p, Vec3* out) {
+  void* tf = nullptr;
+  if (g_offHead >= 0) tf = *(void**)((uint8_t*)p + g_offHead);
+  if (!tf && g_gethead) tf = g_gethead(p);
+  if (tf) { *out = g_getpos(tf); return true; }
+  if (g_offHip >= 0) {
+    void* h = *(void**)((uint8_t*)p + g_offHip);
+    if (h) { *out = g_getpos(h); out->y += 0.55f; return true; }
+  }
+  return false;
+}
+
+static void tick(void) {
+  if (!g_ready) return;
+  void* m = g_match ? g_match() : nullptr;
+  if (!m) return;
+  void* lp = g_local ? g_local(m) : nullptr;
+  if (!lp) return;
+  void* cam = g_camera ? g_camera() : nullptr;
+  if (!cam) return;
+
+  Vec3 eye = g_getpos(g_gettf(cam));
+  Vec3 fwd = vnorm(vsub(g_getpos(g_gettf(cam)), eye));
+
+  void* best = nullptr; Vec3 bh = {0}; float bd = 1e9f;
+  for (int i = 0; i <= 50; i++) {
+    void* p = g_byindex(m, (uint8_t)i);
+    if (!p || (g_islocal && g_islocal(p)) || (g_dieing && g_dieing(p))) continue;
+    if (g_isteam && g_isteam(lp, p)) continue;
+    if (g_hp && g_hp(p) <= 0) continue;
+#if VISIBLE_ONLY
+    if (g_visible && !g_visible(p)) continue;
+#endif
+    Vec3 h; if (!headOf(p, &h)) continue;
+    float d = vlen(vsub(h, eye));
+    if (d > MAX_DIST) continue;
+    float ang = acosf(fmaxf(-1.f, fminf(1.f, vdot(vnorm(vsub(h, eye)), fwd)))) * 57.2958f;
+    if (ang > FOV_DEG) continue;
+    if (d < bd) { bd = d; best = p; bh = h; }
+  }
+  if (!best) return;
+  if (g_crouch && g_crouch(best)) bh.y -= CROUCH_DROP;
+  bh.y += HEAD_LIFT;
+  if (g_firing && g_firing(lp)) g_setaim(lp, lookAt(eye, bh));
+}
+
+@interface AimLoop : NSObject
+@end
+@implementation AimLoop
+- (void)t { tick(); }
+@end
+
+@interface AimVC : UIViewController
+@end
+@implementation AimVC
+- (void)viewDidLoad {
+  [super viewDidLoad];
+  self.view.backgroundColor = UIColor.clearColor;
+  self.view.userInteractionEnabled = NO;
+  gLabel = [[UILabel alloc] initWithFrame:CGRectMake(8, 60, 260, 16)];
+  gLabel.font = [UIFont monospacedSystemFontOfSize:9 weight:UIFontWeightRegular];
+  gLabel.textColor = UIColor.greenColor;
+  gLabel.text = @"headaim boot";
+  [self.view addSubview:gLabel];
+}
+@end
+
+__attribute__((constructor)) static void entry(void) {
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 6ull * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+    static UIWindow* w; w = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
+    w.windowLevel = UIWindowLevelAlert + 1;
+    w.backgroundColor = UIColor.clearColor;
+    w.rootViewController = [AimVC new];
+    w.hidden = NO;
+
+    int tries = 0;
+    while (!resolve() && ++tries < 12) sleep(2);
+    if (tries >= 12) { say(@"sin il2cpp, revisa el IPA"); return; }
+    g_ready = true;
+    static AimLoop* lp; lp = [AimLoop new];
+    CADisplayLink* l = [CADisplayLink displayLinkWithTarget:lp selector:@selector(t)];
+    [l addToRunLoop:NSRunLoop.mainRunLoop forMode:NSRunLoopCommonModes];
+  });
+}
+'@
+
+cd $root
+git init | Out-Null
+git add -A
+git commit -m "head aim" | Out-Null
+git branch -M main
+gh repo create headaim --private --source=. --push
