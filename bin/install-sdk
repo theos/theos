@@ -29,7 +29,7 @@ if [[ $# -ne 1 ]]; then
 	exit 2
 fi
 
-if ! printf '%s\0' "${sdks[@]}" | grep -F -x -z -- "${1}"; then
+if ! printf '%s\n' "${sdks[@]}" | grep -F -x -- "$1" >/dev/null; then
 	echo "ERROR: we do not currently provide $1.sdk!" >&2
 	exit 3
 fi
